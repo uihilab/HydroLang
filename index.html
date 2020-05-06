@@ -1,0 +1,23 @@
+
+<html>
+   <head>
+		<script type="module" onload="initHydrolang()" src="./hydrolang/hydrolang.js"></script>
+   </head>
+   <body>
+    	<script>
+			function initHydrolang() {
+				// configure hydrolang - this is optional, if user does not provide a config,
+				// we'll just use the default values
+				const config = {
+				  metricSystem: "SI",
+				  mapType: 'Google',
+				}
+
+				Hydrolang.setConfig(config);
+
+				// An example usage
+				console.log(Hydrolang.Data("USGS").getCurrentWeather("Iowa City"));
+			}
+		 </script>
+   </body>
+</html>
