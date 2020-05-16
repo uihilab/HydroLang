@@ -1,5 +1,9 @@
 import * as lang from './lang.js';
 
+// This import is encapsulated within this module,
+// and will not affect the hosting application.
+import $ from './modules/jquery.js';
+
 class hydro {
     constructor() {
     	// put all the default values here
