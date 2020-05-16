@@ -1,7 +1,7 @@
 
 <html>
    <head>
-		<script type="module" onload="initHydrolang()" src="./hydrolang/hydrolang.js"></script>
+		<script type="module" onload="initHydrolang()" src="./hydrolang/hydro.js"></script>
    </head>
    <body>
     	<script>
@@ -13,10 +13,16 @@
 				  mapType: 'Google',
 				}
 
-				Hydrolang.setConfig(config);
+				const modules = {
+				  chartjs: true,
+				}
+
+				hydro1 = new hydro();
+				hydro1.setConfig(config);
 
 				// An example usage
-				console.log(Hydrolang.Data("USGS").getCurrentWeather("Iowa City"));
+				console.log(hydro1.lang.data.transform({},{}));
+
 			}
 		 </script>
    </body>

@@ -1,0 +1,1 @@
+export * as data from './components/data/data.js';

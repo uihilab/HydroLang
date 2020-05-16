@@ -1,16 +1,12 @@
-import Data from './components/data/data.js';
+import * as lang from './lang.js';
 
-class Hydrolang {
+class hydro {
     constructor() {
     	// put all the default values here
       	this.metricSystem = "SI";
       	this.mapType = "OSM";
+        this.lang = lang;
    	}
-
-   	Data(source){
-   		return new Data(source);
-   	}
-
 
    	// Setters
    	setConfig(config){
@@ -20,7 +16,7 @@ class Hydrolang {
 }
 
 if (typeof window !== 'undefined') {
-	window.Hydrolang = new Hydrolang;
+	window.hydro = hydro;
 }
 
-export default Hydrolang;
+export default hydro;
