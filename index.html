@@ -19,7 +19,6 @@
 				hydro1.setConfig(config);
 
 				// An example usage
-				console.log(hydro1.lang.data.transform({},{}));
 				console.log(hydro1.lang.map.addLayer({}));
 
 
@@ -36,6 +35,26 @@
 					chartType: "bar",
 					data: temperatureData
 				});
+
+				/*** End of use case **/
+
+
+				/*** Basic use case for retrieving data **/
+				
+				dataRetrievalParams1 = {
+					"source": "usgs",
+					"dataType": "water-data",
+					"arguments": {
+						"stateCd": "IA",
+						"format": "json"
+					}
+				};
+
+				function handleWaterData(data){
+					console.log(data);
+				}
+
+				hydro1.lang.data.retrieve(dataRetrievalParams1, handleWaterData);
 
 				/*** End of use case **/
 

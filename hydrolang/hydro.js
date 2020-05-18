@@ -1,10 +1,5 @@
 import * as lang from './lang.js';
 
-// This import is encapsulated within this module,
-// and the variables are out of the scope of 
-// the hosting application.
-import $ from './modules/jquery.js';
-
 class hydro {
     constructor() {
     	// put all the default values here
