@@ -1,7 +1,8 @@
 import * as lang from './lang.js';
 
 // This import is encapsulated within this module,
-// and will not affect the hosting application.
+// and the variables are out of the scope of 
+// the hosting application.
 import $ from './modules/jquery.js';
 
 class hydro {
