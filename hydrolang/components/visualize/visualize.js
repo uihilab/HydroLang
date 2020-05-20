@@ -10,7 +10,7 @@ import googlecharts, {isGooglechartsLoaded} from '../../modules/googlecharts/goo
 function chart(params) {
 	ensureGoogleChartsIsSet().then(function(){
 		var data = googlecharts.visualization.arrayToDataTable(params['data']);
-		var chart = new chartMap[params['chartType']](document.getElementById('barchartexample1'));
+		var chart = new chartMap[params['chartType']](document.getElementById(params['divID']));
 		chart.draw(data);
 	});
 
