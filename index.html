@@ -47,6 +47,40 @@
 
 				/*** End of use case **/
 
+				/*** Use for bucket model data 
+                 * options for rainfall = timeseries array in mm per hour
+                 * options for evaporation = timeseries array in mm per hour
+                 * options for baseflow = value in m3 per hour if know, else leave with 1 m3 per hour;
+                 * options for landuse types= percentage value.
+                 * options for infiltration capacity = percentage value.
+                 * options for Landuse = array with percentages for agriculture, rock, grassland, forest, moorland
+				 * **/
+                
+				 rainfallData : [1,2,3,1,2,1,2,3,2,1,2,3,4];
+                evapodata = [0.1,0.2,0.3,0.2,0.3,0.4,0.5,0.8,0.9,0.4,0.25,0.30,0.57];
+                baseflow = 10;
+                Landuse = [0.25,0.10,0.30,0.15,0.2]
+                infiltation = 0.3;
+                dataBucketModel = {
+                    "rainfall": rainfallData,
+                    "baseflow": baseflow,
+                    "evaporation": {
+                        "dataType": "timeseries",
+                        "data": evapodata
+                    },
+                    "landuse" : {
+                        "agriculture": Landuse[0],
+                        "bare rock": Landuse[1],
+                        "grassland": Landuse[2],
+                        "forest": Landuse[3],
+                        "moorland": Landuse[4]
+                    },
+                    "infiltration": infiltation 
+                };
+
+                /***End of example for bucket model**/
+
+
 				/*** Basic use case for retrieving data **/
 				
 				dataRetrievalParams1 = {
