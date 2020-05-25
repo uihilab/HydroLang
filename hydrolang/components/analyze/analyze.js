@@ -261,72 +261,80 @@ class hydro {
      * @param {param} parameter object landuse, rainfall, infiltration capacity and baseflow.
      * @returns {array} values for runoff as time series.
      */
-    static bucketmodel (params){
+    static bucketmodel (params) {
         //initial parameters
-        var rainfall = params["rainfall"];
-        var n = rainfall.length;
-        var baseflow = params["baseflow"];
-        var evapodata = params["evaporation"]["data"];
-        var initial = [[],[]];
-        var interflow = [[],[]];
-        var overflow = [[],[]];
-        var totalflow = [[],[]];
-        var totalrunoff = [[],[]];
-        var landuse = [params["landuse"]["agriculture"], params["landuse"]["bare rock"], 
+        let rainfall = params["rainfall"];
+        let n = rainfall.length;
+        let baseflow = params["baseflow"]/24;
+        let evapodata = params["evaporation"]["data"];
+        let landuse = [params["landuse"]["agriculture"], params["landuse"]["bare rock"], 
         params["landuse"]["grassland"],
         params["landuse"]["forest"],
         params["landuse"]["moorland"]];
-        var infiltration = params["infiltration"];
+        let infiltration = params["infiltration"];
         //infiltration capacities for agriculture, bare rock, grassland, forest and
         //moorland, respectively.
-        var FieldCaps = [5,50,25,25,5];
-        //initial soil moisture
+        let FieldCaps = [5,50,25,25,5];
+        //arrays and variables
+        var initial=Array(landuse.length).fill(0).map(()=>Array(n).fill(0));
+        var interflow = Array(landuse.length).fill(0).map(()=>Array(n).fill(0));
+        var overflow = Array(landuse.length).fill(0).map(()=>Array(n).fill(0));
+        var totalflow = Array(landuse.length).fill(0).map(()=>Array(n).fill(0));
+        var totalrunoff = Array(landuse.length).fill(0).map(()=>Array(n).fill(0));
+        
+        // initial moisture
         for (var i = 0; i < FieldCaps.length; i++){
-            initial[[0],[i]] = FieldCaps[i]*landuse[i] + rainfall[0]-evapodata[0]
+            initial[i][0] =  FieldCaps[i]*landuse[i]+rainfall[0]-evapodata[0]
         };
+        
+        //initial soil moisture
         for (var k = 0;k<FieldCaps.length;k++) {
-            if (initial[[0],[k]] > FieldCaps[k]) {
-                overflow[[0],[k]] = initial[[0],[k]]-FieldCaps[k];
-                initial[[0],[k]] = FieldCaps[k];
+            if (initial[k][0] > FieldCaps[k]) {
+                overflow[k][0] = initial[k][0]-FieldCaps[k];
+                initial[k][0] = FieldCaps[k];
             } else {
-                overflow[[0],[k]] = 0;
+                overflow[k][0] = 0;
             };
-            if (initial[[0],[k]] > 0) {
-                interflow[[0],[k]] = initial[[0],[k]]*infiltration;
+            if (initial[k][0] > 0) {
+                interflow[k][0] = initial[k][0]*infiltration;
             } else {
-                interflow[[0],[k]] = 0;
+                interflow[k][0] = 0;
             }
         };
+        
         //calculating overland and interflow
-        for (var m = 1; m <n; m++){
-            for (var p = 0; p < FieldCaps.length; p++){
-                initial[[m],[p]] = initial[[m-1],[p]]*(1-infiltration) + rainfall[m]-evapodata[m];
-                if (initial[[m],[p]] > FieldCaps[p]) {
-                    overflow[[m],[p]] = initial[[m],[p]] - FieldCaps[p];
-                    initial[[m],[p]] = 0;
+        for (var m = 0; m <FieldCaps.length; m++){
+            for (var p = 1; p < n; p++){
+                initial[m][p] = initial[m][p-1]*(1-infiltration) + rainfall[p]-evapodata[p];
+                if (initial[m][p] > FieldCaps[m]) {
+                    overflow[m][p] = initial[m][p] - FieldCaps[m];
+                    initial[m][p] = 0;
                 } else {
-                    overflow[[m],[p]] = 0;
+                    overflow[m][p] = 0;
                 }
-                if (initial[[m],[p]] > 0) {
-                    interflow[[m],[p]] = initial[[m],[p]] * infiltration;
+                if (initial[m][p] > 0) {
+                    interflow[m][p] = initial[m][p] * infiltration;
                 } else {
-                    interflow[[m],[p]] = 0
+                    interflow[m][p] = 0
                 }
             }
         };
-        //calculating the total amount of flow from overflow, baseflow and interflow
-        for (var j = 0; j < n; j++) {
-            for (var h = 0; FieldCaps.length;h++) {
-                totalflow[[j],[h]] = overflow[[j],[h]]+interflow[[j],[h]]+baseflow;
+        
+                //calculating the total amount of flow from overflow, baseflow and interflow
+        for (var j = 0; j < FieldCaps.length; j++) {
+            for (var h = 0; h < n;h++) {
+                totalflow[j][h] = overflow[j][h]+interflow[j][h];
             }
-        };
+        }
         //calculating total runoff
         for (var q =0; q<n;q++){
-            totalrunoff[q] = totalflow[[q],[0]] * landuse[0] + totalflow[[q],[1]] * landuse[1]
-            + totalflow[[q],[2]] * landuse[2] + totalflow[[q],[3]] * landuse[3]
-            + totalflow[[q],[4]] * landuse[4];
-        }
-    }
+            totalrunoff[q] = totalflow[0][q] * landuse[0] + totalflow[1][q] * landuse[1]
+            + totalflow[2][q] * landuse[2] + totalflow[3][q] * landuse[3]
+            + totalflow[4][q] * landuse[4];
+        };
+        
+        return totalrunoff;
+        };
 }
 
 
