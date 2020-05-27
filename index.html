@@ -23,7 +23,7 @@
 
 
 				/*** Basic use case for a bar chart **/
-				
+
 				temperatureData = [
 					['City', 'Temperature'],
 					['Iowa City', 78],
@@ -41,44 +41,82 @@
 
 
 				/*** Basic use case for statistics **/
-				
+
 				var minValue = hydro1.lang.analyze.stats.min([12,5,2]);
 				console.log(minValue);
 
 				/*** End of use case **/
 
+				
+				/*** Basic use case for arithmetic mean
+				 * parameters: rainfall information for different stations as array
+				 * on a basin for the same rainfall event.  
+				 * Data is to be considered equal of equal time length for one rainfall event.
+				 **/
+
+				raingages = Array(2);
+				raingages[0] = [1,2,3,4,5,6,7,8,9,10]
+				raingages[1] = [2,3,5,2,3,5,6,5,4,3]
+				var arithprecs = hydro1.lang.analyze.hydro.arithmetic(raingages)
+
+				/*** End of use case **/
+
+
+				/*** Use for thiessen polygons
+				 * parameters: raingage events for different stations on a basin.
+				 * also areas for each rainfall event.
+				 * Returns pondered precipitation, recommended for basins < 1000 km^2.
+				 **/
+
+				 thiessenprec = Array(4);
+				 thiessenareas = Array(4);
+				 for (var i = 0; i< thiessenprec.length;i++){
+					 thiessenprec[i] = Array.from({length: 40}, () => Math.floor(Math.random()*20));
+					 thiessenareas[i] = Math.floor(Math.random()*600);
+				 };
+				 
+				 thiessendata = {
+					 "rainfall": thiessenprec,
+					 "areas": thiessenareas,
+
+					};
+				
+				var thiessenpol = hydro1.lang.analyze.hydro.thiessen(thiessendata)
+
+				/*** End of use case **/
+
+
 				/*** Use for bucket model data 
-                 * options for rainfall = timeseries array in mm per hour
-                 * options for evaporation = timeseries array in mm per hour
-                 * options for baseflow = value in m3 per hour if know, else leave with 1 m3 per hour;
-                 * options for landuse types= percentage value.
-                 * options for infiltration capacity = percentage value.
-                 * options for Landuse = array with percentages for agriculture, rock, grassland, forest, moorland
-				 * **/
+				 * options for rainfall = timeseries array in mm per hour
+				 * options for evaporation = timeseries array in mm per hour
+				 * options for baseflow = value in m3 per hour if know, else leave with 1 m3 per hour;
+				 * options for landuse types= percentage value.
+				 * options for infiltration capacity = percentage value.
+				 * options for Landuse = array with percentages for agriculture, rock, grassland, forest, moorland
+				 **/
 				
 				 rainfallData = [1,2,3,1,2,1,2,3,2,1,2,3,4];
-                evapodata = [0.1,0.2,0.3,0.2,0.3,0.4,0.5,0.8,0.9,0.4,0.25,0.30,0.57];
-                baseflow = 10;
-                Landuse = [0.25,0.10,0.30,0.15,0.2];
-                infiltation = 0.3;
-                dataBucketModel = {
-                    "rainfall": rainfallData,
-                    "baseflow": baseflow,
-                    "evaporation": {
-                        "dataType": "timeseries",
-                        "data": evapodata
-                    },
-                    "landuse" : {
-                        "agriculture": Landuse[0],
-                        "bare rock": Landuse[1],
-                        "grassland": Landuse[2],
-                        "forest": Landuse[3],
-                        "moorland": Landuse[4]
-                    },
-                    "infiltration": infiltation 
-                };
-
-                /***End of example for bucket model**/
+				 evapodata = [0.1,0.2,0.3,0.2,0.3,0.4,0.5,0.8,0.9,0.4,0.25,0.30,0.57];
+				 baseflow = 10;
+				 Landuse = [0.25,0.10,0.30,0.15,0.2];
+				 infiltation = 0.3;
+				 dataBucketModel = {
+					 "rainfall": rainfallData,
+					 "baseflow": baseflow,
+					 "evaporation": {
+						 "dataType": "timeseries",
+						 "data": evapodata
+						},
+						"landuse" : {
+						"agriculture": Landuse[0],
+						"bare rock": Landuse[1],
+						"grassland": Landuse[2],
+						"forest": Landuse[3],
+						"moorland": Landuse[4]
+					},
+					"infiltration": infiltation 
+				};
+				/***End of example for bucket model**/
 
 
 				/*** Basic use case for retrieving data **/
