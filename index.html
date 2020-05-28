@@ -15,11 +15,11 @@
 				  mapType: 'Google',
 				}
 
-				hydro1 = new hydro();
+				hydro1 = new Hydrolang();
 				hydro1.setConfig(config);
 
 				// An example usage
-				console.log(hydro1.lang.map.addLayer({}));
+				console.log(hydro1.map.addLayer({}));
 
 
 				/*** Basic use case for a bar chart **/
@@ -31,7 +31,7 @@
 					['Waterloo', 54]
 				];
 
-				hydro1.lang.visualize.chart({
+				hydro1.visualize.chart({
 					chartType: "bar",
 					data: temperatureData,
 					divID: "barchartexample1"
@@ -42,8 +42,8 @@
 
 				/*** Basic use case for statistics **/
 
-				var minValue = hydro1.lang.analyze.stats.min([12,5,2]);
-				console.log(minValue);
+				var minValue = hydro1.analyze.stats.min([12,5,2]);
+				console.log("Minimum value: "+minValue);
 
 				/*** End of use case **/
 
@@ -57,7 +57,7 @@
 				raingages = Array(2);
 				raingages[0] = [1,2,3,4,5,6,7,8,9,10]
 				raingages[1] = [2,3,5,2,3,5,6,5,4,3]
-				var arithprecs = hydro1.lang.analyze.hydro.arithmetic(raingages)
+				var arithprecs = hydro1.analyze.hydro.arithmetic(raingages)
 
 				/*** End of use case **/
 
@@ -81,7 +81,7 @@
 
 					};
 				
-				var thiessenpol = hydro1.lang.analyze.hydro.thiessen(thiessendata)
+				var thiessenpol = hydro1.analyze.hydro.thiessen(thiessendata)
 
 				/*** End of use case **/
 
@@ -134,7 +134,7 @@
 					console.log(data);
 				}
 
-				hydro1.lang.data.retrieve(dataRetrievalParams1, handleWaterData);
+				hydro1.data.retrieve(dataRetrievalParams1, handleWaterData);
 
 				/*** End of use case **/
 

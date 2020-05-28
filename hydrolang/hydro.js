@@ -1,11 +1,17 @@
-import * as lang from './lang.js';
+import * as components from './components/core.js';
 
-class hydro {
+class Hydrolang {
     constructor() {
     	// put all the default values here
       	this.metricSystem = "SI";
       	this.mapType = "OSM";
-        this.lang = lang;
+
+        var context = this;
+        Object.entries(components).forEach(function(component){
+          let propName = component[0];
+          let propModule = component[1];
+          Object.assign(context, {[propName]: propModule});
+        });
    	}
 
    	// Setters
@@ -16,7 +22,7 @@ class hydro {
 }
 
 if (typeof window !== 'undefined') {
-	window.hydro = hydro;
+	window.Hydrolang = Hydrolang;
 }
 
-export default hydro;
+export default Hydrolang;
