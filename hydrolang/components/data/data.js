@@ -1,5 +1,5 @@
 import datasources from './datasources.js';
-import $ from '../../modules/jquery.js';
+import $ from '../../modules/jquery/jquery.js';
 
 /**
  * Main function to retrieve data
