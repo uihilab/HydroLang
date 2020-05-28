@@ -47,7 +47,26 @@
 
 				/*** End of use case **/
 
+				/*** Basic use case for retrieving data **/
 				
+				dataRetrievalParams1 = {
+					"source": "usgs",
+					"dataType": "water-data",
+					"arguments": {
+						"stateCd": "IA",
+						"format": "json"
+					}
+				};
+
+				function handleWaterData(data){
+					console.log(data);
+				}
+
+				hydro1.data.retrieve(dataRetrievalParams1, handleWaterData);
+
+				/*** End of use case **/
+
+
 				/*** Basic use case for arithmetic mean
 				 * parameters: rainfall information for different stations as array
 				 * on a basin for the same rainfall event.  
@@ -118,25 +137,6 @@
 				};
 				/***End of example for bucket model**/
 
-
-				/*** Basic use case for retrieving data **/
-				
-				dataRetrievalParams1 = {
-					"source": "usgs",
-					"dataType": "water-data",
-					"arguments": {
-						"stateCd": "IA",
-						"format": "json"
-					}
-				};
-
-				function handleWaterData(data){
-					console.log(data);
-				}
-
-				hydro1.data.retrieve(dataRetrievalParams1, handleWaterData);
-
-				/*** End of use case **/
 
 			}
 		 </script>

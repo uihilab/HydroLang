@@ -1,4 +1,4 @@
-import datasources from './datasources.js';
+import * as datasources from './datasources.js';
 import $ from '../../modules/jquery/jquery.js';
 
 /**
@@ -9,10 +9,11 @@ import $ from '../../modules/jquery/jquery.js';
 function retrieve(params, callback) {
 	var source = params["source"];
 	var dataType = params["dataType"]
-	if(!(datasources.hasOwnProperty(source) && datasources[source].hasOwnProperty(dataType))){
-		return {
+	if(!(datasources[source] && datasources[source].hasOwnProperty(dataType))){
+		callback({
 			"info": "No data has been found for given specifications."
-		};
+		});
+		return;
 	}
 
 	var dataSource = datasources[source][dataType];
