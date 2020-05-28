@@ -2,9 +2,9 @@ import * as components from './components/core.js';
 
 class Hydrolang {
     constructor() {
-    	// put all the default values here
-      	this.metricSystem = "SI";
-      	this.mapType = "OSM";
+        // put all the default values here
+        this.metricSystem = "SI";
+        this.mapType = "OSM";
 
         var context = this;
         Object.entries(components).forEach(function(component){
@@ -16,13 +16,13 @@ class Hydrolang {
 
    	// Setters
    	setConfig(config){
-      	this.metricSystem = config.metricSystem;
-      	this.mapType = config.mapType;   		
+        this.metricSystem = config.metricSystem;
+        this.mapType = config.mapType;   		
    	}
 }
 
 if (typeof window !== 'undefined') {
-	window.Hydrolang = Hydrolang;
+  window.Hydrolang = Hydrolang;
 }
 
 export default Hydrolang;
