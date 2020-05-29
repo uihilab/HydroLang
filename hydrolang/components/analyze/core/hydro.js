@@ -10,7 +10,7 @@ export default class hydro {
         var sum=0;
         var k = arr.length
         while (--k >=0) {
-            sum+=minarr[k]
+            sum+=arr[k]
         };
         return sum;
     };

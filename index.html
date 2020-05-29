@@ -76,7 +76,7 @@
 				raingages = Array(2);
 				raingages[0] = [1,2,3,4,5,6,7,8,9,10]
 				raingages[1] = [2,3,5,2,3,5,6,5,4,3]
-				var arithprecs = hydro1.analyze.hydro.arithmetic(raingages)
+				var arithprecs = hydro1.analyze.hydro.arithmetic(raingages);
 
 				/*** End of use case **/
 
@@ -100,7 +100,7 @@
 
 					};
 				
-				var thiessenpol = hydro1.analyze.hydro.thiessen(thiessendata)
+				var thiessenpol = hydro1.analyze.hydro.thiessen(thiessendata);
 
 				/*** End of use case **/
 
@@ -135,8 +135,10 @@
 					},
 					"infiltration": infiltation 
 				};
-				/***End of example for bucket model**/
 
+				var bucket = hydro1.analyze.hydro.bucketmodel(dataBucketModel);
+
+				/***End of example for bucket model**/
 
 			}
 		 </script>
