@@ -58,6 +58,154 @@ export default class hydro {
         return out;
     };
 
+    /**dimunithydro: creates a dimensionless unit hydrograph using a preset distribution.
+     * Calculated frombased on (NEH, 2007).
+     * @param {param} object that specifies the type of distribution required as well as the 
+     * time step to compute the hydrograph.
+     * @returns {array} dimensionless hydrograph.
+     */
+
+    static dimunithydro(params) {
+        //populate
+        var step = params["timestep"];
+        var hours = params["numhours"];
+
+        //calculate the number of steps in the hydrograph
+        var numstep = Math.round(hours/step);
+
+        //create new array
+        var ttp = Array(numstep+1).fill(0);
+        var qqp = Array(numstep+1).fill(0);
+        
+        if (params["distribution"]["type"] = "gamma") {
+        //change gamma shape factor.
+            switch(params["distribution"]["PRF"]){
+                case 101:
+                    m = 0.26;
+                    break;
+                case 238:
+                    m = 1;
+                    break;
+                case 349:
+                    m = 433;
+                    break;
+                case 433:
+                    m = 3;
+                    break;
+                case 484:
+                    m = 3.7;
+                    break;
+                case 504:
+                    m = 4;
+                    break;
+                case 566:
+                    m = 5;
+                default:
+                    throw new Error("Please choose value between 101,238,349,433,484,504,566.")
+                };
+            
+            //populating the array with t/tp relationship every 0.1t.
+            //populating the array with q/qp using Gamma distribution with PRF = 484.
+            for (var i = 1;i<ttp.length;i++){
+                ttp[i] = ttp[i-1]+step;
+                qqp[i] = Math.exp(m)*Math.pow(ttp[i],m)*Math.exp(-m*ttp[i]);
+            };
+        return [ttp,qqp];
+        } else {
+            throw new Error("Please use available distributions!");
+        }; 
+     };
+
+    /**unithydrocons = Unit hydrograph NRCS constructor depending on the 
+     * physical characteristics of a regularly shaped basin. Calculated from (NEH, 2007)
+     * @param {param} object that specifies the physical characteristics and the type of
+     * distribution required as well as the time step to compute the hydrograph.
+     * @returns {array} time series array. If metric in m3/s, if SI in cfs.
+     */
+    
+    static unithydrocons(params) {
+        //import parameters from user.
+        var area = params["drainagearea"];
+        var tconc = params["tconcentration"];
+        var duh = params["unithydro"];
+
+        //calculate time step.
+        var deltat = (tconc * 0.133).toFixed(3);
+
+        //calculate time to peak and construct result arrays.
+        var tp = deltat / 2  + (0.6*tconc);
+        var unit = Array(2).fill(0).map(()=>Array(duh[0].length).fill(0));
+        var qp = 0;
+        var m=0;
+        
+        //change peak discharge depending on the units.
+        switch(params["units"]) {
+            case "si":
+                qp = 484*area*1/tp;
+                break;
+            case "m":
+                qp = 0.208*area*1/tp;
+                break;
+            default:
+                throw new Error("Please input a valid unit system!");
+        };
+
+        //populate the hydrograph with time and discharge.
+        for (var h = 0;h<unit[0].length;h++) {
+            unit[0][h] = Number((duh[0][h] * tp).toFixed(3));
+            unit[1][h] = Number((duh[1][h] * qp).toFixed(3)); 
+        };
+        return unit;
+    };
+
+    /** floodhydro: Flooding hydrograph generator using a Dimensionless Unit Hydrograph,
+     * precipitation data and SCS metrics for runoff calculation.
+     * @param {param} parameter object landuse, rainfall, infiltration capacity and baseflow.
+     * @returns {array} values for runoff as time series.
+     */
+
+    static floodhydro (params) {
+        //import data from 
+         var rain = params["rainfall"];
+         var unit = params["unithydro"];
+         var CN = params["cn"];
+
+         //change initial moisture condition depending on the type of antecendent conditions.
+         var ini = 0;
+         if (params["condition"] = "dry") {
+             switch (params["amc"]){
+                 case "I":
+                     ini = 0.5;
+                     break;
+                 case "II":
+                     ini = 0.8;
+                     break;
+                 case "III" :
+                     ini = 1.1;
+                     break;
+                 default:
+                     break;
+             };
+         } else if (params["condition"] = "wet") {
+             switch(params["amc"]){
+                 case "I":
+                     ini = 1.4;
+                     break;
+                 case "II":
+                     ini = 1.75;
+                     break;
+                 case "III":
+                     ini = 2.1;
+                     break;
+                 default:
+                     break;
+             };
+         } else {
+             throw new Error("Please in put either dry or wet condition.")
+         };
+         return ini;
+     };
+
     /** bucketmodel: does simple rainfall-runoff analyses over a rainfall dataset given landuse, baseflow and infiltration capacity.
      * @param {param} parameter object landuse, rainfall, infiltration capacity and baseflow.
      * @returns {array} values for runoff as time series.
