@@ -117,7 +117,7 @@
 						 "type": "gamma",
 						 "PRF" : 484,
 					 },
-					 "timestep" : 0.10,
+					 "timestep" : 0.20,
 					 "numhours" : 5,
 				};
 
@@ -138,8 +138,6 @@
 					 "unithydro" : dimunit,
 					 "drainagearea" : 4.6,
 					 "tconcentration": 2.3,
-					 "timestep" : 0.10,
-					 "numhours" : 5,
 				};
 
 				var basinunit = hydro1.analyze.hydro.unithydrocons(unithydrodata);
@@ -151,15 +149,23 @@
 				 * options for units: SI or Metric; if input something else, error will be thrown.
 				 * options for drainage area: square miles if SI or square kilometers.
 				 * time of concentration, time step numhours: in hours 
-				 *  
+				 * rainfall data: on the same time step as unit hydrograph (or 0.133Tc)
 				 **/
-				var rainf = Array(2).fill(0)
+				 
+				 var rainf = Array(2).fill(0).map(() => Array(21).fill(0));
+				 rainf[1]= [0,0.1,0.1,0.1,0.1,0.1,0.2,0.3,0.6,0.5,0.8,0.9,1,1,0.6,0.2,0.1,0.1,0.1,0,0];
+				 
+				 for (var h = 1; h < rainf[0].length; h++){
+					 rainf[0][h] = rainf[0][h-1]+0.30;
+					};
+					
 				floodhydrodata = {
+					 "units" : "si",
+					 "rainfall" : rainf,
 					 "unithydro" : unith,
 					 "cn" : 90,
 					 "stormduration": 6,
-					 "amc" : "II",
-					 "condition" : "dry"       
+					 "timestep" : 0.30,
 				};
 
 				var floodnhydro = hydro1.analyze.hydro.floodhydro(floodhydrodata);

@@ -15,6 +15,25 @@ export default class hydro {
         return sum;
     };
 
+    /**move: helper function for moving arrays in unit hydographs.
+     * @param {*} array that is to be pushed in subtitute array.
+     * @param {*} from index in original array. 
+     * @param {*} to index in substitute array.
+     */
+
+    static move(array, from, to) {
+        if ( to === from) return array;
+
+        var target = array[from];
+        var increment = to < from ? -1 : 1;
+
+        for (var k = from;k != to; k+= increment) {
+          array[k] = array[k + increment];
+        };
+        array[to] = target;
+        return array;
+      };
+
     /**Arithmetic mean: computation of aereal mean precipitation for a river basin given it has 2 or more different stations.
      * @param {array} object with precipitation with equal amounts of data from different rain gauges.
      * @returns {array} object with average precipitaiton for a specific time series.
@@ -107,8 +126,8 @@ export default class hydro {
             //populating the array with t/tp relationship every 0.1t.
             //populating the array with q/qp using Gamma distribution with PRF = 484.
             for (var i = 1;i<ttp.length;i++){
-                ttp[i] = ttp[i-1]+step;
-                qqp[i] = Math.exp(m)*Math.pow(ttp[i],m)*Math.exp(-m*ttp[i]);
+                ttp[i] = Number((ttp[i-1]+step).toFixed(2));
+                qqp[i] = Number((Math.exp(m)*Math.pow(ttp[i],m)*Math.exp(-m*ttp[i])).toFixed(3));
             };
         return [ttp,qqp];
         } else {
@@ -130,13 +149,12 @@ export default class hydro {
         var duh = params["unithydro"];
 
         //calculate time step.
-        var deltat = (tconc * 0.133).toFixed(3);
+        var deltat = Number((tconc * 0.133).toFixed(3));
 
         //calculate time to peak and construct result arrays.
         var tp = deltat / 2  + (0.6*tconc);
         var unit = Array(2).fill(0).map(()=>Array(duh[0].length).fill(0));
         var qp = 0;
-        var m=0;
         
         //change peak discharge depending on the units.
         switch(params["units"]) {
@@ -165,45 +183,69 @@ export default class hydro {
      */
 
     static floodhydro (params) {
-        //import data from 
-         var rain = params["rainfall"];
-         var unit = params["unithydro"];
-         var CN = params["cn"];
+        //import data from parameters.
+         const rain = params["rainfall"];
+         const unit = params["unithydro"];
+         const cn = params["cn"];
+         const stormdur = params["stormduration"];
+         const timestep = params["timestep"];
 
-         //change initial moisture condition depending on the type of antecendent conditions.
-         var ini = 0;
-         if (params["condition"] = "dry") {
-             switch (params["amc"]){
-                 case "I":
-                     ini = 0.5;
-                     break;
-                 case "II":
-                     ini = 0.8;
-                     break;
-                 case "III" :
-                     ini = 1.1;
-                     break;
-                 default:
-                     break;
-             };
-         } else if (params["condition"] = "wet") {
-             switch(params["amc"]){
-                 case "I":
-                     ini = 1.4;
-                     break;
-                 case "II":
-                     ini = 1.75;
-                     break;
-                 case "III":
-                     ini = 2.1;
-                     break;
-                 default:
-                     break;
-             };
-         } else {
-             throw new Error("Please in put either dry or wet condition.")
+         //create arrays for calculation of runoff
+         var numarray = Math.round(stormdur/timestep);
+         var finalcount = numarray + unit[0].length;
+         var sc = 0;
+         var accumrainf  = Array(2).fill(0).map(() => Array(rain[1].length).fill(0));
+         accumrainf[0] = rain[0];
+         var accumrunff = Array(2).fill(0).map(() => Array(rain[1].length).fill(0));
+         accumrunff[0] = rain[0];
+         var incrementrunff = Array(2).fill(0).map(() => Array(rain[1].length).fill(0));
+         incrementrunff[0] = rain[0];
+         const hydros = Array(stormdur).fill(0).map(() => Array(finalcount).fill(0));
+         var finalhydro = Array(2).fill(0).map(() => Array(finalcount).fill(0));
+        
+         // change calculations depending on units.
+         switch (params["units"]){
+            case "si":
+                 sc = 1000/cn - 10;
+                 break;
+            case "m":
+                 sc = 25400/cn - 254;
+                 break;
+            default:
+                 throw new Error("Please use a correct unit system!")   
+        };
+
+        //add accumulative rainfall amd calculate initial abstraction.
+        var iniabs = 0.20*sc;
+        rain[1].slice().reduce((prev,curr,i) => accumrainf[1][i] = prev + curr, 0);
+       
+       //add runoff calculations.
+        for (var i = 0; i < numarray; i++) {
+            if (accumrainf[1][i] > 0) {
+                accumrunff[1][i] = Math.pow((accumrainf[1][i]-iniabs),2) / (accumrainf[1][i]-iniabs+sc);;
+            } else {
+                accumrunff[1][i] = 0;
+            };
+            incrementrunff[1][i] = Number((Math.abs(accumrunff[1][i] - accumrunff[1][i-1]) || 0).toFixed(3));
          };
-         return ini;
+
+        //create composite hydrograph.
+        for (var j = 0; j < hydros[0].length; j++) {
+          hydros[0][j] = Number((incrementrunff[1][j] * unit[1][j] || 0).toFixed(3));
+          finalhydro[0][j] = Number(finalhydro[0][j]+timestep);
+        };
+
+        //populate the moving hydrographs
+        for (var h = 1; h < hydros.length; h++) {
+          for (var k = 0; k < hydros[0].length;k++){
+            hydros[h][k+h] = Number((hydros[0][k]).toFixed(3));
+            finalhydro[1][k] += Number((hydros[h][k]).toFixed(3));
+          };
+        };
+        
+        //accumulate timespan for cumulative hydrograph.
+        finalhydro[0].slice().reduce((prev,curr,i) => finalhydro[0][i] = Number((prev + curr).toFixed(2), 0));
+        return finalhydro;
      };
 
     /** bucketmodel: does simple rainfall-runoff analyses over a rainfall dataset given landuse, baseflow and infiltration capacity.
