@@ -1,6 +1,6 @@
 import './loader.js'
 
-google.charts.load("current", {packages:["corechart"]});
+google.charts.load("current", {packages:["corechart", "table"]});
 google.charts.setOnLoadCallback(googlechartsLoaded);
 
 var isGooglechartsLoaded = false;

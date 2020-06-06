@@ -32,10 +32,11 @@
 				];
 
 				hydro1.visualize.chart({
-					chartType: "line",
+					chartType: "bar",
 					data: temperatureData,
 					divID: "barchartexample1"
 				});
+				
 
 				/*** End of use case **/
 
@@ -169,17 +170,39 @@
 				};
 
 				var flooding = hydro1.analyze.hydro.floodhydro(floodhydrodata);
-				console.log(flooding);
+				console.log(flooding)
 
+				//flatenise the array using helper function.
+				graphing = {
+					"graphdata": dimunit,
+					"Type": "Discharge"
+				};
+
+				var hydroexample = hydro1.analyze.hydro.flatenise(graphing);
+				
 				hydro1.visualize.table({
-					data: flooding,
-					divID: 'table_div',
+					data: hydroexample,
+					divID: "table_div",
 					options: {
-						x: 100,
-						y: 200,
-						title:"Hydrograph"
+						x: "30%",
+						y: "30%",
 					}
 				});
+
+				//define configuration options accroding to Google Charts API.
+				hydro1.visualize.chart({
+					chartType: "line",
+					data: hydroexample,
+					divID: "smoothchart",
+					options : {
+						title: "Hydrograph",
+						hAxis: {minValue: 0},
+						curveType: "function",
+						lineWidth: 3,
+						explorer: {actions: ['dragToZoom', 'rightClickToReset']},
+						legend: {position: "bottom"},
+						}
+					});
 
 				/***End of example for flood hydrograph constructor**/
 				
@@ -225,6 +248,8 @@
 		 <p id="infobox">This website uses HydroLang!</p>
 
 		 <div id="barchartexample1"></div>
+		 <div id ="smoothchart"> </div>
+		 <div id = "table_div"></div>
 
    </body>
 </html>

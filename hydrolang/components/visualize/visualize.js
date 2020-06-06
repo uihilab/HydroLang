@@ -1,5 +1,4 @@
 import googlecharts, {isGooglechartsLoaded} from '../../modules/googlecharts/googlecharts.js';
-import google from '../../modules/googlecharts/googlecharts.js';
 
 /**
  * Brief summary of what this function does
@@ -10,9 +9,33 @@ import google from '../../modules/googlecharts/googlecharts.js';
  */
 function chart(params) {
 	ensureGoogleChartsIsSet().then(function(){
-		var data = googlecharts.visualization.arrayToDataTable(params['data']);
+		var d = params['data'];
+		var char = params['chartType'];
+		var data;
+
+		switch (char) {
+			case 'bar' || 'pie':
+				data = googlecharts.visualization.arrayToDataTable(d);
+				break;
+			case 'line' || 'scatter':
+				data = new tableData['data']();
+				for (var i = 0; i < d[0].length; i++){
+					data.addColumn('number', [d[0][i]]);
+				};
+				for (var j = 0; j < d[1][0].length;j++){
+				data.addRow([d[1][0][j], d[1][1][j]]);
+				}
+				break;
+			default:
+				break;
+		}
 		var chart = new chartMap[params['chartType']](document.getElementById(params['divID']));
-		chart.draw(data);
+		if (params.hasOwnProperty('options')) {
+			var options = params['options'];
+			chart.draw(data,options);
+		} else {
+			chart.draw(data);
+		};
 	});
 
 	return "A chart is drawn based on given parameters";
@@ -28,19 +51,25 @@ function chart(params) {
 function table(params) {
 	ensureGoogleChartsIsSet().then(function(){
 		var d = params['data']
-		var data = new tableData['data'];
+		var data = new tableData['data']();
 		
 		for (var i = 0; i < d[0].length; i++){
-			data.addColumn('number', [d[0][i]]);	
+			data.addColumn('number', [d[0][i]]);
 		};
-
+		
 		for (var j = 0; j < d[1][0].length;j++){
 			data.addRow([d[1][0][j], d[1][1][j]]);
 		};
 
-		var view = new tableData['view'](data);
+		var view = new tableData['view'](data)
 		var table = new tableData['table'](document.getElementById(params['divID']));
-		table.draw(view, params['options']);
+		
+		if (params.hasOwnProperty('options')) {
+			var options = params['options'];
+			table.draw(view,options);
+		} else {
+			table.draw(view);
+		};
 	});
 	return "table function is called";
 }

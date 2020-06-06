@@ -1,3 +1,5 @@
+//import * as d3 from '../../../modules/d3/d3.js'
+
 export default class stats {
 
     /** copydata: makes a copy of original data.

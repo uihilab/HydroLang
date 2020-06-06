@@ -1,39 +1,5 @@
 export default class hydro {
 
-    /**Total precipitation: arithmetic sum of the total amount of precipitation during an event.
-     * It is also used as a helper function.
-     * @param {arr} array with precipitation event.
-     * @returns {var} total amount of precipitation during an event on a given station. 
-     */
-
-    static totalprec (arr) {
-        var sum=0;
-        var k = arr.length
-        while (--k >=0) {
-            sum+=arr[k]
-        };
-        return sum;
-    };
-
-    /**move: helper function for moving arrays in unit hydographs.
-     * @param {*} array that is to be pushed in subtitute array.
-     * @param {*} from index in original array. 
-     * @param {*} to index in substitute array.
-     */
-
-    static move(array, from, to) {
-        if ( to === from) return array;
-
-        var target = array[from];
-        var increment = to < from ? -1 : 1;
-
-        for (var k = from;k != to; k+= increment) {
-          array[k] = array[k + increment];
-        };
-        array[to] = target;
-        return array;
-      };
-
     /**Arithmetic mean: computation of aereal mean precipitation for a river basin given it has 2 or more different stations.
      * @param {array} object with precipitation with equal amounts of data from different rain gauges.
      * @returns {array} object with average precipitaiton for a specific time series.
@@ -248,7 +214,7 @@ export default class hydro {
         finalhydro[0].slice().reduce((prev,curr,i) => finalhydro[0][i] = Number((prev + curr).toFixed(2), 0));
 
         //
-        return [["Duration", "Discharge"], [finalhydro[0].flat(), finalhydro[1].flat()]];
+        return finalhydro;
      };
 
     /** bucketmodel: does simple rainfall-runoff analyses over a rainfall dataset given landuse, baseflow and infiltration capacity.
@@ -331,5 +297,56 @@ export default class hydro {
         }; 
         return totalrunoff;
     };
+
+    /***************************/
+    /***** Helper functions ****/
+    /***************************/
     
+    /**Total precipitation: arithmetic sum of the total amount of precipitation during an event.
+     * It is also used as a helper function.
+     * @param {arr} array with precipitation event.
+     * @returns {var} total amount of precipitation during an event on a given station. 
+     */
+
+    static totalprec (arr) {
+        var sum=0;
+        var k = arr.length
+        while (--k >=0) {
+            sum+=arr[k]
+        };
+        return sum;
+    };
+
+    /**move: helper function for moving arrays in unit hydographs.
+     * @param {*} array that is to be pushed in subtitute array.
+     * @param {*} from index in original array. 
+     * @param {*} to index in substitute array.
+     */
+
+    static move(array, from, to) {
+        if ( to === from) return array;
+
+        var target = array[from];
+        var increment = to < from ? -1 : 1;
+
+        for (var k = from;k != to; k+= increment) {
+          array[k] = array[k + increment];
+        };
+        array[to] = target;
+        return array;
+      };
+
+      /**flatennise: helper function for preparing arrays for charts and tables for duration/discharge.
+       * @param {arr} array required to flatenise.
+       * @returns {arr} flatenned array.
+       */
+
+       static flatenise(params) {
+        var d = params['graphdata']
+        return [["Duration", params['Type']], [d[0].flat(), d[1].flat()]];
+       };
+       
+    /**********************************/
+    /*** End of Helper functions **/
+    /**********************************/
 }
