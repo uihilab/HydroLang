@@ -1,4 +1,5 @@
 import googlecharts, {isGooglechartsLoaded} from '../../modules/googlecharts/googlecharts.js';
+import google from '../../modules/googlecharts/googlecharts.js';
 
 /**
  * Brief summary of what this function does
@@ -25,6 +26,22 @@ function chart(params) {
  * example usage code here
  */
 function table(params) {
+	ensureGoogleChartsIsSet().then(function(){
+		var d = params['data']
+		var data = new tableData['data'];
+		
+		for (var i = 0; i < d[0].length; i++){
+			data.addColumn('number', [d[0][i]]);	
+		};
+
+		for (var j = 0; j < d[1][0].length;j++){
+			data.addRow([d[1][0][j], d[1][1][j]]);
+		};
+
+		var view = new tableData['view'](data);
+		var table = new tableData['table'](document.getElementById(params['divID']));
+		table.draw(view, params['options']);
+	});
 	return "table function is called";
 }
 
@@ -40,6 +57,7 @@ export{
 
 // Chart types of Google Charts
 var chartMap;
+var tableData;
 
 function ensureGoogleChartsIsSet() {
     return new Promise(function (resolve, reject) {
@@ -48,7 +66,15 @@ function ensureGoogleChartsIsSet() {
 				chartMap = {
 				  "bar": googlecharts.visualization.BarChart,
 				  "pie": googlecharts.visualization.PieChart,
+				  "line": googlecharts.visualization.LineChart,
+				  "scatter": googlecharts.visualization.ScatterChart,
 				  // ...
+				};
+				tableData = {
+					"data": googlecharts.visualization.DataTable,
+					"view": googlecharts.visualization.DataView,
+					"table": googlecharts.visualization.Table,
+					//..
 				};
             	return resolve();
             }

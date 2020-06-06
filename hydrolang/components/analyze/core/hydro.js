@@ -95,6 +95,7 @@ export default class hydro {
         //create new array
         var ttp = Array(numstep+1).fill(0);
         var qqp = Array(numstep+1).fill(0);
+        var m = 0;
         
         if (params["distribution"]["type"] = "gamma") {
         //change gamma shape factor.
@@ -245,7 +246,9 @@ export default class hydro {
         
         //accumulate timespan for cumulative hydrograph.
         finalhydro[0].slice().reduce((prev,curr,i) => finalhydro[0][i] = Number((prev + curr).toFixed(2), 0));
-        return finalhydro;
+
+        //
+        return [["Duration", "Discharge"], [finalhydro[0].flat(), finalhydro[1].flat()]];
      };
 
     /** bucketmodel: does simple rainfall-runoff analyses over a rainfall dataset given landuse, baseflow and infiltration capacity.

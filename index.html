@@ -32,7 +32,7 @@
 				];
 
 				hydro1.visualize.chart({
-					chartType: "bar",
+					chartType: "line",
 					data: temperatureData,
 					divID: "barchartexample1"
 				});
@@ -53,7 +53,7 @@
 					"source": "usgs",
 					"dataType": "water-data",
 					"arguments": {
-						"stateCd": "IA",
+						"stateCd": "CA",
 						"format": "json"
 					}
 				};
@@ -162,13 +162,24 @@
 				floodhydrodata = {
 					 "units" : "si",
 					 "rainfall" : rainf,
-					 "unithydro" : unith,
+					 "unithydro" : basinunit,
 					 "cn" : 90,
 					 "stormduration": 6,
 					 "timestep" : 0.30,
 				};
 
-				var floodnhydro = hydro1.analyze.hydro.floodhydro(floodhydrodata);
+				var flooding = hydro1.analyze.hydro.floodhydro(floodhydrodata);
+				console.log(flooding);
+
+				hydro1.visualize.table({
+					data: flooding,
+					divID: 'table_div',
+					options: {
+						x: 100,
+						y: 200,
+						title:"Hydrograph"
+					}
+				});
 
 				/***End of example for flood hydrograph constructor**/
 				
