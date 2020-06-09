@@ -335,16 +335,6 @@ export default class hydro {
         array[to] = target;
         return array;
       };
-
-      /**flatennise: helper function for preparing arrays for charts and tables for duration/discharge.
-       * @param {arr} array required to flatenise.
-       * @returns {arr} flatenned array.
-       */
-
-       static flatenise(params) {
-        var d = params['graphdata']
-        return [["Duration", params['Type']], [d[0].flat(), d[1].flat()]];
-       };
        
     /**********************************/
     /*** End of Helper functions **/

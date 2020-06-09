@@ -1,4 +1,4 @@
-//import * as d3 from '../../../modules/d3/d3.js'
+import _ from '../../../modules/d3/d3.js'
 
 export default class stats {
 
@@ -70,11 +70,8 @@ export default class stats {
      * @param {array} data either original or copy from original.
      * @returns {var} sum of all data in an array.
      */
-    static sum(array) {
-        var sum = 0;
-        var i = arr.length;
-        while (--i >=0)
-            sum += arr[i];
+    static sum(arr) {
+        var sum = _.d3.sum(arr);
         return sum;
     };
 
@@ -83,10 +80,16 @@ export default class stats {
      * @returns {var} mean of the data.
      */
     static mean(arr) {
-        var total = 0;
-        total = this.sum(arr)
-        var m = 0;
-        m = total / arr.length;
+        var m = _.d3.mean(arr)
+        return m;
+    };
+
+    /** median: calculates the median values for a 1d array.
+     * @param {array} array with data.
+     * @returns {var} median of the data.
+     */
+    static median(arr) {
+        var m = _.d3.median(arr)
         return m;
     };
 
@@ -102,6 +105,15 @@ export default class stats {
             nex.push((arr[i]-mean)*(arr[i]-mean));
         }
         return SD=Math.sqrt(this.sum(nex)/nex.length);
+    };
+
+    /** variance = calculate variance for an array of data. 
+     * @param {array} array with data.
+     * @returns {var} varaince of the dataset. 
+     */
+    static variance(arr) {
+        var vari = _.d3.variance(arr);
+        return vari
     };
 
     /** sumsqrd: calculates sum of squares for a dataset.
@@ -121,11 +133,7 @@ export default class stats {
      * @returns {var} variable with min value of dataset.
      */
     static min(arr) {
-        var low = arr[0];
-        var i=0;
-        while (++i <arr.length)
-            if (arr[i] <low)
-                low = arr[i];
+        var low = _.d3.min(arr)
         return low;
     };
 
@@ -134,11 +142,7 @@ export default class stats {
      * @returns {var} variable with max value of dataset.
      */
     static max(arr) {
-        var high=arr[0];
-        var i=0;
-        while (++i < arr.length)
-            if (arr[i] > high)
-                high = arr[i];
+        var high = _.d3.max(arr)
         return high
     };
 
@@ -199,10 +203,11 @@ export default class stats {
         var Q_25 = this.quantile(arr,0.25);
         var Q_75 = this.quantile(arr,0.75);
         var IQR = Q_75-Q_25;
-        var out = [];
+        var out = Array(2);
         for (var i=0; i <arr.length;i++){
             if (arr[i] < (1.5*IQR-Q_25) || arr[i] > (1.5*IQR+Q_75)) {
-                out.push(arr[i]);
+                out[0].push(arr.indexOf(i))
+                out[1].push(arr[i]);
             } 
         }
         return out;
@@ -223,4 +228,60 @@ export default class stats {
         }
         return out;
     };
+
+    /**gapfiller
+     *  
+     */
+    static gapfiller(arr) {
+    }
+
+    /**
+     * 
+     */
+    static correlation(params) {
+    }
+
+    /***************************/
+    /***** Helper functions ****/
+    /***************************/
+
+    /** joinarray: preprocessing tool for joining arrays for table display.
+     * @param {arr} array to join.
+     * @returns {arr} array ready for table display.
+     */
+    static joinarray(arr) {
+        var temp = []
+        for (var i = 1; i < arr[0].length;i++){
+            if(!temp[i]) {
+                temp[i] = [];
+            };
+            temp[i] = [arr[0], arr[1]].reduce((a,b) => a.map((v,i) => v + b[i]));
+        };
+        return temp;      
+    }
+
+    /**flatennise: helper function for preparing arrays for charts and tables for duration/discharge.
+       * @param {arr} array required to flatenise.
+       * @returns {arr} flatenned array.
+       */
+
+      static flatenise(params) {
+        var x = params['Columns']
+        var d = params['graphdata']
+        var col = [];
+        var data = [];
+        for (var i = 0; i < x.length; i++) {
+            col.push(x[i])
+        }
+        for (var j=0; j < d.length; j++) {
+            data.push(d[j].flat())
+        }
+        return [col,data];
+       };
+       
+    /**********************************/
+    /*** End of Helper functions **/
+    /**********************************/
+
+
 }

@@ -50,16 +50,30 @@ function chart(params) {
  */
 function table(params) {
 	ensureGoogleChartsIsSet().then(function(){
-		var d = params['data']
+		var d = params['data'];
+		var types = params['dataType'];
 		var data = new tableData['data']();
+		var temp = [];
 		
-		for (var i = 0; i < d[0].length; i++){
-			data.addColumn('number', [d[0][i]]);
+		for (var k = 0; k < d[0].length; k++){
+			data.addColumn(params['dataType'][k], [d[0][k]]);
 		};
 		
-		for (var j = 0; j < d[1][0].length;j++){
-			data.addRow([d[1][0][j], d[1][1][j]]);
+		for (var i = 0; i < d[1].length;i++){
+			if (typeof temp[i] == 'undefined'){
+				temp[i] = [];
+			};
+			for (var l = 0; l < d[1][0].length; l++){
+				temp[i][l] = d[1][i][l];
+			};
 		};
+
+		data.addRows(temp);
+
+		/*for (var n = 0; n < temp.length;n++){
+			data.addRows(temp[n]);
+		};
+		*/
 
 		var view = new tableData['view'](data)
 		var table = new tableData['table'](document.getElementById(params['divID']));

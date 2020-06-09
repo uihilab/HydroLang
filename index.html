@@ -43,8 +43,42 @@
 
 				/*** Basic use case for statistics **/
 
-				var minValue = hydro1.analyze.stats.min([12,5,2]);
-				console.log("Minimum value: "+minValue);
+				var ex = [12,5,2,3,4,5,6,5,4,3,2,4,5,6,3,2,3,43,2,3,2]
+				var minValue = hydro1.analyze.stats.min(ex);
+				var maxValue = hydro1.analyze.stats.max(ex);
+				var sumValue = hydro1.analyze.stats.sum(ex);
+				var meanValue = hydro1.analyze.stats.mean(ex);
+				var medianValue = hydro1.analyze.stats.median(ex);
+				var stdValue = hydro1.analyze.stats.stddev(ex);
+				var varValue = hydro1.analyze.stats.variance(ex);
+				
+				statparams = [['Minimum value', minValue],
+				['Maximum', sumValue],
+				['Sum', meanValue],
+				['Mean', meanValue],
+				['Median', medianValue],
+				['Standard deviation', stdValue],
+				['Variance', varValue]]
+
+				ex1 = {
+					graphdata: statparams,
+					Columns: ['Metric', 'Value']
+				};
+
+				var statx = hydro1.analyze.stats.flatenise(ex1);
+
+				
+				hydro1.visualize.table({
+					data: statx,
+					divID: "statsexample",
+					dataType: ['string', 'number'],
+					options: {
+						x: "30%",
+						y: "30%",
+					}
+				});
+				
+				
 
 				/*** End of use case **/
 
@@ -170,25 +204,16 @@
 				};
 
 				var flooding = hydro1.analyze.hydro.floodhydro(floodhydrodata);
-				console.log(flooding)
 
 				//flatenise the array using helper function.
 				graphing = {
-					"graphdata": dimunit,
-					"Type": "Discharge"
+					graphdata: flooding,
+					Columns: ['Duration', 'Discharge'],
 				};
 
-				var hydroexample = hydro1.analyze.hydro.flatenise(graphing);
+				var hydroexample = hydro1.analyze.stats.flatenise(graphing);
+				console.log(hydroexample)
 				
-				hydro1.visualize.table({
-					data: hydroexample,
-					divID: "table_div",
-					options: {
-						x: "30%",
-						y: "30%",
-					}
-				});
-
 				//define configuration options accroding to Google Charts API.
 				hydro1.visualize.chart({
 					chartType: "line",
@@ -247,9 +272,11 @@
 
 		 <p id="infobox">This website uses HydroLang!</p>
 
+		 <div id = "statsexample"></div>
+		 <div></div>
 		 <div id="barchartexample1"></div>
+		 <div></div>
 		 <div id ="smoothchart"> </div>
-		 <div id = "table_div"></div>
-
+		 <div></div>
    </body>
 </html>
