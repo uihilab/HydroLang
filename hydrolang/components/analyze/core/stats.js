@@ -46,7 +46,7 @@ export default class stats {
      * @param {var} states if gaps should be removed (0) or filled with average value(1). 
      * @returns {var} number of gaps found in the data.
      */
-    static gapremoval(arr,n) {
+    static gapremoval(arr) {
         var or = arr.slice();
         if (this.gapid(arr) >= 1){
             for (var i=0; i<or.length;i++){
@@ -142,7 +142,11 @@ export default class stats {
      * @returns {var} variable with max value of dataset.
      */
     static max(arr) {
-        var high = _.d3.max(arr)
+        var high=arr[0];
+        var i=0;
+        while (++i < arr.length)
+            if (arr[i] > high)
+                high = arr[i];
         return high
     };
 
@@ -186,16 +190,20 @@ export default class stats {
             return a-b
         });
         var p = (arr.length - 1) * q;
-        var b = Math.floor(p);
-        var rest = p - b;
-        if ((_arr[b+1]!==undefined)){
-            return _arr[b] + rest * (_arr[b+1] - _arr[b]);
+        if (p %1 ===0) {
+            return _arr[p]
         } else {
-            return _arr[b];
-        }   
+            var b = Math.floor(p);
+            var rest = p - b;
+            if ((_arr[b+1]!==undefined)){
+                return _arr[b] + rest * (_arr[b+1] - _arr[b]);
+            } else {
+                return _arr[b];
+            };
+        };
     };
 
-    /** outliers: obtain outliers from dataset.
+    /** outliers: identify the outliers from dataset.
      * @param {array} array with data.
      * @returns {array} array with outlier data.
      */
@@ -203,14 +211,7 @@ export default class stats {
         var Q_25 = this.quantile(arr,0.25);
         var Q_75 = this.quantile(arr,0.75);
         var IQR = Q_75-Q_25;
-        var out = Array(2);
-        for (var i=0; i <arr.length;i++){
-            if (arr[i] < (1.5*IQR-Q_25) || arr[i] > (1.5*IQR+Q_75)) {
-                out[0].push(arr.indexOf(i))
-                out[1].push(arr[i]);
-            } 
-        }
-        return out;
+        return arr.filter((x) => (x <= 1.5*IQR-Q_25) || (x >= 1.5*IQR+Q_75));
     };
 
     /** outremove: remove outliers from dataset.
@@ -219,32 +220,36 @@ export default class stats {
      */
     static outremove(arr) {
         var or = arr.slice();
-        var out = this.outliers(or);
-        for (var i=0; i<or.length;i++){
-            if (or[i]===out[i]) {
-                or.drop(i);
-                i--;
-            }
-        }
-        return out;
+        var out = this.outliers(arr);
+        return or.filter((el) => !out.includes(el));
     };
 
-    /**gapfiller
-     *  
-     */
-    static gapfiller(arr) {
-    }
-
-    /**
-     * 
+    /** correlation: calculates pearson coefficient for bivariate analysis.
+     * @param {params} param object with two datasets.
+     * @returns {var} coefficient.
      */
     static correlation(params) {
+        var q1 = params['Set1'];
+        var q2 = params['Set2'];
+        var n = q1.length + q2.length;
+        var q1q2 = [];
+        var sq1 = [];
+        var sq2 = [];
+        for (var i = 0; i < q1.length; i++){
+            q1q2[i] = q1[i] * q2[i];
+            sq1[i] = q1[i] * q1[i];
+            sq2[i] = q2[i] * q2[i];
+        }
+        var r1 = (n * this.sum(q1q2) - this.sum(q1) * this.sum(q2));
+        var r2a = Math.sqrt(n * this.sum(sq1) - Math.pow(this.sum(q1), 2));
+        var r2b = Math.sqrt(n * this.sum(sq2) - Math.pow(this.sum(q2), 2));
+        return r1 / (r2a * r2b);        
     }
 
     /***************************/
     /***** Helper functions ****/
     /***************************/
-
+ 
     /** joinarray: preprocessing tool for joining arrays for table display.
      * @param {arr} array to join.
      * @returns {arr} array ready for table display.

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
-   <head>
-   		<title>Hydrolang Use Case</title>
+	<head>
+		<title>Hydrolang Use Case</title>
 		<script type="module" onload="initHydrolang()" src="./hydrolang/hydro.js"></script>
-   </head>
-   <body>
-    	<script>
+	</head>
+	<body>
+		<script>
 			function initHydrolang() {
 				// configure hydrolang - this is optional, 
 				// if user does not provide a config,
@@ -44,14 +44,20 @@
 				/*** Basic use case for statistics **/
 
 				var ex = [12,5,2,3,4,5,6,5,4,3,2,4,5,6,3,2,3,43,2,3,2]
-				var minValue = hydro1.analyze.stats.min(ex);
-				var maxValue = hydro1.analyze.stats.max(ex);
-				var sumValue = hydro1.analyze.stats.sum(ex);
-				var meanValue = hydro1.analyze.stats.mean(ex);
-				var medianValue = hydro1.analyze.stats.median(ex);
-				var stdValue = hydro1.analyze.stats.stddev(ex);
-				var varValue = hydro1.analyze.stats.variance(ex);
+				//Identify and remove outliers
+				var outliers = hydro1.analyze.stats.outliers(ex);
+				var clean = hydro1.analyze.stats.outremove(ex);
 				
+				//Calculate metrics from clean array
+				var minValue = hydro1.analyze.stats.min(clean);
+				var maxValue = hydro1.analyze.stats.max(clean);
+				var sumValue = hydro1.analyze.stats.sum(clean);
+				var meanValue = hydro1.analyze.stats.mean(clean);
+				var medianValue = hydro1.analyze.stats.median(clean);
+				var stdValue = hydro1.analyze.stats.stddev(clean);
+				var varValue = hydro1.analyze.stats.variance(clean);
+
+
 				statparams = [['Minimum value', minValue],
 				['Maximum', sumValue],
 				['Sum', meanValue],
@@ -64,6 +70,8 @@
 					graphdata: statparams,
 					Columns: ['Metric', 'Value']
 				};
+
+				console.log(statparams);
 
 				var statx = hydro1.analyze.stats.flatenise(ex1);
 
@@ -84,14 +92,44 @@
 
 				/*** Basic use case for retrieving data **/
 				
+				
 				dataRetrievalParams1 = {
 					"source": "usgs",
-					"dataType": "water-data",
+					"dataType": "instant-values",
 					"arguments": {
 						"stateCd": "CA",
 						"format": "json"
 					}
 				};
+
+				//if token or key is required
+				/*var token = "gNUkMgFHFSYVWyNoabuUfuVhCTJkRvRq";
+
+				dataRetrievalParams2 = {
+					"source": "noaa",
+					"dataType": "prec-hourly",
+					"arguments": {
+						"stationid": 'COOP:010008',
+						"units": "metric",
+						"startdate": "2010-05-01",
+						"enddate": "2010-06-31",
+					},
+					"token": token,
+				};
+				
+
+				dataRetrievalParams2 = {
+					"source": "worldbank",
+					"dataType": "monavgs-country",
+					"arguments": {
+						"start": "1999",
+						"end": "2001",
+						"ISO3": "br",
+					},
+				};
+				*/
+
+				
 
 				function handleWaterData(data){
 					console.log(data);
@@ -268,15 +306,14 @@
 				/***End of example for bucket model**/
 
 			}
-		 </script>
-
-		 <p id="infobox">This website uses HydroLang!</p>
-
-		 <div id = "statsexample"></div>
-		 <div></div>
-		 <div id="barchartexample1"></div>
-		 <div></div>
-		 <div id ="smoothchart"> </div>
-		 <div></div>
-   </body>
+		 
+		</script>
+		<p id="infobox">This website uses HydroLang!</p>
+		<div id = "statsexample"></div>
+		<div></div>
+		<div id="barchartexample1"></div>
+		<div></div>
+		<div id ="smoothchart"></div>
+		<div></div>
+	</body>
 </html>

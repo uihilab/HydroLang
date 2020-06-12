@@ -17,11 +17,26 @@ function retrieve(params, callback) {
 	}
 
 	var dataSource = datasources[source][dataType];
+	var head = "";
+	
+	if (params.hasOwnProperty("token") || params.hasOwnProperty("key")) {
+		head=params["token"];
+	};	
 
-	$.get(dataSource["endpoint"], params["arguments"], function(data,status,xhr){
-		callback(data);
+	$.ajax({
+		url: dataSource["endpoint"],
+		crossDomain: true,
+		data: params["arguments"],
+		type: 'GET',
+		headers: {'token' : head,
+		},
+		success: function(data,status,xhr){
+			callback(data),
+			alert("error");
+		}
 	});
-}
+};
+
 
 /**
  * Convert data types to one another

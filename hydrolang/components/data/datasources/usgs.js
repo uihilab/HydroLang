@@ -8,7 +8,7 @@ export default
 
 	// https://waterservices.usgs.gov/rest/IV-Service.html
 	// This API returns stream stages for US
-	"water-data": {
+	"instant-values": {
 		"endpoint": "http://waterservices.usgs.gov/nwis/iv/",
 		"params": {
 			// These are only written to aid users to know
@@ -26,7 +26,27 @@ export default
 			// "output-data-field-1": null,
 			// enter data field here
 		}
-	}
+	},
+
+	"daily-values": {
+		"endpoint": "http://waterservices.usgs.gov/nwis/dv/",
+		"params": {
+			// These are only written to aid users to know
+			// what parameters are available
+			"format": null,
+			"site": null,
+			"stateCd": null,
+			"huc": null,
+			"countyCd": null,
+			"startDT": null,
+			"endDT": null,
+			// and more...
+		},
+		"data-fields": {
+			// "output-data-field-1": null,
+			// enter data field here
+		}
+	},
 
 	/* DATA SOURCE 2 */
 
