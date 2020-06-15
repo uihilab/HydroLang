@@ -92,7 +92,7 @@
 
 				/*** Basic use case for retrieving data **/
 				
-				
+				/*
 				dataRetrievalParams1 = {
 					"source": "usgs",
 					"dataType": "instant-values",
@@ -101,23 +101,26 @@
 						"format": "json"
 					}
 				};
+				*/
 
 				//if token or key is required
-				/*var token = "gNUkMgFHFSYVWyNoabuUfuVhCTJkRvRq";
+				var token = "gNUkMgFHFSYVWyNoabuUfuVhCTJkRvRq";
 
 				dataRetrievalParams2 = {
 					"source": "noaa",
 					"dataType": "prec-hourly",
+					"type": "json",
 					"arguments": {
-						"stationid": 'COOP:010008',
-						"units": "metric",
-						"startdate": "2010-05-01",
-						"enddate": "2010-06-31",
+						"stationid": 'COOP:135199',
+						"units": "standard",
+						"startdate": "2012-02-01",
+						"enddate": "2013-01-01",
+						"metadata": false
 					},
 					"token": token,
 				};
 				
-
+				/*
 				dataRetrievalParams2 = {
 					"source": "worldbank",
 					"dataType": "monavgs-country",
@@ -128,14 +131,15 @@
 					},
 				};
 				*/
-
 				
 
 				function handleWaterData(data){
 					console.log(data);
+					return data;
 				}
 
-				hydro1.data.retrieve(dataRetrievalParams1, handleWaterData);
+				var hy1 = hydro1.data.retrieve(dataRetrievalParams2, handleWaterData);
+
 
 				/*** End of use case **/
 

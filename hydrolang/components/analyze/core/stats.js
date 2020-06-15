@@ -14,16 +14,14 @@ export default class stats {
         return arr;
 	}
 	
-    /** onearray: converts data object into 1d array.
+    /** onearray: retrieves a 1D array with the data
      * @param {data} data object, either original or copy.
      * @returns {array}
      */
     static onearray(data){
         var arr = [];
-        for (var i=0; i<data.length;i++){
-            arr.push(data[0][i]);
-        }
-        return arr;
+        arr.push(data[1])
+        return arr
     }
 
     /** gapid: identify the gaps in data.
