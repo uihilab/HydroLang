@@ -91,8 +91,15 @@
 				/*** End of use case **/
 
 				/*** Basic use case for retrieving data **/
-				
-				/*
+							
+
+				//if token or key is required
+				var tokennoa1 = "wOYszxFhCctvvmijQbDUaiVgNMmwFNQE";
+				var tokennoa = "gNUkMgFHFSYVWyNoabuUfuVhCTJkRvRq";
+				var keymet = "yTAaiogF40chlFKngC51f5yYpvGH67Zl";
+				var keyaemet = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJlcmF6Y2FyOEBhcXVhY2xvdWQubmV0IiwianRpIjoiN2JjMDg4MzQtYWRlYS00ZTZlLTgwZDItZjhhZWRhMDk1NzliIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE1OTIzNTA4MzUsInVzZXJJZCI6IjdiYzA4ODM0LWFkZWEtNGU2ZS04MGQyLWY4YWVkYTA5NTc5YiIsInJvbGUiOiIifQ.W_JR_t4EBSzgpWQye3Jj7vRF2g7s_Ex2w5YoEl7cIdc"
+
+				//retrieve data from usgs (partially working)
 				dataRetrievalParams1 = {
 					"source": "usgs",
 					"dataType": "instant-values",
@@ -101,11 +108,8 @@
 						"format": "json"
 					}
 				};
-				*/
 
-				//if token or key is required
-				var token = "gNUkMgFHFSYVWyNoabuUfuVhCTJkRvRq";
-
+				//data retrieval from noaa (working)
 				dataRetrievalParams2 = {
 					"source": "noaa",
 					"dataType": "prec-hourly",
@@ -117,28 +121,59 @@
 						"enddate": "2013-01-01",
 						"metadata": false
 					},
-					"token": token,
+					"token": tokennoa1,
+				};
+
+				//data retrieval from meteostat	(working)		
+				dataRetrievalParams3 = {
+					"source": "meteostat",
+					"dataType": "hourlydata-stations",
+					"arguments": {
+						"station": "10637",
+						"start": "2019-06-01",
+						"end": "2019-06-05",
+					},
+					"x-api-key": keymet,
+				};
+
+				//data retrieval from fema (working)	
+				dataRetrievalParams4 = {
+					"source": "fema",
+					"dataType": "disaster-declarations",
+					"arguments": {
+						"state": "CA",
+					},
+				};
+
+				//data retrieval from aemet	(not working)	
+				dataRetrievalParams5 = {
+					"source": "aemet",
+					"dataType": "daily-station",
+					"arguments": {
+						"fechaIniStr": "2002",
+						"fechaFinStr": "2003",
+						"idema": "1351",
+					},
+					"api_key" : keyaemet,
 				};
 				
-				/*
-				dataRetrievalParams2 = {
+				//data retrieval from worldbank (not working)		
+				dataRetrievalParams6 = {
 					"source": "worldbank",
 					"dataType": "monavgs-country",
 					"arguments": {
-						"start": "1999",
+						"country": "BR",
+						"start": "2000",
 						"end": "2001",
-						"ISO3": "br",
 					},
-				};
-				*/
-				
+				};	
 
 				function handleWaterData(data){
 					console.log(data);
 					return data;
 				}
 
-				var hy1 = hydro1.data.retrieve(dataRetrievalParams2, handleWaterData);
+				var hy1 = hydro1.data.retrieve(dataRetrievalParams3, handleWaterData);
 
 
 				/*** End of use case **/

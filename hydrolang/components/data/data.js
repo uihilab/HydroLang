@@ -18,24 +18,35 @@ function retrieve(params, callback) {
 	};
 
 	var dataSource = datasources[source][dataType];
-	var head = "";
 	
-	if (params.hasOwnProperty("token") || params.hasOwnProperty("key")) {
-		head=params["token"];
-	};	
+	//create headers if required depending on the type supported.
+	var head = {};
 
+	if (params.hasOwnProperty("token")) {
+		Object.assign(head, {"token" : params["token"]});
+	} else if (params.hasOwnProperty("key")) {
+		Object.assign(head, {"key" : params["key"]});
+	} else if (params.hasOwnProperty("x-api-key")) {
+		Object.assign(head, {"x-api-key" : params["x-api-key"]});
+	} else if (params.hasOwnProperty("api_key")) {
+		Object.assign(head, {"api_key" : params["api_key"]});
+	} 
+	else {
+		head;
+	}
+	
 	$.ajax({
-		url: dataSource["endpoint"],
-		data: params["arguments"],
-		dataType: params["type"],
-		method: 'GET',
-		headers: {'token' : head,
-		},
-		success: function(data, status, xhr){
-			callback(data)
-		},
-		error: function(){}
-	});
+			url: 'https://cors-anywhere.herokuapp.com/' + dataSource["endpoint"],
+			data: params["arguments"],
+			dataType: params["type"],
+			method: 'GET',
+			crossDomain: true,
+			headers: head,
+			success: function(data, status, xhr){
+				callback(data)
+			},
+			error: function(){}
+		});
 };
 
 
@@ -49,6 +60,7 @@ function retrieve(params, callback) {
  * var config = {"type": "CSV", "keep": ["date", "values"]};
  * var dataCSV = transform(data, config);
  */
+
 function transform(data, config) {
 	var type = config['type'];
 	var clean;
@@ -65,8 +77,8 @@ function transform(data, config) {
 	for (var i = 0; i < arr.length; i++) {
 		for (var k in arr[i]) {
 			keep.test(k) || delete arr[i][k];
-		};
-	};
+		}
+	}
 
 	//convert array of objects into array of arrays for further manipulation.
 	if (type === 'ARR') {
@@ -97,31 +109,35 @@ function transform(data, config) {
 
 	//covert data from Object to JSON
 	else if (type === 'JSON') {
-		return arr;
+		var js = JSON.stringify(arr);
+		return js;
 	}
 
 	//convert data from JSON to XML
+	
 	else if (type === 'XML') {
 		var xml = '';
-		for (var prop in data) {
-			xml += data[prop] instanceof Array ? '' : "<" + prop + ">";
-			if (data[prop] instanceof Array) {
-				for (var array in data[prop]) {
+		for (var prop in arr) {
+			xml += arr[prop] instanceof Array ? '' : "<" + prop + ">";
+			if (arr[prop] instanceof Array) {
+				for (var array in arr[prop]) {
 					xml += "<" + prop + ">";
-					xml += transform(new Object(data[prop], config));
+					xml += transform(new Object(arr[prop], config));
 				}
-			} else if (typeof data[prop] == "object") {
-				xml += transform(new Object(data[prop], config));
+			} else if (typeof arr[prop] == "object") {
+				xml += transform(new Object(arr[prop], config));
 			} else {
-				xml += data[prop];
+				xml += arr[prop];
 			}
-			xml += data[prop] instanceof Array ? '' : "</" + prop + ">";
+			xml += arr[prop] instanceof Array ? '' : "</" + prop + ">";
 		}
 		var xml = xml.replace(/<\/?[0-9]{1,}>/g,'');
 		return xml;
-	} else {
-		throw new Error ('Please select a supported data conversion type!')
 	}
+	else {
+		throw new Error ('Please select a supported data conversion type!')
+	};
+	
 }
 
 /**
@@ -132,42 +148,40 @@ function transform(data, config) {
  * @example
  */
 function datadownload(data, config) {
-	var cof = config;
+	var type = config['type'];
 	var blob;
-	var exportfilename;
-	switch (blob) {
-		case (cof === 'CSV') :
-			blob = new Blob([data], {type: 'application/csv; charset = utf-8;'});
-			exportfilename = 'export.csv';
-			break;
-		case (cof  === 'XML'):
-			blob = new Blob([data], {type: 'text/xml'});
-			exportfilename = 'export.xml';
-			break;
-		case (cof === 'JSON'):
-			blob = new Blob([data], {type: 'text/json'});
-			exportfilename = 'export.json';
-			break;
-		default:
-			break;
-	};
+	var exportfilename = "";
+
+	if (type === 'CSV') {
+		var csv = this.transform(data, config);
+		blob = new Blob([csv], { type: 'text/csv; charset = utf-8;'});
+		exportfilename = 'export.csv';
+	} else if (type === 'JSON') {
+		var js = this.transform(data,config);
+		blob = new Blob([js], {type: 'text/json'});
+		exportfilename = 'export.json';
+	}; /*else if (type === 'XML') {
+		var xs = this.transform(data,config);
+		blob = new Blob([xs], {type: 'text/xml'});
+		exportfilename = 'export.xml';
+	}; */
 	
 	/*if (config['convtype'] = 'CSV') {
 		if (config['options'].hasOwnProperty('headers')){
 			var head= config['options']['headers']
 			arr.unshift(head)
-		}
-		*/
-	if (window.navigator.msSaveOrOpenBlob) {
-		window.navigator.msSaveBlob(blob, exportfilename);
+		};
+	*/
+	
+	if (navigator.msSaveOrOpenBlob) {
+		msSaveBlob(blob, exportfilename);
 	} else {
-		var a = window.document.createElement("a");
-		a.href = window.URL.createObjectURL(blob, {type: "text/plain"});
+		var a = document.createElement('a');
+		a.href = URL.createObjectURL(blob);
 		a.download = exportfilename;
-		document.body.appendChild(a);
 		a.click();
-		document.body.removeChild(a);
-	}
+		a.remove();
+	};
 }
 
 export{
