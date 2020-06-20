@@ -103,7 +103,7 @@
             var keyaemet = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJlcmF6Y2FyOEBhcXVhY2xvdWQubmV0IiwianRpIjoiN2JjMDg4MzQtYWRlYS00ZTZlLTgwZDItZjhhZWRhMDk1NzliIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE1OTIzNTA4MzUsInVzZXJJZCI6IjdiYzA4ODM0LWFkZWEtNGU2ZS04MGQyLWY4YWVkYTA5NTc5YiIsInJvbGUiOiIifQ.W_JR_t4EBSzgpWQye3Jj7vRF2g7s_Ex2w5YoEl7cIdc"
             var prox = "https://cors-anywhere.herokuapp.com/"
 
-            //retrieve data from usgs (partially working)
+            //retrieve data from usgs
             dataRetrievalParams1 = {
                 "source": "usgs",
                 "dataType": "instant-values",
@@ -114,7 +114,7 @@
                 "proxyurl": prox
             };
 
-            //data retrieval from noaa (working)
+            //data retrieval from noaa
             dataRetrievalParams2 = {
                 "source": "noaa",
                 "dataType": "prec-hourly",
@@ -129,7 +129,7 @@
                 "token": tokennoa1,
             };
 
-            //data retrieval from meteostat	(working)		
+            //data retrieval from meteostat		
             dataRetrievalParams3 = {
                 "source": "meteostat",
                 "dataType": "hourlydata-stations",
@@ -142,7 +142,7 @@
                 "proxyurl": prox
             };
 
-            //data retrieval from fema (working)	
+            //data retrieval from fema
             dataRetrievalParams4 = {
                 "source": "fema",
                 "dataType": "disaster-declarations",
@@ -151,7 +151,7 @@
                 },
             };
 
-            //data retrieval from aemet	(not working)	
+            //data retrieval from aemet
             dataRetrievalParams5 = {
                 "source": "aemet",
                 "dataType": "daily-station",
@@ -164,7 +164,7 @@
                 "proxyurl": prox
             };
 
-            //data retrieval from worldbank (not working)		
+            //data retrieval from worldbank	
             dataRetrievalParams6 = {
                 "source": "worldbank",
                 "dataType": "monavgs-country",
