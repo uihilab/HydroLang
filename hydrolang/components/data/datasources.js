@@ -5,7 +5,7 @@ import worldbank from './datasources/worldbank.js';
 import meteostat from './datasources/meteostat.js';
 import aemet from './datasources/aemet.js';
 
-export{
+export {
     usgs,
     fema,
     noaa,

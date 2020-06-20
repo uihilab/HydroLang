@@ -8,94 +8,94 @@
 // For identification of country ISO3 codes, refer to https://unstats.un.org/unsd/methodology/m49/
 // For identification of basin ISO3 codes, refer to https://github.com/hrbrmstr/basins
 // Dates in format YYYY
-
-export default
-{
+export default {
 
     // yearly, monthlyvprecipitation per country or per basin.
-	"monavgs-country": {
-		"endpoint": "http://climatedataapi.worldbank.org/climateweb/rest/v1/mavg/pr",
-		"params": {
-			// These are only written to aid users to know
-			// what parameters are available
-			"country": null,
+    "monavgs-country": {
+        "endpoint": "http://climatedataapi.worldbank.org/climateweb/rest/v1/mavg/pr",
+        "params": {
+            // These are only written to aid users to know
+            // what parameters are available
+            "country": null,
             "start": null,
             "end": null,
             "ISO3": null,
-			"ext": null,
-			// and more...
-		}
+            "ext": null,
+            // and more...
+        }
     },
 
     "annualavgs-country": {
-		"endpoint": "http://climatedataapi.worldbank.org/climateweb/rest/v1/annualavg/pr",
-		"params": {
-			// These are only written to aid users to know
-			// what parameters are available
-			"country": null,
+        "endpoint": "http://climatedataapi.worldbank.org/climateweb/rest/v1/annualavg/pr",
+        "params": {
+            // These are only written to aid users to know
+            // what parameters are available
+            "country": null,
             "start": null,
             "end": null,
             "ISO3": null,
-			"ext": null,
-			// and more...
-		}
+            "ext": null,
+            // and more...
+        }
     },
 
     "monavgs-basin": {
-		"endpoint": "http://climatedataapi.worldbank.org/climateweb/rest/v1/mavg/pr",
-		"params": {
-			// These are only written to aid users to know
-			// what parameters are available
-			"country": null,
+        "endpoint": "http://climatedataapi.worldbank.org/climateweb/rest/v1/mavg/pr",
+        "params": {
+            // These are only written to aid users to know
+            // what parameters are available
+            "country": null,
             "start": null,
             "end": null,
             "basinID": null,
-			"ext": null,
-			// and more...
-		}
+            "ext": null,
+            // and more...
+        }
     },
 
     "annualavgs-basin": {
-		"endpoint": "http://climatedataapi.worldbank.org/climateweb/rest/v1/annualavg/pr",
-		"params": {
-			// These are only written to aid users to know
-			// what parameters are available
-			"country": null,
+        "endpoint": "http://climatedataapi.worldbank.org/climateweb/rest/v1/annualavg/pr",
+        "params": {
+            // These are only written to aid users to know
+            // what parameters are available
+            "country": null,
             "start": null,
             "end": null,
             "basinID": null,
-			"ext": null,
-			// and more...
-		}
+            "ext": null,
+            // and more...
+        }
     },
 
 
     // yearly, monthly, daily precipitation ensembles per country or per basin.
     "dailyprec-country": {
         "endpoint": "http://climatedataapi.worldbank.org/climateweb/rest/v1/ensemble/ppt_means",
-		"params": {
-			// These are only written to aid users to know
-			// what parameters are available
-			"country": null,
+        "params": {
+            // These are only written to aid users to know
+            // what parameters are available
+            "country": null,
             "start": null,
             "end": null,
             "ISO3": null,
-			"ext": null,
-			// and more...
-		}
+            "ext": null,
+            // and more...
+        }
     },
 
     "dailyprec-basin": {
         "endpoint": "http://climatedataapi.worldbank.org/climateweb/rest/v1/ensemble/ppt_means",
-		"params": {
-			// These are only written to aid users to know
-			// what parameters are available
-			"country": null,
+        "params": {
+            // These are only written to aid users to know
+            // what parameters are available
+            "country": null,
             "start": null,
             "end": null,
             "basinID": null,
-			"ext": null,
-			// and more...
-		}
+            "ext": null,
+            // and more...
+        }
     },
+
+    "needProxy": true,
 }

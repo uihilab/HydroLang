@@ -7,26 +7,22 @@
 // The API KEY has format 'api_key'.
 // https://www.ncdc.noaa.gov/cdo-web/webservices/v2#data
 // Dates in format YYYY-MM-DDThh:mm:ss
-
-export default
-{
-	"stations": {
-		"endpoint": "https://opendata.aemet.es/opendata/api/observacion/convencional/datos/estacion/",
-		"params": {
-			"idema": null,
-		},
-	},
-
-	"daily-station": {
-		"endpoint": "https://opendata.aemet.es/opendata/api/valores/climatologicos/diarios/",
-		"params": {
-			"fechaIniStr": null,
-			"fechaFinStr": null,
-			"idema": null,
-		}
+export default {
+    "stations": {
+        "endpoint": "https://opendata.aemet.es/opendata/api/observacion/convencional/datos/estacion/",
+        "params": {
+            "idema": null,
+        },
     },
 
-	/* DATA SOURCE 2 */
+    "daily-station": {
+        "endpoint": "https://opendata.aemet.es/opendata/api/valores/climatologicos/diarios/",
+        "params": {
+            "fechaIniStr": null,
+            "fechaFinStr": null,
+            "idema": null,
+        }
+    },
 
-	/* DATA SOURCE ... */
+    "needProxy": true,
 }

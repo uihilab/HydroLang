@@ -6,19 +6,19 @@ export default class stats {
      * @param {data} original data.
      * @returns {data} copy of original data.
      */
-    static copydata(data){
+    static copydata(data) {
         var arr = [];
-        for (var i=0; i<data.length;i++){
+        for (var i = 0; i < data.length; i++) {
             arr.push(data[i]);
         }
         return arr;
-	}
-	
+    }
+
     /** onearray: retrieves a 1D array with the data
      * @param {data} data object, either original or copy.
      * @returns {array}
      */
-    static onearray(data){
+    static onearray(data) {
         var arr = [];
         arr.push(data[1])
         return arr
@@ -31,9 +31,9 @@ export default class stats {
     static gapid(arr) {
         var or = arr.slice();
         var gap = 0;
-        for (var i=0; i<or.length;i++){
-            if (or[i]==undefined) {
-                gap+=1;
+        for (var i = 0; i < or.length; i++) {
+            if (or[i] == undefined) {
+                gap += 1;
             }
         }
         return gap;
@@ -46,19 +46,20 @@ export default class stats {
      */
     static gapremoval(arr) {
         var or = arr.slice();
-        if (this.gapid(arr) >= 1){
-            for (var i=0; i<or.length;i++){
+        if (this.gapid(arr) >= 1) {
+            for (var i = 0; i < or.length; i++) {
                 if (n = 0) {
-                    if (or[i]==undefined) {
+                    if (or[i] == undefined) {
                         or.drop(i);
                     }
                 }
-                if (n=1) {
-                    if (or[i]==undefined) {
-                        or[i] = (or[i-1]+or[i+1])/2;
+                if (n = 1) {
+                    if (or[i] == undefined) {
+                        or[i] = (or[i - 1] + or[i + 1]) / 2;
                     }
                 }
-            } return or;
+            }
+            return or;
         } else {
             console.log("No gaps found in the data");
         }
@@ -98,11 +99,11 @@ export default class stats {
     static stddev(arr) {
         var mean = this.mean(arr);
         var SD = 0;
-        var nex =[];
-        for(var i=0; i<arr.length;i+=1){
-            nex.push((arr[i]-mean)*(arr[i]-mean));
+        var nex = [];
+        for (var i = 0; i < arr.length; i += 1) {
+            nex.push((arr[i] - mean) * (arr[i] - mean));
         }
-        return SD=Math.sqrt(this.sum(nex)/nex.length);
+        return SD = Math.sqrt(this.sum(nex) / nex.length);
     };
 
     /** variance = calculate variance for an array of data. 
@@ -121,8 +122,8 @@ export default class stats {
     static sumsqrd(arr) {
         var sum = 0;
         var i = arr.length;
-        while (--i >=0)
-            sum+= arr[i];
+        while (--i >= 0)
+            sum += arr[i];
         return sum;
     };
 
@@ -140,8 +141,8 @@ export default class stats {
      * @returns {var} variable with max value of dataset.
      */
     static max(arr) {
-        var high=arr[0];
-        var i=0;
+        var high = arr[0];
+        var i = 0;
         while (++i < arr.length)
             if (arr[i] > high)
                 high = arr[i];
@@ -153,9 +154,10 @@ export default class stats {
      * @returns {array} array with unique values.
      */
     static unique(arr) {
-        var un = {}, _arr = [];
-        for(var i=0; i<arr.length; i++){
-            if (!un[arr[i]]){
+        var un = {},
+            _arr = [];
+        for (var i = 0; i < arr.length; i++) {
+            if (!un[arr[i]]) {
                 un[arr[i]] = true;
                 _arr.push(arr[i]);
             }
@@ -171,8 +173,8 @@ export default class stats {
         var _arr = [];
         var stddev = this.stddev(arr);
         var mean = this.mean(arr);
-        for (var i=0; i<arr.length; i++) {
-            _arr[i]=(arr[i]-mean)/stddev;
+        for (var i = 0; i < arr.length; i++) {
+            _arr[i] = (arr[i] - mean) / stddev;
         }
         return _arr;
     };
@@ -182,19 +184,19 @@ export default class stats {
      * @param {var} number of quantile required.
      * @returns {array} array with values fitting the quartile.
      */
-    static quantile(arr,q) {
-        var _arr=arr.slice();
-        _arr.sort(function(a,b){
-            return a-b
+    static quantile(arr, q) {
+        var _arr = arr.slice();
+        _arr.sort(function(a, b) {
+            return a - b
         });
         var p = (arr.length - 1) * q;
-        if (p %1 ===0) {
+        if (p % 1 === 0) {
             return _arr[p]
         } else {
             var b = Math.floor(p);
             var rest = p - b;
-            if ((_arr[b+1]!==undefined)){
-                return _arr[b] + rest * (_arr[b+1] - _arr[b]);
+            if ((_arr[b + 1] !== undefined)) {
+                return _arr[b] + rest * (_arr[b + 1] - _arr[b]);
             } else {
                 return _arr[b];
             };
@@ -206,10 +208,10 @@ export default class stats {
      * @returns {array} array with outlier data.
      */
     static outliers(arr) {
-        var Q_25 = this.quantile(arr,0.25);
-        var Q_75 = this.quantile(arr,0.75);
-        var IQR = Q_75-Q_25;
-        return arr.filter((x) => (x <= 1.5*IQR-Q_25) || (x >= 1.5*IQR+Q_75));
+        var Q_25 = this.quantile(arr, 0.25);
+        var Q_75 = this.quantile(arr, 0.75);
+        var IQR = Q_75 - Q_25;
+        return arr.filter((x) => (x <= 1.5 * IQR - Q_25) || (x >= 1.5 * IQR + Q_75));
     };
 
     /** outremove: remove outliers from dataset.
@@ -233,7 +235,7 @@ export default class stats {
         var q1q2 = [];
         var sq1 = [];
         var sq2 = [];
-        for (var i = 0; i < q1.length; i++){
+        for (var i = 0; i < q1.length; i++) {
             q1q2[i] = q1[i] * q2[i];
             sq1[i] = q1[i] * q1[i];
             sq2[i] = q2[i] * q2[i];
@@ -241,34 +243,34 @@ export default class stats {
         var r1 = (n * this.sum(q1q2) - this.sum(q1) * this.sum(q2));
         var r2a = Math.sqrt(n * this.sum(sq1) - Math.pow(this.sum(q1), 2));
         var r2b = Math.sqrt(n * this.sum(sq2) - Math.pow(this.sum(q2), 2));
-        return r1 / (r2a * r2b);        
+        return r1 / (r2a * r2b);
     }
 
     /***************************/
     /***** Helper functions ****/
     /***************************/
- 
+
     /** joinarray: preprocessing tool for joining arrays for table display.
      * @param {arr} array to join.
      * @returns {arr} array ready for table display.
      */
     static joinarray(arr) {
         var temp = []
-        for (var i = 1; i < arr[0].length;i++){
-            if(!temp[i]) {
+        for (var i = 1; i < arr[0].length; i++) {
+            if (!temp[i]) {
                 temp[i] = [];
             };
-            temp[i] = [arr[0], arr[1]].reduce((a,b) => a.map((v,i) => v + b[i]));
+            temp[i] = [arr[0], arr[1]].reduce((a, b) => a.map((v, i) => v + b[i]));
         };
-        return temp;      
+        return temp;
     }
 
     /**flatennise: helper function for preparing arrays for charts and tables for duration/discharge.
-       * @param {arr} array required to flatenise.
-       * @returns {arr} flatenned array.
-       */
+     * @param {arr} array required to flatenise.
+     * @returns {arr} flatenned array.
+     */
 
-      static flatenise(params) {
+    static flatenise(params) {
         var x = params['Columns']
         var d = params['graphdata']
         var col = [];
@@ -276,12 +278,12 @@ export default class stats {
         for (var i = 0; i < x.length; i++) {
             col.push(x[i])
         }
-        for (var j=0; j < d.length; j++) {
+        for (var j = 0; j < d.length; j++) {
             data.push(d[j].flat())
         }
-        return [col,data];
-       };
-       
+        return [col, data];
+    };
+
     /**********************************/
     /*** End of Helper functions **/
     /**********************************/

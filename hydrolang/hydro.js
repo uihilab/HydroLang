@@ -7,22 +7,24 @@ class Hydrolang {
         this.mapType = "OSM";
 
         var context = this;
-        Object.entries(components).forEach(function(component){
-          let propName = component[0];
-          let propModule = component[1];
-          Object.assign(context, {[propName]: propModule});
+        Object.entries(components).forEach(function(component) {
+            let propName = component[0];
+            let propModule = component[1];
+            Object.assign(context, {
+                [propName]: propModule
+            });
         });
-   	}
+    }
 
-   	// Setters
-   	setConfig(config){
+    // Setters
+    setConfig(config) {
         this.metricSystem = config.metricSystem;
-        this.mapType = config.mapType;   		
-   	}
+        this.mapType = config.mapType;
+    }
 }
 
 if (typeof window !== 'undefined') {
-  window.Hydrolang = Hydrolang;
+    window.Hydrolang = Hydrolang;
 }
 
 export default Hydrolang;

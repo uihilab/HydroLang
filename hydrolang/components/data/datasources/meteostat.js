@@ -91,4 +91,6 @@ export default
 			"station": null,
 		}
 	},
+
+	"needProxy" : true,
 }
