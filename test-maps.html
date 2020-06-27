@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Hydrolang Use Case</title>
+    <script type="module" onload="initHydrolang()" src="./hydrolang/hydro.js"></script>
+</head>
+
+<body>
+    <style>
+        #map { height: 180px}
+    </style>
+    <script>
+        function initHydrolang() {
+            // configure hydrolang - this is optional, 
+            // if user does not provide a config,
+            // we'll just use the default values
+            const config = {
+                metricSystem: "SI",
+                mapType: 'osm',
+            };
+            
+            hydro2 = new Hydrolang();
+            hydro2.setConfig(config);
+
+            var mapconfig = {
+                "maptype": "osm",
+                "div": "map",
+                "params" :{
+                    "lat": "40",
+                    "lon": "-100",
+                    "zoom": "13",
+                    "tile": "OpenStreetMap"
+                },
+            };
+            //Map loader injected on the HTML file. The map still needs to be rendered.
+            var x = hydro2.map.loader(mapconfig);
+            console.log(x)
+            
+            //example for geoJSON map.
+            var geoex = {
+                "type": "FeatureCollection",
+                "features": [ { 
+                "type": "Feature", 
+                "geometry": { 
+                        "type": "Polygon", 
+                        "coordinates": [ [ 
+                        [ 174.78, -41.29 ], 
+                        [ 174.79, -41.29 ], 
+                        [ 174.79, -41.28 ], 
+                        [ 174.78, -41.28 ], 
+                        [ 174.78, -41.29 ] 
+                        ] ] 
+                    }
+                }	
+            ]
+        }
+        }
+    </script>
+    <p id="infobox">Example of map objects</p>
+</body>
+
+</html>

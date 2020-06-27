@@ -1,7 +1,7 @@
-import googlemapsapi from '../maps/googlemaps.js'
-import bingmapsapi from '../maps/bingmaps.js'
+import googlemapsapi from './googlemaps.js'
+import leafletosmapi from './leaflet.js'
 
 export {
     googlemapsapi,
-    bingmapsapi,
+    leafletosmapi,
 }

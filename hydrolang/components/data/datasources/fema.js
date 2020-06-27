@@ -22,7 +22,12 @@ export default {
         }
     },
 
-    "needProxy": false,
+    //set of requirements from the source. If different methods for dat retrieval can be used, then "GET" is default.
+    "requirements": {
+        "needProxy": false,
+        "requireskey": false,
+        "method": "GET"
+    },
     /* DATA SOURCE 2 */
 
     /* DATA SOURCE ... */

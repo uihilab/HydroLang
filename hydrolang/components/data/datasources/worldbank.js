@@ -97,5 +97,9 @@ export default {
         }
     },
 
-    "needProxy": true,
+    "requirements": {
+        "needProxy": true,
+        "requireskey": false,
+        "method": "GET"
+    },
 }

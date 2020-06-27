@@ -4,6 +4,8 @@ import noaa from './datasources/noaa.js';
 import worldbank from './datasources/worldbank.js';
 import meteostat from './datasources/meteostat.js';
 import aemet from './datasources/aemet.js';
+import eauk from './datasources/eauk.js';
+import meteoit from './datasources/meteoit.js';
 
 export {
     usgs,
@@ -11,5 +13,7 @@ export {
     noaa,
     worldbank,
     meteostat,
-    aemet
+    aemet,
+    eauk,
+    meteoit,
 };

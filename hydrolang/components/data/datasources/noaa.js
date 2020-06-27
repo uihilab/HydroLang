@@ -39,7 +39,12 @@ export default {
         }
     },
 
-    "needProxy": false,
+    "requirements": {
+        "needProxy": false,
+        "requireskey": true,
+        "keyname": "token",
+        "method": "GET"
+    },
 
     /* DATA SOURCE 2 */
 

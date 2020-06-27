@@ -2,7 +2,7 @@ class googlemapsapi {
     constructor(gApiKey) {
         this.apikey = gApiKey;
 
-        if (!windows._googlemapsapi) {
+        if (!window._googlemapsapi) {
             this.callbackname = '_googlemapsapi.mapLoaded';
             window._googlemapsapi = this;
             window._googlemapsapi.mapLoaded = this.mapLoaded.bind(this)

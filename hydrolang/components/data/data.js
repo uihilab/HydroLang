@@ -8,8 +8,13 @@ import $ from '../../modules/jquery/jquery.js';
  * @returns {JSON} retrieved data.
  */
 function retrieve(params, callback) {
+    //obtain data from parameters set by user.
     var source = params["source"];
-    var dataType = params["dataType"]
+    var dataType = params["dataType"];
+    var args = params["arguments"];
+    var type = params["type"];
+
+    //verify if the data is contained within the hydrolang databases.
     if (!(datasources[source] && datasources[source].hasOwnProperty(dataType))) {
         callback({
             "info": "No data has been found for given specifications."
@@ -17,49 +22,45 @@ function retrieve(params, callback) {
         return;
     };
 
-    var proxy = "";
+    //if source exists, then obtain the object from sources.
     var dataSource = datasources[source][dataType];
+    var endpoint = dataSource["endpoint"];
+    var met = datasources[source]["requirements"]["method"];
+
+    //define proxy if required by the source
+    var proxy = "";
+    var proxif = datasources[source]["requirements"]["needProxy"];
 
     if (params.hasOwnProperty("proxyurl")) {
         proxy = params["proxyurl"];
-    } else if (datasources[source].hasOwnProperty("needProxy") == false) {
-        throw new Error("please verify if the resource needs a proxy server.");
+    } else if (proxif == true) {
+        callback({"info": "please verify if the resource needs a proxy server."});
     };
 
     //create headers if required depending on the type supported.
     var head = {};
+    var keyname = "";
 
-    if (params.hasOwnProperty("token")) {
-        Object.assign(head, {
-            "token": params["token"]
-        });
-    } else if (params.hasOwnProperty("key")) {
-        Object.assign(head, {
-            "key": params["key"]
-        });
-    } else if (params.hasOwnProperty("x-api-key")) {
-        Object.assign(head, {
-            "x-api-key": params["x-api-key"]
-        });
-    } else if (params.hasOwnProperty("api_key")) {
-        Object.assign(head, {
-            "api_key": params["api_key"]
-        });
-    } else {
-        head;
-    }
-
+    //assign key or token to value in case it is required by the source.
+    if (datasources[source]["requirements"].hasOwnProperty("keyname")) {
+        keyname = datasources[source]["requirements"]["keyname"];
+        if (params.hasOwnProperty(keyname)) {
+            Object.assign(head, {[keyname]: params[keyname]})
+        } else {
+            callback({"info":"please verify the keyname of the source."});
+        };
+    };
+    
     $.ajax({
-        url: proxy + dataSource["endpoint"],
-        data: params["arguments"],
-        dataType: params["type"],
-        method: 'GET',
-        crossDomain: true,
+        url: proxy + endpoint,
+        data: args,
+        type: type,
+        method: met,
         headers: head,
         success: function(data, status, xhr) {
             callback(data)
         },
-        error: function() {}
+        error: function(){}
     });
 };
 
@@ -157,13 +158,14 @@ function transform(data, config) {
 }
 
 /**
- * Download files on different formats, depending on the formatted object.
+ * Download files on different formats, depending on the formatted object. It extends the 
+ * the transform function to automatically transform the data.
  * @param {Object} data to be downloaded, pre processed using transform function.
  * @param {JSON} download configuration
  * @returns {Object} downloaded data as link from HTML file.
  * @example
  */
-function datadownload(data, config) {
+function download(data, config) {
     var type = config['type'];
     var blob;
     var exportfilename = "";
@@ -208,5 +210,5 @@ function datadownload(data, config) {
 export {
     retrieve,
     transform,
-    datadownload
+    download
 }
