@@ -5,11 +5,10 @@
     <title>Hydrolang Use Case</title>
     <script type="module" onload="initHydrolang()" src="./hydrolang/hydro.js"></script>
 </head>
-
+<style>
+    #map {height: 300px}
+</style>
 <body>
-    <style>
-        #map { height: 180px}
-    </style>
     <script>
         function initHydrolang() {
             // configure hydrolang - this is optional, 
@@ -23,19 +22,23 @@
             hydro2 = new Hydrolang();
             hydro2.setConfig(config);
 
+            //map initializer. If google maps is called, please provide another entry called params with the API key.
+            var map = {
+                "maptype": "osm",
+            };
+            //Map loader injected on the HTML file. The map still needs to be rendered.
+            var x = hydro2.map.loader(map);
+            
             var mapconfig = {
                 "maptype": "osm",
-                "div": "map",
                 "params" :{
                     "lat": "40",
                     "lon": "-100",
                     "zoom": "13",
                     "tile": "OpenStreetMap"
                 },
-            };
-            //Map loader injected on the HTML file. The map still needs to be rendered.
-            var x = hydro2.map.loader(mapconfig);
-            console.log(x)
+                "height": "100%"
+            };           
             
             //example for geoJSON map.
             var geoex = {
@@ -55,6 +58,75 @@
                 }	
             ]
         }
+
+            var point = {
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "properties": {
+                    "Name": "Vancouver"
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [-122.34374999999999, 49.32512199104001]
+                }
+            }, {
+                "type": "Feature",
+                "properties": {
+                    "Name": "Calgary"
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [-114.08203125, 51.09662294502995]
+                }
+            }, {
+                "type": "Feature",
+                "properties": {
+                    "Name": "Edmonton"
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [-113.51074218749999, 53.56641415275043]
+                }
+            }, {
+                "type": "Feature",
+                "properties": {
+                    "Name": "Prince George"
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [-122.78320312499999, 53.93021986394]
+                }
+            }, {
+                "type": "Feature",
+                "properties": {
+                    "Name": "Fort St. John"
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [-120.80566406250001, 56.24334992410525]
+                }
+            }, {
+                "type": "Feature",
+                "properties": {
+                    "Name": "Prince Rupert"
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [-130.3857421875, 54.34214886448341]
+                }
+            }, {
+                "type": "Feature",
+                "properties": {
+                    "Name": "Fort McMurray"
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [-111.26953125, 56.65622649350222]
+                }
+            }]
+        }
+        
         }
     </script>
     <p id="infobox">Example of map objects</p>
