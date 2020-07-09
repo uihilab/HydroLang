@@ -11,16 +11,22 @@ import googlecharts, {
  */
 function chart(params) {
     ensureGoogleChartsIsSet().then(function() {
-        var d = params['data'];
-        var char = params['chartType'];
+        var container  = document.createElement('div');
+        container.id = params.divID;
+        container.title = `Graph of ${container.id}`;        
+        container.className = "figure"
+        document.body.appendChild(container);
+        
+        var d = params.data;
+        var char = params.chartType;
         var data;
 
         switch (char) {
-            case 'bar' || 'pie':
+            case ('bar' || 'pie'):
                 data = googlecharts.visualization.arrayToDataTable(d);
                 break;
-            case 'line' || 'scatter':
-                data = new tableData['data']();
+            case ('line' || 'scatter'):
+                data = new tableData.data();
                 for (var i = 0; i < d[0].length; i++) {
                     data.addColumn('number', [d[0][i]]);
                 };
@@ -31,9 +37,9 @@ function chart(params) {
             default:
                 break;
         }
-        var chart = new chartMap[params['chartType']](document.getElementById(params['divID']));
+        var chart = new chartMap[char](container);
         if (params.hasOwnProperty('options')) {
-            var options = params['options'];
+            var options = params.options;
             chart.draw(data, options);
         } else {
             chart.draw(data);
@@ -51,14 +57,21 @@ function chart(params) {
  * example usage code here
  */
 function table(params) {
+
     ensureGoogleChartsIsSet().then(function() {
-        var d = params['data'];
-        var types = params['dataType'];
-        var data = new tableData['data']();
+        var container  = document.createElement('div');
+        container.id = params.divID;
+        container.title = `Table of ${container.id}`;       
+        container.className = "container"
+        document.body.appendChild(container);
+
+        var d = params.data;
+        var types = params.dataType;
+        var data = new tableData.data();
         var temp = [];
 
         for (var k = 0; k < d[0].length; k++) {
-            data.addColumn(params['dataType'][k], [d[0][k]]);
+            data.addColumn(types[k], [d[0][k]]);
         };
 
         for (var i = 0; i < d[1].length; i++) {
@@ -77,11 +90,11 @@ function table(params) {
         };
         */
 
-        var view = new tableData['view'](data)
-        var table = new tableData['table'](document.getElementById(params['divID']));
+        var view = new tableData.view(data)
+        var table = new tableData.table(container);
 
         if (params.hasOwnProperty('options')) {
-            var options = params['options'];
+            var options = params.options;
             table.draw(view, options);
         } else {
             table.draw(view);
@@ -109,16 +122,17 @@ function ensureGoogleChartsIsSet() {
         (function waitForGoogle() {
             if (isGooglechartsLoaded) {
                 chartMap = {
-                    "bar": googlecharts.visualization.BarChart,
-                    "pie": googlecharts.visualization.PieChart,
-                    "line": googlecharts.visualization.LineChart,
-                    "scatter": googlecharts.visualization.ScatterChart,
+                    bar: googlecharts.visualization.BarChart,
+                    pie: googlecharts.visualization.PieChart,
+                    line: googlecharts.visualization.LineChart,
+                    scatter: googlecharts.visualization.ScatterChart,
+                    histogram: googlecharts.visualization.Histogram,
                     // ...
                 };
                 tableData = {
-                    "data": googlecharts.visualization.DataTable,
-                    "view": googlecharts.visualization.DataView,
-                    "table": googlecharts.visualization.Table,
+                    data: googlecharts.visualization.DataTable,
+                    view: googlecharts.visualization.DataView,
+                    table: googlecharts.visualization.Table,
                     //..
                 };
                 return resolve();
@@ -127,6 +141,7 @@ function ensureGoogleChartsIsSet() {
         })();
     });
 }
+
 
 /**********************************/
 /*** End of Supporting functions **/

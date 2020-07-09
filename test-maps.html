@@ -10,7 +10,7 @@
 </style>
 <body>
     <script>
-        function initHydrolang() {
+        async function initHydrolang() {
             // configure hydrolang - this is optional, 
             // if user does not provide a config,
             // we'll just use the default values
@@ -24,41 +24,41 @@
 
             //map initializer. If google maps is called, please provide another entry called params with the API key.
             var map = {
-                "maptype": "osm",
+                maptype: "osm",
             };
             //Map loader injected on the HTML file. The map still needs to be rendered.
-            var x = hydro2.map.loader(map);
+            await hydro2.map.loader(map);
             
+            //Object that is required for rendering the map.
             var mapconfig = {
-                "maptype": "osm",
-                "params" :{
-                    "lat": "40",
-                    "lon": "-100",
-                    "zoom": "13",
-                    "tile": "OpenStreetMap"
+                maptype: "osm",
+                lat: "40",
+                lon: "-100",
+                zoom: "13",
+                layertype: {
+                    type: "tile",
+                    name: "OpenStreetMap"
                 },
-                "height": "100%"
-            };           
-            
+            };
+                        
             //example for geoJSON map.
-            var geoex = {
-                "type": "FeatureCollection",
-                "features": [ { 
-                "type": "Feature", 
-                "geometry": { 
-                        "type": "Polygon", 
-                        "coordinates": [ [ 
-                        [ 174.78, -41.29 ], 
-                        [ 174.79, -41.29 ], 
-                        [ 174.79, -41.28 ], 
-                        [ 174.78, -41.28 ], 
-                        [ 174.78, -41.29 ] 
-                        ] ] 
-                    }
-                }	
-            ]
-        }
 
+            var polymap ={ "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature",
+       "geometry": {
+         "type": "Polygon",
+         "coordinates": [
+           [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
+             [100.0, 1.0], [100.0, 0.0] ]
+           ]
+
+       },
+       }
+    ]
+  } 
+
+        //example 2 for geojson data.
             var point = {
             "type": "FeatureCollection",
             "features": [{
@@ -126,8 +126,14 @@
                 }
             }]
         }
-        
+
+        var geoconfig = {
+            maptype: "osm",
+            layertype: {
+                type: "geodata",
+            }
         }
+    }
     </script>
     <p id="infobox">Example of map objects</p>
 </body>

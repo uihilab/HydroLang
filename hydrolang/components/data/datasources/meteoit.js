@@ -37,7 +37,7 @@ export default {
             "username": null,
             "token": null,
             "stationCode": null,
-            "data": null,
+            "date": null,
             "stationValidity": null,
         }
     },
@@ -48,7 +48,7 @@ export default {
         "params": {
             "username": null,
             "token": null,
-            "data": null,
+            "date": null,
             "stationValidity": null,
         }
     },
@@ -59,7 +59,7 @@ export default {
         "params": {
             "username": null,
             "token": null,
-            "data": null,
+            "date": null,
             "countryCode": null,
             "stationValidity": null,
         }

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
     <title>Hydrolang Use Case</title>
     <script type="module" onload="initHydrolang()" src="./hydrolang/hydro.js"></script>
 </head>
@@ -13,7 +14,7 @@
             // if user does not provide a config,
             // we'll just use the default values
             const config = {
-                metricSystem: "SI",
+                metricSystem: "si",
                 mapType: 'Google',
             }
 
@@ -29,26 +30,28 @@
             
             //Identify and remove outliers
             var outliers = hydro2.analyze.stats.outliers(ex);
+            console.log(outliers)
             var clean = hydro2.analyze.stats.outremove(ex);
+            console.log(clean)
 
             //Calculate metrics from clean array
-            var minValue = hydro2.analyze.stats.min(clean);
-            var maxValue = hydro2.analyze.stats.max(clean);
-            var sumValue = hydro2.analyze.stats.sum(clean);
-            var meanValue = hydro2.analyze.stats.mean(clean);
-            var medianValue = hydro2.analyze.stats.median(clean);
-            var stdValue = hydro2.analyze.stats.stddev(clean);
-            var varValue = hydro2.analyze.stats.variance(clean);
+            var min = hydro2.analyze.stats.min(clean);
+            var max = hydro2.analyze.stats.max(clean);
+            var sum = hydro2.analyze.stats.sum(clean);
+            var mean = hydro2.analyze.stats.mean(clean);
+            var median = hydro2.analyze.stats.median(clean);
+            var std = hydro2.analyze.stats.stddev(clean);
+            var vari = hydro2.analyze.stats.variance(clean);
 
 
             statparams = [
-                ['Minimum value', minValue],
-                ['Maximum', sumValue],
-                ['Sum', meanValue],
-                ['Mean', meanValue],
-                ['Median', medianValue],
-                ['Standard deviation', stdValue],
-                ['Variance', varValue]
+                ['Minimum value', min],
+                ['Maximum', max],
+                ['Sum', sum],
+                ['Mean', mean],
+                ['Median', median],
+                ['Standard deviation', std],
+                ['Variance', vari]
             ]
 
             ex1 = {
@@ -56,7 +59,7 @@
                 Columns: ['Metric', 'Value']
             };
 
-            console.log(statparams);
+            console.log(ex1)            
 
             var statx = hydro2.analyze.stats.flatenise(ex1);
 
@@ -65,8 +68,8 @@
                 divID: "statsexample",
                 dataType: ['string', 'number'],
                 options: {
-                    x: "30%",
-                    y: "30%",
+                    width: "50%",
+                    height: "60%",
                 }
             });
 
@@ -89,9 +92,8 @@
             };
 
             thiessendata = {
-                "rainfall": thiessenprec,
-                "areas": thiessenareas,
-
+                rainfall: thiessenprec,
+                areas: thiessenareas,
             };
 
             var thiessenpol = hydro2.analyze.hydro.thiessen(thiessendata);
@@ -107,12 +109,12 @@
              **/
 
             dimunithydrodata = {
-                "distribution": {
-                    "type": "gamma",
-                    "PRF": 484,
+                distribution: {
+                    type: "gamma",
+                    PRF: 484,
                 },
-                "timestep": 0.20,
-                "numhours": 5,
+                timestep: 0.20,
+                numhours: 5,
             };
 
             var dimunit = hydro2.analyze.hydro.dimunithydro(dimunithydrodata);
@@ -128,10 +130,10 @@
              **/
 
             unithydrodata = {
-                "units": "si",
-                "unithydro": dimunit,
-                "drainagearea": 4.6,
-                "tconcentration": 2.3,
+                units: "si",
+                unithydro: dimunit,
+                drainagearea: 4.6,
+                tconcentration: 2.3,
             };
 
             var basinunit = hydro2.analyze.hydro.unithydrocons(unithydrodata);
@@ -154,12 +156,12 @@
             };
 
             floodhydrodata = {
-                "units": "si",
-                "rainfall": rainf,
-                "unithydro": basinunit,
-                "cn": 90,
-                "stormduration": 6,
-                "timestep": 0.30,
+                units: "si",
+                rainfall: rainf,
+                unithydro: basinunit,
+                cn: 90,
+                stormduration: 6,
+                timestep: 0.30,
             };
 
             var flooding = hydro2.analyze.hydro.floodhydro(floodhydrodata);
@@ -171,7 +173,6 @@
             };
 
             var hydroexample = hydro2.analyze.stats.flatenise(graphing);
-            console.log(hydroexample)
 
             //define configuration options accroding to Google Charts API.
             hydro2.visualize.chart({
@@ -180,17 +181,18 @@
                 divID: "smoothchart",
                 options: {
                     title: "Hydrograph",
-                    hAxis: {
-                        minValue: 0
-                    },
                     curveType: "function",
-                    lineWidth: 3,
+                    lineWidth: 2,
                     explorer: {
                         actions: ['dragToZoom', 'rightClickToReset']
                     },
                     legend: {
                         position: "bottom"
                     },
+                    style: {
+                        height: "500px",
+                        width: "900px"
+                    }
                 }
             });
 
@@ -211,36 +213,34 @@
             baseflow = 10;
             Landuse = [0.25, 0.10, 0.30, 0.15, 0.2];
             infiltation = 0.3;
+
             dataBucketModel = {
-                "rainfall": rainfallData,
-                "baseflow": baseflow,
-                "evaporation": {
-                    "dataType": "timeseries",
-                    "data": evapodata
+                rainfall: rainfallData,
+                baseflow: baseflow,
+                evaporation: {
+                    dataType: "timeseries",
+                    data: evapodata
                 },
-                "landuse": {
-                    "agriculture": Landuse[0],
-                    "bare rock": Landuse[1],
-                    "grassland": Landuse[2],
-                    "forest": Landuse[3],
-                    "moorland": Landuse[4]
+                landuse: {
+                    agriculture: Landuse[0],
+                    barerock: Landuse[1],
+                    grassland: Landuse[2],
+                    forest: Landuse[3],
+                    moorland: Landuse[4]
                 },
-                "infiltration": infiltation
+                infiltration: infiltation
             };
 
             var bucket = hydro2.analyze.hydro.bucketmodel(dataBucketModel);
-
             /***End of example for bucket model**/
-
         }
     </script>
-    <p id="infobox">Basic example of analysis module!</p>
-    <div id="statsexample"></div>
-    <div></div>
-    <div id="barchartexample1"></div>
-    <div></div>
-    <div id="smoothchart"></div>
-    <div></div>
+    <p class ="h4">Basic example of analysis module!</p>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+
 </body>
 
 </html>

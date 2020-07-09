@@ -1,10 +1,12 @@
-import _ from '../../../modules/d3/d3.js'
+import '../../../modules/d3/d3.js';
+import '../../../modules/tensorflow/tensorflow.js';
 
 export default class stats {
 
-    /** copydata: makes a copy of original data.
-     * @param {data} original data.
-     * @returns {data} copy of original data.
+    /** 
+     * Makes a copy of original data for further manipulation.
+     * @param {Object []}  data - original data.
+     * @returns {Object []} Copy of original data.
      */
     static copydata(data) {
         var arr = [];
@@ -14,9 +16,10 @@ export default class stats {
         return arr;
     }
 
-    /** onearray: retrieves a 1D array with the data
-     * @param {data} data object, either original or copy.
-     * @returns {array}
+    /** 
+     * Retrieves a 1D array with the data.
+     * @param {Object []} data - array object.
+     * @returns {Object []} Array object.
      */
     static onearray(data) {
         var arr = [];
@@ -24,9 +27,10 @@ export default class stats {
         return arr
     }
 
-    /** gapid: identify the gaps in data.
-     * @param {array} array with data.
-     * @returns {var} number of gaps found in the data.
+    /** 
+     * Identifies gaps in data.
+     * @param {Object []} data - array object with data.
+     * @returns {number} Number of gaps in data.
      */
     static gapid(arr) {
         var or = arr.slice();
@@ -39,12 +43,13 @@ export default class stats {
         return gap;
     };
 
-    /** gapremoval: remove gaps in data with an option to fill the .
-     * @param {array} array with data.
-     * @param {var} states if gaps should be removed (0) or filled with average value(1). 
-     * @returns {var} number of gaps found in the data.
+    /** 
+     * Remove gaps in data with an option to fill the gap.
+     * @param {Object []} data - array object with data.
+     * @param {number} state - if gaps should be removed (0) or filled with average value(1). 
+     * @returns {number} Number of gaps found in the data.
      */
-    static gapremoval(arr) {
+    static gapremoval(arr, n) {
         var or = arr.slice();
         if (this.gapid(arr) >= 1) {
             for (var i = 0; i < or.length; i++) {
@@ -65,36 +70,40 @@ export default class stats {
         }
     };
 
-    /** sum: sums all data in a series.
-     * @param {array} data either original or copy from original.
-     * @returns {var} sum of all data in an array.
+    /** 
+     * Sums all data in a series.
+     * @param {Object []} data - array object with data.
+     * @returns {number} Sum of all data in an array.
      */
     static sum(arr) {
-        var sum = _.d3.sum(arr);
+        var sum = d3.sum(arr);
         return sum;
     };
 
-    /** mean: calculates the mean of a 1d array.
-     * @param {array} array with data.
-     * @returns {var} mean of the data.
+    /** 
+     * Calculates the mean of a 1d array.
+     * @param {Object []} data - array object with data.
+     * @returns {number} Mean of the data.
      */
     static mean(arr) {
-        var m = _.d3.mean(arr)
+        var m = d3.mean(arr)
         return m;
     };
 
-    /** median: calculates the median values for a 1d array.
-     * @param {array} array with data.
-     * @returns {var} median of the data.
+    /** 
+     * Calculates the median values for a 1d array.
+     * @param {Object []} data - array object with data.
+     * @returns {number} Median of the data.
      */
     static median(arr) {
-        var m = _.d3.median(arr)
+        var m = d3.median(arr)
         return m;
     };
 
-    /** stdev = calculates standard deviation of an array.
-     * @param {array} array with data.
-     * @returns {var} variable with standard deviation.
+    /** 
+     * Calculates standard deviation of an array.
+     * @param {Object []} data - array object with data.
+     * @returns {number} Standard deviation.
      */
     static stddev(arr) {
         var mean = this.mean(arr);
@@ -106,18 +115,20 @@ export default class stats {
         return SD = Math.sqrt(this.sum(nex) / nex.length);
     };
 
-    /** variance = calculate variance for an array of data. 
-     * @param {array} array with data.
-     * @returns {var} varaince of the dataset. 
+    /** 
+     * Calculate variance for an array of data. 
+     * @param {Object []} data - array object with data.
+     * @returns {number} Variance of the data. 
      */
     static variance(arr) {
-        var vari = _.d3.variance(arr);
-        return vari
+        var vari = d3.variance(arr);
+        return vari;
     };
 
-    /** sumsqrd: calculates sum of squares for a dataset.
-     * @param {array} array with data.
-     * @returns {var} variable with sum of squares for data.
+    /** 
+     * Calculates sum of squares for a dataset.
+     * @param {Object []} data - array object with data.
+     * @returns {number} Sum of squares for data.
      */
     static sumsqrd(arr) {
         var sum = 0;
@@ -127,18 +138,20 @@ export default class stats {
         return sum;
     };
 
-    /** min: minimum value of an array
-     * @param {array} array with data.
-     * @returns {var} variable with min value of dataset.
+    /** 
+     * Minimum value of an array
+     * @param {Object []} data - array object with data.
+     * @returns {number} Minimum value of a dataset.
      */
     static min(arr) {
-        var low = _.d3.min(arr)
+        var low = d3.min(arr)
         return low;
     };
 
-    /** max: maximum value of an array.
-     * @param {array} array with data.
-     * @returns {var} variable with max value of dataset.
+    /** 
+     * Maximum value of an array.
+     * @param {Object []} data - array object with data.
+     * @returns {number} Maximum value of a dataset.
      */
     static max(arr) {
         var high = arr[0];
@@ -149,9 +162,10 @@ export default class stats {
         return high
     };
 
-    /** unique: unique values in an array.
-     * @param {array} array with data.
-     * @returns {array} array with unique values.
+    /** 
+     * Unique values in an array.
+     * @param {Object []} data - array object with data.
+     * @returns {Object []} Array with unique values.
      */
     static unique(arr) {
         var un = {},
@@ -165,9 +179,10 @@ export default class stats {
         return _arr;
     };
 
-    /** standardize: use mean and standard deviation to standardize the original dataset.
-     * @param {array} array with data.
-     * @returns {array} array with standardized data.
+    /** 
+     * Use mean and standard deviation to standardize the original dataset.
+     * @param {Object []} data - array object with data.
+     * @returns {Object []} Array with standardized data.
      */
     static standardize(arr) {
         var _arr = [];
@@ -179,10 +194,11 @@ export default class stats {
         return _arr;
     };
 
-    /** quantile: quantile calculator for given data and q written as (ie. 25, 75)
-     * @param {array} array with data.
-     * @param {var} number of quantile required.
-     * @returns {array} array with values fitting the quartile.
+    /** 
+     * Quantile calculator for given data.
+     * @param {Object []} data - array object with data.
+     * @param {number} quantile - percentage of quantile required (ie. 25, 75).
+     * @returns {Object []} Array with values fitting the quartile.
      */
     static quantile(arr, q) {
         var _arr = arr.slice();
@@ -203,9 +219,10 @@ export default class stats {
         };
     };
 
-    /** outliers: identify the outliers from dataset.
-     * @param {array} array with data.
-     * @returns {array} array with outlier data.
+    /** 
+     * Identify the outliers on a dataset for quantiles 25 and 75.
+     * @param {Object []} data - array object with data.
+     * @returns {Object []} Array with outlier data.
      */
     static outliers(arr) {
         var Q_25 = this.quantile(arr, 0.25);
@@ -214,9 +231,10 @@ export default class stats {
         return arr.filter((x) => (x <= 1.5 * IQR - Q_25) || (x >= 1.5 * IQR + Q_75));
     };
 
-    /** outremove: remove outliers from dataset.
-     * @param {array} array with data.
-     * @returns {array} array with cleaned data.
+    /** 
+     * Remove outliers from dataset.
+     * @param {Object []} data - array object with data.
+     * @returns {Object []} Array with cleaned data.
      */
     static outremove(arr) {
         var or = arr.slice();
@@ -224,9 +242,10 @@ export default class stats {
         return or.filter((el) => !out.includes(el));
     };
 
-    /** correlation: calculates pearson coefficient for bivariate analysis.
-     * @param {params} param object with two datasets.
-     * @returns {var} coefficient.
+    /** 
+     * Calculates pearson coefficient for bivariate analysis.
+     * @param {Object} param - object containing the datasets to be compared.
+     * @returns {number} Pearson coefficient.
      */
     static correlation(params) {
         var q1 = params['Set1'];
@@ -246,13 +265,36 @@ export default class stats {
         return r1 / (r2a * r2b);
     }
 
+    /**
+     * using tensorflow, it creates a fast fourier analysis over
+     * a dataset and see if there are any patterns within the data.
+     */
+    static fastfourier(arr){
+        tf.setBackend('webgl');
+        const _arr = arr;
+        const results = _arr.map(n => {
+            const tensors = [];
+            const start = performance.now();
+            for (let i =0; i < 100; i++) {
+                const real = tf.ones([10, n * 10]);
+                const imag = tf.ones([10, n * 10]);
+                const input = tf.complex(real,imag);
+                const res = tf.spectral.fft(input);
+                res.dataSync();
+            }
+            return performance.now() - start;
+        });
+        console.log(results);
+    }
+
     /***************************/
     /***** Helper functions ****/
     /***************************/
 
-    /** joinarray: preprocessing tool for joining arrays for table display.
-     * @param {arr} array to join.
-     * @returns {arr} array ready for table display.
+    /** 
+     * Preprocessing tool for joining arrays for table display.
+     * @param {Object []} data - array object to join.
+     * @returns {Object []} Array for table display.
      */
     static joinarray(arr) {
         var temp = []
@@ -265,14 +307,15 @@ export default class stats {
         return temp;
     }
 
-    /**flatennise: helper function for preparing arrays for charts and tables for duration/discharge.
-     * @param {arr} array required to flatenise.
-     * @returns {arr} flatenned array.
+    /**
+     * Helper function for preparing arrays for charts and tables for duration/discharge.
+     * @param {Object []} data - array object required to be flatenned.
+     * @returns {Object []} Flatenned array.
      */
 
     static flatenise(params) {
-        var x = params['Columns']
-        var d = params['graphdata']
+        var x = params.Columns
+        var d = params.graphdata
         var col = [];
         var data = [];
         for (var i = 0; i < x.length; i++) {

@@ -1,8 +1,9 @@
 export default class hydro {
 
-    /**Arithmetic mean: computation of aereal mean precipitation for a river basin given it has 2 or more different stations.
-     * @param {array} object with precipitation with equal amounts of data from different rain gauges.
-     * @returns {array} object with average precipitaiton for a specific time series.
+    /**
+     * Computation of aereal mean precipitation for a river basin given it has 2 or more different stations.
+     * @param {Object []} data - array object with precipitation with equal amounts of data from different rain gauges.
+     * @returns {Object []} array - object with average precipitaiton for a specific time series.
      */
 
     static arithmetic(arr) {
@@ -24,15 +25,16 @@ export default class hydro {
         return filtered;
     };
 
-    /**Thiessen polygon: calculates average precipitation for a basin considering there is
+    /**
+     * Calculates average precipitation for a basin considering there is
      * one station per sub basin.
-     * @param {params} parameter object which has the time series data and area per subbasin.
-     * @returns {array} time series of average precipitation over whole sub basin.
+     * @param {Object} data - object describing the time series data and area per subbasin.
+     * @returns {Object []} array - time series of average precipitation over a whole basin.
      */
 
     static thiessen(params) {
-        var precs = params["rainfall"];
-        var areas = params["areas"];
+        var precs = params.rainfall;
+        var areas = params.areas;
         var totarea = this.totalprec(areas);
         var res = Array(precs.length).fill(0).map(() => Array(areas.length).fill(0));
         var out = Array(precs[0].length).fill(0);
@@ -45,17 +47,17 @@ export default class hydro {
         return out;
     };
 
-    /**dimunithydro: creates a dimensionless unit hydrograph using a preset distribution.
+    /**
+     * Creates a dimensionless unit hydrograph using a preset distribution.
      * Calculated frombased on (NEH, 2007).
-     * @param {param} object that specifies the type of distribution required as well as the 
-     * time step to compute the hydrograph.
-     * @returns {array} dimensionless hydrograph.
+     * @param {Object} data - object specifying the type of distribution, time step to compute the hydrograph.
+     * @returns {Object []} array - dimensionless hydrograph.
      */
 
     static dimunithydro(params) {
         //populate
-        var step = params["timestep"];
-        var hours = params["numhours"];
+        var step = params.timestep;
+        var hours = params.numhours;
 
         //calculate the number of steps in the hydrograph
         var numstep = Math.round(hours / step);
@@ -65,9 +67,9 @@ export default class hydro {
         var qqp = Array(numstep + 1).fill(0);
         var m = 0;
 
-        if (params["distribution"]["type"] = "gamma") {
+        if (params.distribution.type = "gamma") {
             //change gamma shape factor.
-            switch (params["distribution"]["PRF"]) {
+            switch (params.distribution.PRF) {
                 case 101:
                     m = 0.26;
                     break;
@@ -104,18 +106,19 @@ export default class hydro {
         };
     };
 
-    /**unithydrocons = Unit hydrograph NRCS constructor depending on the 
-     * physical characteristics of a regularly shaped basin. Calculated from (NEH, 2007)
-     * @param {param} object that specifies the physical characteristics and the type of
+    /**
+     * Unit hydrograph constructor NRCS constructor depending on the 
+     * physical characteristics of a regularly shaped basin. Calculated from (NEH, 2007).
+     * @param {Object} data - object that specifies the physical characteristics and the type of
      * distribution required as well as the time step to compute the hydrograph.
-     * @returns {array} time series array. If metric in m3/s, if SI in cfs.
+     * @returns {Object []} array - time series array. If metric in m3/s, if SI in cfs.
      */
 
     static unithydrocons(params) {
         //import parameters from user.
-        var area = params["drainagearea"];
-        var tconc = params["tconcentration"];
-        var duh = params["unithydro"];
+        var area = params.drainagearea;
+        var tconc = params.tconcentration;
+        var duh = params.unithydro;
 
         //calculate time step.
         var deltat = Number((tconc * 0.133).toFixed(3));
@@ -126,7 +129,7 @@ export default class hydro {
         var qp = 0;
 
         //change peak discharge depending on the units.
-        switch (params["units"]) {
+        switch (params.units) {
             case "si":
                 qp = 484 * area * 1 / tp;
                 break;
@@ -145,19 +148,20 @@ export default class hydro {
         return unit;
     };
 
-    /** floodhydro: Flooding hydrograph generator using a Dimensionless Unit Hydrograph,
+    /**
+     * Flooding hydrograph generator using a Dimensionless Unit Hydrograph,
      * precipitation data and SCS metrics for runoff calculation.
-     * @param {param} parameter object landuse, rainfall, infiltration capacity and baseflow.
-     * @returns {array} values for runoff as time series.
+     * @param {Object} data - parameter object specifying landuse, rainfall, infiltration capacity and baseflow.
+     * @returns {Object []} values for runoff as time series.
      */
 
     static floodhydro(params) {
         //import data from parameters.
-        const rain = params["rainfall"];
-        const unit = params["unithydro"];
-        const cn = params["cn"];
-        const stormdur = params["stormduration"];
-        const timestep = params["timestep"];
+        const rain = params.rainfall;
+        const unit = params.unithydro;
+        const cn = params.cn;
+        const stormdur = params.stormduration;
+        const timestep = params.timestep;
 
         //create arrays for calculation of runoff
         var numarray = Math.round(stormdur / timestep);
@@ -173,7 +177,7 @@ export default class hydro {
         var finalhydro = Array(2).fill(0).map(() => Array(finalcount).fill(0));
 
         // change calculations depending on units.
-        switch (params["units"]) {
+        switch (params.units) {
             case "si":
                 sc = 1000 / cn - 10;
                 break;
@@ -219,24 +223,25 @@ export default class hydro {
         return finalhydro;
     };
 
-    /** bucketmodel: does simple rainfall-runoff analyses over a rainfall dataset given landuse, baseflow and infiltration capacity.
-     * @param {param} parameter object landuse, rainfall, infiltration capacity and baseflow.
-     * @returns {array} values for runoff as time series.
+    /** 
+     * Simple rainfall-runoff analyses over a rainfall dataset given landuse, baseflow and infiltration capacity.
+     * @param {Object} data - parameter object landuse, rainfall, infiltration capacity and baseflow.
+     * @returns {Object []} array - values for runoff as time series.
      */
 
     static bucketmodel(params) {
 
         //initial parameters
-        let rainfall = params["rainfall"];
+        let rainfall = params.rainfall;
         let n = rainfall.length;
-        let baseflow = params["baseflow"] / 24;
-        let evapodata = params["evaporation"]["data"];
-        let landuse = [params["landuse"]["agriculture"], params["landuse"]["bare rock"],
-            params["landuse"]["grassland"],
-            params["landuse"]["forest"],
-            params["landuse"]["moorland"]
+        let baseflow = params.baseflow / 24;
+        let evapodata = params.evaporation.data;
+        let landuse = [params.landuse.agriculture, params.landuse.barerock,
+            params.landuse.grassland,
+            params.landuse.forest,
+            params.landuse.moorland
         ];
-        let infiltration = params["infiltration"];
+        let infiltration = params.infiltration;
         //infiltration capacities for agriculture, bare rock, grassland, forest and
         //moorland, respectively.
         let FieldCaps = [5, 50, 25, 25, 5];
@@ -301,14 +306,80 @@ export default class hydro {
         return totalrunoff;
     };
 
+    /**
+     * solves 1d groundwater steady simulation using gaussian elimination.
+     * Adapted from (Molkentin, 2019).
+     * @param {Object} params - object system example.
+     * @return {Object []} matrix - matrix solved.  
+     */
+
+     static ground1d (params) {
+        //pass data from params to variables.
+        var length = params.length;
+        var k = params.k;
+        var nodes = params.nodes;
+        var w0 = params.w0;
+        var w1 = params.w1;
+
+        var hL = params.hL;
+        var q0 = params.q0;
+        var qL = params.qL;
+
+        var dx = length / (nodes - 1);
+
+        //create a new equation system
+        var matrix = this.genmatrix(nodes);
+        var vec_left = this.genvector(nodes);
+        var vec_right = this.genvector(nodes);
+
+        //equation system set up.
+        var factor = k/dx;
+
+        //initial boundary.
+        matrix[0][0] = factor;
+        matrix[0][1] = -factor;
+        vec_right[0] = q0;
+
+        //last boundary.
+        var index = nodes - 1;
+        matrix[index][index] = -factor;
+        matrix[index][index-1] = factor;
+        vec_right[index] = qL;
+
+        //calculate inner nodes using Runge-Kutta 1D.
+        for (var i =1; i < (nodes - 1); i++){
+            var newfac = k/(dx*dx);
+            matrix[i][i] = 2*newfac;
+            matrix[i][i-1] = -1*newfac;
+            matrix[i][i+1] = -1*newfac;
+            vec_right[i] = w0 + w1*i*dx;
+        }
+        
+        //solve equation system.
+        this.equationsystemsolver(matrix,vec_left,vec_right);
+
+        //calculate discharge in vec_right
+        vec_right[0] = -k * (vec_left[1] - vec_left[0]) / dx;
+
+        for (var i =1; i < (nodes -1); i++) {
+            vec_right[i] = -k * (vec_left[i+1] - vec_left[i-1]) / dx * 0.5;
+        }
+
+        vec_right[index] = -k * (vec_left[index] - vec_left[index - 1]) / dx;
+
+        return vec_left;
+
+     }
+
     /***************************/
     /***** Helper functions ****/
     /***************************/
 
-    /**Total precipitation: arithmetic sum of the total amount of precipitation during an event.
+    /**
+     * Arithmetic sum of the total amount of precipitation during an event.
      * It is also used as a helper function.
-     * @param {arr} array with precipitation event.
-     * @returns {var} total amount of precipitation during an event on a given station. 
+     * @param {Object []} data - array with precipitation event.
+     * @returns {number} total amount of precipitation during an event on a given station. 
      */
 
     static totalprec(arr) {
@@ -320,10 +391,11 @@ export default class hydro {
         return sum;
     };
 
-    /**move: helper function for moving arrays in unit hydographs.
-     * @param {*} array that is to be pushed in subtitute array.
-     * @param {*} from index in original array. 
-     * @param {*} to index in substitute array.
+    /**
+     * Moving arrays in unit hydographs.
+     * @param {Object []} data - array that is to be pushed in subtitute array.
+     * @param {number} location - index from in original array. 
+     * @param {number} location - index to in substitute array.
      */
 
     static move(array, from, to) {
@@ -338,6 +410,86 @@ export default class hydro {
         array[to] = target;
         return array;
     };
+
+    /**
+     * Creates a matrix of n dimensions. 
+     * @param {number} dim - dimension of the matrix.
+     * @returns {Object []} matrix - n-D array.
+     */
+
+     static genmatrix (dim) {
+         var matrix = Array(dim).fill(0);
+         for(var i = 0; i < matrix.length; i++){
+             matrix[i] = Array(dim).fill(0);
+         }
+         return matrix
+     };
+
+     /**
+      * Create a vector of n dimensions.
+      * @param {number} dim - dimension of the vector.
+      * @returns {Object []} vector - n-1 array.
+      */
+     static genvector (dim) {
+         var vector = Array(dim).fill(0);
+         return vector;
+     }
+
+     /**
+      * solves linear equations in the form Ax = b.
+      * @param {Object []} vec_right - vector on right hand side.
+      * @param {Object []} vec_left - vector on left hand side.
+      * @param {Object []} matrix - matrix to be filled.
+      * @returns {Object []} vec_left.
+      */
+
+      static equationsystemsolver(matrix, vec_left, vec_right) {
+          var fMaxEl;
+          var fAcc;
+          var nodes = vec_left.length;
+
+          for (k=0; k<nodes; k++){
+              //search line with largest element.
+              fMaxEl = Math.abs(matrix[k][k]);
+              var m = k;
+
+              for(var i=k+1; i < nodes; i++) {
+                  if(Math.abs(fMaxEl) < Math.abs(matrix[i][k])) {
+                      fMaxEl = matrix[i][k];
+                      m=i;
+                  }
+              }
+              // permutation of base line (index k) and max element line (index m)
+              if(m!=k) {
+                  for (var i = k; i < nodes; i++) {
+                      fAcc = matrix[k][i];
+                      matrix[k][i] = matrox[m][i];
+                      matrix[m][i] = fAcc;
+                  }
+                  fAcc = vec_right[k];
+                  vec_right[k] = vec_right[m];
+                  vec_right[m] = fAcc;
+              }
+              if (Math.abs(matrix[k][k]) < 1e-10){
+                  alert(`Singular matrix `+k+" "+matrix[k][k]);
+              }
+              for(var j = (k+1); j < nodes; j++) {
+                  fAcc = -matrix[j][k] / matrix[k][k];
+                  for(var i = k; i<nodes; i++){
+                      matrix[j][i] = matrix[j][i] + fAcc*matrix[k][i];
+                  }
+                  vec_right[j] = vec_right[j] + fAcc*vec_right[k];
+              }
+          }
+          for (var k = (nodes - 1); k >= 0 ; k--){
+              vec_left[k] = vec_right[k];
+
+              for(var i = (k+1); i <nodes; i++){
+                  vec_left[k] -= (matrix[k][i]*vec_left[i]); 
+              }
+              vec_left[k] = vec_left[k] / matrix[k][k];
+          }
+      }
 
     /**********************************/
     /*** End of Helper functions **/
