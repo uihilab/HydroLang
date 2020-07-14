@@ -100,6 +100,45 @@
 
             /*** End of use case **/
 
+            /*** Use of synthetic hydrograph calculator 
+             * It retrieves back the main parameters for using synthetic
+             * calculations of a small basin.   
+             * **/
+
+             synt1 = {
+                 type: "SCS",
+                 unit: "si",
+                 args: {
+                     L: 4000,
+                     slope: 10,
+                     CN: 82
+                 }
+             };
+
+             synt2 = {
+                 type: "kirpich",
+                 unit: "m",
+                 args: {
+                     L: 4000,
+                     slope: 10,
+                 }
+             };
+
+             synt3 = {
+                 type: "kirpich",
+                 unit: "si",
+                 args: {
+                     L: 4000,
+                     slope: 10,
+                     manning: 0.020
+                 }
+             };
+
+             
+
+             var calcul = hydro2.analyze.hydro.syntheticalc(synt3);
+             console.log(calcul);
+
 
             /*** Use of dimensionless unit hydrograph constructor.
              * options for distribution: gamma as of June 2020. Changes amount of volume
@@ -242,5 +281,4 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
 
 </body>
-
 </html>

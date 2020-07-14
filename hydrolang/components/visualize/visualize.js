@@ -27,6 +27,7 @@ function chart(params) {
                 break;
             case ('line' || 'scatter'):
                 data = new tableData.data();
+                
                 for (var i = 0; i < d[0].length; i++) {
                     data.addColumn('number', [d[0][i]]);
                 };
@@ -37,6 +38,7 @@ function chart(params) {
             default:
                 break;
         }
+        
         var chart = new chartMap[char](container);
         if (params.hasOwnProperty('options')) {
             var options = params.options;
@@ -45,7 +47,6 @@ function chart(params) {
             chart.draw(data);
         };
     });
-
     return "A chart is drawn based on given parameters";
 }
 
@@ -84,11 +85,6 @@ function table(params) {
         };
 
         data.addRows(temp);
-
-        /*for (var n = 0; n < temp.length;n++){
-        	data.addRows(temp[n]);
-        };
-        */
 
         var view = new tableData.view(data)
         var table = new tableData.table(container);

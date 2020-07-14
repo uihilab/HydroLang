@@ -48,8 +48,101 @@ export default class hydro {
     };
 
     /**
-     * Creates a dimensionless unit hydrograph using a preset distribution.
-     * Calculated frombased on (NEH, 2007).
+     * Calculates parameters for the generation of a unit hydrograph
+     * based on SCS method, Snyder Unit Hydrograph.
+     * All times of concentrations and lags time are calculated in hours.
+     * @param {Object} params - Specifications for calculations.
+     * @returns {Object} calculations depending on type.
+     * @example
+     * params = {type: "SCS",unit: "si",
+     * args: {L: 4000,slope: 10, cn: 82}}
+     * returns = {MaxRetention: 2.1951219512195124, TimeConc: 0.4763041318819232, LagTime: 0.28578247912915394} 
+     */
+
+     static syntheticalc(params) {
+         //imports from parameters.
+         var type = params.type;
+         var lon = params.args.L;
+         var sl = params.args.slope;
+         var units = params.unit;
+
+         //Varibles that are to be calculated as solutions.
+         var tc, tp, lag;
+
+         //Object containing the solutions for the request.
+         var sol = new Object();
+
+         if (type == "SCS") {
+             var sc = 0;
+             var CN = params.args.CN;
+            
+             switch (units) {
+                //longitude in feet, tc in hours, sl in percentage, sc in inches.
+                case "si":
+                    sc = 1000/CN - 10;
+                    break;
+
+                case "m":
+                //longitude in meters, tc in hours, sl in percentage, sc in mm.
+                    sc = 25400/CN - 254;
+                    break;
+
+                default:
+                    alert("Please use a correct unit system!");
+                };
+
+                tc = Math.pow(lon, 0.8) * Math.pow(sc+1,0.7) / (1140 * Math.pow(sl, 0.5));
+                tp = 0.7 * tc;
+                lag = 0.6 * tc;
+                Object.assign(sol, {MaxRetention: sc, TimeConc: tc, TimePeak: tp ,LagTime: lag});
+            }
+
+            else if(type == "kirpich") {
+                var K = 0
+                switch (units) {
+                    case "si":
+                    //longitude in feet and sl as number.
+                        K = 0.0078;
+                        break;
+                    case "m":
+                    //longitude in meters and sl as number
+                        K = 0.0195;
+                        break;
+                    default:
+                        alert("Please use a correct unit system!");
+                    }
+                tc = (K * Math.pow(lon, 0.77) * Math.pow(sl, -0.385)) / 60;
+                tp = 0.7 * tc;
+                lag = 0.6 * tc;
+                Object.assign(sol, {TimeConc: tc, TimePeak: tp, LagTime: lag})
+            }
+
+            else if (type == "kerby") {
+                var n = params.args.manning;
+
+                switch (units) {
+                    // change calculations depending on units.
+                    case "si":
+                        tc = Math.pow(2.2*n*lon / Math.pow(sl/100, 0.5),0.324) / 60;
+                        break;
+                    case "m":
+                        tc = 1.4394 * Math.pow(n * lon /Math.pow(sl/100, 0.5), 0.467) / 60;
+                        break;
+                    default:
+                        alert("Please use a correct unit system!");
+                    };
+                tp = 0.7 * tc;
+                lag = 0.6 * tc;
+                Object.assign(sol, {TimeConc: tc, LagTime: lag})
+            }
+            return sol;
+        }
+
+    /**
+     * Creates a dimensionless unit hydrograph using the gamma distribution for calculating Q/Qp. 
+     * For selection of the peak rate factor, consider that a PRF of 100 is for less flat areas
+     * while a PRF of 600 is for very steep terrain.
+     * Calculated from (NEH, 2007).
      * @param {Object} data - object specifying the type of distribution, time step to compute the hydrograph.
      * @returns {Object []} array - dimensionless hydrograph.
      */
@@ -77,7 +170,7 @@ export default class hydro {
                     m = 1;
                     break;
                 case 349:
-                    m = 433;
+                    m = 2;
                     break;
                 case 433:
                     m = 3;
@@ -91,18 +184,18 @@ export default class hydro {
                 case 566:
                     m = 5;
                 default:
-                    throw new Error("Please choose value between 101,238,349,433,484,504,566.")
+                    alert("Please choose value between 101,238,349,433,484,504,566.")
             };
 
             //populating the array with t/tp relationship every 0.1t.
-            //populating the array with q/qp using Gamma distribution with PRF = 484.
+            //populating the array with q/qp using Gamma distribution with PRF value.
             for (var i = 1; i < ttp.length; i++) {
                 ttp[i] = Number((ttp[i - 1] + step).toFixed(2));
                 qqp[i] = Number((Math.exp(m) * Math.pow(ttp[i], m) * Math.exp(-m * ttp[i])).toFixed(3));
             };
             return [ttp, qqp];
         } else {
-            throw new Error("Please use available distributions!");
+            alert("Please use available distributions!");
         };
     };
 
@@ -137,7 +230,7 @@ export default class hydro {
                 qp = 0.208 * area * 1 / tp;
                 break;
             default:
-                throw new Error("Please input a valid unit system!");
+                alert("Please input a valid unit system!");
         };
 
         //populate the hydrograph with time and discharge.
@@ -151,6 +244,7 @@ export default class hydro {
     /**
      * Flooding hydrograph generator using a Dimensionless Unit Hydrograph,
      * precipitation data and SCS metrics for runoff calculation.
+     * Important: the type of the date must be compliant to Javascript types, in string format.
      * @param {Object} data - parameter object specifying landuse, rainfall, infiltration capacity and baseflow.
      * @returns {Object []} values for runoff as time series.
      */
@@ -162,6 +256,9 @@ export default class hydro {
         const cn = params.cn;
         const stormdur = params.stormduration;
         const timestep = params.timestep;
+
+        //transform the date into javascript format.
+        
 
         //create arrays for calculation of runoff
         var numarray = Math.round(stormdur / timestep);
@@ -185,10 +282,10 @@ export default class hydro {
                 sc = 25400 / cn - 254;
                 break;
             default:
-                throw new Error("Please use a correct unit system!")
+                alert("Please use a correct unit system!")
         };
 
-        //add accumulative rainfall amd calculate initial abstraction.
+        //add accumulative rainfall and calculate initial abstraction.
         var iniabs = 0.20 * sc;
         rain[1].slice().reduce((prev, curr, i) => accumrainf[1][i] = prev + curr, 0);
 
@@ -471,7 +568,7 @@ export default class hydro {
                   vec_right[m] = fAcc;
               }
               if (Math.abs(matrix[k][k]) < 1e-10){
-                  alert(`Singular matrix `+k+" "+matrix[k][k]);
+                  alert("Singular matrix"+k+" "+matrix[k][k]);
               }
               for(var j = (k+1); j < nodes; j++) {
                   fAcc = -matrix[j][k] / matrix[k][k];

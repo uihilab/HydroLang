@@ -284,7 +284,7 @@ export default class stats {
             }
             return performance.now() - start;
         });
-        console.log(results);
+        return results
     }
 
     /***************************/

@@ -66,7 +66,7 @@ function retrieve(params, callback) {
 
 
 /**
- * Convert data types to one another
+ * Convert data types to one another. 
  * @param {Object} data to be transformed as an object array.
  * @param {JSON} transformation configuration
  * @returns {Object} transformed data
@@ -158,6 +158,85 @@ function transform(data, config) {
 }
 
 /**
+ * data upload from the local storage of the user for analysis.
+ * @param {Object} data 
+ * @param {Object[]} config 
+ */
+
+ function upload(params) {
+    
+    var f = document.createElement("input");
+    f.type = "file";
+    f.accept = params.type;
+    var ret;
+
+    if (params.type === 'CSV'){
+        ret = [];
+    }
+    else if (params.type === 'JSON'){
+        ret = new Object();
+    };
+
+    const selectors = (() => {
+
+        //create input file selector.        
+        f.onchange = e => {
+        
+        //select file by the user
+        var file = e.target.files[0];
+
+        //read the file
+        var reader = new FileReader();
+
+        //read as text file.
+        reader.readAsBinaryString(file);
+
+        //file reading started.
+        reader.addEventListener('loadstart', () =>{
+            console.log("File is being read.");
+        });
+
+        //file reading failed
+        reader.addEventListener('error', () => {
+            alert ('Error: Failed to read file.');
+        });
+
+        //file read progress
+        reader.addEventListener('progress', e => {
+            if(e.lengthComputable == true) {
+                var percent = Math.floor((e.loaded/e.total)*100);
+                console.log(percent + '% read.');
+            }
+        });
+        
+        reader.onload = readerEvent => {
+            var content = readerEvent.target.result;
+
+            if (params.type === 'CSV'){
+                var alltext = content.split(/\r\n|\n/);
+                for (var i=0; i< alltext.length;i++){
+                    var data = alltext[i].split(',');
+                    var tarr = [];
+                    for (var j =0; j<data.length; j++){
+                    tarr.push(data[j]);
+                    }
+                ret.push(tarr);
+                }
+            }
+
+            else if (params.type === 'JSON'){
+                Object.assign(ret, JSON.parse(content))
+            }
+        }
+    }
+    f.click();
+    });
+    selectors();
+
+    return ret;
+}
+
+/**
  * Download files on different formats, depending on the formatted object. It extends the 
  * the transform function to automatically transform the data.
  * @param {Object} data to be downloaded, pre processed using transform function.
@@ -210,5 +289,6 @@ function download(data, config) {
 export {
     retrieve,
     transform,
-    download
+    download,
+    upload
 }
