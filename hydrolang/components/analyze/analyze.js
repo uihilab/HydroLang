@@ -4,8 +4,10 @@
 // given to the function as a parameter 
 import stats from './core/stats.js';
 import hydro from './core/hydro.js';
+import nn from './core/nn.js'
 
 export {
     stats,
-    hydro
+    hydro,
+    nn
 };

@@ -1,17 +1,15 @@
-import './loader.js'
+import "./loader.js";
 
 google.charts.load("current", {
-    packages: ["corechart", "table"]
+  packages: ["corechart", "table", "annotatedtimeline"],
 });
 google.charts.setOnLoadCallback(googlechartsLoaded);
 
 var isGooglechartsLoaded = false;
 
 function googlechartsLoaded() {
-    isGooglechartsLoaded = true;
+  isGooglechartsLoaded = true;
 }
 
-export default google
-export {
-    isGooglechartsLoaded
-}
+export default google;
+export { isGooglechartsLoaded };

@@ -2,57 +2,57 @@
 // Note: Different data sources may have different limitations
 // 		-> E.g., they may limit the # of queries per unit time
 export default {
-    /* DATA SOURCE 1 */
+  /* DATA SOURCE 1 */
 
-    // https://waterservices.usgs.gov/rest/IV-Service.html
-    // This API returns stream stages for US
-    "instant-values": {
-        "endpoint": "http://waterservices.usgs.gov/nwis/iv/",
-        "params": {
-            // These are only written to aid users to know
-            // what parameters are available
-            "format": null,
-            "site": null,
-            "stateCd": null,
-            "huc": null,
-            "countyCd": null,
-            "startDT": null,
-            "endDT": null,
-            // and more...
-        },
-        "data-fields": {
-            // "output-data-field-1": null,
-            // enter data field here
-        }
+  // https://waterservices.usgs.gov/rest/IV-Service.html
+  // This API returns stream stages for US
+  "instant-values": {
+    endpoint: "http://waterservices.usgs.gov/nwis/iv/",
+    params: {
+      // These are only written to aid users to know
+      // what parameters are available
+      format: null,
+      site: null,
+      stateCd: null,
+      huc: null,
+      countyCd: null,
+      startDT: null,
+      endDT: null,
+      // and more...
     },
-
-    "daily-values": {
-        "endpoint": "http://waterservices.usgs.gov/nwis/dv/",
-        "params": {
-            // These are only written to aid users to know
-            // what parameters are available
-            "format": null,
-            "site": null,
-            "stateCd": null,
-            "huc": null,
-            "countyCd": null,
-            "startDT": null,
-            "endDT": null,
-            // and more...
-        },
-        "data-fields": {
-            // "output-data-field-1": null,
-            // enter data field here
-        }
+    "data-fields": {
+      // "output-data-field-1": null,
+      // enter data field here
     },
+  },
 
-    "requirements": {
-        "needProxy": true,
-        "requireskey": false,
-        "method": "GET"
+  "daily-values": {
+    endpoint: "http://waterservices.usgs.gov/nwis/dv/",
+    params: {
+      // These are only written to aid users to know
+      // what parameters are available
+      format: null,
+      site: null,
+      stateCd: null,
+      huc: null,
+      countyCd: null,
+      startDT: null,
+      endDT: null,
+      // and more...
     },
+    "data-fields": {
+      // "output-data-field-1": null,
+      // enter data field here
+    },
+  },
 
-    /* DATA SOURCE 2 */
+  requirements: {
+    needProxy: true,
+    requireskey: false,
+    method: "GET",
+  },
 
-    /* DATA SOURCE ... */
-}
+  /* DATA SOURCE 2 */
+
+  /* DATA SOURCE ... */
+};

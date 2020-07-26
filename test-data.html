@@ -1,146 +1,175 @@
 <!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <title>Hydrolang Use Case</title>
-    <script type="module" onload="initHydrolang()" src="./hydrolang/hydro.js"></script>
-</head>
+    <script
+      type="module"
+      onload="initHydrolang()"
+      src="./hydrolang/hydro.js"
+    ></script>
+  </head>
 
-<body>
+  <body>
     <script>
-        function initHydrolang() {
-            // configure hydrolang - this is optional, 
-            // if user does not provide a config,
-            // we'll just use the default values
-            const config = {
-                metricSystem: "SI",
-                mapType: 'Google',
-            }
-
-            hydro1 = new Hydrolang();
-            hydro1.setConfig(config);
-
-            /*** Basic use case for retrieving data **/
-
-            //if token or key is required
-            var tokennoa1 = "wOYszxFhCctvvmijQbDUaiVgNMmwFNQE";
-            var tokennoa = "gNUkMgFHFSYVWyNoabuUfuVhCTJkRvRq";
-            var keymet = "yTAaiogF40chlFKngC51f5yYpvGH67Zl";
-            var keyaemet = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJlcmF6Y2FyOEBhcXVhY2xvdWQubmV0IiwianRpIjoiN2JjMDg4MzQtYWRlYS00ZTZlLTgwZDItZjhhZWRhMDk1NzliIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE1OTIzNTA4MzUsInVzZXJJZCI6IjdiYzA4ODM0LWFkZWEtNGU2ZS04MGQyLWY4YWVkYTA5NTc5YiIsInJvbGUiOiIifQ.W_JR_t4EBSzgpWQye3Jj7vRF2g7s_Ex2w5YoEl7cIdc"
-            var tokital = "MT5EEFDCB18F026"
-            var prox = "https://cors-anywhere.herokuapp.com/"
-
-            //retrieve data from usgs
-            dataRetrievalParams1 = {
-                "source": "usgs",
-                "dataType": "instant-values",
-                "arguments": {
-                    "stateCd": "CA",
-                    "format": "json"
-                },
-                "proxyurl": prox
-            };
-
-            //data retrieval from noaa
-            dataRetrievalParams2 = {
-                "source": "noaa",
-                "dataType": "prec-hourly",
-                "type": "json",
-                "arguments": {
-                    "stationid": 'COOP:135199',
-                    "units": "standard",
-                    "startdate": "2012-02-01",
-                    "enddate": "2013-01-01",
-                    "metadata": false
-                },
-                "token": tokennoa1,
-            };
-
-            //data retrieval from meteostat		
-            dataRetrievalParams3 = {
-                "source": "meteostat",
-                "dataType": "hourlydata-stations",
-                "arguments": {
-                    "station": "78720",
-                    "start": "2019-06-01",
-                    "end": "2019-06-05",
-                },
-                "x-api-key": keymet,
-                "proxyurl": prox
-            };
-
-            //data retrieval from fema
-            dataRetrievalParams4 = {
-                "source": "fema",
-                "dataType": "disaster-declarations",
-                "arguments": {
-                    "state": "CA",
-                },
-            };
-
-            //data retrieval from aemet
-            dataRetrievalParams5 = {
-                "source": "aemet",
-                "dataType": "daily-station",
-                "arguments": {
-                    "fechaIniStr": "2002",
-                    "fechaFinStr": "2003",
-                    "idema": "1351",
-                },
-                "api_key": keyaemet,
-                "proxyurl": prox
-            };
-
-            //data retrieval from worldbank	
-            dataRetrievalParams6 = {
-                "source": "worldbank",
-                "dataType": "monavgs-country",
-                "arguments": {
-                    "country": "BR",
-                    "start": "2000",
-                    "end": "2001",
-                },
-                "proxyurl": prox
-            };
-
-            //data retrieval from UK databases
-            dataRetrievalParams7 = {
-                "source": "eauk",
-                "dataType": "list-stations",
-                "arguments": {
-                    "parameter": "rainfall",
-                    "search": "Northumberland",
-                },
-            };
-
-            //data retrieval from italian databases
-            dataRetrievalParams8 = {
-                "source": "meteoit",
-                "dataType": "NearStations",
-                "arguments": {
-                    "username": "cerazor",
-                    "lat": "45.44",
-                    "lon": "12.33",
-                },
-                "proxyurl": prox,
-                "token": tokital,
+      function initHydrolang() {
+        // configure hydrolang - this is optional,
+        // if user does not provide a config,
+        // we'll just use the default values
+        const config = {
+          metricSystem: "SI",
+          mapType: "Google",
         };
 
-            function handleWaterData(data) {
-                console.log(data)
-                return data;
-            }
-            
-            //Obtain data from the source. Verify the requirment for 
-            var hy1 = hydro1.data.retrieve(dataRetrievalParams3, handleWaterData);
+        hydro1 = new Hydrolang();
+        hydro1.setConfig(config);
 
+        /*** Basic use case for retrieving data **/
 
-            /*** End of use case **/
+        //if token or key is required
+        var tokennoa1 = "wOYszxFhCctvvmijQbDUaiVgNMmwFNQE";
+        var tokennoa = "gNUkMgFHFSYVWyNoabuUfuVhCTJkRvRq";
+        var keymet = "yTAaiogF40chlFKngC51f5yYpvGH67Zl";
+        var keyaemet =
+          "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJlcmF6Y2FyOEBhcXVhY2xvdWQubmV0IiwianRpIjoiN2JjMDg4MzQtYWRlYS00ZTZlLTgwZDItZjhhZWRhMDk1NzliIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE1OTIzNTA4MzUsInVzZXJJZCI6IjdiYzA4ODM0LWFkZWEtNGU2ZS04MGQyLWY4YWVkYTA5NTc5YiIsInJvbGUiOiIifQ.W_JR_t4EBSzgpWQye3Jj7vRF2g7s_Ex2w5YoEl7cIdc";
+        var tokital = "MT5EEFDCB18F026";
+        var prox = "https://cors-anywhere.herokuapp.com/";
 
+        //retrieve data from usgs
+        dataRetrievalParams1 = {
+          source: "usgs",
+          dataType: "instant-values",
+          arguments: {
+            stateCd: "CA",
+            format: "json",
+          },
+          proxyurl: prox,
+        };
+
+        //data retrieval from noaa
+        dataRetrievalParams2 = {
+          source: "noaa",
+          dataType: "prec-15min",
+          type: "json",
+          arguments: {
+            stationid: "COOP:010430",
+            units: "metric",
+            startdate: "1992-01-01",
+            enddate: "1992-12-31",
+            limit: 1000,
+            datatype: "QPCP",
+          },
+          token: tokennoa1,
+        };
+
+        dataRetrievalParams2a = {
+          source: "noaa",
+          dataType: "availablestations",
+          type: "json",
+          arguments: {
+            datasetid: "PRECIP_15",
+            locationid: "FIPS:01",
+            sortfield: "datacoverage",
+            sortorder: "desc",
+            limit: 1000,
+          },
+          token: tokennoa1,
+        };
+
+        dataRetrievalParams2b = {
+          source: "noaa",
+          dataType: "datasets",
+          type: "json",
+          arguments: {
+            stationid: "COOP:010430",
+            datasetid: "PRECIP_15",
+            limit: 1000,
+          },
+          token: tokennoa1,
+        };
+
+        //data retrieval from meteostat
+        dataRetrievalParams3 = {
+          source: "meteostat",
+          dataType: "hourlydata-stations",
+          arguments: {
+            station: "78720",
+            start: "2019-06-01",
+            end: "2019-06-05",
+          },
+          "x-api-key": keymet,
+          proxyurl: prox,
+        };
+
+        //data retrieval from fema
+        dataRetrievalParams4 = {
+          source: "fema",
+          dataType: "disaster-declarations",
+          arguments: {
+            state: "CA",
+          },
+        };
+
+        //data retrieval from aemet
+        dataRetrievalParams5 = {
+          source: "aemet",
+          dataType: "daily-station",
+          arguments: {
+            fechaIniStr: "2002",
+            fechaFinStr: "2003",
+            idema: "1351",
+          },
+          api_key: keyaemet,
+          proxyurl: prox,
+        };
+
+        //data retrieval from worldbank
+        dataRetrievalParams6 = {
+          source: "worldbank",
+          dataType: "monavgs-country",
+          arguments: {
+            country: "BR",
+            start: "2000",
+            end: "2001",
+          },
+          proxyurl: prox,
+        };
+
+        //data retrieval from UK databases
+        dataRetrievalParams7 = {
+          source: "eauk",
+          dataType: "list-stations",
+          arguments: {
+            parameter: "rainfall",
+            search: "Northumberland",
+          },
+        };
+
+        //data retrieval from italian databases
+        dataRetrievalParams8 = {
+          source: "meteoit",
+          dataType: "NearStations",
+          arguments: {
+            username: "cerazor",
+            lat: "45.44",
+            lon: "12.33",
+          },
+          proxyurl: prox,
+          token: tokital,
+        };
+
+        function handleWaterData(data) {
+          var x = data;
+          console.log(x);
+          return x;
         }
+
+        //Obtain data from the source. Verify the requirment for
+        var hy1 = hydro1.data.retrieve(dataRetrievalParams2, handleWaterData);
+
+        /*** End of use case **/
+      }
     </script>
     <p id="infobox">Example of data retrieval!</p>
     <div></div>
-</body>
-
+  </body>
 </html>

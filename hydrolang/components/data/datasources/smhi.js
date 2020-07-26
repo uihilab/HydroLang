@@ -1,4 +1,4 @@
-// Meteostat data retrieval.
+// Swedish Meteorological Observations
 // Note: Different data sources may have different limitations
 // 		-> E.g., they may limit the # of queries per unit time
 // The API retrieves all the variables that are measured in a given station.
@@ -7,7 +7,7 @@
 // For referral on formats, please visit https://dev.meteostat.net/getting-started/formats-and-units
 // Dates in format ISO 8601 standard YYYY-MM-DD HH:MM:SS
 // Activation key format and name to is  "x-api-key"
-// More info, please visit https://dev.meteostat.net/
+// More info, please visit https://opendata.smhi.se/apidocs/metobs/index.html
 
 export default {
   // yearly, monthlyvprecipitation per country or per basin.
