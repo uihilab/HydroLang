@@ -12,7 +12,7 @@ var newlayers;
  * @returns {Promise}  source - Libraries appended to the header of webpage.
  */
 
-function loader(config) {
+async function loader(config) {
   //For google maps API.
   if (config.maptype == "google") {
     const gApiKey = config.params.key;
@@ -25,7 +25,7 @@ function loader(config) {
   if (config.maptype == "osm") {
     //call the class constructor.
     const mapper = new mapsources.leafletosmapi();
-    mapper.load();
+    await mapper.load();
   }
 }
 
