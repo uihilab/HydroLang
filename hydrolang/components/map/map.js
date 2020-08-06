@@ -2,65 +2,116 @@ import * as mapsources from "../../modules/maps/mapsources.js";
 import tileprov from "../../modules/maps/tileprov.js";
 import _ from "../../modules/d3/d3.js";
 
+//Controllers, map and layers
 var osmap;
-var newlayers;
+var layercontroller;
+var baselayers = {};
+var overlayers = {};
+var drawings;
+var drawControl;
 
 /**
  * Calls the map type according to the user input. The renderMap function is required
  * for map visualization.
+ * @async
+ * @function loader
  * @param {Object} config - Object with map type and additional parameters if required.
- * @returns {Promise}  source - Libraries appended to the header of webpage.
+ * @example //config = {maptype: "osm"}
+ * @returns {Promise}  Libraries appended to the header of webpage.
  */
 
-function loader(config) {
+async function loader(config) {
   //For google maps API.
   if (config.maptype == "google") {
     const gApiKey = config.params.key;
     //call the class  constructor.
     const gmapApi = new mapsources.googlemapsapi(gApiKey);
-    gmapApi.load();
+    await gmapApi.load();
   }
 
   //For leaflet API.
   if (config.maptype == "osm") {
     //call the class constructor.
     const mapper = new mapsources.leafletosmapi();
-    mapper.load();
+    await mapper.load();
   }
 }
 
 /**
- * Renders different layers to be applied to a map. Considers
- * creation of layers as well as appending geoJSON layers.
+ * Layer function for appending tiles, geodata, markers, kml or drawing tools to a map.
+ * @function Layers
  * @param {Object} config - description of the map type, layer type and data.
- * @returns {div} layer - layer appended to a map div that has already been created.
+ * @returns {Object} layer appended to a map div that has already been created.
  */
 
 function Layers(config) {
+
+  //in case the map required is google.
   if (config.maptype == "google") {
     geoJSON(config);
-  } else if (config.maptype == "osm") {
+  }
+  //in case the map required is osm. 
+  else if (config.maptype == "osm") {
     var layer;
     var layertype = config.layertype.type;
-    newlayers = new L.FeatureGroup();
-
-    if (layertype == "tile") {
-      const tiletype = config.layertype.name;
-      layer = new L.TileLayer(
-        tileprov[tiletype].url,
-        tileprov[tiletype].options
-      );
-      osmap.addLayer(layer);
-    } else if (layertype == "geodata") {
-      var geolay = geoJSON(config);
-      newlayers.addLayer(geolay);
-    } else if (layertype == "kml") {
-      var kmlay = kml(config);
-      newlayers.addLayer(kmlay);
-    } else if (layertype == "removelayers") {
-      osmap.clearLayers();
+    var layername = config.layertype.name;
+    if (layercontroller === undefined) {
+      layercontroller = new L.control.layers();
     } else {
-      throw new Error("this is an error");
+      layercontroller = layercontroller;
+    }
+
+    if (layertype === "tile") {
+      layer = new L.TileLayer(
+        tileprov[layername].url,
+        tileprov[layername].options
+      );
+      Object.assign(baselayers, {
+        [layername]: layer
+      })
+      layercontroller.addBaseLayer(layer, layername).addTo(osmap);
+      
+    } else if (layertype === "geodata") {
+      layer = geoJSON(config);
+      Object.assign(overlayers, {[layername]: layer})
+      layercontroller.addOverlay(layer, layername).addTo(osmap);
+      osmap.fitBounds(layer.getBounds());
+
+    } else if (layertype === "marker") {
+      layer = addMarker(config);
+      Object.assign(overlayers, {[layername]: layer})
+      layercontroller.addOverlay(layer, layername).addTo(osmap);
+
+    } else if (layertype === "kml") {
+      layer = kml(config);
+      Object.assign(overlayers, {[layername]: layer})
+      layercontroller.addOverlay(layer, layername).addTo(osmap);
+      osmap.fitBounds(layer.getBounds());
+
+    } else if (layertype === "draw"){
+      drawings = new L.FeatureGroup();
+      draw(config);
+      osmap.addLayer(drawings);
+
+    } else if (layertype === "removelayers") {
+      if (baselayers.hasOwnProperty(layername)) {
+        osmap.removeLayer(baselayers[layername]);
+        layercontroller.removeLayer(baselayers[layername]);
+        delete baselayers[layername];
+
+      } else if (overlayers.hasOwnProperty(layername)) {
+        osmap.removeLayer(overlayers[layername]);
+        layercontroller.removeLayer(overlayers[layername]);
+        delete overlayers[layername];
+        
+      } else if (layername === "map") {
+        osmap.remove();
+
+      } else if (layername === "draw"){
+        drawControl.remove()
+      } else {
+        alert("there is no layer with that name!");
+      };
     }
   }
 }
@@ -68,9 +119,11 @@ function Layers(config) {
 /**
  * Rendering function according to the map selected by the user.
  * It requires the library to be alraedy loaded to the header of the page.
+ * @function renderMap
  * @param {Object} config - The configuration file with maptype, lat, long
  * zoom.
- * @returns {div} map - Attaches the required map to a div element on the html
+ * @example // var mapconfig = {maptype: "osm", lat: "40", lon: "-100", zoom: "13", layertype: {type: "tile", name: "OpenStreetMap"}} //
+ * @returns {Object} Attaches the required map to a div element on the html file.
  */
 
 function renderMap(config) {
@@ -97,7 +150,7 @@ function renderMap(config) {
         lng: data.lon,
       },
     };
-    //apend a new map to the map variable.
+    //append a new map to the map variable.
     osmap = new google.maps.Map(container, options);
   } else if (data.maptype == "osm") {
     //assign the tile type to the data object for rendering.
@@ -112,149 +165,72 @@ function renderMap(config) {
     osmap = new L.map(container.id);
     osmap.setView([data.lat, data.lon], data.zoom);
     this.Layers(data);
+
+    var popup = new L.popup();
+
+    var onMapClick = (e => {
+      popup.setLatLng(e.latlng).setContent(`You clicked the map at ${e.latlng.toString()}`).openOn(osmap);
+    })
+    osmap.on('click', onMapClick)
   }
 }
 
 /**
  * Creates different types of markers depending on what is required.
- * If the marker is for geoJSON layers in leaflet, the markers are added
- * by rendering them using D3 and creating a new SVG layers.
- * Notice how the geotype should be of one single feature.
+ * The geotype should be of one single feature.
+ * @function geoJSON
  * @param {Object} data - data with geo information and map type.
- * @returns {div} geoJSON - appended to map.
+ * @returns {Object} geoJSON rendered file.
  */
 
 function geoJSON(data) {
-  var inf = data.layertype.geodata;
+  var inf = data.layertype.data;
   var geotype = inf.features[0].geometry.type;
 
   if (data.maptype == "google") {
     var geogoogle = osmap.data.addGeoJson(inf);
     return geogoogle;
   } else if (data.maptype == "osm") {
+
+    var onEachFeature = (feature, layer) => {
+      if (feature.properties && feature.properties.Name && feature.properties.Lat && feature.properties.Lon) {
+        layer.bindPopup(feature.properties.Name + "(" + feature.properties.Lat + "," + feature.properties.Lon + ")", );
+      }
+    }
     var geopoint = () => {
-      new L.svg({
-        clickable: true,
-      }).addTo(osmap);
-
-      const overlay = _.d3.select(osmap.getPanes().overlayPane);
-      const svg = overlay.select("svg").attr("pointer-events", "auto");
-
-      const fig = svg
-        .selectAll("circle")
-        .attr("class", "fig")
-        .data(inf.features)
-        .join("circle")
-        .attr("id", "dotties")
-        .attr("fill", "steelblue")
-        .attr("stroke", "black")
-        .attr(
-          "cx",
-          (d) =>
-            osmap.latLngToLayerPoint([
-              d.geometry.coordinates[1],
-              d.geometry.coordinates[0],
-            ]).x
-        )
-        .attr(
-          "cy",
-          (d) =>
-            osmap.latLngToLayerPoint([
-              d.geometry.coordinates[1],
-              d.geometry.coordinates[0],
-            ]).y
-        )
-        .attr("r", 5)
-        .on("mouseover", function () {
-          _.d3
-            .select(this)
-            .transition()
-            .duration("150")
-            .attr("fill", "red")
-            .attr("r", 10);
-        })
-        .on("mouseout", function () {
-          _.d3
-            .select(this)
-            .transition()
-            .duration("150")
-            .attr("fill", "steelblue")
-            .attr("r", 5);
-        });
-
-      const update = () =>
-        fig
-          .attr(
-            "cx",
-            (d) =>
-              osmap.latLngToLayerPoint([
-                d.geometry.coordinates[1],
-                d.geometry.coordinates[0],
-              ]).x
-          )
-          .attr(
-            "cy",
-            (d) =>
-              osmap.latLngToLayerPoint([
-                d.geometry.coordinates[1],
-                d.geometry.coordinates[0],
-              ]).y
-          );
-      osmap.on("zoomend", update);
-
-      const bounds = fig.getBounds();
-      osmap.fitBounds(bounds);
-
-      console.log("im i working bro?");
+      var style = {
+        radius: 5,
+        fillColor: "#2ce4f3",
+        color: "#0dc1d3",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.7
+      };
+      var xo = new L.geoJSON(inf, {
+        pointToLayer: function (feature, latlng) {
+          return new L.circleMarker(latlng, style)
+        },
+        onEachFeature: onEachFeature,
+        style: style
+      })
+      return xo;
     };
 
     var geopoly = () => {
-      new L.svg({
-        clickable: true,
-      }).addTo(osmap);
-
-      console.log("i might be here too");
-      const overlay = _.d3.select(osmap.getPanes().overlayPane);
-      const svg = overlay.select("svg").attr("pointer-events", "auto");
-      const g = svg.append("g").attr("class", "leaflet-zoom-hide");
-
-      const projectPoint = function (x, y) {
-        const point = osmap.latLngToLayerPoint(new L.LatLng(y, x));
-        this.stream.point(point.x, point.y);
+      var style = {
+        weight: 2,
+        color: "#432"
       };
-
-      const projection = _.d3.geoTransform({
-        point: projectPoint,
-      });
-
-      const pathCreator = _.d3.geoPath().projection(projection);
-
-      const areaPaths = g
-        .selectAll("path")
-        .data(inf.features)
-        .join("path")
-        .attr("fill-opacity", 0.3)
-        .attr("stroke", "black")
-        .attr("z-index", 3000)
-        .attr("stroke-width", 2.5)
-        .on("mouseover", function (d) {
-          _.d3.select(this).attr("fill", "red");
-        })
-        .on("mouseout", function (d) {
-          _.d3.select(this).attr("fill", "black");
-        });
-      const onZoom = () => areaPaths.attr("d", pathCreator);
-      onZoom();
-      osmap.on("zoomend", onZoom);
-
-      const bounds = areaPaths.getBounds();
-      osmap.fitBounds(bounds);
-      console.log("im i working bro?");
+      var xa = new L.geoJSON(inf, {
+        style: style,
+        onEachFeature: onEachFeature
+      })
+      return xa;
     };
     if (geotype == "Point") {
-      geopoint();
+      return geopoint();
     } else if (geotype == "Polygon") {
-      geopoly();
+      return geopoly();
     }
   }
 }
@@ -263,8 +239,9 @@ function geoJSON(data) {
  * Creates layer of kml data passed through an object to an
  * existing map. Notice that the map most be already created
  * for the method to be used.
+ * @function kml
  * @param {Object} data - data object with maptype and KML data.
- * @returns {div} layer - appends layer to existing map.
+ * @returns {Object} appends layer to existing map.
  */
 
 function kml(data) {
@@ -283,30 +260,215 @@ function kml(data) {
     const parser = new DOMParser();
     const kml = parser.parseFromString(data.kml, "text/xml");
     const track = new L.KML(kml);
-    osmap.addLayer(track);
-
-    const bounds = track.getBounds();
-    osmap.fitBounds(bounds);
+    return track;
   }
 }
 
 /**
- * @param {example data type} example description
- * @returns {example data type} example description
- * @example
- * example usage code here
+ * Adds a new marker to the map, given coordinates, map type and marker type.
+ * @function addMarker
+ * @param {Object} data - configuration with maptype, 
+ * @returns {Object} layer object.
  */
 function addMarker(data) {
-  var rectangle;
-  var circle;
-  var line;
-  var spline;
+  var layer;
 
-  if (data.map == "google") {
-  }
+  if (data.maptype === "google") {}
 
-  if (data.map == "osm") {
+  if (data.maptype === "osm") {
+    var type = data.layertype.markertype;
+    var coord = data.layertype.coord;
+
+    switch (type) {
+      case "rectangle":
+        layer = new L.rectangle(coord, markerstyles('osm', 'rectangle'));
+        break;
+      case "circle":
+        layer = new L.circle(coord, markerstyles('osm', 'circle'));
+        break;
+      case "circlemarker":
+        layer = new L.circleMarker(coord, markerstyles('osm', 'circlemarker'));
+        break;
+      case "polyline":
+        layer = new L.polyline(coord, markerstyles('osm', 'polyline'));
+        break;
+      case "polygon":
+        layer = new L.polygon(coord, markerstyles('osm', 'polygon'));
+        break;
+      case "marker":
+        layer = new L.marker(coord, markerstyles('osm', 'marker'));
+        break;
+      default:
+        alert("no markers with that name");
+    }
   }
+  return layer
 }
 
-export { loader, Layers, renderMap };
+/**
+ * Creaes different styles for depending on the marker that has been selected for drawing.
+ * @function markerstyles
+ * @param {string} map - map type: google or osm.
+ * @param {string} fig - type of marker to be drawn.
+ * @returns {Object} new styles that are used for drawing a marker.
+ */
+
+ function markerstyles (map, fig){
+  var layer;
+
+   if (map === "google") {
+   }
+
+   if (map === "osm") {
+     var type = fig;
+
+     switch (type) {
+       case "rectangle":
+         layer = {
+           weight: 2,
+           color: "#e1e1100",
+         }
+         break;
+       case "circle":
+         layer = {
+            radius: 200,
+            fillColor: "#2ce4f3",
+            color: "#0dc1d3",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.6
+          }
+          break;
+        case "circlemarker":
+          layer = {
+              radius: 5,
+              fillColor: "#2ce4f3",
+              color: "#0dc1d3",
+              weight: 1,
+              opacity: 1,
+              fillOpacity: 0.6
+            }
+            break;
+        case "polyline":
+          layer = {
+            weight: 1,
+            color: '#432',
+            opacity: 1
+          }
+          break;
+        case "polygon":
+          layer = {
+            weight: 2,
+            color: "#e1e1100",
+            opacity: 1
+          };
+          break;
+        case "marker":
+          layer ={
+            markerIcon: null,
+            zIndexOffset: 2000,
+          }
+          break;
+        default:
+          break;
+        }
+      }
+   return layer;
+ }
+
+ /**
+  * @function draw
+  * @param {Object} config - configuration of the map.
+  * @returns {Object} toolkit added to map.
+  */
+
+  function draw(config) {
+    if (config.maptype == "google") {} 
+    
+    else if (config.maptype == "osm") {
+      var options = {
+        position: 'topleft',
+        scale: true,
+        draw: {
+          polyline: {
+            metric: true,
+            shapeOptions: {
+              color: '#bada55',
+            }
+          },
+          polygon: {
+            allowIntersection: false,
+            metric: true,
+            drawError: {
+              color: '#e1e1100',
+              message: '<strong> You cant do that!',
+            },
+            shapeOptions: {
+              color: '#432'
+            }
+          },
+          rectangle: {
+            allowIntersection: false,
+            metric: true,
+            drawError: {
+              color: '#e1e1100',
+              message: '<strong> You cant do that!'
+            },
+            shapeOptions: {
+              color: '#432'
+            }
+          },
+          circle: {
+            metric: true,
+            feet: true,
+            shapeOptions: {
+              color: '#432'
+            }
+          },
+          marker: {
+            markerIcon: null,
+            zIndexOffset: 2000
+          }
+        },
+        edit: {
+          featureGroup: drawings,
+          remove: true
+        }
+      }
+
+      drawControl = new L.Control.Draw(options);
+      osmap.addControl(drawControl)
+
+      osmap.on('draw:created', function (e) {
+        var type = e.layerType,
+            layer = e.layer;
+        if (type === 'marker') {
+          layer.on('click', function(){
+            layer.bindPopup(`Marker coordinates: ${layer.getLatLng()}.`);
+          })
+        }
+        else if(type === 'rectangle') {
+        layer.on('click', function(){
+          layer.bindPopup(`Rectangle corners coordinates: ${layer.getLatLngs()}.`)
+          })
+        }       
+        else if (type === 'circle'){
+          layer.on('click', function(){
+            layer.bindPopup(`Circle coordinates: ${layer.getLatLng()} with radius: ${layer.getRadius()}.`)
+          })
+        }
+        else if(type === 'polygon') {
+          layer.on('click', function(){
+            layer.bindPopup(`Polygon corners coordinates: ${layer.getLatLngs()} with area.`)
+            })
+          } 
+        drawings.addLayer(layer)
+      })
+    }
+  }
+
+export {
+  loader,
+  Layers,
+  renderMap,
+};

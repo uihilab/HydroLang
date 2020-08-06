@@ -1,3 +1,8 @@
+import $ from "../jquery/jquery.js";
+
+/**
+ * 
+ */
 class googlemapsapi {
   constructor(gApiKey) {
     this.apikey = gApiKey;
@@ -9,22 +14,16 @@ class googlemapsapi {
     }
   }
 
-  load() {
-    if (!this.promise) {
-      this.promise = new Promise((resolve) => {
-        this.resolve = resolve;
+  async load() {
 
-        if (typeof window.google === "undefined") {
-          const script = document.createElement("script");
-          script.src = `http://maps.googleapis.com/maps/api/js?key=${this.apiKey}&callback=${this.callbackName}`;
-          script.async = true;
-          document.body.append(script);
-        } else {
-          this.resolve();
-        }
-      });
-    }
-    return this.promise;
+    await $.when(
+      $.getScript( "http://maps.googleapis.com/maps/api/js?key=${this.apiKey}&callback=${this.callbackName}" ),
+      $.Deferred(function( deferred ){
+          $( deferred.resolve );
+      })
+  ).done(function(){
+      console.log("Google maps is loaded.");
+  });
   }
 
   mapLoaded() {

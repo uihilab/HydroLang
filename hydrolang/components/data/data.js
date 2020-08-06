@@ -1,11 +1,14 @@
 import * as datasources from "./datasources.js";
 import $ from "../../modules/jquery/jquery.js";
+import stats from "../analyze/core/stats.js";
 
 /**
- * Main function to retrieve data
+ * Main function to retrieve data. Requires a callback handler after data has been downloaded.
+ * @function retrieve
+ * @memberof data
  * @param {Object} params - contain paramaters to retrieve data.
- * @param {function callback(){}} - handling water data.
- * @returns {Object} with retrieved data.
+ * @param {Function} callback - data handler: either prompt to console, save to variable, etc.
+ * @returns {Object} Object with retrieved data.
  */
 function retrieve(params, callback) {
   //obtain data from parameters set by user.
@@ -50,7 +53,8 @@ function retrieve(params, callback) {
       callback({ info: "please verify the keyname of the source." });
     }
   }
-
+  
+  //retrieve the data and feed the data into callback.
   $.ajax({
     url: proxy + endpoint,
     data: args,
@@ -66,26 +70,27 @@ function retrieve(params, callback) {
 
 /**
  * Convert data types to one another.
- * @param {Object} data to be transformed as an object array.
- * @param {Object} transformation configuration
- * @returns {Object} transformed data
+ * @function transform
+ * @memberof data
+ * @param {Object} data - to be transformed as an object array.
+ * @param {Object} config - transformation configuration
+ * @returns {Object} Object in different formats with transformed data
  * @example
  * var data = {"temperature": "64"} as Object;
- * var config = {"type": "CSV", "keep": ["date", "values"]};
+ * var config = {"type": "CSV", "keep": ["date", "value"]};
  * var dataCSV = transform(data, config);
  */
 
 function transform(data, config) {
   var type = config["type"];
   var clean;
-  if (config.hasOwnProperty("keep")) {
-    clean = config["keep"];
-  }
 
-  //verify if the object is an object to go to the following step.
+  //verify if the object is an object. Go to the following step.
   var arr = data.map((_arrayElement) => Object.assign({}, _arrayElement));
   arr = typeof arr != "object" ? JSON.parse(arr) : arr;
 
+  if (config.hasOwnProperty("keep")) {
+    clean = config["keep"];
   //values to be left on the object according to user, fed as array.
   var keep = new RegExp(clean.join("|"));
   for (var i = 0; i < arr.length; i++) {
@@ -93,7 +98,10 @@ function transform(data, config) {
       keep.test(k) || delete arr[i][k];
     }
   }
-
+} else {
+  //if params dont have a keep array, continue.
+  arr = arr;
+}
   //convert array of objects into array of arrays for further manipulation.
   if (type === "ARR") {
     var arrays = arr.map(function (obj) {
@@ -116,6 +124,9 @@ function transform(data, config) {
 
   // convert from JSON to CSV
   else if (type === "CSV") {
+    if (data[0] instanceof Array) {
+      arr = stats.arrchange(data)
+    } else {arr = arr}
     var str = "";
     for (var i = 0; i < arr.length; i++) {
       var line = "";
@@ -161,23 +172,27 @@ function transform(data, config) {
 
 /**
  * data upload from the local storage of the user for analysis.
- * @param {Object} data
- * @param {Object[]} config
+ * @function upload
+ * @memberof data
+ * @param {string} type - type of data to be uploaded (CSV, JSON).
  * @example var xo = hydro1.data.upload('CSV')
  */
 
 function upload(type) {
+  //create a new element to upload on header.
   var f = document.createElement("input");
   f.type = "file";
   f.accept = type;
   var ret;
 
+  //create a new type of object depending on the type selected by user.
   if (type === "CSV") {
     ret = [];
   } else if (type === "JSON") {
     ret = new Object();
   }
 
+  //intialize the caller for obtaining the files.
   const selectors = () => {
     //create input file selector.
     f.onchange = (e) => {
@@ -208,9 +223,11 @@ function upload(type) {
         }
       });
 
+      //after the data has been loaded, change it to the required type.
       reader.onload = (readerEvent) => {
         var content = readerEvent.target.result;
 
+        //conversion of the data from CSV to array.
         if (type === "CSV") {
           var alltext = content.split(/\r\n|\n/);
           var med = [];
@@ -218,16 +235,22 @@ function upload(type) {
             var data = alltext[i].split(",");
             var tarr = [];
             for (var j = 0; j < data.length; j++) {
-              tarr.push(data[j]);
+              tarr.push(data[j].replace(/^"|"$/g,''));
             }
             med.push(tarr);
           }
-
+          
+          //map the objects from m x n to n x m
           const arraycol = (arr, n) => arr.map((x) => x[n]);
 
+          //the uploaded data contains additional "". Remove them once for dates and twice for data.
           for (var j = 0; j < med[0].length; j++) {
             ret.push(arraycol(med, j));
           }
+          
+          ret[1] = stats.numerise(ret[1]);
+
+          //transfrom from JSON file to new JS Object.
         } else if (type === "JSON") {
           Object.assign(ret, JSON.parse(content));
         }
@@ -243,22 +266,26 @@ function upload(type) {
 /**
  * Download files on different formats, depending on the formatted object. It extends the
  * the transform function to automatically transform the data.
+ * @function download
+ * @memberof data
  * @param {Object} data to be downloaded, pre processed using transform function.
  * @param {Object} download configuration
  * @returns {Object} downloaded data as link from HTML file.
- * @example
  */
 function download(data, config) {
   var type = config["type"];
   var blob;
   var exportfilename = "";
 
+  //if CSV is required to be download, call the transform function.
   if (type === "CSV") {
     var csv = this.transform(data, config);
     blob = new Blob([csv], {
       type: "text/csv; charset = utf-8;",
     });
     exportfilename = "export.csv";
+
+  //if JSON file is required. Similar as before. 
   } else if (type === "JSON") {
     var js = this.transform(data, config);
     blob = new Blob([js], {
@@ -266,6 +293,9 @@ function download(data, config) {
     });
     exportfilename = "export.json";
   }
+
+  //if XML file is required for loading. Needs improvement.
+
   /*else if (type === 'XML') {
 		var xs = this.transform(data,config);
 		blob = new Blob([xs], {type: 'text/xml'});
@@ -279,6 +309,8 @@ function download(data, config) {
     	};
     */
 
+  
+  //after the data has been transformed, create a new download file and link. No name is given but "export".
   if (navigator.msSaveOrOpenBlob) {
     msSaveBlob(blob, exportfilename);
   } else {
@@ -290,4 +322,9 @@ function download(data, config) {
   }
 }
 
+/**
+ * Module for dealing with data.
+ * @module data
+ * @exports data
+ */
 export { retrieve, transform, download, upload };

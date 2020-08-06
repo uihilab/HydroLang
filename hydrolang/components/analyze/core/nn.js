@@ -18,7 +18,7 @@ export default class nn {
         inputShape: [numinputs],
         units: numneurons,
         useBias: true,
-        activation: "sigmoid",
+        activation: "tanh",
       })
     );
 

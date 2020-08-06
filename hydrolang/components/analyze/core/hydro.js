@@ -1,10 +1,18 @@
 import "../../../modules/tensorflow/tensorflow.js";
 
+/**
+ * @class hydro
+ * @classdesc Main class used for hydrological analyses.
+ */
 export default class hydro {
   /**
    * Computation of aereal mean precipitation for a river basin given it has 2 or more different stations.
-   * @param {Object []} data - array object with precipitation with equal amounts of data from different rain gauges.
-   * @returns {Object []} array - object with average precipitaiton for a specific time series.
+   * @method arithmetic
+   * @memberof hydro
+   * @param {Object[]} data - array object with precipitation with equal amounts of data from different rain gauges.
+   * @example // raingages[0] = [1, 2, 3, 4]; raingages[1] = [2, 3, 5, 2];
+   * @returns {Object[]} array with object with average precipitaiton for a specific time series.
+   * @example var arithprecs = hydro1.analyze.hydro.arithmetic(raingages);
    */
 
   static arithmetic(arr) {
@@ -29,13 +37,23 @@ export default class hydro {
   /**
    * Calculates average precipitation for a basin considering there is
    * one station per sub basin.
+   * @method thiessen
+   * @memberof hydro
    * @param {Object} data - object describing the time series data and area per subbasin.
-   * @returns {Object []} array - time series of average precipitation over a whole basin.
+   * @returns {Object[]} array with time series of average precipitation over a whole basin.
+   * @example
+   * //var thiessenprec = [[1,2,1,2,3], [1,2,34,1,2], [2,4,3,1,4]];
+   * var thiessenareas = [30,40,30];
+   * thiessendata = {
+   * rainfall: thiessenprec,
+   * areas: thiessenareas,
+    };
+    var thiessenpol = hydro1.analyze.hydro.thiessen(thiessendata)//
    */
 
-  static thiessen(params) {
-    var precs = params.rainfall;
-    var areas = params.areas;
+  static thiessen(data) {
+    var precs = data.rainfall;
+    var areas = data.areas;
     var totarea = this.totalprec(areas);
     var res = this.matrix(precs.length, areas.length, 0);
     var out = this.matrix(1, precs[0].length, 0);
@@ -52,7 +70,9 @@ export default class hydro {
   /**
    * Calculates parameters for the generation of a unit hydrograph
    * based on SCS method, Snyder Unit Hydrograph.
-   * All times of concentrations and lags time are calculated in hours.
+   * All times of concentrations and lags time are calculated in hours
+   * @function syntheticalc
+   * @memberof hydro
    * @param {Object} params - Specifications for calculations.
    * @returns {Object} calculations depending on type.
    * @example
@@ -150,8 +170,15 @@ export default class hydro {
    * For selection of the peak rate factor, consider that a PRF of 100 is for less flat areas
    * while a PRF of 600 is for very steep terrain.
    * Adapted from from (NEH, 2007).
+   * @function dimunithydro
+   * @memberof hydro
    * @param {Object} data - object specifying the type of distribution, time step to compute the hydrograph.
-   * @returns {Object []} array - dimensionless hydrograph.
+   * @returns {Object[]} array with dimensionless hydrograph.
+   * @example
+   * //dimunithydrodata = {
+   * distribution: {
+   * type: "gamma", PRF: 484},timestep: 0.2,numhours: 5};
+   * var dimunit = hydro1.analyze.hydro.dimunithydro(dimunithydrodata)//
    */
 
   static dimunithydro(params) {
@@ -209,11 +236,36 @@ export default class hydro {
   }
 
   /**
+   * Hyetograph generator for a uniformly distributed rainfall event.
+   * A uniform timestep should be considered
+   * @param {Object[]} data - 2D array with timeseries of a rainfall event.
+   * @returns {Object[]} 2D array of 
+   */
+
+   static hyetogen (data) {
+     var time = data[0]; var rainf = data[1];
+
+     if (typeof time[0] == 'string'){
+       for (var i =0; i < time.length; i++){
+         time[i] = Date.parse(time[i]);
+       };
+     };
+
+     var timestep = Math.abs(time[1] - time[0]);
+     
+   }
+
+  /**
    * Unit hydrograph constructor NRCS constructor depending on the
    * physical characteristics of a regularly shaped basin. Adapted from (NEH, 2007).
-   * @param {Object} data - object that specifies the physical characteristics and the type of
+   * @function unithydrocons
+   * @memberof hydro
+   * @param {Object} params - object that specifies the physical characteristics and the type of
    * distribution required as well as the time step to compute the hydrograph.
-   * @returns {Object []} array - time series array. If metric in m3/s, if SI in cfs.
+   * @returns {Object[]} array with time series array. If metric in m3/s, if SI in cfs.
+   * @example
+   * unithydrodata = { units: "si", unithydro: dimunit, drainagearea: 4.6, tconcentration: 2.3};
+   * var basinunit = hydro1.analyze.hydro.unithydrocons(unithydrodata);
    */
 
   static unithydrocons(params) {
@@ -252,11 +304,12 @@ export default class hydro {
   }
 
   /**
-   * Flooding hydrograph generator using a Dimensionless Unit Hydrograph,
+   * Flooding hydrograph generator using a unit hydrograph,
    * precipitation data and SCS metrics for runoff calculation.
-   * Important: the type of the date must be compliant to Javascript types, in string format.
+   * @function floodhydro
+   * @memberof hydro
    * @param {Object} data - parameter object specifying landuse, rainfall, infiltration capacity and baseflow.
-   * @returns {Object []} values for runoff as time series.
+   * @returns {Object[]} array with values for runoff as time series.
    */
 
   static floodhydro(params) {
@@ -344,13 +397,15 @@ export default class hydro {
 
   /**
    * Simple rainfall-runoff analyses over a rainfall dataset given landuse, baseflow and infiltration capacity.
+   * @function bucketmodel
+   * @memberof hydro
    * @param {Object} data - parameter object landuse, rainfall, infiltration capacity and baseflow.
-   * @returns {Object []} array - values for runoff as time series.
+   * @returns {Object[]} array with values for runoff as time series.
    */
 
   static bucketmodel(params) {
     //initial parameters
-    let rainfall = params.rainfall;
+    var rainfall = params.rainfall;
     let n = rainfall.length;
     let baseflow = params.baseflow / 24;
     let evapodata = params.evaporation.data;
@@ -431,10 +486,12 @@ export default class hydro {
   }
 
   /**
-   * solves 1d groundwater steady simulation using gaussian elimination.
+   * Solves 1d groundwater steady simulation using gaussian elimination.
    * Adapted from (Molkentin, 2019).
+   * @function ground1d
+   * @memberof hydro
    * @param {Object} params - object system example.
-   * @return {Object []} matrix - matrix solved.
+   * @return {Object[]} Matrix with solutions.
    */
 
   static ground1d(params) {
@@ -497,7 +554,10 @@ export default class hydro {
   /**
    * Aggregates or dissaggregates rainfall data depending on what
    * the user requires. The date type must be a Javascript string.
-   * @param {*} arr
+   * @function rainaggr
+   * @memberof hydro
+   * @param {Object} params - data with rainfall and aggregation type.
+   * @returns {Object[]} array with aggregated/disaggregated data.
    */
 
   static rainaggr(params) {
@@ -558,7 +618,9 @@ export default class hydro {
 
   /**
    * Arithmetic sum of the values inside an array.
-   * @param {Object []} data - array with precipitation event.
+   * @function totalprec
+   * @memberof hydro
+   * @param {Object[]} data - array with precipitation event.
    * @returns {number} total amount of precipitation during an event on a given station.
    */
 
@@ -573,7 +635,9 @@ export default class hydro {
 
   /**
    * Moving arrays in unit hydographs.
-   * @param {Object []} data - array that is to be pushed in subtitute array.
+   * @function move
+   * @memberof hydro
+   * @param {Object[]} data - array that is to be pushed in subtitute array.
    * @param {number} location - index from in original array.
    * @param {number} location - index to in substitute array.
    */
@@ -594,17 +658,20 @@ export default class hydro {
   /**
    * Creates a matrix of m x n dimensions filled with whatever
    * the user requires. For numerical calculations, fill it with 0s.
+   * @function matrix
+   * @memberof hydro
    * @param {number} m - columns of the matrix.
    * @param {number} n - rows of the matrix.
    * @param {number} d - filler for every element of the array.
-   * @returns {Object []} matrix - m x n array.
+   * @returns {Object[]} matrix - m x n array.
    */
 
   static matrix(m, n, d) {
-    if ((d = undefined)) {
-      var mat = Array(m).map(() => Array(n));
+    var mat;
+    if ((typeof d == undefined)) {
+      mat = Array(m).map(() => Array(n));
     } else {
-      var mat = Array(m)
+      mat = Array(m)
         .fill(d)
         .map(() => Array(n).fill(d));
     }
@@ -612,11 +679,13 @@ export default class hydro {
   }
 
   /**
-   * solves linear equations in the form Ax = b.
-   * @param {Object []} vec_right - vector on right hand side.
-   * @param {Object []} vec_left - vector on left hand side.
-   * @param {Object []} matrix - matrix to be filled.
-   * @returns {Object []} vec_left.
+   * Solves linear equations in the form Ax = b.
+   * @function equationsystemsolver
+   * @memberof hydro
+   * @param {Object[]} vec_right - vector on right hand side.
+   * @param {Object[]} vec_left - vector on left hand side.
+   * @param {Object[]} matrix - matrix to be filled.
+   * @returns {Object[]} vec_left.
    */
 
   static equationsystemsolver(matrix, vec_left, vec_right) {

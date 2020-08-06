@@ -11,8 +11,10 @@ var tableData;
  * Creates new charts depending on what the user requires. It can
  * generate scatter, histograms, columns, lines, timelines, etc.
  * It also generates new div per every chart generated.
+ * @memberof visualize
+ * @function chart
  * @param {Object} params - requires: charType, data, divID, applicable options.
- * @returns {div} chart appended to new div in body.
+ * @returns {Object} chart appended to new div in body.
  * @example
  * hydro1.visualize.chart({chartType: 'column', data: x, divID: "new"});
  */
@@ -23,7 +25,7 @@ function chart(params) {
     container.id = params.divID;
     container.title = `Graph of ${container.id}`;
     container.className = "figure";
-    container.style = "width: 900px; height: 300px;";
+    container.style = "width: 1000px; height: 500px";
     document.body.appendChild(container);
 
     var d = params.data;
@@ -31,46 +33,85 @@ function chart(params) {
     var data;
 
     switch (char) {
-      case "scatter" && "histogram" && "column":
-        var dt = stats.arrchange(d);
+      case "scatter":
+        var dt;  
+        if (d[0].length !== 2) {
+        dt = stats.arrchange(d);  
+        } else {
+          dt = d
+        }
+
         data = googlecharts.visualization.arrayToDataTable(dt);
         break;
 
-      case "line" && "timeline":
+      case "column":
+        var dt;  
+        if (d[0].length !== 2) {
+        dt = stats.arrchange(d);  
+        } else {
+          dt = d
+        }
+
+        data = googlecharts.visualization.arrayToDataTable(dt);
+        break;
+
+        
+      case "histogram":
+        var dt;  
+        if (d[0].length !== 2) {
+        dt = stats.arrchange(d);  
+        } else {
+          dt = d
+        }
+
+        data = googlecharts.visualization.arrayToDataTable(dt);
+        break;
+
+      case ("line" || "timeline"):
         data = new tableData.data();
 
-        data.addColumn("date", "Date");
-        data.addColumn("number", "Amount");
+        if (typeof d[0][1] === 'string') {
+        data.addColumn("date", d[0][0]);
+        data.addColumn("number", d[1][0]);
 
-        for (var i = 0; i < d[0].length; i++) {
+        for (var i = 1; i < d[0].length; i++) {
           data.addRow([new Date(Date.parse(d[0][i])), d[1][i]]);
         }
+      }
+      else {
+        data.addColumn("number", d[0][0]);
+        data.addColumn("number", d[1][0]);
+
+        for (var i = 1; i < d[0].length; i++) {
+        data.addRow([d[0][i], d[1][i]]);
+      }
+    }
         break;
 
       default:
         break;
     }
 
-    function resize() {
-      var chart = new chartMap[char](container);
+    var fig = new chartMap[char](container);
+    /*function resize() {*/
       if (params.hasOwnProperty("options")) {
         var options = params.options;
-        chart.draw(data, options);
+        fig.draw(data, options);
       } else {
-        chart.draw(data);
+        fig.draw(data);
       }
-    }
+    //}
 
-    window.onload = resize;
-    window.onresize = resize;
+    //window.onload = resize;
+    //window.onresize = resize;
 
     if (params.hasOwnProperty("savechart")) {
       googlecharts.visualization.events.addListener(
-        chart,
+        fig,
         "ready",
         function () {
-          var imgUri = chart.getImageURI();
-          window.open(imgUri);
+          container.innerHTML = '<img src="' + fig.getImageURI() + ' ">';
+          console.log(container.innerHTML)
         }
       );
     }
@@ -80,8 +121,10 @@ function chart(params) {
 
 /**
  * Generates a new table depending on the data provided by the user.
+ * @memberof visualize
+ * @function table
  * @param {Object} params - requires data, divID, dataType and applicable options.
- * @returns {div} table appended to new div in body.
+ * @returns {Object} table appended to new div in body.
  * @example
  * hydro1.visualize.table({data: x, divID: "new", dataType: ["string", "number"]});
  */
@@ -90,7 +133,6 @@ function table(params) {
     var container = document.createElement("div");
     container.id = params.divID;
     container.title = `Table of ${container.id}`;
-    container.className = "container";
     document.body.appendChild(container);
 
     var d = params.data;
@@ -99,7 +141,7 @@ function table(params) {
     var temp = [];
 
     for (var k = 0; k < d[0].length; k++) {
-      data.addColumn(types[k], [d[0][k]]);
+      data.addColumn(types[k], d[0][k]);
     }
 
     for (var i = 0; i < d[1].length; i++) {
@@ -123,29 +165,36 @@ function table(params) {
       table.draw(view);
     }
   });
-  return "table function is called";
+  return "table drawn on the given parameters.";
 }
 
 /**
  * preset styles for both charts and tables. The user can access by
  * passing parameters of data, type(chart or table), char
+ * @memberof visualize
+ * @function styles
  * @param {Object} params - overall parameters: data, draw, type.
- * @returns {div} chart (graph or table) appended in body.
+ * @returns {Object} chart (graph or table) appended in body.
  */
 
 function styles(params) {
   var pm;
   var type = params.draw;
-  var d = params.data;
+  var d = stats.copydata(params.data);
 
   if (type === "chart") {
+    if (d.length == 2) {
+      d[0].unshift('Duration')
+      d[1].unshift('Amount')
+    }
+
     var charts = params.config.chart;
     switch (charts) {
       case "column":
         pm = {
           chartType: charts,
           data: d,
-          divId: params.config.div,
+          divID: params.config.div,
           options: {
             title: params.config.title,
             width: "100%",
@@ -202,6 +251,18 @@ function styles(params) {
         };
         break;
 
+        case "timeline":
+          pm = {
+            chartType: charts,
+            data: d,
+            divID: params.config.div,
+            options: {
+              dateFormat: 'HH:mm MMMM dd, yyyy',
+              thickness: 1
+                },
+              }
+          break;
+
       default:
         break;
     }
@@ -210,7 +271,7 @@ function styles(params) {
     pm = {
       data: d,
       divID: params.config.div,
-      datatype: ["string", "number"],
+      dataType: ["string", "number"],
       options: {
         width: "50%",
         height: "60%",
@@ -220,12 +281,22 @@ function styles(params) {
   }
 }
 
+/**
+ * Module for visualization of charts and tables.
+ * @module visualize
+ */
 export { chart, table, styles };
 
 /***************************/
 /*** Supporting functions **/
 /***************************/
 
+/**
+ * function to call google charts.
+ * @namespace visualize
+ * @function ensureGoogleChartsIsSet
+ * @returns promise
+ */
 function ensureGoogleChartsIsSet() {
   return new Promise(function (resolve, reject) {
     (function waitForGoogle() {

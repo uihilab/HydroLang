@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link
+    rel="stylesheet"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+  />
+    <title>Hydrolang Use Case</title>
+    <script
+      type="module"
+      onload="initHydrolang()"
+      src="./hydrolang/hydro.js"
+    ></script>
+  </head>
+  <style>
+    #map {
+      height: 400px; width :800px; margin-left:auto; margin-right:auto;
+    }
+  </style>
+
+  <body>
+    <script>
+      async function initHydrolang() {
+
+        hydro1 = new Hydrolang();
+
+      //await call for map loader options.
+
+      
+      var map = {
+        maptype: "osm"
+      };
+       await hydro1.map.loader(map);
+
+       var mapconfig = {
+        maptype: "osm",
+        lat: "40",
+        lon: "-100",
+        zoom: "13",
+        layertype: {
+          type: "tile",
+          name: "OpenStreetMap",
+        },
+      };
+
+      //Map renderer.
+      hydro1.map.renderMap(mapconfig);
+
+      //Add drawing tool.
+      var draw = {
+        maptype: "osm",
+        layertype: {
+          type: "draw",
+        },
+      };
+
+      //Add drawing tool to map
+      hydro1.map.Layers(draw)
+
+        /*** Basic use case for retrieving data **/
+
+        //if token or key is required
+        var tokennoa = "gNUkMgFHFSYVWyNoabuUfuVhCTJkRvRq";
+
+        //data retrieval from noaa
+        dataRetrievalParams1 = {
+          source: "noaa",
+          dataType: "availablestations",
+          type: "json",
+          arguments: {
+            datasetid: "PRECIP_15",
+            locationid: "FIPS:22",
+            sortfield: "datacoverage",
+            sortorder: "desc",
+            limit: 1000,
+          },
+          token: tokennoa,
+        };
+
+        dataRetrievalParams2 = {
+          source: "noaa",
+          dataType: "datasets",
+          type: "json",
+          arguments: {
+            stationid: "COOP:440166",
+            datasetid: "PRECIP_15",
+            limit: 1000,
+          },
+          token: tokennoa,
+        };
+
+        dataRetrievalParams3 = {
+          source: "noaa",
+          dataType: "prec-15min",
+          type: "json",
+          arguments: {
+            stationid: "COOP:440166",
+            units: "metric",
+            startdate: "2005-01-01",
+            enddate: "2005-10-31",
+            limit: 1000,
+            //datatype: "QPCP",
+          },
+          token: tokennoa,
+        };
+
+        function handleWaterData(data) {
+          var x = data;
+          console.log(data);
+          return x;
+        }
+
+        var x = hydro1.data.retrieve(dataRetrievalParams1,handleWaterData)
+
+        
+
+      //Object that is required for rendering the map.
+        
+      var configu = {"type": "ARR", keep:["date", "value"]}
+        //var x1 = hydro1.data.transform(x1,configu)
+
+        /*** End of use case **/
+      }
+    </script>
+    <p class="h4">Case study</p>
+    <script
+    src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+  ></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+  ></script>
+  <script
+    src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+  ></script>
+  </body>
+</html>

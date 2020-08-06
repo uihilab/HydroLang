@@ -51,12 +51,12 @@
           dataType: "prec-15min",
           type: "json",
           arguments: {
-            stationid: "COOP:010430",
+            stationid: "COOP:018673",
             units: "metric",
-            startdate: "1992-01-01",
-            enddate: "1992-12-31",
+            startdate: "2014-01-01",
+            enddate: "2014-12-31",
             limit: 1000,
-            datatype: "QPCP",
+            datatype: "QGAG",
           },
           token: tokennoa1,
         };
@@ -67,7 +67,6 @@
           type: "json",
           arguments: {
             datasetid: "PRECIP_15",
-            locationid: "FIPS:01",
             sortfield: "datacoverage",
             sortorder: "desc",
             limit: 1000,
@@ -80,7 +79,7 @@
           dataType: "datasets",
           type: "json",
           arguments: {
-            stationid: "COOP:010430",
+            stationid: "COOP:018673",
             datasetid: "PRECIP_15",
             limit: 1000,
           },
@@ -159,12 +158,16 @@
 
         function handleWaterData(data) {
           var x = data;
-          console.log(x);
+          console.log(data);
           return x;
         }
 
-        //Obtain data from the source. Verify the requirment for
-        var hy1 = hydro1.data.retrieve(dataRetrievalParams2, handleWaterData);
+        //Obtain data from the source. Verify the requirement for
+        var x1 = hydro1.data.retrieve(dataRetrievalParams2a, handleWaterData);
+
+        
+        var configu = {"type": "ARR", keep:["date", "value"]}
+        //var x1 = hydro1.data.transform(x1,configu)
 
         /*** End of use case **/
       }

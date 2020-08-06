@@ -4,10 +4,8 @@
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-      integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
-      crossorigin="anonymous"
     />
-    <title>Hydrolang Use Case</title>
+    <title>Analyze Module Examples</title>
     <script
       type="module"
       onload="initHydrolang()"
@@ -17,17 +15,18 @@
 
   <body>
     <script>
+
+      /*** Hydrolang Initializer **/
+
       function initHydrolang() {
-        // configure hydrolang - this is optional,
-        // if user does not provide a config,
-        // we'll just use the default values
+
         const config = {
           metricSystem: "si",
-          mapType: "Google",
+          mapType: "osm",
         };
 
         hydro2 = new Hydrolang();
-        hydro2.setConfig(config);
+        hydro2.setConfig(config)
 
         /*** End of use case **/
 
@@ -58,49 +57,12 @@
         ];
 
         //Identify and remove outliers
-        var outliers = hydro2.analyze.stats.outliers(ex);
-        console.log(outliers);
-        var clean = hydro2.analyze.stats.outremove(ex);
-        console.log(clean);
+        var outliers = hydro2.analyze.stats.normoutliers(ex);
+        var clean = hydro2.analyze.stats.outremove(ex,'normalized');
 
-        var tabledata = hydro2.analyze.basicstats(clean);
+        var tabledata = hydro2.analyze.stats.basicstats(clean)
 
-        hydro2.visualize.table({
-          data: tabledata,
-          divID: "statsexample",
-          dataType: ["string", "number"],
-          options: {
-            width: "50%",
-            height: "60%",
-          },
-        });
-
-        var data2 = [
-          ["Generation", "Descendants"],
-          [0, 1],
-          [1, 33],
-          [2, 269],
-          [3, 2013],
-        ];
-
-        hydro2.visualize.chart({
-          chartType: "scatter",
-          data: data2,
-          divID: "scatterstuff",
-          savechart: true,
-          options: {
-            title: "Descendants by generation",
-            legend: "none",
-            crosshair: { trigger: "both", orientation: "both" },
-            trendlines: {
-              0: {
-                type: "polynomial",
-                degree: 2,
-                visibleInLegend: true,
-              },
-            },
-          },
-        });
+        hydro2.visualize.styles({data: tabledata, draw: "table", config: {div: "statstable"}})
 
         /*** End of use case **/
 
@@ -127,12 +89,14 @@
           areas: thiessenareas,
         };
 
+        console.time("test1");
         var thiessenpol = hydro2.analyze.hydro.thiessen(thiessendata);
         console.log(thiessenpol);
+        console.timeEnd("test1");
 
         final = {
           event: "callevent",
-          agg: { type: "aggregation", interval: 120 },
+          agg: { type: "aggregation", interval: 120},
         };
 
         /*** End of use case **/
@@ -171,7 +135,7 @@
           },
         };
 
-        var calcul = hydro2.analyze.hydro.syntheticalc(synt3);
+        var calcul = hydro2.analyze.hydro.syntheticalc(synt2);
         console.log(calcul);
 
         /*** Use of dimensionless unit hydrograph constructor.
@@ -184,13 +148,16 @@
         dimunithydrodata = {
           distribution: {
             type: "gamma",
-            PRF: 101,
+            PRF: 484,
           },
           timestep: 0.15,
-          numhours: 10,
+          numhours: 5,
         };
 
         var dimunit = hydro2.analyze.hydro.dimunithydro(dimunithydrodata);
+        console.log(dimunit)
+
+        hydro2.visualize.styles({data: dimunit, draw: "chart", config: {chart: "line", div: "1", title: "unit hydrograph"}})
 
         /***End of example for dimensionless unit hydrograph constructor**/
 
@@ -209,6 +176,9 @@
         };
 
         var basinunit = hydro2.analyze.hydro.unithydrocons(unithydrodata);
+        console.log(basinunit)
+
+        hydro2.visualize.styles({data: basinunit, draw: "chart", config: {chart: "line", div: "2", title: "basin hydrograph"}})
 
         /***End of example for unit hydrograph constructor**/
 
@@ -255,41 +225,15 @@
           rainfall: rainf,
           unithydro: basinunit,
           cn: 90,
-          stormduration: 8,
+          stormduration: 7,
           timestep: 0.3,
         };
 
         var flooding = hydro2.analyze.hydro.floodhydro(floodhydrodata);
+        console.log(flooding)
 
-        //flatenise the array using helper function.
-        graphing = {
-          graphdata: flooding,
-          Columns: ["Duration", "Discharge"],
-        };
-
-        var hydroexample = hydro2.analyze.stats.flatenise(graphing);
-
-        //define configuration options accroding to Google Charts API.
-        hydro2.visualize.chart({
-          chartType: "line",
-          data: hydroexample,
-          divID: "smoothchart",
-          options: {
-            title: "Hydrograph",
-            curveType: "function",
-            lineWidth: 2,
-            explorer: {
-              actions: ["dragToZoom", "rightClickToReset"],
-            },
-            legend: {
-              position: "bottom",
-            },
-            style: {
-              height: "500px",
-              width: "900px",
-            },
-          },
-        });
+        //call on on the line style from visualization or draw chart based on preferred configurations.
+        hydro2.visualize.styles({data: flooding, draw: "chart", config: {chart: "line", div: "3", title: "hydrograph"}})
 
         /***End of example for flood hydrograph constructor**/
 
@@ -326,7 +270,6 @@
           rainfall: rainfallData,
           baseflow: baseflow,
           evaporation: {
-            dataType: "timeseries",
             data: evapodata,
           },
           landuse: {
@@ -340,25 +283,21 @@
         };
 
         var bucket = hydro2.analyze.hydro.bucketmodel(dataBucketModel);
+        console.log(bucket)
         /***End of example for bucket model**/
       }
     </script>
-    <p class="h4">Basic example of analysis module!</p>
-
+    <p class="h4">Basic example of analyze module!</p>
+    <p class="h7">To use the analyze module, please use the instance of Hydrolang created on console of your browser. The solutions of each of the modules
+      can be found inside the console as well.</p>
     <script
       src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-      integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-      crossorigin="anonymous"
     ></script>
     <script
       src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-      crossorigin="anonymous"
     ></script>
     <script
       src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-      integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
-      crossorigin="anonymous"
     ></script>
   </body>
 </html>
