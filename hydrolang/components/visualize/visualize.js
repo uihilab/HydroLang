@@ -93,17 +93,14 @@ function chart(params) {
     }
 
     var fig = new chartMap[char](container);
-    /*function resize() {*/
+
       if (params.hasOwnProperty("options")) {
         var options = params.options;
         fig.draw(data, options);
       } else {
         fig.draw(data);
       }
-    //}
 
-    //window.onload = resize;
-    //window.onresize = resize;
 
     if (params.hasOwnProperty("savechart")) {
       googlecharts.visualization.events.addListener(
