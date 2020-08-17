@@ -1,5 +1,6 @@
 import "../../../modules/tensorflow/tensorflow.js";
 
+
 /**
  * @class hydro
  * @classdesc Main class used for hydrological analyses.
@@ -124,21 +125,33 @@ export default class hydro {
         TimePeak: tp,
         LagTime: lag,
       });
-    } else if (type == "kirpich") {
+    } else if (type == "kerby-kirpich") {
       var K = 0;
+      var M = 0;
+      var N = params.args.N;
+      var sch = params.args.sch;
       switch (units) {
         case "si":
           //longitude in feet and sl as number.
           K = 0.0078;
+          M= 1.44;
           break;
         case "m":
           //longitude in meters and sl as number
           K = 0.0195;
+          M = 0.828
           break;
         default:
           alert("Please use a correct unit system!");
       }
-      tc = (K * Math.pow(lon, 0.77) * Math.pow(sl, -0.385)) / 60;
+      //calculating catchment time
+      var tov = M * (Math.pow(lon * N), 0.467) * Math.pow(sl, -0.235);
+
+      //calculating main channel time
+      var tch = (K * Math.pow(lon, 0.77) * Math.pow(sl, -0.385)) / 60;
+
+      //summing both up.
+      tc = tov + tch
       tp = 0.7 * tc;
       lag = 0.6 * tc;
       Object.assign(sol, { TimeConc: tc, TimePeak: tp, LagTime: lag });
@@ -237,21 +250,29 @@ export default class hydro {
 
   /**
    * Hyetograph generator for a uniformly distributed rainfall event.
-   * A uniform timestep should be considered
-   * @param {Object[]} data - 2D array with timeseries of a rainfall event.
-   * @returns {Object[]} 2D array of 
+   * Considered for long duration storms.
+   * The timestep should be uniformly distributed
+   * @param {Object} data - 2D array with timeseries of a rainfall event.
+   * @returns {Object[]} - n-D array of pulses per hour
    */
 
    static hyetogen (data) {
-     var time = data[0]; var rainf = data[1];
+     var event = data.event;
+     var time = event[0]; var rainf = event[1];
 
+     //if timestep in JavaScript string
      if (typeof time[0] == 'string'){
        for (var i =0; i < time.length; i++){
          time[i] = Date.parse(time[i]);
        };
      };
 
+     //calculate the time step of the series. 
      var timestep = Math.abs(time[1] - time[0]);
+
+     var count 
+     
+
      
    }
 
@@ -261,7 +282,8 @@ export default class hydro {
    * @function unithydrocons
    * @memberof hydro
    * @param {Object} params - object that specifies the physical characteristics and the type of
-   * distribution required as well as the time step to compute the hydrograph.
+   * distribution required as well as the time step to compute the hydrograph. For the dimensioness hydrograph,
+   * the user must input the peak rate factor in accordance to the units specified.
    * @returns {Object[]} array with time series array. If metric in m3/s, if SI in cfs.
    * @example
    * unithydrodata = { units: "si", unithydro: dimunit, drainagearea: 4.6, tconcentration: 2.3};
@@ -271,41 +293,87 @@ export default class hydro {
   static unithydrocons(params) {
     //import parameters from user.
     var area = params.drainagearea;
-    var tconc = params.tconcentration;
-    var duh = params.unithydro;
-    var peak = params.peak;
+    var duh = params.hydro;
+    var unit = this.matrix(2, duh[0].length, 0);
+
+    //unit hydro from dimensionless hydrograph.
+    if (params.type == "dim"){
+    //peak rate factor chosen.
+    var peak = params.config.peak;
+
 
     //calculate time step.
+    var tconc = params.config.tconcentration;
     var deltat = Number((tconc * 0.133).toFixed(3));
 
     //calculate time to peak and construct result arrays.
     var tp = deltat / 2 + 0.6 * tconc;
-    var unit = this.matrix(2, duh[0].length, 0);
     var qp = 0;
 
     //change peak discharge depending on the units.
     switch (params.units) {
       case "si":
-        qp = (484 * area * 1) / tp;
+        qp = (peak * area * 1) / tp;
         break;
       case "m":
-        qp = (0.208 * area * 1) / tp;
+        qp = (peak * area * 1) / tp;
         break;
       default:
         alert("Please input a valid unit system!");
-    }
+    };
 
     //populate the hydrograph with time and discharge.
     for (var h = 0; h < unit[0].length; h++) {
       unit[0][h] = Number((duh[0][h] * tp).toFixed(3));
       unit[1][h] = Number((duh[1][h] * qp).toFixed(3));
-    }
+    };
     return unit;
+  }
+
+  //unit hydro from observed hydrograph.
+  else if (params.type == "obs"){
+
+    var baseflow = params.config.baseflow;
+    var drh = this.matrix(1, duh[0].length, 0);
+    unit[0] = duh[0];
+    //timestep in hours
+    var timestep = Math.abs(unit[0][1] - unit[0][0]) * 60 * 60;
+
+    console.log(unit)
+
+    for (var i =0; i < unit[0].length; i++) {
+      drh[i] = Math.abs(duh[1][i] - baseflow);
+    };
+    
+    var sum = this.totalprec(drh) * timestep;
+    var vol = 0;
+
+    switch (params.units) {
+      case "si":
+        //calculated in inches
+        vol = Math.round((sum / area) * 12);
+        break;
+      case "m":
+        //calculated in cms
+        vol = Math.round((sum / area) * 100);
+    };
+    
+    for (var j = 0; j < unit[0].length; j++){
+      //unit hydrograph in cfs/inch or cumecs/cm
+      unit[1][j] = Math.round((drh[j] / vol))
+    };
+
+    unit[1].reverse();
+
+    return {unithydro: unit, totalvol: vol};
+  }
   }
 
   /**
    * Flooding hydrograph generator using a unit hydrograph,
    * precipitation data and SCS metrics for runoff calculation.
+   * If the observed hydrograph option is selected, the precipitation must be dividied in
+   * blocks of rainfall in as a 2D array [[date, date, date], [rainf, rainf, rainf]]
    * @function floodhydro
    * @memberof hydro
    * @param {Object} data - parameter object specifying landuse, rainfall, infiltration capacity and baseflow.
@@ -316,6 +384,13 @@ export default class hydro {
     //import data from parameters.
     const rain = params.rainfall;
     const unit = params.unithydro;
+    var baseflow = params.baseflow;
+
+    if(!params.baseflow) {
+      baseflow = 0;
+    };
+
+    if (params.type == "SCS"){
     const cn = params.cn;
     const stormdur = params.stormduration;
     const timestep = params.timestep;
@@ -394,6 +469,49 @@ export default class hydro {
     //
     return finalhydro;
   }
+  else if (params.type == "obs") {
+    var hydros = [];
+    var timestep = Math.abs(rain[0][1] - rain[0][0]);
+
+    //calculate the runoff per pulse.
+    for (var i = 0; i < rain[1].length; i++) {
+      var neq = [];
+      for (var j = 0; j < unit[1].length - 1; j++) {
+        neq.push(unit[1][j] * rain[1][i]);
+      }
+      hydros.push(neq)
+    };
+
+    var final = this.matrix(2, unit[1].length + hydros.length, 0);
+
+    //zeros up
+    for(var k = 0; k < hydros.length; k++) {
+      var zeros = new Array(timestep * hydros.indexOf(hydros[k])).fill(0);
+      zeros.forEach(x => hydros[k].unshift(x));
+      hydros[k].shift();
+    };
+
+    //zeros down
+    for (var l = 0; l < hydros.length; l++) {
+      var finalarr = hydros[hydros.length - 1].length;
+      var zeros = new Array(finalarr - hydros[l].length).fill(0);
+      zeros.forEach(x => hydros[l].push(x))
+    };
+
+    final[1] = hydros[0].map((x,i) => hydros.reduce((sum, curr) => sum + curr[i], baseflow));
+
+    //time and discharge sum
+    for (var p = 0; p < final[1].length; p++) {
+      final[0][p] = p;
+    };
+
+    final[1].reverse();
+    
+    return final;
+  }
+}
+
+
 
   /**
    * Simple rainfall-runoff analyses over a rainfall dataset given landuse, baseflow and infiltration capacity.
@@ -482,6 +600,8 @@ export default class hydro {
         totalflow[3][q] * landuse[3] +
         totalflow[4][q] * landuse[4];
     }
+
+
     return totalrunoff;
   }
 
@@ -553,7 +673,10 @@ export default class hydro {
 
   /**
    * Aggregates or dissaggregates rainfall data depending on what
-   * the user requires. The date type must be a Javascript string.
+   * the user requires. The date type must be a Javascript string or number and in minutes or hours, but both
+   * the aggregation interval require and the data interval should be the same.
+   * For aggregation, the interval for aggregation must be larger than the time step. For example,
+   * 15 min or 30 min data to be aggregatted every 60 minutes. Intervals must be multiples of the final aggregaiton (2, 4, etc)
    * @function rainaggr
    * @memberof hydro
    * @param {Object} params - data with rainfall and aggregation type.
@@ -578,32 +701,48 @@ export default class hydro {
       datetr[j] = event[j];
     }
 
-    //time interval required by the user.
+    //time interval required by the user in minutes.
     var finagg = params.agg.interval;
 
     //change the datatypes of date.
-    if (agtype == "aggregation") {
+    if (agtype == "aggr") {
       //timestep and total duration in minutes.
-      var time = Math.abs(datetr[0][0]);
-      var timestep = Math.abs((datetr[0][0] - datetr[0][1]) / (60 * 1000));
-      var lastval = Math.abs(
+      var time = Math.abs(datetr[0][1]);
+      var timestep = 0;
+      var lastval = 0;
+
+      if (typeof event[0][0] == "string") {
+      time = Math.abs(datetr[0][0])
+      timestep = Math.abs((datetr[0][0] - datetr[0][1]) / (60 * 1000));
+      lastval = Math.abs(
         (datetr[0][0] - datetr[0][datetr[0].length - 1]) / (60 * 1000)
       );
+    } else {
+      time = Math.abs(datetr[0][0]);
+      timestep = Math.abs((datetr[0][0] - datetr[0][1]));
+      lastval = Math.abs(datetr[0][datetr[0].length - 1])
+    }
 
       //amount of steps required and length of each step.
       var count = Math.round(finagg / timestep);
+      console.log(count)
       var narr = Math.round(lastval / finagg);
+      console.log(narr)
 
       //initialize time and data variables to be handled separately.
       var fintime = [];
       var findata = [];
 
-      for (var j = 0; j < narr; j += count) {
+      for (var j = 0; j < narr * count; j += count) {
         var minitime = datetr[0].slice(j, j + count);
         var minidata = datetr[1].slice(j, j + count);
+        if (typeof event[0][0] == "string"){
         fintime.push(
           new Date(this.totalprec(minitime) - time).toLocaleTimeString()
         );
+      } else {
+        fintime.push(j);
+      }
         findata.push(this.totalprec(minidata));
       }
       return [fintime, findata];

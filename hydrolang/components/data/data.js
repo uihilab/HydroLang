@@ -247,8 +247,14 @@ function upload(type) {
           for (var j = 0; j < med[0].length; j++) {
             ret.push(arraycol(med, j));
           }
-          
+
           ret[1] = stats.numerise(ret[1]);
+
+          for (var k = 0; k < ret.length; k++) {
+            ret[k].pop()
+          };
+
+          for (var j = 0; j < ret.length; j++) {ret[j] = stats.numerise(ret[j])}
 
           //transfrom from JSON file to new JS Object.
         } else if (type === "JSON") {

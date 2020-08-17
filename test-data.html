@@ -1,7 +1,12 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Hydrolang Use Case</title>
+    <link
+    rel="stylesheet"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+  />
+
+    <title>Hydrolang</title>
     <script
       type="module"
       onload="initHydrolang()"
@@ -172,7 +177,27 @@
         /*** End of use case **/
       }
     </script>
-    <p id="infobox">Example of data retrieval!</p>
-    <div></div>
+    <p class="h4">Basic example of data module!</p>
+    <p></p>
+    <p class="h7">The data module retrieves data depending on the accepted formats from each data source. Please
+      refer to the data sources file for a description on which sources and endpoints are supported. 
+    </p>
+
+    <code>
+      var x1 = hydro1.data.retrieve(dataRetrievalParams2a, handleWaterData);
+    </code>
+
+    <p></p>
+    <p class="h7">The retrieval is asynchronous and are prompted to console once the file is fetched. From here, the user can manipulate the file
+      as required.</p>
+    <script
+    src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+  ></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+  ></script>
+  <script
+    src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+  ></script>
   </body>
 </html>

@@ -6,7 +6,7 @@
   rel="stylesheet"
   href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
 />
-  <title>Hydrolang Use Case</title>
+  <title>Hydrolang</title>
   <script type="module" onload="initHydrolang()" src="./hydrolang/hydro.js"></script>
 </head>
 <style>
@@ -172,15 +172,15 @@
       hydro2.map.Layers(geoconfig2);
 
       //Example for adding different markers into the map.
-      var marker = {
-        maptype: "osm",
-        layertype: {
-          type: "marker",
-          markertype: "marker",
-          coord: [14.035344, -87.192993], //coordinates must be passed as arrays.
-          name: "1st marker"
-        }
-      };
+var marker = {
+  maptype: "osm",
+  layertype: {
+    type: "marker",
+    markertype: "marker",
+    coord: [14.035344, -87.192993], //coordinates must be passed as arrays.
+    name: "1st marker"
+  }
+};
 
       hydro2.map.Layers(marker);
 

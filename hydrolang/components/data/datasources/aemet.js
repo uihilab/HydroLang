@@ -5,7 +5,6 @@
 // 		-> E.g., they may limit the # of queries per unit time
 // AEMET requires registration to get KEY and must be included in parameters.
 // The API KEY has format 'api_key'.
-// https://www.ncdc.noaa.gov/cdo-web/webservices/v2#data
 // Dates in format YYYY-MM-DDThh:mm:ss
 export default {
   stations: {

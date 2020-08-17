@@ -5,7 +5,7 @@
     rel="stylesheet"
     href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
   />
-    <title>Hydrolang Use Case</title>
+    <title>Hydrolang</title>
     <script
       type="module"
       onload="initHydrolang()"
@@ -15,6 +15,10 @@
   <style>
     #map {
       height: 400px; width :800px; margin-left:auto; margin-right:auto;
+    }
+    .content{
+      max-width: 900px;
+      margin: auto
     }
   </style>
 
@@ -110,7 +114,20 @@
           return x;
         }
 
-        var x = hydro1.data.retrieve(dataRetrievalParams1,handleWaterData)
+        var marker = {
+        maptype: "osm",
+        layertype: {
+          type: "marker",
+          markertype: "marker",
+          coord: [37.116667, -79.283333], //coordinates must be passed as arrays.
+          name: "Altavista, VA"
+        },
+      };
+
+      hydro1.map.Layers(marker)
+
+        var x = await hydro1.data.retrieve(dataRetrievalParams2,handleWaterData)
+
 
         
 
@@ -122,7 +139,42 @@
         /*** End of use case **/
       }
     </script>
-    <p class="h4">Case study</p>
+    <p class="h4">Case studies: rainfall data and unit hydrograph</p>
+    <p></p>
+    <p class="h7">The data for the aggregation/disaggregation has been done using a station in 
+      Alta Vista, Virginia, USA with code COOP:440166. The station was retrieved using NOAA services.
+    </p>
+    <pre class="line-numbers">
+      <code class="language-javascript">
+        dataRetrievalParams = {
+          source: "noaa",
+          dataType: "prec-15min",
+          type: "json",
+          arguments: {
+            stationid: "COOP:440166",
+            units: "metric",
+            startdate: "2005-01-01",
+            enddate: "2005-10-31",
+            limit: 1000,
+            //datatype: "QPCP",
+          },
+          token: tokennoa,
+        };
+      </code>
+    </pre>
+    <p class="h7">The object is retrieved using the retrieval function of Hydrolang.</p>
+    <pre class="line-numbers">
+      <code class="language-javascript">
+        function handleWaterData(data) {
+          var x = data;
+          console.log(data);
+          return x;
+        }
+        await hydro1.data.retrieve(dataRetrievalParams1,handleWaterData)
+        };
+      </code>
+    </pre>
+
     <script
     src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
   ></script>

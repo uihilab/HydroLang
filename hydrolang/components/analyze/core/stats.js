@@ -280,10 +280,7 @@ export default class stats {
    * @returns {number} Maximum value of a dataset.
    */
   static max(arr) {
-    var high = arr[0];
-    var i = 0;
-    while (++i < arr.length) if (arr[i] > high) high = arr[i];
-    return high;
+    return d3.max(arr);
   }
 
   /**
