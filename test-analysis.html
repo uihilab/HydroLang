@@ -57,11 +57,11 @@
         ];
 
         //Identify and remove outliers
-        console.time("outliers")
+        console.time("outliers");
         var outliers = hydro2.analyze.stats.normoutliers(ex);
         console.timeEnd("outliers");
 
-        console.time("outremove")
+        console.time("outremove");
         var clean = hydro2.analyze.stats.outremove(ex,'normalized');
         console.timeEnd("outremove")
 
