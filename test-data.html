@@ -164,9 +164,11 @@
         function handleWaterData(data) {
           var x = data;
           console.log(data);
+          console.timeEnd("dataRetrieval");
           return x;
         }
 
+        console.time("dataRetrieval");
         //Obtain data from the source. Verify the requirement for
         var x1 = hydro1.data.retrieve(dataRetrievalParams2a, handleWaterData);
 
