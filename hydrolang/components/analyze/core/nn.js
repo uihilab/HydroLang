@@ -38,13 +38,10 @@ export default class nn {
    */
   static convertToTensor(arr1, arr2) {
     return tf.tidy(() => {
-      // Shuffling the data.
-      tf.util.shuffle(arr1);
-      tf.util.shuffle(arr2);
 
       //Convert the data to tensors.
-      const inputs = arr1.flatmap((d) => d);
-      const outputs = arr2.flatmap((d) => d);
+      const inputs = arr1.map((d) => d);
+      const outputs = arr2.map((d) => d);
 
       const inputTensor = tf.tensor1d(inputs, [inputs.length, 1]);
       const outputTensor = tf.tensor1d(outputs, [outputs.length, 1]);

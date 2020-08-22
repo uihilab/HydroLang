@@ -504,8 +504,6 @@ export default class hydro {
     for (var p = 0; p < final[1].length; p++) {
       final[0][p] = p;
     };
-
-    final[1].reverse();
     
     return final;
   }
