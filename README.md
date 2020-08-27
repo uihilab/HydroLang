@@ -6,7 +6,7 @@ Web-based Hydrological Programming Framework
 * [How to Use](https://github.com/uihilab/HydroLang#How-to-Use)
 * [Test Examples](https://github.com/uihilab/HydroLang#Test-Examples)
 * [Feedback](https://github.com/uihilab/HydroLang#Feedback)
-* [Scalability and To Do's](https://github.com/uihilab/HydroLang#Scalability-and-To-Do's)
+* [Scalability and To Do's](https://github.com/uihilab/HydroLang#Scalability-and-To-Dos)
 * [License](https://github.com/uihilab/HydroLang#License)
 * [Acknowledgements](https://github.com/uihilab/HydroLang#Acknowledgements)
 
