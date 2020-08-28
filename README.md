@@ -1,5 +1,6 @@
-# HydroLang
-Web-based Hydrological Programming Framework
+<p align="center">
+    <img width="350" src = https://github.com/uihilab/HydroLang/blob/master/test-cases/images/logo.png>
+ </p>
 
 ## Table of Contents
 * [Introduction](https://github.com/uihilab/HydroLang#Introduction)
@@ -78,10 +79,13 @@ For argument examples for a specific function, please refer to the library's Wik
 Please feel free to send feedback to us on any issues found by filing an issue.
 
 ## Scalability and To-Do's
-The framework is not limited to the functions and modules implemented, but rather provides a boilerplate for new features to be added. 
+The framework is not limited to the functions and modules implemented, but rather provides a boilerplate for new features to be added. Nonetheless, the following should be considered:
+
+* The hydro component contains only lumped models.
+* The map module is fully available only on Leaflet engine.
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/uihilab/HydroLang/blob/master/LICENSE) file for details.
 
 
 ## Acknowledgements
