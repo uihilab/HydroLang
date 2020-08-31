@@ -1,13 +1,17 @@
-// Meteostat data retrieval.
-// Note: Different data sources may have different limitations
-// 		-> E.g., they may limit the # of queries per unit time
-// The API retrieves all the variables that are measured in a given station.
-// For cleaning up the data, refer to the data module in Hydrolang.
-// For identification of country ISO3 codes, refer to https://unstats.un.org/unsd/methodology/m49/
-// For referral on formats, please visit https://dev.meteostat.net/getting-started/formats-and-units
-// Dates in format ISO 8601 standard YYYY-MM-DD HH:MM:SS
-// Activation key format and name to is  "x-api-key"
-// More info, please visit https://dev.meteostat.net/
+/**
+ * Meteostat data retrieval.
+ * Note: Different data sources may have different limitations
+ * -> E.g., they may limit the # of queries per unit time
+ * The API retrieves all the variables that are measured in a given station.
+ * For cleaning up the data, refer to the data module in Hydrolang.
+ * For identification of country ISO3 codes, refer to https://unstats.un.org/unsd/methodology/m49/
+ * For referral on formats, please visit https://dev.meteostat.net/getting-started/formats-and-units
+ * Dates in format ISO 8601 standard YYYY-MM-DD HH:MM:SS
+ * Activation key format and name to is  "x-api-key"
+ * More info, please visit https://dev.meteostat.net/
+ * @type {Object}
+ * @memberof datasources
+ */
 
 export default {
   // yearly, monthlyvprecipitation per country or per basin.

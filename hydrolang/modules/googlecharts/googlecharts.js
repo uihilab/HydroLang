@@ -1,3 +1,8 @@
+/**
+ * Imports external library Google Charts.
+ * @external GoogleCharts
+ */
+
 import "./loader.js";
 
 google.charts.load("current", {

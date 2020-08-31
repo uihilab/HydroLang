@@ -1,15 +1,20 @@
-// Data gov uk: provides API for free datasets from the UK and other parts of the world.
-// For more information about the service, please visit:
-// https://environment.data.gov.uk/apiportal
-// Note: Different data sources may have different limitations
-// Endpoints have a default limit of 500 items.
-// The service does not require an API key, but, size limitations should be
-// considered when downloading data. Moreover, its better to bulk on
-// data if required. The files can be obtained in JSON, CSV or ZIP format.
-// For more information on the historical flooding data, visit:
-// https://environment.data.gov.uk/flood-monitoring/archive
-// Coordinates in WGS84.
-// Dates in format YYYY-MM-DDThh:mm:ss
+/**
+ * Data gov uk: provides API for free datasets from the UK and other parts of the world.
+ * For more information about the service, please visit:
+ * https://environment.data.gov.uk/apiportal
+ * Note: Different data sources may have different limitations
+ * Endpoints have a default limit of 500 items.
+ * The service does not require an API key, but, size limitations should be
+ * considered when downloading data. Moreover, its better to bulk on
+ * data if required. The files can be obtained in JSON, CSV or ZIP format.
+ * For more information on the historical flooding data, visit:
+ * https://environment.data.gov.uk/flood-monitoring/archive
+ * Coordinates in WGS84.
+ * Dates in format YYYY-MM-DDThh:mm:ss
+ * @type {Object}
+ * @memberof datasources
+ */
+
 export default {
   //returns flood warnings as historic for a given area within the UK.
   "flood-warnings": {

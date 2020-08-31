@@ -15,6 +15,7 @@ var drawControl;
  * for map visualization.
  * @async
  * @function loader
+ * @memberof maps
  * @param {Object} config - Object with map type and additional parameters if required.
  * @example //config = {maptype: "osm"}
  * @returns {Promise}  Libraries appended to the header of webpage.
@@ -40,6 +41,7 @@ async function loader(config) {
 /**
  * Layer function for appending tiles, geodata, markers, kml or drawing tools to a map.
  * @function Layers
+ * @memberof maps
  * @param {Object} config - description of the map type, layer type and data.
  * @returns {Object} layer appended to a map div that has already been created.
  */
@@ -120,6 +122,7 @@ function Layers(config) {
  * Rendering function according to the map selected by the user.
  * It requires the library to be alraedy loaded to the header of the page.
  * @function renderMap
+ * @memberof maps
  * @param {Object} config - The configuration file with maptype, lat, long
  * zoom.
  * @example // var mapconfig = {maptype: "osm", lat: "40", lon: "-100", zoom: "13", layertype: {type: "tile", name: "OpenStreetMap"}} //
@@ -179,6 +182,7 @@ function renderMap(config) {
  * Creates different types of markers depending on what is required.
  * The geotype should be of one single feature.
  * @function geoJSON
+ * @memberof maps
  * @param {Object} data - data with geo information and map type.
  * @returns {Object} geoJSON rendered file.
  */
@@ -240,6 +244,7 @@ function geoJSON(data) {
  * existing map. Notice that the map most be already created
  * for the method to be used.
  * @function kml
+ * @memberof maps
  * @param {Object} data - data object with maptype and KML data.
  * @returns {Object} appends layer to existing map.
  */
@@ -267,6 +272,7 @@ function kml(data) {
 /**
  * Adds a new marker to the map, given coordinates, map type and marker type.
  * @function addMarker
+ * @memberof maps
  * @param {Object} data - configuration with maptype, 
  * @returns {Object} layer object.
  */
@@ -308,6 +314,7 @@ function addMarker(data) {
 /**
  * Creaes different styles for depending on the marker that has been selected for drawing.
  * @function markerstyles
+ * @memberof maps
  * @param {string} map - map type: google or osm.
  * @param {string} fig - type of marker to be drawn.
  * @returns {Object} new styles that are used for drawing a marker.
@@ -378,6 +385,7 @@ function addMarker(data) {
 
  /**
   * @function draw
+  * @memberof maps
   * @param {Object} config - configuration of the map.
   * @returns {Object} toolkit added to map.
   */
@@ -466,6 +474,11 @@ function addMarker(data) {
       })
     }
   }
+
+  /**
+ * Module for mapping data.
+ * @module maps
+ */
 
 export {
   loader,

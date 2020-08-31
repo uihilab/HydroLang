@@ -2,8 +2,8 @@ import "../../../modules/tensorflow/tensorflow.js";
 
 
 /**
+ * Main class used for hydrological analyses.
  * @class hydro
- * @classdesc Main class used for hydrological analyses.
  */
 export default class hydro {
   /**
@@ -11,7 +11,7 @@ export default class hydro {
    * @method arithmetic
    * @memberof hydro
    * @param {Object[]} data - array object with precipitation with equal amounts of data from different rain gauges.
-   * @example // raingages[0] = [1, 2, 3, 4]; raingages[1] = [2, 3, 5, 2];
+   * @example object types: raingages[0] = [1, 2, 3, 4]; raingages[1] = [2, 3, 5, 2];
    * @returns {Object[]} array with object with average precipitaiton for a specific time series.
    * @example var arithprecs = hydro1.analyze.hydro.arithmetic(raingages);
    */
@@ -43,13 +43,13 @@ export default class hydro {
    * @param {Object} data - object describing the time series data and area per subbasin.
    * @returns {Object[]} array with time series of average precipitation over a whole basin.
    * @example
-   * //var thiessenprec = [[1,2,1,2,3], [1,2,34,1,2], [2,4,3,1,4]];
+   * var thiessenprec = [[1,2,1,2,3], [1,2,34,1,2], [2,4,3,1,4]];
    * var thiessenareas = [30,40,30];
    * thiessendata = {
    * rainfall: thiessenprec,
    * areas: thiessenareas,
     };
-    var thiessenpol = hydro1.analyze.hydro.thiessen(thiessendata)//
+    var thiessenpol = hydro1.analyze.hydro.thiessen(thiessendata)
    */
 
   static thiessen(data) {
@@ -72,7 +72,7 @@ export default class hydro {
    * Calculates parameters for the generation of a unit hydrograph
    * based on SCS method, Snyder Unit Hydrograph.
    * All times of concentrations and lags time are calculated in hours
-   * @function syntheticalc
+   * @method syntheticalc
    * @memberof hydro
    * @param {Object} params - Specifications for calculations.
    * @returns {Object} calculations depending on type.
@@ -183,15 +183,15 @@ export default class hydro {
    * For selection of the peak rate factor, consider that a PRF of 100 is for less flat areas
    * while a PRF of 600 is for very steep terrain.
    * Adapted from from (NEH, 2007).
-   * @function dimunithydro
+   * @method dimunithydro
    * @memberof hydro
    * @param {Object} data - object specifying the type of distribution, time step to compute the hydrograph.
    * @returns {Object[]} array with dimensionless hydrograph.
    * @example
-   * //dimunithydrodata = {
+   * dimunithydrodata = {
    * distribution: {
    * type: "gamma", PRF: 484},timestep: 0.2,numhours: 5};
-   * var dimunit = hydro1.analyze.hydro.dimunithydro(dimunithydrodata)//
+   * var dimunit = hydro1.analyze.hydro.dimunithydro(dimunithydrodata)
    */
 
   static dimunithydro(params) {
@@ -249,9 +249,11 @@ export default class hydro {
   }
 
   /**
-   * Hyetograph generator for a uniformly distributed rainfall event.
+   * Hyetograph generator for a uniformly distributed rainfall event. Unfinished.
    * Considered for long duration storms.
    * The timestep should be uniformly distributed
+   * @method hyetogen
+   * @memberof hydro
    * @param {Object} data - 2D array with timeseries of a rainfall event.
    * @returns {Object[]} - n-D array of pulses per hour
    */
@@ -272,14 +274,12 @@ export default class hydro {
 
      var count 
      
-
-     
    }
 
   /**
    * Unit hydrograph constructor NRCS constructor depending on the
    * physical characteristics of a regularly shaped basin. Adapted from (NEH, 2007).
-   * @function unithydrocons
+   * @method unithydrocons
    * @memberof hydro
    * @param {Object} params - object that specifies the physical characteristics and the type of
    * distribution required as well as the time step to compute the hydrograph. For the dimensioness hydrograph,
@@ -374,10 +374,13 @@ export default class hydro {
    * precipitation data and SCS metrics for runoff calculation.
    * If the observed hydrograph option is selected, the precipitation must be dividied in
    * blocks of rainfall in as a 2D array [[date, date, date], [rainf, rainf, rainf]]
-   * @function floodhydro
+   * @method floodhydro
    * @memberof hydro
    * @param {Object} data - parameter object specifying landuse, rainfall, infiltration capacity and baseflow.
    * @returns {Object[]} array with values for runoff as time series.
+   * @example
+   * var floodconfig = {rainfall: 2darray, unithydro: 2darray, type: "obs"};
+   * var fldh = hydro1.analyze.hydro.floodhydro(floodconfig)
    */
 
   static floodhydro(params) {
@@ -513,10 +516,17 @@ export default class hydro {
 
   /**
    * Simple rainfall-runoff analyses over a rainfall dataset given landuse, baseflow and infiltration capacity.
-   * @function bucketmodel
+   * @method bucketmodel
    * @memberof hydro
    * @param {Object} data - parameter object landuse, rainfall, infiltration capacity and baseflow.
    * @returns {Object[]} array with values for runoff as time series.
+   * @example
+   * var rainf = [1,2,3,4,5]
+   * var bas = 1
+   * var inf = 0.3
+   * var data = arr
+   * var landuse = [0.1, 0.2, 0.5, 0.4, 0.8]
+   * var params = {rainfall: rainf, baseflow: bas, evaporation: {data: arr}, landuse: landuse}
    */
 
   static bucketmodel(params) {
@@ -606,7 +616,7 @@ export default class hydro {
   /**
    * Solves 1d groundwater steady simulation using gaussian elimination.
    * Adapted from (Molkentin, 2019).
-   * @function ground1d
+   * @method ground1d
    * @memberof hydro
    * @param {Object} params - object system example.
    * @return {Object[]} Matrix with solutions.
@@ -675,10 +685,13 @@ export default class hydro {
    * the aggregation interval require and the data interval should be the same.
    * For aggregation, the interval for aggregation must be larger than the time step. For example,
    * 15 min or 30 min data to be aggregatted every 60 minutes. Intervals must be multiples of the final aggregaiton (2, 4, etc)
-   * @function rainaggr
+   * @meethod rainaggr
    * @memberof hydro
    * @param {Object} params - data with rainfall and aggregation type.
    * @returns {Object[]} array with aggregated/disaggregated data.
+   * @example
+   * var config = {event: arr, agg:{type: 'aggr', interval: 240}};
+   * var rain = hydro1.analyze.hydro.rainaggr(config)
    */
 
   static rainaggr(params) {
@@ -755,10 +768,12 @@ export default class hydro {
 
   /**
    * Arithmetic sum of the values inside an array.
-   * @function totalprec
+   * @method totalprec
    * @memberof hydro
    * @param {Object[]} data - array with precipitation event.
    * @returns {number} total amount of precipitation during an event on a given station.
+   * @example
+   * var min = hydro1.analyze.hydro.totalprec(arr)
    */
 
   static totalprec(arr) {
@@ -772,7 +787,7 @@ export default class hydro {
 
   /**
    * Moving arrays in unit hydographs.
-   * @function move
+   * @method move
    * @memberof hydro
    * @param {Object[]} data - array that is to be pushed in subtitute array.
    * @param {number} location - index from in original array.
@@ -795,7 +810,7 @@ export default class hydro {
   /**
    * Creates a matrix of m x n dimensions filled with whatever
    * the user requires. For numerical calculations, fill it with 0s.
-   * @function matrix
+   * @method matrix
    * @memberof hydro
    * @param {number} m - columns of the matrix.
    * @param {number} n - rows of the matrix.
@@ -817,7 +832,7 @@ export default class hydro {
 
   /**
    * Solves linear equations in the form Ax = b.
-   * @function equationsystemsolver
+   * @method equationsystemsolver
    * @memberof hydro
    * @param {Object[]} vec_right - vector on right hand side.
    * @param {Object[]} vec_left - vector on left hand side.

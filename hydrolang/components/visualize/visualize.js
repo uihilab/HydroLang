@@ -11,8 +11,8 @@ var tableData;
  * Creates new charts depending on what the user requires. It can
  * generate scatter, histograms, columns, lines, timelines, etc.
  * It also generates new div per every chart generated.
- * @memberof visualize
  * @function chart
+ * @memberof visualize
  * @param {Object} params - requires: charType, data, divID, applicable options.
  * @returns {Object} chart appended to new div in body.
  * @example
@@ -118,8 +118,8 @@ function chart(params) {
 
 /**
  * Generates a new table depending on the data provided by the user.
- * @memberof visualize
  * @function table
+ * @memberof visualize
  * @param {Object} params - requires data, divID, dataType and applicable options.
  * @returns {Object} table appended to new div in body.
  * @example
@@ -168,8 +168,8 @@ function table(params) {
 /**
  * preset styles for both charts and tables. The user can access by
  * passing parameters of data, type(chart or table), char
- * @memberof visualize
  * @function styles
+ * @memberof visualize
  * @param {Object} params - overall parameters: data, draw, type.
  * @returns {Object} chart (graph or table) appended in body.
  */
@@ -290,9 +290,9 @@ export { chart, table, styles };
 
 /**
  * function to call google charts.
- * @namespace visualize
  * @function ensureGoogleChartsIsSet
- * @returns promise
+ * @memberof visualize
+ * @returns {Promise} calls on the google charts library and assures that is loaded. 
  */
 function ensureGoogleChartsIsSet() {
   return new Promise(function (resolve, reject) {

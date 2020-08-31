@@ -1,8 +1,13 @@
 import * as components from "./components/core.js";
 
+/**
+ * Main framework wrapper. Creates a new instance of all modules as objects.
+ * @class Hydrolang
+ * @extends core
+ * @returns {Object} creates a new instance of the whole library.
+ */
 class Hydrolang {
   constructor() {
-    // put all the default values here
     this.metricSystem = "SI";
     this.mapType = "OSM";
 

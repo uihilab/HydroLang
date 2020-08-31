@@ -2,18 +2,19 @@ import "../../../modules/d3/d3.js";
 import "../../../modules/tensorflow/tensorflow.js";
 
 /**
+ * Main class used for statistical analyses and data cleaning.
  * @class stats
- * @classdesc Main class used for statistical analyses and data cleaning.
  */
 export default class stats {
   /**
    * Makes a deep copy of original data for further manipulation.
-   * @function copydata
+   * @method copydata
    * @memberof stats
    * @param {Object}  data - original data.
    * @returns {Object} Deep copy of original data.
-   * // var copy = hydro1.analyze.stats.copydata(data)
+   * @example var copy = hydro1.analyze.stats.copydata(data)
    */
+
   static copydata(data) {
     var arr;
     var values;
@@ -36,12 +37,13 @@ export default class stats {
 
   /**
    * Retrieves a 1D array with the data.
-   * @function onearray
+   * @method onearray
    * @memberof stats
    * @param {Object[]} data - array object.
    * @returns {Object[]} Array object.
-   * var copy = hydro1.analyze.stats.onearray(data)
+   * @example var copy = hydro1.analyze.stats.onearray(data)
    */
+
   static onearray(data) {
     var arr = [];
     arr.push(data[1]);
@@ -50,12 +52,13 @@ export default class stats {
 
   /**
    * Identifies gaps in data.
-   * @function datagaps
+   * @method datagaps
    * @memberof stats
    * @param {Object[]} arr - array object with data.
    * @returns {number} Number of gaps in data.
-   * //var gaps = hydro1.analyze.stats.gapid(arr)
+   * @example var gaps = hydro1.analyze.stats.gapid(arr)
    */
+
   static datagaps(arr) {
     var or;
     var gap = 0;
@@ -76,12 +79,13 @@ export default class stats {
 
   /**
    * Remove gaps in data with an option to fill the gap.
-   * @function gapremoval
+   * @method gapremoval
    * @memberof stats
    * @param {Object[]} arr - array object with data.
    * @returns {number} Number of gaps found in the data.
-   * var freeofgaps = hydro1.analyze.stats.gapremoval(arr)
+   * @example var freeofgaps = hydro1.analyze.stats.gapremoval(arr)
    */
+
   static gapremoval(arr) {
     var or = this.copydata(arr);
     var val;
@@ -105,12 +109,14 @@ export default class stats {
   /**
    * Identifies gaps in time. Used for filling gaps if required by the
    * user. Time in minutes and timestep must be divisible by the total time of the event.
-   * @function timegaps
+   * @method timegaps
    * @memberof stats
    * @param {Object[]} arr - time array.
    * @param {number} timestep - timestep of the data.
    * @returns {Object[]} array with gaps.
+   * @example var times = hydro1.analyze.stats.timegaps(arr, timestep)
    */
+
   static timegaps(arr, timestep) {
     var or = this.copydata(arr);
 
@@ -152,13 +158,15 @@ export default class stats {
   };
 
   /**
-   * Fills data gaps (either time missig or data missing).
-   * @function gapfiller
+   * Fills data gaps (either time missig or data missing). Unfinished.
+   * @method gapfiller
    * @memberof stats
    * @param {Object[]} arr - data with gaps to be filled.
    * @param {string} type - 'time' or 'data'.
    * @returns {Object[]} array with gaps filled.
+   * @example var fills = hydro1.analyze.stats.gapfiller(arr, "time")
    */
+
   static gapfiller(arr, type) {
     var or = this.copydata(arr);
 
@@ -182,48 +190,55 @@ export default class stats {
   };
 
   /**
-   * Sums all data in a series.
-   * @function sum
+   * Sums all data in a series using D3.
+   * @method sum
    * @memberof stats
    * @param {Object[]} data - array object with data.
    * @returns {number} Sum of all data in an array.
+   * @example var sum = hydro1.analyze.stats.sum(arr)
    */
+
   static sum(arr) {
     var sum = d3.sum(arr);
     return sum;
   };
 
   /**
-   * Calculates the mean of a 1d array.
-   * @function mean
+   * Calculates the mean of a 1d array using D3.
+   * @method mean
    * @memberof stats
    * @param {Object[]} data - array object with data.
    * @returns {number} Mean of the data.
+   * @example var mean = hydro1.analyze.stats.mean(arr)
    */
+
   static mean(arr) {
     var m = d3.mean(arr);
     return m;
   };
 
   /**
-   * Calculates the median values for a 1d array.
-   * @function median
+   * Calculates the median values for a 1d array using D3.
+   * @method median
    * @memberof stats
    * @param {Object[]} data - array object with data.
    * @returns {number} Median of the data.
+   * @example var med = hydro1.analyze.stats.median(arr)
    */
+
   static median(arr) {
     var m = d3.median(arr);
     return m;
   };
 
   /**
-   * Calculates standard deviation of an array.
-   * @function stddev
+   * Calculates standard deviation of an array using D3.
+   * @method stddev
    * @memberof stats
    * @param {Object[]} data - array object with data.
    * @returns {number} Standard deviation.
    */
+
   static stddev(arr) {
     var mean = this.mean(arr);
     var SD = 0;
@@ -235,12 +250,14 @@ export default class stats {
   };
 
   /**
-   * Calculate variance for an array of data.
-   * @function variance
+   * Calculate variance for an array of data using D3.
+   * @method variance
    * @memberof stats
    * @param {Object[]} data - array object with data.
    * @returns {number} Variance of the data.
+   * @example var var = hydro1.analyze.stats.variance(arr)
    */
+
   static variance(arr) {
     var vari = d3.variance(arr);
     return vari;
@@ -248,11 +265,13 @@ export default class stats {
 
   /**
    * Calculates sum of squares for a dataset.
-   * @function sumsqrd
+   * @method sumsqrd
    * @memberof stats
    * @param {Object[]} data - array object with data.
    * @returns {number} Sum of squares for data.
+   * @example var sqr = hydro1.analyze.stats.sumsqrd(arr)
    */
+
   static sumsqrd(arr) {
     var sum = 0;
     var i = arr.length;
@@ -261,35 +280,41 @@ export default class stats {
   };
 
   /**
-   * Minimum value of an array
-   * @function min
+   * Minimum value of an array using D3.
+   * @method min
    * @memberof stats
    * @param {Object[]} data - array object with data.
    * @returns {number} Minimum value of a dataset.
+   * @example var min = hydro1.analyze.stats.min(arr)
    */
+
   static min(arr) {
     var low = d3.min(arr);
     return low;
   }
 
   /**
-   * Maximum value of an array.
-   * @function max
+   * Maximum value of an array using D3.
+   * @method max
    * @memberof stats
    * @param {Object[]} data - array object with data.
    * @returns {number} Maximum value of a dataset.
+   * @example var max = hydro1.analyze.stats.max(arr)
    */
+
   static max(arr) {
     return d3.max(arr);
   }
 
   /**
    * Unique values in an array.
-   * @function unique
+   * @method unique
    * @memberof stats
    * @param {Object[]} data - array object with data.
    * @returns {Object[]} Array with unique values.
+   * @example var un = hydro1.analyze.stats.unique(arr)
    */
+
   static unique(arr) {
     var un = {},
       _arr = [];
@@ -304,10 +329,11 @@ export default class stats {
 
   /**
    * Calculates the frequency in data.
-   * @function frequency
+   * @method frequency
    * @memberof stats
    * @param {Object[]} arr - data to be analyzed.
    * @returns {Object} Object with frenquency distribution.
+   * @example var ob = hydro1.analyze.stats.frequency(arr)
    */
 
   static frequency(arr) {
@@ -321,11 +347,13 @@ export default class stats {
 
   /**
    * Use mean and standard deviation to standardize the original dataset.
-   * @function standardize
+   * @method standardize
    * @memberof stats
    * @param {Object[]} data - array object with data.
    * @returns {Object[]} Array with standardized data.
+   * @example var st = hydro1.analyze.stats.standardize(arr)
    */
+
   static standardize(arr) {
     var _arr = [];
     var stddev = this.stddev(arr);
@@ -338,12 +366,14 @@ export default class stats {
 
   /**
    * Quantile calculator for given data.
-   * @function quantile
+   * @method quantile
    * @memberof stats
    * @param {Object[]} data - array object with data.
    * @param {number} q - percentage of quantile required (ie. 0.25, 0.75).
    * @returns {Object[]} Array with values fitting the quartile.
+   * @example var q25 = hydro1.analyze.stats.quantile(arr, 0.25)
    */
+
   static quantile(arr, q) {
     var _arr = arr.slice();
     _arr.sort(function (a, b) {
@@ -365,13 +395,15 @@ export default class stats {
 
   /**
    * Identify the outliers on a dataset of 2 arrays using interquartile range.
-   * @function interouliers
+   * @method interouliers
    * @memberof stats
    * @param {Object[]} data - array object with data.
    * @param {number} q1 - first quartile. If not given as parameter, q1 = 0.25.
    * @param {number} q2 - second quartile. If not given as parameter, q2 = 0.75.
    * @returns {Object[]} Array with outliers.
+   * @example var interq = hydro1.analyze.stats.interoutliers(arr, 0.25, 0.75)
    */
+
   static interoutliers(arr, q1, q2) {
     if (!(q1 || q2)) {
       q1 = 0.25;
@@ -415,13 +447,15 @@ export default class stats {
 
   /**
    * Identifies outliers in dataset of 2 arrays by normalizing the data given two thresholds.
-   * @function normoutliers
+   * @method normoutliers
    * @memberof stats
    * @param {Object[]} arr - array with data.
    * @param {number} low - lowest value range to consider. If not included as parameter, low = -0.5.
    * @param {number} high - ighest value range to consider. If not included as parameter, high = 0.5
    * @returns {Object[]} arr - array with outliers.
+   * @example var normo = hydro1.analyze.stats.normoutliers(arr, -0.5, 0.5)
    */
+
   static normoutliers(arr, low, high) {
     if (!(low || high)) {
       low = -0.5;
@@ -467,15 +501,16 @@ export default class stats {
 
   /**
    * Remove outliers from dataset.
-   * @function outremove
+   * @method outremove
    * @memberof stats
    * @param {Object[]} data - array object with data.
    * @param {string} type - outlier type: 'normalized' or 'interquartile'.
    * @param {number} p1 - low end parameter, depending on outlier analysis type.
    * @param {number} p2 - high end parameter, depending on outlier analysis type.
    * @returns {Object[]} Array with cleaned data.
-   * //var c = hydro1.analyze.stats.outremove(arr, 'interquartile')
+   * @example var c = hydro1.analyze.stats.outremove(arr, 'interquartile')
    */
+
   static outremove(arr, type, p1, p2) {
     var out;
 
@@ -497,11 +532,15 @@ export default class stats {
 
   /**
    * Calculates pearson coefficient for bivariate analysis.
-   * @function correlation
+   * @method correlation
    * @memberof stats
    * @param {Object} param - object containing the datasets to be compared.
    * @returns {number} Pearson coefficient.
+   * @example var arr1 = [1,2,3,4,5], var arr2 = [5,4,3,2,1]
+   * var params = {Set1: arr1, Set2: arr2}
+   * var corr = hydro1.analyze.stats.correlation(params)
    */
+
   static correlation(params) {
     var q1 = params["Set1"];
     var q2 = params["Set2"];
@@ -521,14 +560,16 @@ export default class stats {
   }
 
   /**
-   * using tensorflow, it creates a fast fourier analysis over
+   * Using tensorflow, it creates a fast fourier analysis over
    * a dataset and see if there are any patterns within the data. Should be considered to be used
    * for small data sets.
-   * @function fastfourier
+   * @method fastfourier
    * @memberof stats
    * @param {Object[]} arr - array with data.
    * @returns {Object[]} calculated array.
+   * @example var st = hydro1.analyze.stats.fastfourier(arr)
    */
+
   static fastfourier(arr) {
     tf.setBackend("webgl");
     for (var i = 0; i < arr.length; i++) {
@@ -555,10 +596,11 @@ export default class stats {
    * Returns an array that contains the basic statistics
    * of a dataset. It is used afterwards to be prompted
    * using google graphing tools.
-   * @function basicstats
+   * @method basicstats
    * @memberof stats
    * @param {Object[]} array - array with data.
    * @returns {Object[]} flatenned array for the dataset.
+   * @example var bs = hydro1.analyze.stats.basicstats(arr)
    */
 
   static basicstats(arr) {
@@ -600,11 +642,13 @@ export default class stats {
 
   /**
    * Preprocessing tool for joining arrays for table display.
-   * @function joinarray
+   * @method joinarray
    * @memberof stats
    * @param {Object[]} data - array object to join.
    * @returns {Object[]} Array for table display.
+   * @example var ja = hydro1.analyze.stats.joinarray(arr)
    */
+
   static joinarray(arr) {
     var temp = [];
     for (var i = 1; i < arr[0].length; i++) {
@@ -618,10 +662,12 @@ export default class stats {
 
   /**
    * Helper function for preparing arrays for charts and tables for duration/discharge.
-   * @function flatenise
+   * @method flatenise
    * @memberof stats
    * @param {Object[]} data - array object required to be flatenned.
    * @returns {Object[]} Flatenned array.
+   * @example var params = {Columns: arr, graphdata: arr}
+   * var flat = hydro1.analyze.stats.flatenise(params)
    */
 
   static flatenise(params) {
@@ -641,7 +687,7 @@ export default class stats {
   /**
    * Turns data from numbers to strings. Usable when
    * retrieving data or uploading data.
-   * @function numerise
+   * @method numerise
    * @memberof stats
    * @param {Object[]} array - data composed of strings.
    * @returns {Object[]} array as numbers.
@@ -655,11 +701,11 @@ export default class stats {
 
   /**
    * Filters out items in an array that are undefined, NaN, null, ", etc.
-   * @function cleaner
+   * @method cleaner
    * @memberof stats
    * @param {Object[]} array - data to be cleaned.
    * @returns {Object[]} cleaned array.
-   * //var c
+   * @example var c = hydro1.analyze.stats.cleaner(arr)
    */
 
   static cleaner(arr) {
@@ -669,11 +715,12 @@ export default class stats {
 
   /**
    * Filters out items in an array based on another array.
-   * @function itemfilter
+   * @method itemfilter
    * @memberof stats
    * @param {Object[]} arr1 - array with data to be kept.
    * @param {Object[]} arr2 - array with data to be removed.
    * @returns {Object[]} cleaned array.
+   * @example var its = hydro1.analyze.stats.itemfilter(arr1, arr2)
    */
 
   static itemfilter(arr1, arr2) {
@@ -684,12 +731,11 @@ export default class stats {
   /**
    * Changes a date array into local strings. Used mainly
    * for changing displaying into google charts.
-   * @function dateparser
+   * @method dateparser
    * @memberof stats
    * @param {Object[]} array - data.
    * @returns {Object[]} array with date parsed.
-   * var c = hydro1.analyze.stats.dateparser(arr)
-   *
+   * @example var c = hydro1.analyze.stats.dateparser(arr)
    */
 
   static dateparser(arr) {
@@ -704,7 +750,7 @@ export default class stats {
   /**
    * Changes a m x n matrix into a n x m matrix (transpose).
    * Mainly used for creating google charts. M =! N.
-   * @function arrchange
+   * @method arrchange
    * @memberof stats
    * @param {Object[]} array - m x n matrix.
    * @returns {Object[]} array - n x m matrix.
@@ -719,7 +765,7 @@ export default class stats {
 
   /**
    * Pushes at the end of an array the data of another array.
-   * @function push
+   * @method push
    * @memberof stats
    * @param {Object[]} arr1 - array to which the data will be pushed.
    * @param {Object[]} arr2 - array pushed.

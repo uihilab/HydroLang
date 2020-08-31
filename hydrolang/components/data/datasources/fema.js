@@ -1,11 +1,13 @@
-// List the data resources here
-// Note: Different data sources may have different limitations
-// 		-> E.g., they may limit the # of queries per unit time
-export default {
-  /* DATA SOURCE 1 */
+/**
+ *  https://www.fema.gov/openfema-dataset-disaster-declarations-summaries-v2
+ * This API just returns all disaster declarations for US since 1953 
+ * -> E.g., they may limit the # of queries per unit time
+ * @type {Object}
+ * @memberof datasources
+*/
 
-  // https://www.fema.gov/openfema-dataset-disaster-declarations-summaries-v2
-  // This API just returns all disaster declarations for US since 1953
+export default {
+
   "disaster-declarations": {
     endpoint: "https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries",
     params: {},

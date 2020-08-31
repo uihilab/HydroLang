@@ -1,8 +1,12 @@
-// Tiles provided by different sources. Please check out each source
-// info to see if there are other requirements needed for usage.
-// All sources included here do not require key, but there are sources
-// with other styles that might be useful. Credits to
-// https://github.com/leaflet-extras/leaflet-providers
+
+/**
+ * Tiles provided by different sources. Please check out each source
+ * info to see if there are other requirements needed for usage.
+ * All sources included here do not require key, but there are sources
+ * with other styles that might be useful. Credits to
+ * https://github.com/leaflet-extras/leaflet-providers
+ * @type {Object}
+ */
 
 export default {
   OpenStreetMap: {

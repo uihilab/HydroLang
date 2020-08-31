@@ -10,6 +10,7 @@ import stats from "../analyze/core/stats.js";
  * @param {Function} callback - data handler: either prompt to console, save to variable, etc.
  * @returns {Object} Object with retrieved data.
  */
+
 function retrieve(params, callback) {
   //obtain data from parameters set by user.
   var source = params["source"];
@@ -278,6 +279,7 @@ function upload(type) {
  * @param {Object} download configuration
  * @returns {Object} downloaded data as link from HTML file.
  */
+
 function download(data, config) {
   var type = config["type"];
   var blob;

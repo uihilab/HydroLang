@@ -1,12 +1,16 @@
-// MeteoNetwork API: free datasets from the italy and some surrounding places.
-// For more information about the service, please visit:
-// https://www.meteonetwork.it/
-// Note: Different data sources may have different limitations
-// The service requires the creation of an account and the generation of a
-// new token.
-// For more information on the historical flooding data, visit:
-// http://api.meteonetwork.it/docs/
-// Dates in format YYYY-MM-DDThh:mm:ss
+/**
+ * MeteoNetwork API: free datasets from the italy and some surrounding places.
+ * For more information about the service, please visit:
+ * https://www.meteonetwork.it/
+ * Note: Different data sources may have different limitations
+ * The service requires the creation of an account and the generation of a
+ * new token.
+ * For more information on the historical flooding data, visit:
+ * http://api.meteonetwork.it/docs/
+ * Dates in format YYYY-MM-DDThh:mm:ss
+ * @type {Object}
+ * @memberof datasources
+ */
 
 export default {
   //obtain information about the last day

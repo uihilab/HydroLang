@@ -1,14 +1,22 @@
 import "../../../modules/tensorflow/tensorflow.js";
 
+/**
+ * Main class for the creation of machine learning models using Tensorflow.
+ * @class nn
+ */
 export default class nn {
     /**
      * Neural network sequential model creator. Depends solely on the type
      * of problem that the user is trying to solve and should be used accordingly.
+     * @method createModel
+     * @memberof nn
      * @param {number} numinputs - number of data inputs. 
      * @param {number} numneurons - number of total neurons in the hidden layer.
      * @param {number} numoutputs - number of neuron ouputs.
      * @returns {Object} model created based on the specifications.
+     * @example var model = hydro1.analyze.nn.createModel(30, 11, 50)
      */
+
   static createModel(numinputs, numneurons, numoutputs) {
     const model = tf.sequential();
 
@@ -31,11 +39,15 @@ export default class nn {
   }
   
   /**
-   * converts data serving as input for either training or calculations into tensors.
+   * Converts data serving as input for either training or calculations into Tensorflow tensors.
+   * @method convertToTensor
+   * @memberof nn
    * @param {Object[]} arr1 - arrays that serve as inputs. 
    * @param {Object[]} arr2 - array that serve as outputs.
    * @returns {Object} object with minmax of data as well as the arrays converted into tensors.
+   * @example var tensordata = hydro1.analyze.nn.convertToTensor([inputs], [outputs]])
    */
+
   static convertToTensor(arr1, arr2) {
     return tf.tidy(() => {
 
@@ -73,13 +85,16 @@ export default class nn {
   }
 
   /**
-   * trains the model given inputs and ouputs of training data. Generates weights for each expected outcome. 
+   * Trains the model given inputs and ouputs of training data. Generates weights for each expected outcome. 
    * The model can also be saved if required.
+   * @method trainModel
+   * @memberof nn
    * @param {Object} model - created previously. 
    * @param {Object[]} inputs - array of inputs that are already converted into tensors. 
    * @param {Object[]} outputs - array of outputs that are already converted into tensors.
    * @returns {Object} trained model. 
    */
+
   static async trainModel(model, inputs, outputs) {
     model.compile({
       loss: "meanSquaredError",
@@ -103,12 +118,15 @@ export default class nn {
   }
 
   /**
-   * 
+   * Given a trained model, uses it for calculating outputs based on raw data.
+   * @method prediction
+   * @memberof nn
    * @param {Object} model - pretrained model.
    * @param {Object[]} inputData - inputdata already converted into tensors. 
    * @param {Object} normalizedData - minmax for both inputs and outputs.
    * @returns {Object} object with predictions, visually rendered too. 
    */
+
   static prediction(model, inputData, normalizedData) {
     const { inputMax, inputMin, outputMin, outputMax } = normalizedData;
 
