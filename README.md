@@ -73,7 +73,7 @@ Examples on how to use the library can be found within the following files:
 * `test-maps.html`
 * `test-visualization.html`
 
-For argument examples for a specific function, please refer to the library's [documentation page](http://hydrolang.herokuapp.com/).
+For argument examples for a specific function, please refer to the library's [documentation page](https://hydro-lang.herokuapp.com/index.html).
 
 ## Feedback
 Please feel free to send feedback to us on any issues found by filing an issue.
