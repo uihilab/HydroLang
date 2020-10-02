@@ -57,21 +57,17 @@
         ];
 
         //Identify and remove outliers
-        console.time("outliers");
         var outliers = hydro2.analyze.stats.normoutliers(ex);
-        console.timeEnd("outliers");
 
         console.time("outremove");
         var clean = hydro2.analyze.stats.outremove(ex,'normalized');
-        console.timeEnd("outremove")
 
         console.time("basicstats")
         var tabledata = hydro2.analyze.stats.basicstats(clean)
-        console.timeEnd("basicstats")
+        
 
         console.time("styles")
         hydro2.visualize.styles({data: tabledata, draw: "table", config: {div: "statstable"}})
-        console.timeEnd("styles")
 
         /*** End of use case **/
 
@@ -100,7 +96,6 @@
 
         console.time("thiessen");
         var thiessenpol = hydro2.analyze.hydro.thiessen(thiessendata);
-        console.timeEnd("thiessen");
 
         final = {
           event: "callevent",
@@ -143,10 +138,9 @@
           },
         };
 
-        console.time("syntheticalc")
+        console.time("synthcalc")
         var calcul = hydro2.analyze.hydro.syntheticalc(synt2);
         console.log(calcul);
-        console.timeEnd("syntheticalc")
 
         /*** Use of dimensionless unit hydrograph constructor.
          * options for distribution: gamma as of June 2020. Changes amount of volume
@@ -160,14 +154,13 @@
             type: "gamma",
             PRF: 484,
           },
-          timestep: 0.15,
+          timestep: 0.10,
           numhours: 5,
         };
 
         console.time("dimunit")
         var dimunit = hydro2.analyze.hydro.dimunithydro(dimunithydrodata);
         console.log(dimunit)
-        console.timeEnd("dimunit")
 
         hydro2.visualize.styles({data: dimunit, draw: "chart", config: {chart: "line", div: "1", title: "unit hydrograph"}})
 
@@ -191,14 +184,12 @@
         }
         };
 
-        console.time("unit")
+        console.time("unitcons")
         var basinunit = hydro2.analyze.hydro.unithydrocons(unithydrodata);
         console.log(basinunit)
-        console.timeEnd("unit")
         
-        console.time("styles2")
+        console.time("styles")
         hydro2.visualize.styles({data: basinunit, draw: "chart", config: {chart: "line", div: "2", title: "basin hydrograph"}})
-        console.timeEnd("styles2")
 
         /***End of example for unit hydrograph constructor**/
 
@@ -250,10 +241,9 @@
           timestep: 0.3,
         };
 
-        console.time("flooding")
+        console.time("floodhydro")
         var flooding = hydro2.analyze.hydro.floodhydro(floodhydrodata);
         console.log(flooding)
-        console.timeEnd("flooding")
 
         //call on on the line style from visualization or draw chart based on preferred configurations.
         hydro2.visualize.styles({data: flooding, draw: "chart", config: {chart: "line", div: "3", title: "hydrograph"}})
@@ -300,7 +290,7 @@
             barerock: Landuse[1],
             grassland: Landuse[2],
             forest: Landuse[3],
-            moorland: Landuse[4],
+            urban: Landuse[4],
           },
           infiltration: infiltation,
         };
@@ -308,7 +298,7 @@
         console.time("bucket")
         var bucket = hydro2.analyze.hydro.bucketmodel(dataBucketModel);
         console.log(bucket)
-        console.timeEnd("bucket")
+        
         /***End of example for bucket model**/
       }
     </script>

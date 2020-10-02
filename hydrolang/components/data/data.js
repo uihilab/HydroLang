@@ -120,6 +120,7 @@ function transform(data, config) {
         final[j][n] = arrays[n][j];
       }
     }
+    console.timeEnd("transform");
     return final;
   }
 
@@ -138,12 +139,14 @@ function transform(data, config) {
       }
       str += line + "\r\n";
     }
+    console.timeEnd("transform");
     return str;
   }
 
   //covert data from Object to JSON
   else if (type === "JSON") {
     var js = JSON.stringify(arr);
+    console.timeEnd("transform");
     return js;
   }
 
@@ -165,6 +168,7 @@ function transform(data, config) {
       xml += arr[prop] instanceof Array ? "" : "</" + prop + ">";
     }
     var xml = xml.replace(/<\/?[0-9]{1,}>/g, "");
+    console.timeEnd("transform");
     return xml;
   } else {
     throw new Error("Please select a supported data conversion type!");
@@ -221,6 +225,7 @@ function upload(type) {
         if (e.lengthComputable == true) {
           var percent = Math.floor((e.loaded / e.total) * 100);
           console.log(percent + "% read.");
+          performance.now()
         }
       });
 
@@ -256,9 +261,11 @@ function upload(type) {
           };
 
           for (var j = 0; j < ret.length; j++) {ret[j] = stats.numerise(ret[j])}
+          console.timeEnd("upload");
 
           //transfrom from JSON file to new JS Object.
         } else if (type === "JSON") {
+          console.timeEnd("upload");
           Object.assign(ret, JSON.parse(content));
         }
       };
@@ -266,7 +273,6 @@ function upload(type) {
     f.click();
   };
   selectors();
-
   return ret;
 }
 
@@ -321,12 +327,14 @@ function download(data, config) {
   //after the data has been transformed, create a new download file and link. No name is given but "export".
   if (navigator.msSaveOrOpenBlob) {
     msSaveBlob(blob, exportfilename);
+    console.timeEnd("download");
   } else {
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = exportfilename;
     a.click();
     a.remove();
+    console.timeEnd("download");
   }
 }
 

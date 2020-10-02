@@ -441,6 +441,7 @@ export default class stats {
           t.push(time[j]);
         }
       }
+      console.timeEnd("intout")
       return [t, re];
     }
   }
@@ -495,6 +496,7 @@ export default class stats {
           t.push(time[j]);
         }
       }
+      console.timeEnd("normout")
       return [t, out];
     }
   }
@@ -526,6 +528,7 @@ export default class stats {
       var t = this.itemfilter(arr[0], out[0]);
       var or = this.itemfilter(arr[1], out[1]);
 
+      console.timeEnd("outremove")
       return [t, or];
     }
   }
@@ -558,6 +561,68 @@ export default class stats {
     var r2b = Math.sqrt(n * this.sum(sq2) - Math.pow(this.sum(q2), 2));
     return r1 / (r2a * r2b);
   }
+
+/**
+ * Calculates different types of efficiencies for hydrological models: Nash-Sutcliffe, Coefficient of Determination and Index of Agreement.
+ * Only accepts 1D array of observed and model data within the same time resolution.
+ * Range of validity: Nash-Sutcliffe: between 0.6-0.7 is acceptable, over 0.7 is very good.
+ * Determination coefficient: between 0 and 1, 1 being the highest with no dispersion between the data sets and 0 meaning there is no correlation.
+ * Index of agrement: between 0 and 1, with more than 0.65 being considered good.
+ * All efficiencies have limitations and showcase statistically the well performance of a model, but should not be considered as only variable for evaluation.
+ * @method efficiencies
+ * @memberof stats
+ * @param {Object} params - 1D array with observed data and model data. 
+ * @returns {Number} calculated NSE
+ * @example 
+ * var params = {observed: 1DArray, model: 1DArray, type: "NSE"}
+ * var ns = hydro1.analyze.stats.nashsutcliffe(params)
+ */
+
+   static efficiencies(params) {
+     var obs = params.observed;
+     var model = params.model;
+     var meanobs = this.mean(obs);
+     var meanmodel = this.mean(model);
+
+     var diff1 = [];
+     var diff2 = [];
+
+     //calculate nash sutcliffe effiency
+     if (params.type == "NSE") {
+     for (var i = 0; i < obs.length; i++) {
+       diff1[i] = Math.pow(model[i] - obs[i], 2);
+       diff2[i] = Math.pow(obs[i] - meanobs, 2);
+     };
+     var NSE = 1 - this.sum(diff1) / this.sum(diff2); 
+     console.timeEnd("NSE")
+     return NSE;
+    }
+    
+    //calculate coefficient of determination r2
+    else if(params.type == "determination") {
+      var diff3 = [];
+      for (var i = 0; i < obs.length; i++) {
+        diff1[i] = (model[i] - meanmodel) * (obs[i] - meanobs);
+        diff2[i] = Math.pow(model[i] - meanmodel, 2);
+        diff3[i] = Math.pow(obs[i] - meanobs, 2);
+      }
+      console.log(`The values are - Upper: ${this.sum(diff1)}, Lower: ${this.sum(diff2)} and ${this.sum(diff3)}`);
+      var r = Math.pow(this.sum(diff1)/(Math.sqrt(this.sum(diff2)) * Math.sqrt(this.sum(diff3))),2);
+      console.timeEnd("determ")
+      return r;
+    }
+
+    //calculate index of agreement d
+    else if(params.type == "agreement"){
+      for (var i = 0; i < obs.length; i++) {
+        diff1[i] = Math.pow(obs[i] - model[i],2);
+        diff2[i] = Math.pow(Math.abs(model[i] - meanobs) + Math.abs(obs[i] - meanobs), 2);
+      };
+      var d = 1 - this.sum(diff1)/this.sum(diff2);
+      console.timeEnd("agree")
+      return d;
+    }
+   }
 
   /**
    * Using tensorflow, it creates a fast fourier analysis over
@@ -633,6 +698,7 @@ export default class stats {
     //flatenise the data for graphing.
     var statx = this.flatenise(ex1);
 
+    console.timeEnd("basicstats")
     return statx;
   }
 

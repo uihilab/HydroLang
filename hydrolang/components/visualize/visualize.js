@@ -263,6 +263,7 @@ function styles(params) {
       default:
         break;
     }
+    console.timeEnd("styles")
     return chart(pm);
   } else if (type === "table") {
     pm = {
@@ -274,6 +275,7 @@ function styles(params) {
         height: "60%",
       },
     };
+    console.timeEnd("styles")
     return table(pm);
   }
 }

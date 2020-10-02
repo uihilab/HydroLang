@@ -32,6 +32,7 @@ export default class hydro {
         return el != null;
       });
     }
+    console.timeEnd("arithmetic");
     return filtered;
   }
 
@@ -65,6 +66,7 @@ export default class hydro {
         out[j] = +res[i][j] / totarea;
       }
     }
+    console.timeEnd("thiessen");
     return out;
   }
 
@@ -118,7 +120,7 @@ export default class hydro {
         (Math.pow(lon, 0.8) * Math.pow(sc + 1, 0.7)) /
         (1140 * Math.pow(sl, 0.5));
       tp = 0.7 * tc;
-      lag = 0.6 * tc;
+      lag = (Math.pow(lon, 0.8) * Math.pow(sc + 1, 0.7)) / (1900 * Math.pow(sl, 0.5));
       Object.assign(sol, {
         MaxRetention: sc,
         TimeConc: tc,
@@ -145,10 +147,10 @@ export default class hydro {
           alert("Please use a correct unit system!");
       }
       //calculating catchment time
-      var tov = M * (Math.pow(lon * N), 0.467) * Math.pow(sl, -0.235);
+      var tov = M * (Math.pow(lon * N), 0.467) * Math.pow(sl / 100, -0.235);
 
       //calculating main channel time
-      var tch = (K * Math.pow(lon, 0.77) * Math.pow(sl, -0.385)) / 60;
+      var tch = (K * Math.pow(lon, 0.77) * Math.pow(sl / 100, -0.385)) / 60;
 
       //summing both up.
       tc = tov + tch
@@ -175,6 +177,7 @@ export default class hydro {
       lag = 0.6 * tc;
       Object.assign(sol, { TimeConc: tc, LagTime: lag });
     }
+    console.timeEnd("synthcalc");
     return sol;
   }
 
@@ -230,6 +233,7 @@ export default class hydro {
           break;
         case 566:
           m = 5;
+          break;
         default:
           alert("Please choose value between 101,238,349,433,484,504,566.");
       }
@@ -238,10 +242,9 @@ export default class hydro {
       //populating the array with q/qp using Gamma distribution with PRF value.
       for (var i = 1; i < ttp.length; i++) {
         ttp[i] = Number((ttp[i - 1] + step).toFixed(2));
-        qqp[i] = Number(
-          (Math.exp(m) * Math.pow(ttp[i], m) * Math.exp(-m * ttp[i])).toFixed(3)
-        );
+        qqp[i] = Number((Math.exp(m) * Math.pow(ttp[i], m) * Math.exp(-m * ttp[i])).toFixed(3));
       }
+      console.timeEnd("dimunit");
       return [ttp, qqp];
     } else {
       alert("Please use available distributions!");
@@ -327,6 +330,7 @@ export default class hydro {
       unit[0][h] = Number((duh[0][h] * tp).toFixed(3));
       unit[1][h] = Number((duh[1][h] * qp).toFixed(3));
     };
+    console.timeEnd("unitcons");
     return unit;
   }
 
@@ -364,7 +368,8 @@ export default class hydro {
     };
 
     unit[1].reverse();
-
+    
+    console.timeEnd("unitcons");
     return {unithydro: unit, totalvol: vol};
   }
   }
@@ -457,7 +462,7 @@ export default class hydro {
     for (var h = 1; h < hydros.length; h++) {
       for (var k = 0; k < hydros[0].length; k++) {
         hydros[h][k + h] = Number(hydros[0][k].toFixed(3));
-        finalhydro[1][k] = Number(hydros[h][k].toFixed(3));
+        finalhydro[1][k] = Number(hydros[h][k].toFixed(3)) + baseflow;
       }
     }
 
@@ -469,9 +474,16 @@ export default class hydro {
           (finalhydro[0][i] = Number((prev + curr).toFixed(2), 0))
       );
 
-    //
+    for (var p = 0; p < finalhydro[1].length; p++) {
+        finalhydro[1][p] = finalhydro[1][p];
+    }
+
+    finalhydro[1].reverse();
+    
+    console.timeEnd("floodhydro");
     return finalhydro;
   }
+
   else if (params.type == "obs") {
     var hydros = [];
     var timestep = Math.abs(rain[0][1] - rain[0][0]);
@@ -507,7 +519,8 @@ export default class hydro {
     for (var p = 0; p < final[1].length; p++) {
       final[0][p] = p;
     };
-    
+
+    console.timeEnd("floodhydro");    
     return final;
   }
 }
@@ -515,13 +528,14 @@ export default class hydro {
 
 
   /**
-   * Simple rainfall-runoff analyses over a rainfall dataset given landuse, baseflow and infiltration capacity.
+   * Simple rainfall-runoff analyses over a rainfall dataset given landuse, baseflow and infiltration capacity.It is mainly used for long-term hydrological analysis such as monthly changes.
    * @method bucketmodel
    * @memberof hydro
-   * @param {Object} data - parameter object landuse, rainfall, infiltration capacity and baseflow.
-   * @returns {Object[]} array with values for runoff as time series.
+   * @param {Object} data - parameter object landuse, rainfall, infiltration capacity and baseflow. Rainfall and evaporation must be specified as 
+   * @returns {Object[]} 1d-array with time series according to different time spans (5min, 15 min, 1 hour, 1 day...).
    * @example
    * var rainf = [1,2,3,4,5]
+   * var evaporation: {data: [0.1,0.2,0.4,0.3,0.2]}
    * var bas = 1
    * var inf = 0.3
    * var data = arr
@@ -540,12 +554,12 @@ export default class hydro {
       params.landuse.barerock,
       params.landuse.grassland,
       params.landuse.forest,
-      params.landuse.moorland,
+      params.landuse.urban,
     ];
     let infiltration = params.infiltration;
     //infiltration capacities for agriculture, bare rock, grassland, forest and
-    //moorland, respectively.
-    let FieldCaps = [5, 50, 25, 25, 5];
+    //urban, respectively in mm.
+    let FieldCaps = [25, 5, 25, 50, 5];
 
     //arrays and variables
     var initial = this.matrix(landuse.length, n, 0);
@@ -609,7 +623,15 @@ export default class hydro {
         totalflow[4][q] * landuse[4];
     }
 
+    console.timeEnd("bucket")
+    /*var finalvalues = this.matrix(2,n, 0)
 
+    for (var w = 0; w < finalvalues[1].length; w++) {
+      finalvalues[0][w] = w * 60;
+      finalvalues[1][w] = totalrunoff[w];
+    }
+
+    var agg = this.rainaggr({"event": finalvalues, "agg": {"type": "aggr", "interval": 1440}})*/
     return totalrunoff;
   }
 
@@ -676,6 +698,7 @@ export default class hydro {
 
     vec_right[index] = (-k * (vec_left[index] - vec_left[index - 1])) / dx;
 
+    console.timeEnd("ground1d");
     return vec_left;
   }
 
@@ -736,9 +759,9 @@ export default class hydro {
 
       //amount of steps required and length of each step.
       var count = Math.round(finagg / timestep);
-      console.log(count)
+      console.log(`Amount of steps: ${count}`)
       var narr = Math.round(lastval / finagg);
-      console.log(narr)
+      console.log(`Final aggregation number: ${narr}`)
 
       //initialize time and data variables to be handled separately.
       var fintime = [];
@@ -756,6 +779,7 @@ export default class hydro {
       }
         findata.push(this.totalprec(minidata));
       }
+      console.timeEnd("aggr")
       return [fintime, findata];
     } else if (agtype == "disaggregation") {
       var finagg = params.agg.interval;

@@ -24,17 +24,54 @@ export default class nn {
     model.add(
       tf.layers.dense({
         inputShape: [numinputs],
-        units: numneurons,
-        useBias: true,
-        activation: "tanh",
+        units: numinputs
       })
     );
 
+    //Create a 1 layer of convolutioned neurons
+    /*model.add(
+      tf.layers.conv1d({
+        kernelSize: 2,
+        filters: 128,
+        strides: 1,
+        use_bias: true,
+        activation: "relu",
+        kernelInitializer: 'VarianceScaling'
+      })
+    );*/
+
+    model.add(
+      tf.layers.dense({
+        units: numneurons,
+        useBias: true,
+        activation: "sigmoid"
+      })
+    )
+
+    //Add average pooling layer
+    /*model.add(
+      tf.layers.averagePooling1d({
+        poolSize: [numinputs],
+        strides: [1]
+      })
+    );*/
+    
+    //flatten the lalayters and reshape the input to (number of samples, number of features)
+    /*model.add(
+      tf.layers.flatten({})
+    );*/
+
     //Add output layer considering only 1 output layer for the training.
-    model.add(tf.layers.dense({ units: numoutputs, useBias: true }));
+    model.add(
+      tf.layers.dense({ 
+        units: numoutputs, 
+        useBias: true,
+        activation: "sigmoid" 
+      })
+    );
 
     //print the model
-    model.summary();
+    console.timeEnd("nnmodel");
     return model;
   }
   
@@ -52,11 +89,11 @@ export default class nn {
     return tf.tidy(() => {
 
       //Convert the data to tensors.
-      const inputs = arr1.map((d) => d);
-      const outputs = arr2.map((d) => d);
+      /*const inputs = arr1.map((d) => d);
+      const outputs = arr2.map((d) => d);*/
 
-      const inputTensor = tf.tensor1d(inputs, [inputs.length, 1]);
-      const outputTensor = tf.tensor1d(outputs, [outputs.length, 1]);
+      const inputTensor = tf.tensor1d(arr1).reshape([1, arr1.length]);
+      const outputTensor = tf.tensor1d(arr2).reshape([1, arr2.length]);
 
       //normalizing the data between range 0 - 1.
       const inputMax = inputTensor.max();
@@ -71,6 +108,7 @@ export default class nn {
         .sub(outputMin)
         .div(outputMax.sub(outputMin));
 
+      console.timeEnd("tensors");
       return {
         inputs: normalizedInputs,
         outputs: normalizedOutputs,
@@ -95,19 +133,20 @@ export default class nn {
    * @returns {Object} trained model. 
    */
 
-  static async trainModel(model, inputs, outputs) {
+  static async trainModel(model, inputs, outputs, epochs) {
     model.compile({
-      loss: "meanSquaredError",
+      loss: "binaryCrossentropy",
       optimizer: "adam",
       metrics: ["mse"],
+      lr: 0.18
     });
 
     const batchsize = 32;
-    const epochs = 100;
 
+    console.timeEnd("trainmodel");
     return await model.fit(inputs, outputs, {
       batchsize,
-      epochs,
+      epochs: epochs,
       shuffle: true,
       callbacks: tfvis.show.fitCallbacks(
         { name: "Training Performance" },
@@ -123,44 +162,30 @@ export default class nn {
    * @memberof nn
    * @param {Object} model - pretrained model.
    * @param {Object[]} inputData - inputdata already converted into tensors. 
-   * @param {Object} normalizedData - minmax for both inputs and outputs.
+   * @param {Object} observed - minmax for both inputs and outputs.
    * @returns {Object} object with predictions, visually rendered too. 
    */
 
-  static prediction(model, inputData, normalizedData) {
-    const { inputMax, inputMin, outputMin, outputMax } = normalizedData;
+  static prediction(model, inputData, observed) {
 
-    const [xs, preds] = tf.tidy(() => {
-      const xs = tf.linspace(0, 1, 100);
-      const preds = model.predict(xs.reshape([100, 1]));
+    var tensorinput = tf.tensor1d(inputData).reshape([1, inputData.length]);
 
-      const unNormXs = xs.mul(inputMax.sub(inputMin)).add(inputMin);
-
-      const unNormPreds = preds.mul(outputMax.sub(outputMin)).add(outputMin);
-
-      return [unNormXs.dataSync(), unNormPreds.dataSync()];
-    });
-
-    const predictedPoints = Array.from(xs).map((val, i) => {
-      return { x: val, y: preds[i] };
-    });
-
-    const originalPoints = inputData.map((d) => ({
-      x: d.inputs,
-      y: d.outputs,
-    }));
+    const predictedPoints = Array.from(model.predict(tensorinput).dataSync());
 
     tfvis.render.scatterplot(
-      { name: "Model predictions vs Origina Data" },
+      { name: "Model predictions vs Original Data" },
       {
-        values: [originalPoints, predictedPoints],
+        values: [observed, predictedPoints],
         series: ["original", "predicted"],
       },
       {
-        xLabel: "Hello",
-        yLaber: "New Hello",
+        xLabel: "original",
+        yLaber: "observed",
         height: 300,
       }
     );
+
+    console.timeEnd("predict");
+    return predictedPoints;
   }
 }

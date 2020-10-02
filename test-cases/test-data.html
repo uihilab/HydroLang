@@ -38,14 +38,18 @@
           "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJlcmF6Y2FyOEBhcXVhY2xvdWQubmV0IiwianRpIjoiN2JjMDg4MzQtYWRlYS00ZTZlLTgwZDItZjhhZWRhMDk1NzliIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE1OTIzNTA4MzUsInVzZXJJZCI6IjdiYzA4ODM0LWFkZWEtNGU2ZS04MGQyLWY4YWVkYTA5NTc5YiIsInJvbGUiOiIifQ.W_JR_t4EBSzgpWQye3Jj7vRF2g7s_Ex2w5YoEl7cIdc";
         var tokital = "MT5EEFDCB18F026";
         var prox = "https://cors-anywhere.herokuapp.com/";
+        var prox1 = "https://yacdn.org/serve/"
 
         //retrieve data from usgs
         dataRetrievalParams1 = {
           source: "usgs",
           dataType: "instant-values",
           arguments: {
-            stateCd: "CA",
+            site: "USGS:02056000",
             format: "json",
+            startDt: "2020-08-30",
+            endDt: "2020-09-02",
+            parameterCd: "00060"
           },
           proxyurl: prox,
         };
@@ -170,7 +174,7 @@
 
         console.time("dataRetrieval");
         //Obtain data from the source. Verify the requirement for
-        var x1 = hydro1.data.retrieve(dataRetrievalParams2a, handleWaterData);
+        var x1 = hydro1.data.retrieve(dataRetrievalParams1, handleWaterData);
 
         
         var configu = {"type": "ARR", keep:["date", "value"]}
