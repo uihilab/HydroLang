@@ -114,10 +114,10 @@ export default class nn {
         outputs: normalizedOutputs,
 
         //return the min and max bounds to use afterwards.
-        inputMax,
-        inputMin,
-        outputMax,
-        outputMin,
+        inputMax : inputMax,
+        inputMin: inputMin,
+        outputMax: outputMax,
+        outputMin: outputMin,
       };
     });
   }
@@ -130,18 +130,25 @@ export default class nn {
    * @param {Object} model - created previously. 
    * @param {Object[]} inputs - array of inputs that are already converted into tensors. 
    * @param {Object[]} outputs - array of outputs that are already converted into tensors.
+   * @param {number} epochs - number of repetitions the algoritm should do through the dataset.
+   * @param {number} learningrate - value between 0 - 0.2. 
+   * @param {number} batchsize - value of the training 
    * @returns {Object} trained model. 
    */
 
-  static async trainModel(model, inputs, outputs, epochs) {
+  static async trainModel(model, inputs, outputs, epochs, learningrate, batch) {
+    //temporary solution for the split method to be fixed on the tf.js backend.
+    tf.env().set('WEBGL_CPU_FORWARD', false)
+
+    
     model.compile({
       loss: "binaryCrossentropy",
       optimizer: "adam",
       metrics: ["mse"],
-      lr: 0.18
+      lr: learningrate
     });
 
-    const batchsize = 32;
+    const batchsize = batch;
 
     console.timeEnd("trainmodel");
     return await model.fit(inputs, outputs, {
@@ -166,26 +173,20 @@ export default class nn {
    * @returns {Object} object with predictions, visually rendered too. 
    */
 
-  static prediction(model, inputData, observed) {
+  static prediction(model, inputs, outputMin, outputMax) {
 
-    var tensorinput = tf.tensor1d(inputData).reshape([1, inputData.length]);
+    const predictedPoints = model.predict(inputs);
 
-    const predictedPoints = Array.from(model.predict(tensorinput).dataSync());
-
-    tfvis.render.scatterplot(
-      { name: "Model predictions vs Original Data" },
-      {
-        values: [observed, predictedPoints],
-        series: ["original", "predicted"],
-      },
-      {
-        xLabel: "original",
-        yLaber: "observed",
-        height: 300,
-      }
-    );
+    const unNormPreds = predictedPoints.mul(outputMax.sub(outputMin)).add(outputMin)
 
     console.timeEnd("predict");
-    return predictedPoints;
+    return Array.from(unNormPreds.dataSync());
+  }
+
+  /**
+   * 
+   */
+  static async saveupmodel (model, name) {
+    await model.save(`downloads://${name}`);
   }
 }
