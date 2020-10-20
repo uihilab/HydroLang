@@ -184,9 +184,16 @@ export default class nn {
   }
 
   /**
-   * 
+   * Function for downloading a model that is already trained. It is saved in
+   * download folder of the user.
+   * @method savemodel
+   * @memberof nn
+   * @param {Object} model - pretrained model.
+   * @param {String} name - name of model to be saved.
+   * @returns {Object} saved model on local storage.
    */
-  static async saveupmodel (model, name) {
+  
+  static async savemodel (model, name) {
     await model.save(`downloads://${name}`);
   }
 }
