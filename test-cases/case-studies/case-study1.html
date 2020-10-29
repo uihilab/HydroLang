@@ -1,204 +1,264 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link
-    rel="stylesheet"
-    href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-  />
-    <title>Hydrolang</title>
-    <script
-      type="module"
-      onload="initHydrolang()"
-      src="../hydrolang/hydro.js"
-    ></script>
-  </head>
-  <style>
-    #map {
-      height: 400px; width :800px; margin-left:auto; margin-right:auto;
-    }
-    .content{
-      max-width: 900px;
-      margin: auto
-    }
-  </style>
 
-  <body>
-    <script>
-      async function initHydrolang() {
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" />
+  <title>Hydrolang</title>
+  <script type="module" onload="initHydrolang()" src="../hydrolang/hydro.js"></script>
+</head>
+<style>
+  #map {
+    height: 400px;
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 
-        hydro1 = new Hydrolang();
+  .content {
+    max-width: 900px;
+    margin: auto
+  }
+</style>
 
-        //List of Commands
+<body>
+  <script>
+    async function initHydrolang() {
 
-       //retrieve data from usgs
-       dataRetrievalParams1 = {
-          source: "usgs",
-          dataType: "instant-values",
-          arguments: {
-            site: "USGS:02056000",
-            format: "json",
-            startDt: "2020-08-30",
-            endDt: "2020-09-02",
-            parameterCd: "00060"
-          },
-          proxyurl: "https://cors-anywhere.herokuapp.com/",
-        };
+      hydro1 = new Hydrolang();
 
-        function handleWaterData(data) {
-          var x = data;
-          console.log(data);
-          console.timeEnd("dataRetrieval");
-          return x;
-        };
+      //List of Commands
 
-        console.time("dataRetrieval");
-        //Obtain data from the source. Verify the requirement for
-        var x1 = hydro1.data.retrieve(dataRetrievalParams1, handleWaterData);
-        
-        //Calculator for time of concentration
-        synt1 = {
-          type: "SCS",
-          unit: "si",
-          args: {
-            L: 265584,
-            slope: 0.068,
-            CN: 80,
-          },
-        };
+      //retrieve data from usgs
+      dataRetrievalParams1 = {
+        source: "usgs",
+        dataType: "instant-values",
+        arguments: {
+          site: "USGS:02056000",
+          format: "json",
+          startDt: "2020-08-30",
+          endDt: "2020-09-02",
+          parameterCd: "00060"
+        },
+        proxyurl: "https://cors-anywhere.herokuapp.com/",
+      };
 
-        console.time("synthcalc");
-        var calcul1= hydro1.analyze.hydro.syntheticalc(synt1);
+      function handleWaterData(data) {
+        var x = data;
+        console.log(data);
+        console.timeEnd("dataRetrieval");
+        return x;
+      };
 
-        synt2 = {
-          type: "kerby-kirpich",
-          unit: "si",
-          args: {
-            L: 265584,
-            slope: 2,
-            n : 0.10,
-          },
-        };
+      console.time("dataRetrieval");
+      //Obtain data from the source. Verify the requirement for
+      var x1 = hydro1.data.retrieve(dataRetrievalParams1, handleWaterData);
 
-        console.time("synthcalc");
-        var calcul2 = hydro1.analyze.hydro.syntheticalc(synt2);
+      //Calculator for time of concentration
+      synt1 = {
+        type: "SCS",
+        unit: "si",
+        args: {
+          L: 265584,
+          slope: 0.068,
+          CN: 80,
+        },
+      };
 
-        //Generating a dimensionless unit hydrograph
-        //The timestep and number of hours were to selected to generate 96 timesteps which cover the whole time of the event.
-        
-        dimunithydrodata = {
-          distribution: {
-            type: "gamma",
-            PRF: 238,
-          },
-          timestep: 0.10,
-          numhours: 7.4,
-        };
-        
-        console.time("dimunit");
-        var dimunit = hydro1.analyze.hydro.dimunithydro(dimunithydrodata);
+      console.time("synthcalc");
+      var calcul1 = hydro1.analyze.hydro.syntheticalc(synt1);
 
-        //Generating a unit hydrograph from dimensionless one
-        unithydrodata = {
-          units: "si",
-          hydro: dimunit,
-          drainagearea: 509,
-          type: "dim",
-          config: {
+      synt2 = {
+        type: "kerby-kirpich",
+        unit: "si",
+        args: {
+          L: 265584,
+          slope: 2,
+          n: 0.10,
+        },
+      };
+
+      console.time("synthcalc");
+      var calcul2 = hydro1.analyze.hydro.syntheticalc(synt2);
+
+      //Generating a dimensionless unit hydrograph
+      //The timestep and number of hours were to selected to generate 96 timesteps which cover the whole time of the event.
+
+      dimunithydrodata = {
+        distribution: {
+          type: "gamma",
+          PRF: 238,
+        },
+        timestep: 0.10,
+        numhours: 7.4,
+      };
+
+      console.time("dimunit");
+      var dimunit = hydro1.analyze.hydro.dimunithydro(dimunithydrodata);
+
+      //Generating a unit hydrograph from dimensionless one
+      unithydrodata = {
+        units: "si",
+        hydro: dimunit,
+        drainagearea: 509,
+        type: "dim",
+        config: {
           tconcentration: 6.76,
           peak: 238
         }
-        };
-        
-        console.time("unitcons")
-        var basinunit = hydro1.analyze.hydro.unithydrocons(unithydrodata);
+      };
 
-        //Plot the dimensionless hydrograph
-        console.time("styles");
-        hydro1.visualize.styles({data: basinunit, draw: "chart", config: {chart: "line", div: "2", title: "basin hydrograph"}});
+      console.time("unitcons")
+      var basinunit = hydro1.analyze.hydro.unithydrocons(unithydrodata);
 
-        //Uploading the rainfall event
-        console.time("upload");
-        var rainf = hydro1.data.upload('CSV');
+      //Plot the dimensionless hydrograph
+      console.time("styles");
+      hydro1.visualize.styles({
+        data: basinunit,
+        draw: "chart",
+        config: {
+          chart: "line",
+          div: "2",
+          title: "basin hydrograph"
+        }
+      });
 
-        //Generating a flooding hydrograph from rainfall event
-        floodhydrodata = {
-          units: "si",
-          rainfall: rainf,
-          unithydro: basinunit,
-          baseflow: 182,
-          type: "SCS",
-          cn: 80,
-          stormduration: 48,
-          timestep: 1,
-        };
-        console.time("floodhydro");
-        var flooding = hydro1.analyze.hydro.floodhydro(floodhydrodata);
+      //Uploading the rainfall event
+      console.time("upload");
+      var rainf = hydro1.data.upload('CSV');
 
-        //Plot the flooding hydrograph
-        console.time("styles");
-        hydro1.visualize.styles({data: flooding, draw: "chart", config: {chart: "line", div: "3", title: "floodinghydro"}});
+      //Generating a flooding hydrograph from rainfall event
+      floodhydrodata = {
+        units: "si",
+        rainfall: rainf,
+        unithydro: basinunit,
+        baseflow: 182,
+        type: "SCS",
+        cn: 80,
+        stormduration: 48,
+        timestep: 1,
+      };
+      console.time("floodhydro");
+      var flooding = hydro1.analyze.hydro.floodhydro(floodhydrodata);
 
-        //Upload Observed Hydrograph
-        console.time("upload");
-        var realhydro = hydro1.data.upload('CSV');
+      //Plot the flooding hydrograph
+      console.time("styles");
+      hydro1.visualize.styles({
+        data: flooding,
+        draw: "chart",
+        config: {
+          chart: "line",
+          div: "3",
+          title: "floodinghydro"
+        }
+      });
 
-        //Selected the aggregated real hydrograph
-        console.time("styles")
-        hydro1.visualize.styles({data: realhydro, draw: "chart", config: {chart: "line", div: "4", title: "realhydro"}})
+      //Upload Observed Hydrograph
+      console.time("upload");
+      var realhydro = hydro1.data.upload('CSV');
 
-        for (var i = 0; i < model6hr[1].length; i++){observ6hr[1][i] = observ6hr[1][i] / 6; model6hr[1][i] = model6hr[1][i] / 6};
+      //Selected the aggregated real hydrograph
+      console.time("styles")
+      hydro1.visualize.styles({
+        data: realhydro,
+        draw: "chart",
+        config: {
+          chart: "line",
+          div: "4",
+          title: "realhydro"
+        }
+      })
 
-        //Upload Moorland data and create variable for bucket model
-        console.time("upload");
-        var moorland =hydro1.data.upload('CSV');
-        
-        var rainfall = moorland[1];
-        var obsrunoff = moorland[3];
-        var evapo = moorland[2];
-        
-        var tots = [];
-        tots.push(moorland[0]);
-        tots.push(obsrunoff);
-        
-        var baseflow = 0.5;
-        var infiltration = 0.04;
-        var landuse= {agriculture: 0.60, barerock: 0.03, grassland: 0.27, forest: 0.07, urban: 0.03};
-        var dataBucketModel= {rainfall: rainfall, baseflow: baseflow, evaporation: {data: evapo}, landuse: landuse, infiltration: infiltration};
+      for (var i = 0; i < model6hr[1].length; i++) {
+        observ6hr[1][i] = observ6hr[1][i] / 6;
+        model6hr[1][i] = model6hr[1][i] / 6
+      };
 
-        //Claculate the bucket model predictions and plot it
-        console.time("bucket");
-        console.time("aggr");
-        var bucket = hydro1.analyze.hydro.bucketmodel(dataBucketModel);
-        
-        console.time("styles");
-        hydro1.visualize.styles({data: bucket, draw: "chart", config: {chart: "line", div: "4", title: "realhydro"}});
+      //Upload Moorland data and create variable for bucket model
+      console.time("upload");
+      var moorland = hydro1.data.upload('CSV');
 
-        //Aggregating rainfall data to 24 hours
-        console.time("aggr");
-        var observ = hydro1.analyze.hydro.rainaggr({"event": tots, "agg": {"type": "aggr", "interval": 24}});
+      var rainfall = moorland[1];
+      var obsrunoff = moorland[3];
+      var evapo = moorland[2];
 
-        //Calculating efficiencies
-        console.time("NSE");
-        var ns = hydro1.analyze.stats.efficiencies({observed: observ[1], model: bucket[1], type: "NSE" })
-        
-        console.time("determ");
-        var det = hydro1.analyze.stats.efficiencies({observed: observ[1], model: bucket[1], type: "determination" });
-        
-        console.time("agree");
-        var agree = hydro1.analyze.stats.efficiencies({observed: observ[1], model: bucket[1], type: "agreement" })
+      var tots = [];
+      tots.push(moorland[0]);
+      tots.push(obsrunoff);
 
-        /*** End of use case **/
-      }
-    </script>
-    <p class="h4">Case study 1: evaluation of lumped models on small and medium size basins</p>
-    <script
-    src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-  ></script>
-  <script
-    src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-  ></script>
-  <script
-    src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-  ></script>
-  </body>
+      var baseflow = 0.5;
+      var infiltration = 0.04;
+      var landuse = {
+        agriculture: 0.60,
+        barerock: 0.03,
+        grassland: 0.27,
+        forest: 0.07,
+        urban: 0.03
+      };
+      var dataBucketModel = {
+        rainfall: rainfall,
+        baseflow: baseflow,
+        evaporation: {
+          data: evapo
+        },
+        landuse: landuse,
+        infiltration: infiltration
+      };
+
+      //Claculate the bucket model predictions and plot it
+      console.time("bucket");
+      console.time("aggr");
+      var bucket = hydro1.analyze.hydro.bucketmodel(dataBucketModel);
+
+      console.time("styles");
+      hydro1.visualize.styles({
+        data: bucket,
+        draw: "chart",
+        config: {
+          chart: "line",
+          div: "4",
+          title: "realhydro"
+        }
+      });
+
+      //Aggregating rainfall data to 24 hours
+      console.time("aggr");
+      var observ = hydro1.analyze.hydro.rainaggr({
+        "event": tots,
+        "agg": {
+          "type": "aggr",
+          "interval": 24
+        }
+      });
+
+      //Calculating efficiencies
+      console.time("NSE");
+      var ns = hydro1.analyze.stats.efficiencies({
+        observed: observ[1],
+        model: bucket[1],
+        type: "NSE"
+      })
+
+      console.time("determ");
+      var det = hydro1.analyze.stats.efficiencies({
+        observed: observ[1],
+        model: bucket[1],
+        type: "determination"
+      });
+
+      console.time("agree");
+      var agree = hydro1.analyze.stats.efficiencies({
+        observed: observ[1],
+        model: bucket[1],
+        type: "agreement"
+      })
+
+      /*** End of use case **/
+    }
+  </script>
+  <p class="h4">Case study 1: evaluation of lumped models on small and medium size basins</p>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</body>
+
 </html>

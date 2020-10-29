@@ -1,1 +1,125 @@
-{"modelTopology":{"class_name":"Sequential","config":{"name":"sequential_2","layers":[{"class_name":"Dense","config":{"units":48,"activation":"linear","use_bias":true,"kernel_initializer":{"class_name":"VarianceScaling","config":{"scale":1,"mode":"fan_avg","distribution":"normal","seed":null}},"bias_initializer":{"class_name":"Zeros","config":{}},"kernel_regularizer":null,"bias_regularizer":null,"activity_regularizer":null,"kernel_constraint":null,"bias_constraint":null,"name":"dense_Dense4","trainable":true,"batch_input_shape":[null,48],"dtype":"float32"}},{"class_name":"Dense","config":{"units":11,"activation":"sigmoid","use_bias":true,"kernel_initializer":{"class_name":"VarianceScaling","config":{"scale":1,"mode":"fan_avg","distribution":"normal","seed":null}},"bias_initializer":{"class_name":"Zeros","config":{}},"kernel_regularizer":null,"bias_regularizer":null,"activity_regularizer":null,"kernel_constraint":null,"bias_constraint":null,"name":"dense_Dense5","trainable":true}},{"class_name":"Dense","config":{"units":192,"activation":"sigmoid","use_bias":true,"kernel_initializer":{"class_name":"VarianceScaling","config":{"scale":1,"mode":"fan_avg","distribution":"normal","seed":null}},"bias_initializer":{"class_name":"Zeros","config":{}},"kernel_regularizer":null,"bias_regularizer":null,"activity_regularizer":null,"kernel_constraint":null,"bias_constraint":null,"name":"dense_Dense6","trainable":true}}]},"keras_version":"tfjs-layers 2.7.0","backend":"tensor_flow.js"},"format":"layers-model","generatedBy":"TensorFlow.js tfjs-layers v2.7.0","convertedBy":null,"weightsManifest":[{"paths":["./Model_15MIN_48HR.weights.bin"],"weights":[{"name":"dense_Dense4/kernel","shape":[48,48],"dtype":"float32"},{"name":"dense_Dense4/bias","shape":[48],"dtype":"float32"},{"name":"dense_Dense5/kernel","shape":[48,11],"dtype":"float32"},{"name":"dense_Dense5/bias","shape":[11],"dtype":"float32"},{"name":"dense_Dense6/kernel","shape":[11,192],"dtype":"float32"},{"name":"dense_Dense6/bias","shape":[192],"dtype":"float32"}]}]}
+{
+    "modelTopology": {
+        "class_name": "Sequential",
+        "config": {
+            "name": "sequential_2",
+            "layers": [{
+                "class_name": "Dense",
+                "config": {
+                    "units": 48,
+                    "activation": "linear",
+                    "use_bias": true,
+                    "kernel_initializer": {
+                        "class_name": "VarianceScaling",
+                        "config": {
+                            "scale": 1,
+                            "mode": "fan_avg",
+                            "distribution": "normal",
+                            "seed": null
+                        }
+                    },
+                    "bias_initializer": {
+                        "class_name": "Zeros",
+                        "config": {}
+                    },
+                    "kernel_regularizer": null,
+                    "bias_regularizer": null,
+                    "activity_regularizer": null,
+                    "kernel_constraint": null,
+                    "bias_constraint": null,
+                    "name": "dense_Dense4",
+                    "trainable": true,
+                    "batch_input_shape": [null, 48],
+                    "dtype": "float32"
+                }
+            }, {
+                "class_name": "Dense",
+                "config": {
+                    "units": 11,
+                    "activation": "sigmoid",
+                    "use_bias": true,
+                    "kernel_initializer": {
+                        "class_name": "VarianceScaling",
+                        "config": {
+                            "scale": 1,
+                            "mode": "fan_avg",
+                            "distribution": "normal",
+                            "seed": null
+                        }
+                    },
+                    "bias_initializer": {
+                        "class_name": "Zeros",
+                        "config": {}
+                    },
+                    "kernel_regularizer": null,
+                    "bias_regularizer": null,
+                    "activity_regularizer": null,
+                    "kernel_constraint": null,
+                    "bias_constraint": null,
+                    "name": "dense_Dense5",
+                    "trainable": true
+                }
+            }, {
+                "class_name": "Dense",
+                "config": {
+                    "units": 192,
+                    "activation": "sigmoid",
+                    "use_bias": true,
+                    "kernel_initializer": {
+                        "class_name": "VarianceScaling",
+                        "config": {
+                            "scale": 1,
+                            "mode": "fan_avg",
+                            "distribution": "normal",
+                            "seed": null
+                        }
+                    },
+                    "bias_initializer": {
+                        "class_name": "Zeros",
+                        "config": {}
+                    },
+                    "kernel_regularizer": null,
+                    "bias_regularizer": null,
+                    "activity_regularizer": null,
+                    "kernel_constraint": null,
+                    "bias_constraint": null,
+                    "name": "dense_Dense6",
+                    "trainable": true
+                }
+            }]
+        },
+        "keras_version": "tfjs-layers 2.7.0",
+        "backend": "tensor_flow.js"
+    },
+    "format": "layers-model",
+    "generatedBy": "TensorFlow.js tfjs-layers v2.7.0",
+    "convertedBy": null,
+    "weightsManifest": [{
+        "paths": ["./Model_15MIN_48HR.weights.bin"],
+        "weights": [{
+            "name": "dense_Dense4/kernel",
+            "shape": [48, 48],
+            "dtype": "float32"
+        }, {
+            "name": "dense_Dense4/bias",
+            "shape": [48],
+            "dtype": "float32"
+        }, {
+            "name": "dense_Dense5/kernel",
+            "shape": [48, 11],
+            "dtype": "float32"
+        }, {
+            "name": "dense_Dense5/bias",
+            "shape": [11],
+            "dtype": "float32"
+        }, {
+            "name": "dense_Dense6/kernel",
+            "shape": [11, 192],
+            "dtype": "float32"
+        }, {
+            "name": "dense_Dense6/bias",
+            "shape": [192],
+            "dtype": "float32"
+        }]
+    }]
+}

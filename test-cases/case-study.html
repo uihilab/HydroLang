@@ -1,42 +1,40 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link
-    rel="stylesheet"
-    href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-  />
-    <title>Hydrolang</title>
-    <script
-      type="module"
-      onload="initHydrolang()"
-      src="../hydrolang/hydro.js"
-    ></script>
-  </head>
-  <style>
-    #map {
-      height: 400px; width :800px; margin-left:auto; margin-right:auto;
-    }
-    .content{
-      max-width: 900px;
-      margin: auto
-    }
-  </style>
 
-  <body>
-    <script>
-      async function initHydrolang() {
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" />
+  <title>Hydrolang</title>
+  <script type="module" onload="initHydrolang()" src="../hydrolang/hydro.js"></script>
+</head>
+<style>
+  #map {
+    height: 400px;
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 
-        hydro1 = new Hydrolang();
+  .content {
+    max-width: 900px;
+    margin: auto
+  }
+</style>
+
+<body>
+  <script>
+    async function initHydrolang() {
+
+      hydro1 = new Hydrolang();
 
       //await call for map loader options.
 
-      
+
       var map = {
         maptype: "osm"
       };
-       await hydro1.map.loader(map);
+      await hydro1.map.loader(map);
 
-       var mapconfig = {
+      var mapconfig = {
         maptype: "osm",
         lat: "40",
         lon: "-100",
@@ -61,60 +59,60 @@
       //Add drawing tool to map
       hydro1.map.Layers(draw)
 
-        /*** Basic use case for retrieving data **/
+      /*** Basic use case for retrieving data **/
 
-        //if token or key is required
-        var tokennoa = "gNUkMgFHFSYVWyNoabuUfuVhCTJkRvRq";
+      //if token or key is required
+      var tokennoa = "gNUkMgFHFSYVWyNoabuUfuVhCTJkRvRq";
 
-        //data retrieval from noaa
-        dataRetrievalParams1 = {
-          source: "noaa",
-          dataType: "availablestations",
-          type: "json",
-          arguments: {
-            datasetid: "PRECIP_15",
-            locationid: "FIPS:22",
-            sortfield: "datacoverage",
-            sortorder: "desc",
-            limit: 1000,
-          },
-          token: tokennoa,
-        };
+      //data retrieval from noaa
+      dataRetrievalParams1 = {
+        source: "noaa",
+        dataType: "availablestations",
+        type: "json",
+        arguments: {
+          datasetid: "PRECIP_15",
+          locationid: "FIPS:22",
+          sortfield: "datacoverage",
+          sortorder: "desc",
+          limit: 1000,
+        },
+        token: tokennoa,
+      };
 
-        dataRetrievalParams2 = {
-          source: "noaa",
-          dataType: "datasets",
-          type: "json",
-          arguments: {
-            stationid: "COOP:440166",
-            datasetid: "PRECIP_15",
-            limit: 1000,
-          },
-          token: tokennoa,
-        };
+      dataRetrievalParams2 = {
+        source: "noaa",
+        dataType: "datasets",
+        type: "json",
+        arguments: {
+          stationid: "COOP:440166",
+          datasetid: "PRECIP_15",
+          limit: 1000,
+        },
+        token: tokennoa,
+      };
 
-        dataRetrievalParams3 = {
-          source: "noaa",
-          dataType: "prec-15min",
-          type: "json",
-          arguments: {
-            stationid: "COOP:440166",
-            units: "metric",
-            startdate: "2005-01-01",
-            enddate: "2005-10-31",
-            limit: 1000,
-            //datatype: "QPCP",
-          },
-          token: tokennoa,
-        };
+      dataRetrievalParams3 = {
+        source: "noaa",
+        dataType: "prec-15min",
+        type: "json",
+        arguments: {
+          stationid: "COOP:440166",
+          units: "metric",
+          startdate: "2005-01-01",
+          enddate: "2005-10-31",
+          limit: 1000,
+          //datatype: "QPCP",
+        },
+        token: tokennoa,
+      };
 
-        function handleWaterData(data) {
-          var x = data;
-          console.log(data);
-          return x;
-        }
+      function handleWaterData(data) {
+        var x = data;
+        console.log(data);
+        return x;
+      }
 
-        var marker = {
+      var marker = {
         maptype: "osm",
         layertype: {
           type: "marker",
@@ -126,25 +124,28 @@
 
       hydro1.map.Layers(marker)
 
-        var x = await hydro1.data.retrieve(dataRetrievalParams2,handleWaterData)
+      var x = await hydro1.data.retrieve(dataRetrievalParams2, handleWaterData)
 
 
-        
+
 
       //Object that is required for rendering the map.
-        
-      var configu = {"type": "ARR", keep:["date", "value"]}
-        //var x1 = hydro1.data.transform(x1,configu)
 
-        /*** End of use case **/
+      var configu = {
+        "type": "ARR",
+        keep: ["date", "value"]
       }
-    </script>
-    <p class="h4">Case studies: rainfall data and unit hydrograph</p>
-    <p></p>
-    <p class="h7">The data for the aggregation/disaggregation has been done using a station in 
-      Alta Vista, Virginia, USA with code COOP:440166. The station was retrieved using NOAA services.
-    </p>
-    <pre class="line-numbers">
+      //var x1 = hydro1.data.transform(x1,configu)
+
+      /*** End of use case **/
+    }
+  </script>
+  <p class="h4">Case studies: rainfall data and unit hydrograph</p>
+  <p></p>
+  <p class="h7">The data for the aggregation/disaggregation has been done using a station in
+    Alta Vista, Virginia, USA with code COOP:440166. The station was retrieved using NOAA services.
+  </p>
+  <pre class="line-numbers">
       <code class="language-javascript">
         dataRetrievalParams = {
           source: "noaa",
@@ -162,8 +163,8 @@
         };
       </code>
     </pre>
-    <p class="h7">The object is retrieved using the retrieval function of Hydrolang.</p>
-    <pre class="line-numbers">
+  <p class="h7">The object is retrieved using the retrieval function of Hydrolang.</p>
+  <pre class="line-numbers">
       <code class="language-javascript">
         function handleWaterData(data) {
           var x = data;
@@ -175,14 +176,9 @@
       </code>
     </pre>
 
-    <script
-    src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-  ></script>
-  <script
-    src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-  ></script>
-  <script
-    src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-  ></script>
-  </body>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</body>
+
 </html>

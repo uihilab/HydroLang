@@ -1,281 +1,304 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-    />
-    <title>Hydrolang</title>
-    <script
-      type="module"
-      onload="initHydrolang()"
-      src="./hydrolang/hydro.js"
-    ></script>
-  </head>
 
-  <body>
-    <script>
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" />
+  <title>Hydrolang</title>
+  <script type="module" onload="initHydrolang()" src="./hydrolang/hydro.js"></script>
+</head>
 
-      /*** Hydrolang Initializer **/
+<body>
+  <script>
+    /*** Hydrolang Initializer **/
 
-      function initHydrolang() {
+    function initHydrolang() {
 
-        const config = {
-          metricSystem: "si",
-          mapType: "osm",
-        };
+      const config = {
+        metricSystem: "si",
+        mapType: "osm",
+      };
 
-        hydro2 = new Hydrolang();
-        hydro2.setConfig(config)
+      hydro2 = new Hydrolang();
+      hydro2.setConfig(config)
 
-        /*** End of use case **/
+      /*** End of use case **/
 
-        var data2 = [
-          ["Generation", "Descendants"],
-          [0, 1],
-          [1, 33],
-          [2, 269],
-          [3, 2013],
-        ];
+      var data2 = [
+        ["Generation", "Descendants"],
+        [0, 1],
+        [1, 33],
+        [2, 269],
+        [3, 2013],
+      ];
 
-        hydro2.visualize.styles({data: data2, draw: "chart", config: {chart: "scatter", div: "scatterstuff", title: "Descendants by generation"}})
-
-        /*** End of use case **/
-
-        /*** Use for thiessen polygons
-         * parameters: raingage events for different stations on a basin.
-         * also areas for each rainfall event.
-         * Returns pondered precipitation, recommended for basins < 1000 km^2.
-         **/
-
-        thiessenprec = Array(4);
-        thiessenareas = Array(4);
-        for (var i = 0; i < thiessenprec.length; i++) {
-          thiessenprec[i] = Array.from(
-            {
-              length: 40,
-            },
-            () => Math.floor(Math.random() * 20)
-          );
-          thiessenareas[i] = Math.floor(Math.random() * 600);
+      hydro2.visualize.styles({
+        data: data2,
+        draw: "chart",
+        config: {
+          chart: "scatter",
+          div: "scatterstuff",
+          title: "Descendants by generation"
         }
+      })
 
-        thiessendata = {
-          rainfall: thiessenprec,
-          areas: thiessenareas,
-        };
+      /*** End of use case **/
 
-        console.time("test1");
-        var thiessenpol = hydro2.analyze.hydro.thiessen(thiessendata);
-        console.log(thiessenpol);
-        console.timeEnd("test1");
+      /*** Use for thiessen polygons
+       * parameters: raingage events for different stations on a basin.
+       * also areas for each rainfall event.
+       * Returns pondered precipitation, recommended for basins < 1000 km^2.
+       **/
 
-        final = {
-          event: "callevent",
-          agg: { type: "aggregation", interval: 120},
-        };
-
-        /*** End of use case **/
-
-        /*** Use of synthetic hydrograph calculator
-         * It retrieves back the main parameters for using synthetic
-         * calculations of a small basin.
-         * **/
-
-        synt1 = {
-          type: "SCS",
-          unit: config.metricSystem,
-          args: {
-            L: 4000,
-            slope: 10,
-            CN: 82,
+      thiessenprec = Array(4);
+      thiessenareas = Array(4);
+      for (var i = 0; i < thiessenprec.length; i++) {
+        thiessenprec[i] = Array.from({
+            length: 40,
           },
-        };
-
-        synt2 = {
-          type: "kirpich",
-          unit: config.metricSystem,
-          args: {
-            L: 4000,
-            slope: 10,
-          },
-        };
-
-        synt3 = {
-          type: "kirpich",
-          unit: config.metricSystem,
-          args: {
-            L: 4000,
-            slope: 10,
-            manning: 0.02,
-          },
-        };
-
-        var calcul = hydro2.analyze.hydro.syntheticalc(synt2);
-        console.log(calcul);
-
-        /*** Use of dimensionless unit hydrograph constructor.
-         * options for distribution: gamma as of June 2020. Changes amount of volume
-         * depending on the peak rate factor (PRF).
-         * time of concentration, time step numhours: in hours
-         *
-         **/
-
-        dimunithydrodata = {
-          distribution: {
-            type: "gamma",
-            PRF: 484,
-          },
-          timestep: 0.15,
-          numhours: 5,
-        };
-
-        var dimunit = hydro2.analyze.hydro.dimunithydro(dimunithydrodata);
-        console.log(dimunit)
-
-        hydro2.visualize.styles({data: dimunit, draw: "chart", config: {chart: "line", div: "1", title: "unit hydrograph"}})
-
-        /***End of example for dimensionless unit hydrograph constructor**/
-
-        /*** Use of unit hydrograph constructor.
-         * options for units: SI or Metric; if input something else, error will be thrown.
-         * options for drainage area: square miles if SI or square kilometers.
-         * time of concentration, time step numhours: in hours
-         *
-         **/
-
-        unithydrodata = {
-          units: config.metricSystem,
-          unithydro: dimunit,
-          drainagearea: 4.6,
-          tconcentration: 3,
-        };
-
-        var basinunit = hydro2.analyze.hydro.unithydrocons(unithydrodata);
-        console.log(basinunit)
-
-        hydro2.visualize.styles({data: basinunit, draw: "chart", config: {chart: "line", div: "2", title: "basin hydrograph"}})
-
-        /***End of example for unit hydrograph constructor**/
-
-        /*** Use of flood hydrograph constructor.
-         * options for units: SI or Metric; if input something else, error will be thrown.
-         * options for drainage area: square miles if SI or square kilometers.
-         * time of concentration, time step numhours: in hours
-         * rainfall data: on the same time step as unit hydrograph (or 0.133Tc)
-         **/
-
-        var rainf = Array(2)
-          .fill(0)
-          .map(() => Array(21).fill(0));
-        rainf[1] = [
-          0,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.2,
-          0.3,
-          0.6,
-          0.5,
-          0.8,
-          0.9,
-          1,
-          1,
-          0.6,
-          0.2,
-          0.1,
-          0.1,
-          0.1,
-          0,
-          0,
-        ];
-
-        for (var h = 1; h < rainf[0].length; h++) {
-          rainf[0][h] = rainf[0][h - 1] + 0.3;
-        }
-
-        floodhydrodata = {
-          units: config.metricSystem,
-          rainfall: rainf,
-          unithydro: basinunit,
-          cn: 90,
-          stormduration: 7,
-          timestep: 0.3,
-        };
-
-        var flooding = hydro2.analyze.hydro.floodhydro(floodhydrodata);
-        console.log(flooding)
-
-        //call on on the line style from visualization or draw chart based on preferred configurations.
-        hydro2.visualize.styles({data: flooding, draw: "chart", config: {chart: "line", div: "3", title: "hydrograph"}})
-
-        /***End of example for flood hydrograph constructor**/
-
-        /*** Use for bucket model data
-         * options for rainfall = timeseries array in mm per hour
-         * options for evaporation = timeseries array in mm per hour
-         * options for baseflow = value in m3 per hour if know, else leave with 1 m3 per hour;
-         * options for landuse types= percentage value.
-         * options for infiltration capacity = percentage value.
-         * options for Landuse = array with percentages for agriculture, rock, grassland, forest, moorland
-         **/
-
-        rainfallData = [1, 2, 3, 1, 2, 1, 2, 3, 2, 1, 2, 3, 4];
-        evapodata = [
-          0.1,
-          0.2,
-          0.3,
-          0.2,
-          0.3,
-          0.4,
-          0.5,
-          0.8,
-          0.9,
-          0.4,
-          0.25,
-          0.3,
-          0.57,
-        ];
-        baseflow = 10;
-        Landuse = [0.25, 0.1, 0.3, 0.15, 0.2];
-        infiltation = 0.3;
-
-        dataBucketModel = {
-          rainfall: rainfallData,
-          baseflow: baseflow,
-          evaporation: {
-            dataType: "timeseries",
-            data: evapodata,
-          },
-          landuse: {
-            agriculture: Landuse[0],
-            barerock: Landuse[1],
-            grassland: Landuse[2],
-            forest: Landuse[3],
-            moorland: Landuse[4],
-          },
-          infiltration: infiltation,
-        };
-
-        var bucket = hydro2.analyze.hydro.bucketmodel(dataBucketModel);
-        console.log(bucket)
-        /***End of example for bucket model**/
+          () => Math.floor(Math.random() * 20)
+        );
+        thiessenareas[i] = Math.floor(Math.random() * 600);
       }
-    </script>
-    <p class="h4">Basic example of visualize module!</p>
 
-    <p class = "h7">The visualizations are rendered using google charts. To change the styles, please visit the developers page.</p>
+      thiessendata = {
+        rainfall: thiessenprec,
+        areas: thiessenareas,
+      };
 
-    <script
-      src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-    ></script>
-    <script
-      src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-    ></script>
-  </body>
+      console.time("test1");
+      var thiessenpol = hydro2.analyze.hydro.thiessen(thiessendata);
+      console.log(thiessenpol);
+      console.timeEnd("test1");
+
+      final = {
+        event: "callevent",
+        agg: {
+          type: "aggregation",
+          interval: 120
+        },
+      };
+
+      /*** End of use case **/
+
+      /*** Use of synthetic hydrograph calculator
+       * It retrieves back the main parameters for using synthetic
+       * calculations of a small basin.
+       * **/
+
+      synt1 = {
+        type: "SCS",
+        unit: config.metricSystem,
+        args: {
+          L: 4000,
+          slope: 10,
+          CN: 82,
+        },
+      };
+
+      synt2 = {
+        type: "kirpich",
+        unit: config.metricSystem,
+        args: {
+          L: 4000,
+          slope: 10,
+        },
+      };
+
+      synt3 = {
+        type: "kirpich",
+        unit: config.metricSystem,
+        args: {
+          L: 4000,
+          slope: 10,
+          manning: 0.02,
+        },
+      };
+
+      var calcul = hydro2.analyze.hydro.syntheticalc(synt2);
+      console.log(calcul);
+
+      /*** Use of dimensionless unit hydrograph constructor.
+       * options for distribution: gamma as of June 2020. Changes amount of volume
+       * depending on the peak rate factor (PRF).
+       * time of concentration, time step numhours: in hours
+       *
+       **/
+
+      dimunithydrodata = {
+        distribution: {
+          type: "gamma",
+          PRF: 484,
+        },
+        timestep: 0.15,
+        numhours: 5,
+      };
+
+      var dimunit = hydro2.analyze.hydro.dimunithydro(dimunithydrodata);
+      console.log(dimunit)
+
+      hydro2.visualize.styles({
+        data: dimunit,
+        draw: "chart",
+        config: {
+          chart: "line",
+          div: "1",
+          title: "unit hydrograph"
+        }
+      })
+
+      /***End of example for dimensionless unit hydrograph constructor**/
+
+      /*** Use of unit hydrograph constructor.
+       * options for units: SI or Metric; if input something else, error will be thrown.
+       * options for drainage area: square miles if SI or square kilometers.
+       * time of concentration, time step numhours: in hours
+       *
+       **/
+
+      unithydrodata = {
+        units: config.metricSystem,
+        unithydro: dimunit,
+        drainagearea: 4.6,
+        tconcentration: 3,
+      };
+
+      var basinunit = hydro2.analyze.hydro.unithydrocons(unithydrodata);
+      console.log(basinunit)
+
+      hydro2.visualize.styles({
+        data: basinunit,
+        draw: "chart",
+        config: {
+          chart: "line",
+          div: "2",
+          title: "basin hydrograph"
+        }
+      })
+
+      /***End of example for unit hydrograph constructor**/
+
+      /*** Use of flood hydrograph constructor.
+       * options for units: SI or Metric; if input something else, error will be thrown.
+       * options for drainage area: square miles if SI or square kilometers.
+       * time of concentration, time step numhours: in hours
+       * rainfall data: on the same time step as unit hydrograph (or 0.133Tc)
+       **/
+
+      var rainf = Array(2)
+        .fill(0)
+        .map(() => Array(21).fill(0));
+      rainf[1] = [
+        0,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.2,
+        0.3,
+        0.6,
+        0.5,
+        0.8,
+        0.9,
+        1,
+        1,
+        0.6,
+        0.2,
+        0.1,
+        0.1,
+        0.1,
+        0,
+        0,
+      ];
+
+      for (var h = 1; h < rainf[0].length; h++) {
+        rainf[0][h] = rainf[0][h - 1] + 0.3;
+      }
+
+      floodhydrodata = {
+        units: config.metricSystem,
+        rainfall: rainf,
+        unithydro: basinunit,
+        cn: 90,
+        stormduration: 7,
+        timestep: 0.3,
+      };
+
+      var flooding = hydro2.analyze.hydro.floodhydro(floodhydrodata);
+      console.log(flooding)
+
+      //call on on the line style from visualization or draw chart based on preferred configurations.
+      hydro2.visualize.styles({
+        data: flooding,
+        draw: "chart",
+        config: {
+          chart: "line",
+          div: "3",
+          title: "hydrograph"
+        }
+      })
+
+      /***End of example for flood hydrograph constructor**/
+
+      /*** Use for bucket model data
+       * options for rainfall = timeseries array in mm per hour
+       * options for evaporation = timeseries array in mm per hour
+       * options for baseflow = value in m3 per hour if know, else leave with 1 m3 per hour;
+       * options for landuse types= percentage value.
+       * options for infiltration capacity = percentage value.
+       * options for Landuse = array with percentages for agriculture, rock, grassland, forest, moorland
+       **/
+
+      rainfallData = [1, 2, 3, 1, 2, 1, 2, 3, 2, 1, 2, 3, 4];
+      evapodata = [
+        0.1,
+        0.2,
+        0.3,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.8,
+        0.9,
+        0.4,
+        0.25,
+        0.3,
+        0.57,
+      ];
+      baseflow = 10;
+      Landuse = [0.25, 0.1, 0.3, 0.15, 0.2];
+      infiltation = 0.3;
+
+      dataBucketModel = {
+        rainfall: rainfallData,
+        baseflow: baseflow,
+        evaporation: {
+          dataType: "timeseries",
+          data: evapodata,
+        },
+        landuse: {
+          agriculture: Landuse[0],
+          barerock: Landuse[1],
+          grassland: Landuse[2],
+          forest: Landuse[3],
+          moorland: Landuse[4],
+        },
+        infiltration: infiltation,
+      };
+
+      var bucket = hydro2.analyze.hydro.bucketmodel(dataBucketModel);
+      console.log(bucket)
+      /***End of example for bucket model**/
+    }
+  </script>
+  <p class="h4">Basic example of visualize module!</p>
+
+  <p class="h7">The visualizations are rendered using google charts. To change the styles, please visit the developers
+    page.</p>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</body>
+
 </html>

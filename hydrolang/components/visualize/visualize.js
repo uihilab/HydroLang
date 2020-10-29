@@ -34,9 +34,9 @@ function chart(params) {
 
     switch (char) {
       case "scatter":
-        var dt;  
+        var dt;
         if (d[0].length !== 2) {
-        dt = stats.arrchange(d);  
+          dt = stats.arrchange(d);
         } else {
           dt = d
         }
@@ -45,9 +45,9 @@ function chart(params) {
         break;
 
       case "column":
-        var dt;  
+        var dt;
         if (d[0].length !== 2) {
-        dt = stats.arrchange(d);  
+          dt = stats.arrchange(d);
         } else {
           dt = d
         }
@@ -55,11 +55,11 @@ function chart(params) {
         data = googlecharts.visualization.arrayToDataTable(dt);
         break;
 
-        
+
       case "histogram":
-        var dt;  
+        var dt;
         if (d[0].length !== 2) {
-        dt = stats.arrchange(d);  
+          dt = stats.arrchange(d);
         } else {
           dt = d
         }
@@ -71,21 +71,20 @@ function chart(params) {
         data = new tableData.data();
 
         if (typeof d[0][1] === 'string') {
-        data.addColumn("date", d[0][0]);
-        data.addColumn("number", d[1][0]);
+          data.addColumn("date", d[0][0]);
+          data.addColumn("number", d[1][0]);
 
-        for (var i = 1; i < d[0].length; i++) {
-          data.addRow([new Date(Date.parse(d[0][i])), d[1][i]]);
+          for (var i = 1; i < d[0].length; i++) {
+            data.addRow([new Date(Date.parse(d[0][i])), d[1][i]]);
+          }
+        } else {
+          data.addColumn("number", d[0][0]);
+          data.addColumn("number", d[1][0]);
+
+          for (var i = 1; i < d[0].length; i++) {
+            data.addRow([d[0][i], d[1][i]]);
+          }
         }
-      }
-      else {
-        data.addColumn("number", d[0][0]);
-        data.addColumn("number", d[1][0]);
-
-        for (var i = 1; i < d[0].length; i++) {
-        data.addRow([d[0][i], d[1][i]]);
-      }
-    }
         break;
 
       default:
@@ -94,12 +93,12 @@ function chart(params) {
 
     var fig = new chartMap[char](container);
 
-      if (params.hasOwnProperty("options")) {
-        var options = params.options;
-        fig.draw(data, options);
-      } else {
-        fig.draw(data);
-      }
+    if (params.hasOwnProperty("options")) {
+      var options = params.options;
+      fig.draw(data, options);
+    } else {
+      fig.draw(data);
+    }
 
 
     if (params.hasOwnProperty("savechart")) {
@@ -196,9 +195,15 @@ function styles(params) {
             title: params.config.title,
             width: "100%",
             height: "100%",
-            legend: { position: "top" },
-            bar: { groupWidth: "95%" },
-            explorer: { actions: ["dragToZoom", "rightClickToReset"] },
+            legend: {
+              position: "top"
+            },
+            bar: {
+              groupWidth: "95%"
+            },
+            explorer: {
+              actions: ["dragToZoom", "rightClickToReset"]
+            },
           },
         };
         break;
@@ -236,7 +241,10 @@ function styles(params) {
             legend: {
               position: "bottom",
             },
-            crosshair: { tigger: "both", orientation: "both" },
+            crosshair: {
+              tigger: "both",
+              orientation: "both"
+            },
             trendlines: {
               0: {
                 type: "polynomial",
@@ -248,17 +256,17 @@ function styles(params) {
         };
         break;
 
-        case "timeline":
-          pm = {
-            chartType: charts,
-            data: d,
-            divID: params.config.div,
-            options: {
-              dateFormat: 'HH:mm MMMM dd, yyyy',
-              thickness: 1
-                },
-              }
-          break;
+      case "timeline":
+        pm = {
+          chartType: charts,
+          data: d,
+          divID: params.config.div,
+          options: {
+            dateFormat: 'HH:mm MMMM dd, yyyy',
+            thickness: 1
+          },
+        }
+        break;
 
       default:
         break;
@@ -284,7 +292,11 @@ function styles(params) {
  * Module for visualization of charts and tables.
  * @module visualize
  */
-export { chart, table, styles };
+export {
+  chart,
+  table,
+  styles
+};
 
 /***************************/
 /*** Supporting functions **/

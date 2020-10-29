@@ -1,83 +1,84 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link
-    rel="stylesheet"
-    href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-  />
-    <title>Hydrolang</title>
-    <script
-      type="module"
-      onload="initHydrolang()"
-      src="../hydrolang/hydro.js"
-    ></script>
-  </head>
-  <style>
-    #map {
-      height: 400px; width :800px; margin-left:auto; margin-right:auto;
+
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" />
+  <title>Hydrolang</title>
+  <script type="module" onload="initHydrolang()" src="../hydrolang/hydro.js"></script>
+</head>
+<style>
+  #map {
+    height: 400px;
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .content {
+    max-width: 900px;
+    margin: auto
+  }
+</style>
+
+<body>
+  <script>
+    async function initHydrolang() {
+
+      hydro1 = new Hydrolang();
+
+      //Upload data from local storage.       
+      var data = hydro1.data.upload('CSV');
+
+      //Clean unvalid values on the first array.    
+      data[0] = hydro1.analyze.stats.cleaner(data[0]);
+
+      //Create input and output objects from the data array.
+      var half1 = Math.floor(data[0].length / 2);
+
+      var half2 = Math.floor(data[1].length / 2);
+
+      var inputs = {
+        train: data[0].slice(0, half1),
+        test: data[0].slice(half1, data[0].length)
+      };
+
+      var outputs = {
+        train: data[1].slice(0, half2),
+        test: data[1].slice(half2, data[1].length)
+      };
+
+      //Create tensorflow arrays for inputs and outputs.
+      var traindata = hydro1.analyze.nn.convertToTensor(inputs.train, outputs.train);
+
+      var testdata = hydro1.analyze.nn.convertToTensor(inputs.test, outputs.test);
+
+      //Create a ml model.
+      var mymod = hydro1.analyze.nn.createModel(48, 11, 192)
+
+      //Train the model using the traindata set.        
+      hydro1.analyze.nn.trainModel(mymod, traindata.inputs, traindata.outputs, 1000, 0.19)
+
+      //Create predictions on both the original data and the test data.     
+      var preds = hydro1.analyze.nn.prediction(mymod, traindata.inputs, traindata.outputMin, traindata.outputMax)
+
+      var preds1 = hydro1.analyze.nn.prediction(mymod, testdata.inputs, testdata.outputMin, testdata.outputMax)
+
+      //Download the predictions as CSV for further manipulation.
+      var finalpreds = [preds, preds1];
+      hydro1.data.download(finalpreds, {
+        type: 'CSV'
+      });
+
+      //Download the trained model.
+      hydro1.analyze.nn.savemodel(mymod, "Model_15MIN_48HR");
+
+      /*** End of use case **/
     }
-    .content{
-      max-width: 900px;
-      margin: auto
-    }
-  </style>
+  </script>
+  <p class="h4">Case study 2: Rainfall disaggregation using Neural Networks</p>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</body>
 
-  <body>
-    <script>
-      async function initHydrolang() {
-
-        hydro1 = new Hydrolang();
-
-        //Upload data from local storage.       
-        var data = hydro1.data.upload('CSV');
-
-        //Clean unvalid values on the first array.    
-        data[0] = hydro1.analyze.stats.cleaner(data[0]);
-
-        //Create input and output objects from the data array.
-        var half1 = Math.floor(data[0].length /2);
-        
-        var half2 = Math.floor(data[1].length /2);
-        
-        var inputs = {train: data[0].slice(0,half1), test: data[0].slice(half1, data[0].length)};
-        
-        var outputs = {train: data[1].slice(0, half2), test: data[1].slice(half2, data[1].length)};
-        
-        //Create tensorflow arrays for inputs and outputs.
-        var traindata = hydro1.analyze.nn.convertToTensor(inputs.train, outputs.train);
-
-        var testdata = hydro1.analyze.nn.convertToTensor(inputs.test, outputs.test);
-        
-        //Create a ml model.
-        var mymod = hydro1.analyze.nn.createModel(48, 11, 192)
-
-        //Train the model using the traindata set.        
-        hydro1.analyze.nn.trainModel(mymod, traindata.inputs, traindata.outputs, 1000, 0.19)
-
-        //Create predictions on both the original data and the test data.     
-        var preds = hydro1.analyze.nn.prediction(mymod, traindata.inputs, traindata.outputMin, traindata.outputMax)
-
-        var preds1 = hydro1.analyze.nn.prediction(mymod, testdata.inputs, testdata.outputMin, testdata.outputMax)
-        
-        //Download the predictions as CSV for further manipulation.
-        var finalpreds = [preds,preds1];
-        hydro1.data.download(finalpreds, {type:'CSV'});
-
-        //Download the trained model.
-        hydro1.analyze.nn.savemodel(mymod, "Model_15MIN_48HR");
-
-        /*** End of use case **/
-      }
-    </script>
-    <p class="h4">Case study 2: Rainfall disaggregation using Neural Networks</p>
-    <script
-    src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-  ></script>
-  <script
-    src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-  ></script>
-  <script
-    src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-  ></script>
-  </body>
 </html>

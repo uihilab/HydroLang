@@ -5,17 +5,17 @@ import "../../../modules/tensorflow/tensorflow.js";
  * @class nn
  */
 export default class nn {
-    /**
-     * Neural network sequential model creator. Depends solely on the type
-     * of problem that the user is trying to solve and should be used accordingly.
-     * @method createModel
-     * @memberof nn
-     * @param {number} numinputs - number of data inputs. 
-     * @param {number} numneurons - number of total neurons in the hidden layer.
-     * @param {number} numoutputs - number of neuron ouputs.
-     * @returns {Object} model created based on the specifications.
-     * @example var model = hydro1.analyze.nn.createModel(30, 11, 50)
-     */
+  /**
+   * Neural network sequential model creator. Depends solely on the type
+   * of problem that the user is trying to solve and should be used accordingly.
+   * @method createModel
+   * @memberof nn
+   * @param {number} numinputs - number of data inputs. 
+   * @param {number} numneurons - number of total neurons in the hidden layer.
+   * @param {number} numoutputs - number of neuron ouputs.
+   * @returns {Object} model created based on the specifications.
+   * @example var model = hydro1.analyze.nn.createModel(30, 11, 50)
+   */
 
   static createModel(numinputs, numneurons, numoutputs) {
     const model = tf.sequential();
@@ -55,7 +55,7 @@ export default class nn {
         strides: [1]
       })
     );*/
-    
+
     //flatten the lalayters and reshape the input to (number of samples, number of features)
     /*model.add(
       tf.layers.flatten({})
@@ -63,10 +63,10 @@ export default class nn {
 
     //Add output layer considering only 1 output layer for the training.
     model.add(
-      tf.layers.dense({ 
-        units: numoutputs, 
+      tf.layers.dense({
+        units: numoutputs,
         useBias: true,
-        activation: "sigmoid" 
+        activation: "sigmoid"
       })
     );
 
@@ -74,7 +74,7 @@ export default class nn {
     console.timeEnd("nnmodel");
     return model;
   }
-  
+
   /**
    * Converts data serving as input for either training or calculations into Tensorflow tensors.
    * @method convertToTensor
@@ -114,7 +114,7 @@ export default class nn {
         outputs: normalizedOutputs,
 
         //return the min and max bounds to use afterwards.
-        inputMax : inputMax,
+        inputMax: inputMax,
         inputMin: inputMin,
         outputMax: outputMax,
         outputMin: outputMin,
@@ -140,7 +140,7 @@ export default class nn {
     //temporary solution for the split method to be fixed on the tf.js backend.
     tf.env().set('WEBGL_CPU_FORWARD', false)
 
-    
+
     model.compile({
       loss: "binaryCrossentropy",
       optimizer: "adam",
@@ -155,10 +155,13 @@ export default class nn {
       batchsize,
       epochs: epochs,
       shuffle: true,
-      callbacks: tfvis.show.fitCallbacks(
-        { name: "Training Performance" },
-        ["loss", "mse"],
-        { height: 200, callbacks: ["onEpochEnd"] }
+      callbacks: tfvis.show.fitCallbacks({
+          name: "Training Performance"
+        },
+        ["loss", "mse"], {
+          height: 200,
+          callbacks: ["onEpochEnd"]
+        }
       ),
     });
   }
@@ -192,8 +195,8 @@ export default class nn {
    * @param {String} name - name of model to be saved.
    * @returns {Object} saved model on local storage.
    */
-  
-  static async savemodel (model, name) {
+
+  static async savemodel(model, name) {
     await model.save(`downloads://${name}`);
   }
 }

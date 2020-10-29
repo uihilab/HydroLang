@@ -136,7 +136,7 @@ export default class hydro {
         case "si":
           //longitude in feet and sl as number.
           K = 0.0078;
-          M= 1.44;
+          M = 1.44;
           break;
         case "m":
           //longitude in meters and sl as number
@@ -156,7 +156,11 @@ export default class hydro {
       tc = tov + tch
       tp = 0.7 * tc;
       lag = 0.6 * tc;
-      Object.assign(sol, { TimeConc: tc, TimePeak: tp, LagTime: lag });
+      Object.assign(sol, {
+        TimeConc: tc,
+        TimePeak: tp,
+        LagTime: lag
+      });
     } else if (type == "kerby") {
       var n = params.args.manning;
 
@@ -175,7 +179,10 @@ export default class hydro {
       }
       tp = 0.7 * tc;
       lag = 0.6 * tc;
-      Object.assign(sol, { TimeConc: tc, LagTime: lag });
+      Object.assign(sol, {
+        TimeConc: tc,
+        LagTime: lag
+      });
     }
     console.timeEnd("synthcalc");
     return sol;
@@ -261,23 +268,24 @@ export default class hydro {
    * @returns {Object[]} - n-D array of pulses per hour
    */
 
-   static hyetogen (data) {
-     var event = data.event;
-     var time = event[0]; var rainf = event[1];
+  static hyetogen(data) {
+    var event = data.event;
+    var time = event[0];
+    var rainf = event[1];
 
-     //if timestep in JavaScript string
-     if (typeof time[0] == 'string'){
-       for (var i =0; i < time.length; i++){
-         time[i] = Date.parse(time[i]);
-       };
-     };
+    //if timestep in JavaScript string
+    if (typeof time[0] == 'string') {
+      for (var i = 0; i < time.length; i++) {
+        time[i] = Date.parse(time[i]);
+      };
+    };
 
-     //calculate the time step of the series. 
-     var timestep = Math.abs(time[1] - time[0]);
+    //calculate the time step of the series. 
+    var timestep = Math.abs(time[1] - time[0]);
 
-     var count 
-     
-   }
+    var count
+
+  }
 
   /**
    * Unit hydrograph constructor NRCS constructor depending on the
@@ -300,78 +308,81 @@ export default class hydro {
     var unit = this.matrix(2, duh[0].length, 0);
 
     //unit hydro from dimensionless hydrograph.
-    if (params.type == "dim"){
-    //peak rate factor chosen.
-    var peak = params.config.peak;
+    if (params.type == "dim") {
+      //peak rate factor chosen.
+      var peak = params.config.peak;
 
 
-    //calculate time step.
-    var tconc = params.config.tconcentration;
-    var deltat = Number((tconc * 0.133).toFixed(3));
+      //calculate time step.
+      var tconc = params.config.tconcentration;
+      var deltat = Number((tconc * 0.133).toFixed(3));
 
-    //calculate time to peak and construct result arrays.
-    var tp = deltat / 2 + 0.6 * tconc;
-    var qp = 0;
+      //calculate time to peak and construct result arrays.
+      var tp = deltat / 2 + 0.6 * tconc;
+      var qp = 0;
 
-    //change peak discharge depending on the units.
-    switch (params.units) {
-      case "si":
-        qp = (peak * area * 1) / tp;
-        break;
-      case "m":
-        qp = (peak * area * 1) / tp;
-        break;
-      default:
-        alert("Please input a valid unit system!");
-    };
+      //change peak discharge depending on the units.
+      switch (params.units) {
+        case "si":
+          qp = (peak * area * 1) / tp;
+          break;
+        case "m":
+          qp = (peak * area * 1) / tp;
+          break;
+        default:
+          alert("Please input a valid unit system!");
+      };
 
-    //populate the hydrograph with time and discharge.
-    for (var h = 0; h < unit[0].length; h++) {
-      unit[0][h] = Number((duh[0][h] * tp).toFixed(3));
-      unit[1][h] = Number((duh[1][h] * qp).toFixed(3));
-    };
-    console.timeEnd("unitcons");
-    return unit;
-  }
+      //populate the hydrograph with time and discharge.
+      for (var h = 0; h < unit[0].length; h++) {
+        unit[0][h] = Number((duh[0][h] * tp).toFixed(3));
+        unit[1][h] = Number((duh[1][h] * qp).toFixed(3));
+      };
+      console.timeEnd("unitcons");
+      return unit;
+    }
 
-  //unit hydro from observed hydrograph.
-  else if (params.type == "obs"){
+    //unit hydro from observed hydrograph.
+    else if (params.type == "obs") {
 
-    var baseflow = params.config.baseflow;
-    var drh = this.matrix(1, duh[0].length, 0);
-    unit[0] = duh[0];
-    //timestep in hours
-    var timestep = Math.abs(unit[0][1] - unit[0][0]) * 60 * 60;
+      var baseflow = params.config.baseflow;
+      var drh = this.matrix(1, duh[0].length, 0);
+      unit[0] = duh[0];
+      //timestep in hours
+      var timestep = Math.abs(unit[0][1] - unit[0][0]) * 60 * 60;
 
-    console.log(unit)
+      console.log(unit)
 
-    for (var i =0; i < unit[0].length; i++) {
-      drh[i] = Math.abs(duh[1][i] - baseflow);
-    };
-    
-    var sum = this.totalprec(drh) * timestep;
-    var vol = 0;
+      for (var i = 0; i < unit[0].length; i++) {
+        drh[i] = Math.abs(duh[1][i] - baseflow);
+      };
 
-    switch (params.units) {
-      case "si":
-        //calculated in inches
-        vol = Math.round((sum / area) * 12);
-        break;
-      case "m":
-        //calculated in cms
-        vol = Math.round((sum / area) * 100);
-    };
-    
-    for (var j = 0; j < unit[0].length; j++){
-      //unit hydrograph in cfs/inch or cumecs/cm
-      unit[1][j] = Math.round((drh[j] / vol))
-    };
+      var sum = this.totalprec(drh) * timestep;
+      var vol = 0;
 
-    unit[1].reverse();
-    
-    console.timeEnd("unitcons");
-    return {unithydro: unit, totalvol: vol};
-  }
+      switch (params.units) {
+        case "si":
+          //calculated in inches
+          vol = Math.round((sum / area) * 12);
+          break;
+        case "m":
+          //calculated in cms
+          vol = Math.round((sum / area) * 100);
+      };
+
+      for (var j = 0; j < unit[0].length; j++) {
+        //unit hydrograph in cfs/inch or cumecs/cm
+        unit[1][j] = Math.round((drh[j] / vol))
+      };
+
+      unit[1].reverse();
+
+      console.timeEnd("unitcons");
+      return {
+        unithydro: unit,
+        totalvol: vol
+      };
+    }
   }
 
   /**
@@ -394,136 +405,134 @@ export default class hydro {
     const unit = params.unithydro;
     var baseflow = params.baseflow;
 
-    if(!params.baseflow) {
+    if (!params.baseflow) {
       baseflow = 0;
     };
 
-    if (params.type == "SCS"){
-    const cn = params.cn;
-    const stormdur = params.stormduration;
-    const timestep = params.timestep;
+    if (params.type == "SCS") {
+      const cn = params.cn;
+      const stormdur = params.stormduration;
+      const timestep = params.timestep;
 
-    //transform the date into javascript format.
+      //transform the date into javascript format.
 
-    //create arrays for calculation of runoff
-    var numarray = Math.round(stormdur / timestep);
-    var finalcount = numarray + unit[0].length;
-    var sc = 0;
-    var accumrainf = this.matrix(2, rain[1].length, 0);
-    accumrainf[0] = rain[0];
-    var accumrunff = this.matrix(2, rain[1].length, 0);
-    accumrunff[0] = rain[0];
-    var incrementrunff = this.matrix(2, rain[1].length, 0);
-    incrementrunff[0] = rain[0];
-    var hydros = this.matrix(stormdur, finalcount, 0);
-    var finalhydro = this.matrix(2, finalcount, 0);
+      //create arrays for calculation of runoff
+      var numarray = Math.round(stormdur / timestep);
+      var finalcount = numarray + unit[0].length;
+      var sc = 0;
+      var accumrainf = this.matrix(2, rain[1].length, 0);
+      accumrainf[0] = rain[0];
+      var accumrunff = this.matrix(2, rain[1].length, 0);
+      accumrunff[0] = rain[0];
+      var incrementrunff = this.matrix(2, rain[1].length, 0);
+      incrementrunff[0] = rain[0];
+      var hydros = this.matrix(stormdur, finalcount, 0);
+      var finalhydro = this.matrix(2, finalcount, 0);
 
-    // change calculations depending on units.
-    switch (params.units) {
-      case "si":
-        sc = 1000 / cn - 10;
-        break;
-      case "m":
-        sc = 25400 / cn - 254;
-        break;
-      default:
-        alert("Please use a correct unit system!");
-    }
-
-    //add accumulative rainfall and calculate initial abstraction.
-    var iniabs = 0.2 * sc;
-    rain[1]
-      .slice()
-      .reduce((prev, curr, i) => (accumrainf[1][i] = prev + curr), 0);
-
-    //add runoff calculations.
-    for (var i = 0; i < numarray; i++) {
-      if (accumrainf[1][i] > 0) {
-        accumrunff[1][i] =
-          Math.pow(accumrainf[1][i] - iniabs, 2) /
-          (accumrainf[1][i] - iniabs + sc);
-      } else {
-        accumrunff[1][i] = 0;
+      // change calculations depending on units.
+      switch (params.units) {
+        case "si":
+          sc = 1000 / cn - 10;
+          break;
+        case "m":
+          sc = 25400 / cn - 254;
+          break;
+        default:
+          alert("Please use a correct unit system!");
       }
-      incrementrunff[1][i] = Number(
-        (Math.abs(accumrunff[1][i] - accumrunff[1][i - 1]) || 0).toFixed(3)
-      );
-    }
 
-    //create composite hydrograph.
-    for (var j = 0; j < hydros[0].length; j++) {
-      hydros[0][j] = Number(
-        (incrementrunff[1][j] * unit[1][j] || 0).toFixed(3)
-      );
-      finalhydro[0][j] = Number(finalhydro[0][j] + timestep);
-    }
+      //add accumulative rainfall and calculate initial abstraction.
+      var iniabs = 0.2 * sc;
+      rain[1]
+        .slice()
+        .reduce((prev, curr, i) => (accumrainf[1][i] = prev + curr), 0);
 
-    //populate the moving hydrographs
-    for (var h = 1; h < hydros.length; h++) {
-      for (var k = 0; k < hydros[0].length; k++) {
-        hydros[h][k + h] = Number(hydros[0][k].toFixed(3));
-        finalhydro[1][k] = Number(hydros[h][k].toFixed(3)) + baseflow;
+      //add runoff calculations.
+      for (var i = 0; i < numarray; i++) {
+        if (accumrainf[1][i] > 0) {
+          accumrunff[1][i] =
+            Math.pow(accumrainf[1][i] - iniabs, 2) /
+            (accumrainf[1][i] - iniabs + sc);
+        } else {
+          accumrunff[1][i] = 0;
+        }
+        incrementrunff[1][i] = Number(
+          (Math.abs(accumrunff[1][i] - accumrunff[1][i - 1]) || 0).toFixed(3)
+        );
       }
-    }
 
-    //accumulate timespan for cumulative hydrograph.
-    finalhydro[0]
-      .slice()
-      .reduce(
-        (prev, curr, i) =>
+      //create composite hydrograph.
+      for (var j = 0; j < hydros[0].length; j++) {
+        hydros[0][j] = Number(
+          (incrementrunff[1][j] * unit[1][j] || 0).toFixed(3)
+        );
+        finalhydro[0][j] = Number(finalhydro[0][j] + timestep);
+      }
+
+      //populate the moving hydrographs
+      for (var h = 1; h < hydros.length; h++) {
+        for (var k = 0; k < hydros[0].length; k++) {
+          hydros[h][k + h] = Number(hydros[0][k].toFixed(3));
+          finalhydro[1][k] = Number(hydros[h][k].toFixed(3)) + baseflow;
+        }
+      }
+
+      //accumulate timespan for cumulative hydrograph.
+      finalhydro[0]
+        .slice()
+        .reduce(
+          (prev, curr, i) =>
           (finalhydro[0][i] = Number((prev + curr).toFixed(2), 0))
-      );
+        );
 
-    for (var p = 0; p < finalhydro[1].length; p++) {
+      for (var p = 0; p < finalhydro[1].length; p++) {
         finalhydro[1][p] = finalhydro[1][p];
-    }
-
-    finalhydro[1].reverse();
-    
-    console.timeEnd("floodhydro");
-    return finalhydro;
-  }
-
-  else if (params.type == "obs") {
-    var hydros = [];
-    var timestep = Math.abs(rain[0][1] - rain[0][0]);
-
-    //calculate the runoff per pulse.
-    for (var i = 0; i < rain[1].length; i++) {
-      var neq = [];
-      for (var j = 0; j < unit[1].length - 1; j++) {
-        neq.push(unit[1][j] * rain[1][i]);
       }
-      hydros.push(neq)
-    };
 
-    var final = this.matrix(2, unit[1].length + hydros.length, 0);
+      finalhydro[1].reverse();
 
-    //zeros up
-    for(var k = 0; k < hydros.length; k++) {
-      var zeros = new Array(timestep * hydros.indexOf(hydros[k])).fill(0);
-      zeros.forEach(x => hydros[k].unshift(x));
-      hydros[k].shift();
-    };
+      console.timeEnd("floodhydro");
+      return finalhydro;
+    } else if (params.type == "obs") {
+      var hydros = [];
+      var timestep = Math.abs(rain[0][1] - rain[0][0]);
 
-    //zeros down
-    for (var l = 0; l < hydros.length; l++) {
-      var finalarr = hydros[hydros.length - 1].length;
-      var zeros = new Array(finalarr - hydros[l].length).fill(0);
-      zeros.forEach(x => hydros[l].push(x))
-    };
+      //calculate the runoff per pulse.
+      for (var i = 0; i < rain[1].length; i++) {
+        var neq = [];
+        for (var j = 0; j < unit[1].length - 1; j++) {
+          neq.push(unit[1][j] * rain[1][i]);
+        }
+        hydros.push(neq)
+      };
 
-    final[1] = hydros[0].map((x,i) => hydros.reduce((sum, curr) => sum + curr[i], baseflow));
+      var final = this.matrix(2, unit[1].length + hydros.length, 0);
 
-    //time and discharge sum
-    for (var p = 0; p < final[1].length; p++) {
-      final[0][p] = p;
-    };
+      //zeros up
+      for (var k = 0; k < hydros.length; k++) {
+        var zeros = new Array(timestep * hydros.indexOf(hydros[k])).fill(0);
+        zeros.forEach(x => hydros[k].unshift(x));
+        hydros[k].shift();
+      };
 
-    console.timeEnd("floodhydro");    
-    return final;
+      //zeros down
+      for (var l = 0; l < hydros.length; l++) {
+        var finalarr = hydros[hydros.length - 1].length;
+        var zeros = new Array(finalarr - hydros[l].length).fill(0);
+        zeros.forEach(x => hydros[l].push(x))
+      };
+
+      final[1] = hydros[0].map((x, i) => hydros.reduce((sum, curr) => sum + curr[i], baseflow));
+
+      //time and discharge sum
+      for (var p = 0; p < final[1].length; p++) {
+        final[0][p] = p;
+      };
+
+      console.timeEnd("floodhydro");
+      return final;
+    }
   }
-}
 
 
 
@@ -746,16 +755,16 @@ export default class hydro {
       var lastval = 0;
 
       if (typeof event[0][0] == "string") {
-      time = Math.abs(datetr[0][0])
-      timestep = Math.abs((datetr[0][0] - datetr[0][1]) / (60 * 1000));
-      lastval = Math.abs(
-        (datetr[0][0] - datetr[0][datetr[0].length - 1]) / (60 * 1000)
-      );
-    } else {
-      time = Math.abs(datetr[0][0]);
-      timestep = Math.abs((datetr[0][0] - datetr[0][1]));
-      lastval = Math.abs(datetr[0][datetr[0].length - 1])
-    }
+        time = Math.abs(datetr[0][0])
+        timestep = Math.abs((datetr[0][0] - datetr[0][1]) / (60 * 1000));
+        lastval = Math.abs(
+          (datetr[0][0] - datetr[0][datetr[0].length - 1]) / (60 * 1000)
+        );
+      } else {
+        time = Math.abs(datetr[0][0]);
+        timestep = Math.abs((datetr[0][0] - datetr[0][1]));
+        lastval = Math.abs(datetr[0][datetr[0].length - 1])
+      }
 
       //amount of steps required and length of each step.
       var count = Math.round(finagg / timestep);
@@ -770,13 +779,13 @@ export default class hydro {
       for (var j = 0; j < narr * count; j += count) {
         var minitime = datetr[0].slice(j, j + count);
         var minidata = datetr[1].slice(j, j + count);
-        if (typeof event[0][0] == "string"){
-        fintime.push(
-          new Date(this.totalprec(minitime) - time).toLocaleTimeString()
-        );
-      } else {
-        fintime.push(j);
-      }
+        if (typeof event[0][0] == "string") {
+          fintime.push(
+            new Date(this.totalprec(minitime) - time).toLocaleTimeString()
+          );
+        } else {
+          fintime.push(j);
+        }
         findata.push(this.totalprec(minidata));
       }
       console.timeEnd("aggr")

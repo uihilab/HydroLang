@@ -2,16 +2,16 @@
 <html>
 
 <head>
-  <link
-  rel="stylesheet"
-  href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-/>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" />
   <title>Hydrolang</title>
   <script type="module" onload="initHydrolang()" src="../hydrolang/hydro.js"></script>
 </head>
 <style>
   #map {
-    height: 400px; width :800px; margin-left:auto; margin-right:auto;
+    height: 400px;
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
   }
 </style>
 
@@ -172,15 +172,15 @@
       hydro2.map.Layers(geoconfig2);
 
       //Example for adding different markers into the map.
-var marker = {
-  maptype: "osm",
-  layertype: {
-    type: "marker",
-    markertype: "marker",
-    coord: [14.035344, -87.192993], //coordinates must be passed as arrays.
-    name: "1st marker"
-  }
-};
+      var marker = {
+        maptype: "osm",
+        layertype: {
+          type: "marker",
+          markertype: "marker",
+          coord: [14.035344, -87.192993], //coordinates must be passed as arrays.
+          name: "1st marker"
+        }
+      };
 
       hydro2.map.Layers(marker);
 
@@ -197,7 +197,7 @@ var marker = {
       //Example for removing a certain layer or element from the map
       var remove = {
         maptype: "osm",
-        layertype: { 
+        layertype: {
           type: "removelayers",
           name: "polygonlayer" //important, the layers are removed using the name given. 
         },
@@ -208,16 +208,11 @@ var marker = {
 
     }
   </script>
-    <p class="h4">Basic example of map module!</p>
+  <p class="h4">Basic example of map module!</p>
 
-    <script
-      src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-    ></script>
-    <script
-      src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-    ></script>
-  </body>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</body>
+
 </html>
