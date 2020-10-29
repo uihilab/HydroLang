@@ -49,7 +49,7 @@
         var testdata = hydro1.analyze.nn.convertToTensor(inputs.test, outputs.test);
         
         //Create a ml model.
-        var mymod = hydro1.analyze.nn.createModel(48, 11, 191)
+        var mymod = hydro1.analyze.nn.createModel(48, 11, 192)
 
         //Train the model using the traindata set.        
         hydro1.analyze.nn.trainModel(mymod, traindata.inputs, traindata.outputs, 1000, 0.19)
@@ -60,11 +60,11 @@
         var preds1 = hydro1.analyze.nn.prediction(mymod, testdata.inputs, testdata.outputMin, testdata.outputMax)
         
         //Download the predictions as CSV for further manipulation.
-        hydro1.data.download([preds], 'CSV');
-        hydro1.data.download([preds2], 'CSV');
+        var finalpreds = [preds,preds1];
+        hydro1.data.download(finalpreds, {type:'CSV'});
 
         //Download the trained model.
-        hydro1.analyze.nn.savemodel(mymod, "Model1");
+        hydro1.analyze.nn.savemodel(mymod, "Model_15MIN_48HR");
 
         /*** End of use case **/
       }
