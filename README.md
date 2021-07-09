@@ -10,6 +10,7 @@
 * [Scalability and To Do's](https://github.com/uihilab/HydroLang#Scalability-and-To-Dos)
 * [License](https://github.com/uihilab/HydroLang#License)
 * [Acknowledgements](https://github.com/uihilab/HydroLang#Acknowledgements)
+* [References](#references)
 
 ## Introduction
 This project introduces HydroLang, a web-based framework for environmental and hydrological analyses. It contains 4 different modules, each with a specific purpose that can be used either in combination with other modules or separately. The modules are:
@@ -93,3 +94,6 @@ This project is developed by the University of Iowa Hydroinformatics Lab (UIHI L
 
 https://hydroinformatics.uiowa.edu/.
 
+## References
+
+* Ramirez, C.E., Sermet, Y., Molkenthin, F. and Demir, I., 2021. HydroLang: An Open-Source Web-Based Programming Framework for Hydrological Sciences. https://doi.org/10.31223/X5M31D
