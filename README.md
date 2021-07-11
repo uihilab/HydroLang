@@ -6,6 +6,7 @@
 * [Introduction](https://github.com/uihilab/HydroLang#Introduction)
 * [How to Use](https://github.com/uihilab/HydroLang#How-to-Use)
 * [Test Examples](https://github.com/uihilab/HydroLang#Test-Examples)
+* [Community](https://github.com/uihilab/HydroLang#Community)
 * [Feedback](https://github.com/uihilab/HydroLang#Feedback)
 * [Scalability and To Do's](https://github.com/uihilab/HydroLang#Scalability-and-To-Dos)
 * [License](https://github.com/uihilab/HydroLang#License)
@@ -76,6 +77,13 @@ Examples on how to use the library can be found within the following files:
 
 For argument examples for a specific function, please refer to the library's [documentation page](https://hydro-lang.herokuapp.com/index.html).
 
+## Community
+The flexibility of using a modular architecture, open-source libraries, and not requiring installation provides a unique opportunity for scalability and upgrades, thus, creating the potential for the library to grow by becoming a community-based framework with collaborations from research institutions or individuals with expertise. HydroLang can be customized and extended by interested parties to suit for specific use cases, development environments, project requirements, and data resources. We encourage everyone to help extend HydroLang by either:
+* filing an issue to request certain features, functionality, and data,
+* implementing the desired capability on a fork, and submitting a pull request.
+
+Furthermore, for community building, we encourage users of HydroLang to share their models, codes, and case studies on [HydroLang-Models repository](https://github.com/uihilab/HydroLang-Models).
+
 ## Feedback
 Please feel free to send feedback to us on any issues found by filing an issue.
 
@@ -87,7 +95,6 @@ The framework is not limited to the functions and modules implemented, but rathe
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/uihilab/HydroLang/blob/master/LICENSE) file for details.
-
 
 ## Acknowledgements
 This project is developed by the University of Iowa Hydroinformatics Lab (UIHI Lab):
