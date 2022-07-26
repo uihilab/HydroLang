@@ -35,7 +35,7 @@
       var prox1 = "https://yacdn.org/serve/"
 
       //retrieve data from usgs
-      dataRetrievalParams1 = {
+      var dataRetrievalParams1 = {
         source: "usgs",
         dataType: "instant-values",
         arguments: {
@@ -159,6 +159,7 @@
         token: tokital,
       };
 
+      //Callback function used after the data has been retrived
       function handleWaterData(data) {
         var x = data;
         console.log(data);
@@ -167,8 +168,9 @@
       }
 
       console.time("dataRetrieval");
-      //Obtain data from the source. Verify the requirement for
+      //Obtain data from the source. Verify the requirements from within Hydrolang included sources.
       var x1 = hydro1.data.retrieve(dataRetrievalParams1, handleWaterData);
+
 
 
       var configu = {

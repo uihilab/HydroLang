@@ -4,7 +4,7 @@
 <head>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" />
   <title>Hydrolang</title>
-  <script type="module" onload="initHydrolang()" src="../hydrolang/hydro.js"></script>
+  <script type="module" onload="initHydrolang()" src="../../hydrolang/hydro.js"></script>
 </head>
 <style>
   #map {
@@ -28,6 +28,10 @@
 
       //List of Commands
 
+      /**********************************/
+      /*** Deconvolutioned Synthetic Hydrograph **/
+      /*** Upper Roanoke Basin **/
+      /**********************************/
       //retrieve data from usgs
       dataRetrievalParams1 = {
         source: "usgs",
@@ -54,7 +58,7 @@
       var x1 = hydro1.data.retrieve(dataRetrievalParams1, handleWaterData);
 
       //Calculator for time of concentration
-      synt1 = {
+      var synt1 = {
         type: "SCS",
         unit: "si",
         args: {
@@ -173,6 +177,15 @@
         model6hr[1][i] = model6hr[1][i] / 6
       };
 
+      
+      /**********************************/
+      /*** End of use case **/
+      /**********************************/
+
+      /**********************************/
+      /*** Bucket Model on Morland Basin **/
+      /**********************************/
+
       //Upload Moorland data and create variable for bucket model
       console.time("upload");
       var moorland = hydro1.data.upload('CSV');
@@ -180,10 +193,6 @@
       var rainfall = moorland[1];
       var obsrunoff = moorland[3];
       var evapo = moorland[2];
-
-      var tots = [];
-      tots.push(moorland[0]);
-      tots.push(obsrunoff);
 
       var baseflow = 0.5;
       var infiltration = 0.04;
@@ -208,6 +217,7 @@
       console.time("bucket");
       console.time("aggr");
       var bucket = hydro1.analyze.hydro.bucketmodel(dataBucketModel);
+      var bucketresult = [[...Array(bucket.length+1).keys()].slice(1), bucket]
 
       console.time("styles");
       hydro1.visualize.styles({
@@ -220,13 +230,40 @@
         }
       });
 
-      //Aggregating rainfall data to 24 hours
+      //Aggregating rainfall data to 24 hours for bucket model result
       console.time("aggr");
-      var observ = hydro1.analyze.hydro.rainaggr({
-        "event": tots,
+      var model = hydro1.analyze.hydro.rainaggr({
+        "event": bucketresult,
         "agg": {
           "type": "aggr",
           "interval": 24
+        }
+      });
+
+      //Aggregating rainfall data to 24 hours for bucket model result
+      var real = hydro1.analyze.hydro.rainaggr({
+        "event": [bucketresult[0], moorland[3]],
+        "agg": {
+          "type": "aggr",
+          "interval": 24
+        }
+      });
+
+      //Push the aggregated results into a single one
+      model.push(realagg[1])
+
+      //Creating new arrays for holding the series results
+      var obs24 = []
+      obs24.push()
+
+      //Visualize the results and obs values
+      hydro1.visualize.styles({
+        data: buckagg,
+        draw: "chart",
+        config: {
+          chart: "line",
+          div: "4",
+          title: "Real vs Obs"
         }
       });
 
@@ -252,7 +289,10 @@
         type: "agreement"
       })
 
+      
+      /**********************************/
       /*** End of use case **/
+      /**********************************/
     }
   </script>
   <p class="h4">Case study 1: evaluation of lumped models on small and medium size basins</p>

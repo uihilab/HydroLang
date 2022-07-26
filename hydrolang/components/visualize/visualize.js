@@ -23,7 +23,7 @@ function chart(params) {
   ensureGoogleChartsIsSet().then(function () {
     var container = document.createElement("div");
     container.id = params.divID;
-    container.title = `Graph of ${container.id}`;
+    container.title = `${container.id}`;
     container.className = "figure";
     container.style = "width: 1000px; height: 500px";
     document.body.appendChild(container);
@@ -44,15 +44,27 @@ function chart(params) {
         data = googlecharts.visualization.arrayToDataTable(dt);
         break;
 
-      case "column":
-        var dt;
-        if (d[0].length !== 2) {
-          dt = stats.arrchange(d);
-        } else {
-          dt = d
-        }
+      case ("column" || "combo"):
 
-        data = googlecharts.visualization.arrayToDataTable(dt);
+        d = stats.arrchange(d)
+
+
+        var temp = [];
+        for (var k=0; k < d[0].length; k++){
+          temp.push(`Value${k}`)
+        }
+        d.unshift(temp)
+
+        // var dt;
+        // if (d[0].length !== 2) {
+        //   dt = stats.arrchange(d);
+        // } else {
+        //   dt = d
+        // }
+
+        console.log(d)
+
+        data = googlecharts.visualization.arrayToDataTable(d);
         break;
 
 
@@ -70,20 +82,20 @@ function chart(params) {
       case ("line" || "timeline"):
         data = new tableData.data();
 
-        if (typeof d[0][1] === 'string') {
-          data.addColumn("date", d[0][0]);
-          data.addColumn("number", d[1][0]);
+        d = stats.arrchange(d)
 
-          for (var i = 1; i < d[0].length; i++) {
-            data.addRow([new Date(Date.parse(d[0][i])), d[1][i]]);
-          }
-        } else {
-          data.addColumn("number", d[0][0]);
-          data.addColumn("number", d[1][0]);
+        var temp = [];
+        for (var k=0; k < d[0].length; k++){
+          temp.push(`Value${k}`)
+        }
+        d.unshift(temp)
 
-          for (var i = 1; i < d[0].length; i++) {
-            data.addRow([d[0][i], d[1][i]]);
-          }
+        for (var j = 0; j < d[0].length; j++){
+          data.addColumn(typeof d[1][j], d[0][j]); 
+        }
+
+        for (var i = 1; i < d.length; i++) {
+          data.addRow(d[i]);
         }
         break;
 
@@ -179,10 +191,10 @@ function styles(params) {
   var d = stats.copydata(params.data);
 
   if (type === "chart") {
-    if (d.length == 2) {
-      d[0].unshift('Duration')
-      d[1].unshift('Amount')
-    }
+    // d[0].unshift('Duration')
+    // for (var k =1; k < d.length; k++){
+    //   d[k].unshift(`Amounts${k}`)      
+    // }
 
     var charts = params.config.chart;
     switch (charts) {
@@ -198,9 +210,12 @@ function styles(params) {
             legend: {
               position: "top"
             },
+            vAxis: {title: params.config.yaxis},
+            haxis: {title: params.config.xaxis},
             bar: {
               groupWidth: "95%"
             },
+            fontName: "Calibri",
             explorer: {
               actions: ["dragToZoom", "rightClickToReset"]
             },
@@ -223,10 +238,14 @@ function styles(params) {
             legend: {
               position: "bottom",
             },
+            vAxis: {title: params.config.yaxis},
+            haxis: {title: params.config.xaxis},
             style: {
               height: 500,
               width: 900,
             },
+            fontName: "Calibri",
+            //pointSize: 10,
           },
         };
         break;
@@ -241,6 +260,8 @@ function styles(params) {
             legend: {
               position: "bottom",
             },
+            vAxis: {title: params.config.yaxis},
+            haxis: {title: params.config.xaxis},
             crosshair: {
               tigger: "both",
               orientation: "both"
@@ -252,6 +273,7 @@ function styles(params) {
                 visibleInLegend: true,
               },
             },
+            fontName: "Calibri",
           },
         };
         break;
@@ -265,6 +287,7 @@ function styles(params) {
             dateFormat: 'HH:mm MMMM dd, yyyy',
             thickness: 1
           },
+          fontName: "Calibri",
         }
         break;
 
