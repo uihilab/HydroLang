@@ -1,5 +1,5 @@
 <p align="center">
-    <img width="350" src = https://github.com/uihilab/HydroLang/blob/master/hydrolang/images/logo_v1.0.0.png>
+    <img width="350" src = https://github.com/uihilab/HydroLang/blob/master/hydrolang/images/logo_v1.1.0.png>
  </p>
 
 ## Table of Contents
