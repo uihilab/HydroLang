@@ -1,5 +1,5 @@
 <p align="center">
-    <img width="350" src = https://github.com/uihilab/HydroLang/blob/master/hydrolang/images/logo_v1.1.0.png>
+    <img width="550" src = https://github.com/uihilab/HydroLang/blob/master/hydrolang/images/logo_v1.1.0.png>
  </p>
 
 ## Table of Contents
@@ -30,16 +30,13 @@ Please download the library and run `index.html`. If a new html file should be c
 ```html
 <script
  type = "module"
- onload= "initHydrolang()"
  src= "./hydrolang/hydro.js"
 ></script>
 ```
 
 Once the library is loaded, a new intance of HydroLang is added to the body of the file as:
 ```javascript
-function initHydrolang(){
 var hydro1 = new Hydrolang();
-}
 ```
 A configuration object can be passed to define the metric system and desired map engine to use, but is not mandatory.
 
@@ -47,29 +44,40 @@ A configuration object can be passed to define the metric system and desired map
 const config = {metricSystem: "si", mapType: "osm"};
 hydro1.setConfig(config);
 ```
-Each of the modules is accessed through chainage using the new `hydro1` variable. Functions on the third level chainage have been declared as static methods and thus, will not appear as quick access on the browser.
+Each of the modules is accessed through chainage using the `hydro` class instance. Functions on the third level chainage have been declared as static methods and thus, will not appear as quick access on the browser.
+
+Parameter destructuring has been added to most driving function within the framework to create an easier way to declare workflows. The destructuring is driven mainly in the following scope:
+
+```javascript
+hydro[module][function]({params:{}, args:{}, data: []})
+```
+`params:{}` represents an object with initial drivers for a specific function, `args:{}` is an object with additional parameters required for the function, and `data` is any data representation, usually an `n-D` array, for the function to run. For instance, in the data retrieval funtion:
+```javascript
+hydro.data.retrieve({params:{source: someSource, dataType: someType}, args:{specificArg: someArg}})
+``` 
+The function definition found in the documentation states which parameters are required.
 
 Summary examples for each module:
 * Function call for data module
 ```javascript 
-var example: hydro1.data.function(args) 
+var example: hydro1.data.function({params: {}, args:{}, data: []}) 
 ```
 * Function call for any component on the analyze module
 ```javascript 
-var example: hydro1.analyze.component.function(args) 
+var example: hydro1.analyze.component.function({params: {}, args:{}, data: []}) 
 ```
 * Function call for visualization module
 ```javascript 
-var example: hydro1.visualize.function(args) 
+var example: hydro1.visualize.function({params: {}, args:{}, data: []}) 
 ```
 * Function call for maps module
 ```javascript 
-var example: hydro1.map.function(args) 
+var example: hydro1.map.function({params: {}, args:{}, data: []}) 
 ```
 
 
 ## Test Examples
-Examples on how to use the library can be found within the following files:
+Examples on how to use the library can be found within the following files or within each module folder:
 * `test-analysis.html`
 * `test-data.html`
 * `test-maps.html`
