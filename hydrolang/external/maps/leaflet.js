@@ -2,7 +2,7 @@ import $ from "../jquery/jquery.js";
 
 /**
  * Imports Leaflet map engine.
- * @class leafletosmapi
+ * @external leafletosmapi
  */
 class leafletosmapi {
   constructor() {

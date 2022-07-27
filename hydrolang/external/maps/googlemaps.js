@@ -2,7 +2,7 @@ import $ from "../jquery/jquery.js";
 
 /**
  * Imports Google Maps API. A key is necessary for usage of the engine.
- * @class googlemapsapi
+ * @external googlemapsapi
  */
 
 class googlemapsapi {

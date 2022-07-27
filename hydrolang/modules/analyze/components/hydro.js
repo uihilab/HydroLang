@@ -1,5 +1,4 @@
-import "../../../modules/tensorflow/tensorflow.js";
-
+import "../../../external/tensorflow/tensorflow.js";
 
 /**
  * Main class used for hydrological analyses.
@@ -10,13 +9,14 @@ export default class hydro {
    * Computation of aereal mean precipitation for a river basin given it has 2 or more different stations.
    * @method arithmetic
    * @memberof hydro
-   * @param {Object[]} data - array object with precipitation with equal amounts of data from different rain gauges.
-   * @example object types: raingages[0] = [1, 2, 3, 4]; raingages[1] = [2, 3, 5, 2];
-   * @returns {Object[]} array with object with average precipitaiton for a specific time series.
-   * @example var arithprecs = hydro1.analyze.hydro.arithmetic(raingages);
+   * @param {Object} data - Contains: array object with precipitation with equal amounts of data from different rain gauges.
+   * @returns {Object} Array with object with average precipitation for a specific time series.
+   * @example
+   * hydro.analyze.hydro.arithmetic({data: [[1, 2, 3, 4], [2, 3, 5, 2]]});
    */
 
-  static arithmetic(arr) {
+  static arithmetic({ params, args, data } = {}) {
+    var arr = data;
     var average = [];
     var final = [];
     var n = arr.length;
@@ -32,7 +32,6 @@ export default class hydro {
         return el != null;
       });
     }
-    console.timeEnd("arithmetic");
     return filtered;
   }
 
@@ -41,24 +40,20 @@ export default class hydro {
    * one station per sub basin.
    * @method thiessen
    * @memberof hydro
-   * @param {Object} data - object describing the time series data and area per subbasin.
-   * @returns {Object[]} array with time series of average precipitation over a whole basin.
+   * @param {Object} params - Contains: rainfall(nD-JS array), areas (1d-JS array)
+   * @returns {Object[]} Array with time series of average precipitation over a whole basin.
    * @example
-   * var thiessenprec = [[1,2,1,2,3], [1,2,34,1,2], [2,4,3,1,4]];
-   * var thiessenareas = [30,40,30];
-   * thiessendata = {
-   * rainfall: thiessenprec,
-   * areas: thiessenareas,
-    };
-    var thiessenpol = hydro1.analyze.hydro.thiessen(thiessendata)
+   * hydro.analyze.hydro.thiessen({params: {rainfall:[[1,2,1,2,3], [1,2,34,1,2], [2,4,3,1,4]], areas: [30,40,30]}})
    */
 
-  static thiessen(data) {
-    var precs = data.rainfall;
-    var areas = data.areas;
-    var totarea = this.totalprec(areas);
-    var res = this.matrix(precs.length, areas.length, 0);
-    var out = this.matrix(1, precs[0].length, 0);
+  static thiessen({ params, args, data } = {}) {
+    var precs = params.rainfall;
+    var areas = params.areas;
+    var totarea = this.totalprec({ data: areas });
+    var res = this.matrix({
+      params: { m: precs.length, n: areas.length, d: 0 },
+    });
+    var out = this.matrix({ params: { m: 1, n: precs[0].length, d: 0 } });
 
     for (var i = 0; i < precs.length; i++) {
       for (var j = 0; j < precs[0].length; j++) {
@@ -66,7 +61,6 @@ export default class hydro {
         out[j] = +res[i][j] / totarea;
       }
     }
-    console.timeEnd("thiessen");
     return out;
   }
 
@@ -76,19 +70,18 @@ export default class hydro {
    * All times of concentrations and lags time are calculated in hours
    * @method syntheticalc
    * @memberof hydro
-   * @param {Object} params - Specifications for calculations.
-   * @returns {Object} calculations depending on type.
+   * @param {Object} params - Contains: type (SCS, kerby-kirpich, kerby), unit (si, m)
+   * @param {Object} args - Contains: l (length), slope (percentage), cn (curve number)
+   * @returns {Object} Calculations depending on type.
    * @example
-   * params = {type: "SCS",unit: "si",
-   * args: {L: 4000,slope: 10, cn: 82}}
-   * returns = {MaxRetention: 2.1951219512195124, TimeConc: 0.4763041318819232, LagTime: 0.28578247912915394}
+   * hydro.analyze.hydro.thiessen({params: {type: "SCS",unit: "si"}, args: {L: 4000,slope: 10, cn: 82}})
    */
 
-  static syntheticalc(params) {
+  static syntheticalc({ params, args, data } = {}) {
     //imports from parameters.
     var type = params.type;
-    var lon = params.args.L;
-    var sl = params.args.slope;
+    var lon = args.l;
+    var sl = args.slope;
     var units = params.unit;
 
     //Varibles that are to be calculated as solutions.
@@ -97,9 +90,9 @@ export default class hydro {
     //Object containing the solutions for the request.
     var sol = new Object();
 
-    if (type == "SCS") {
+    if (type === "SCS") {
       var sc = 0;
-      var CN = params.args.CN;
+      var CN = args.cn;
 
       switch (units) {
         //longitude in feet, tc in hours, sl in percentage, sc in inches.
@@ -120,18 +113,20 @@ export default class hydro {
         (Math.pow(lon, 0.8) * Math.pow(sc + 1, 0.7)) /
         (1140 * Math.pow(sl, 0.5));
       tp = 0.7 * tc;
-      lag = (Math.pow(lon, 0.8) * Math.pow(sc + 1, 0.7)) / (1900 * Math.pow(sl, 0.5));
+      lag =
+        (Math.pow(lon, 0.8) * Math.pow(sc + 1, 0.7)) /
+        (1900 * Math.pow(sl, 0.5));
       Object.assign(sol, {
         MaxRetention: sc,
         TimeConc: tc,
         TimePeak: tp,
         LagTime: lag,
       });
-    } else if (type == "kerby-kirpich") {
+    } else if (type === "kerby-kirpich") {
       var K = 0;
       var M = 0;
-      var N = params.args.N;
-      var sch = params.args.sch;
+      var N = args.N;
+      var sch = args.sch;
       switch (units) {
         case "si":
           //longitude in feet and sl as number.
@@ -141,7 +136,7 @@ export default class hydro {
         case "m":
           //longitude in meters and sl as number
           K = 0.0195;
-          M = 0.828
+          M = 0.828;
           break;
         default:
           alert("Please use a correct unit system!");
@@ -153,16 +148,16 @@ export default class hydro {
       var tch = (K * Math.pow(lon, 0.77) * Math.pow(sl / 100, -0.385)) / 60;
 
       //summing both up.
-      tc = tov + tch
+      tc = tov + tch;
       tp = 0.7 * tc;
       lag = 0.6 * tc;
       Object.assign(sol, {
         TimeConc: tc,
         TimePeak: tp,
-        LagTime: lag
+        LagTime: lag,
       });
-    } else if (type == "kerby") {
-      var n = params.args.manning;
+    } else if (type === "kerby") {
+      var n = args.manning;
 
       switch (units) {
         // change calculations depending on units.
@@ -181,10 +176,9 @@ export default class hydro {
       lag = 0.6 * tc;
       Object.assign(sol, {
         TimeConc: tc,
-        LagTime: lag
+        LagTime: lag,
       });
     }
-    console.timeEnd("synthcalc");
     return sol;
   }
 
@@ -195,16 +189,14 @@ export default class hydro {
    * Adapted from from (NEH, 2007).
    * @method dimunithydro
    * @memberof hydro
-   * @param {Object} data - object specifying the type of distribution, time step to compute the hydrograph.
-   * @returns {Object[]} array with dimensionless hydrograph.
+   * @param {Object} params - Contains: timestep, numhours,
+   * @param {Object} args - Contains: type (gamma), prf (peak rate flow between 101 and 566)
+   * @returns {Object[]} Array with dimensionless hydrograph.
    * @example
-   * dimunithydrodata = {
-   * distribution: {
-   * type: "gamma", PRF: 484},timestep: 0.2,numhours: 5};
-   * var dimunit = hydro1.analyze.hydro.dimunithydro(dimunithydrodata)
+   * hydro.analyze.hydro.dimunithydro({params: {timestep: 0.2,numhours: 5}, args: {type: "gamma", PRF: 484}})
    */
 
-  static dimunithydro(params) {
+  static dimunithydro({ params, args, data } = {}) {
     //populate
     var step = params.timestep;
     var hours = params.numhours;
@@ -217,9 +209,9 @@ export default class hydro {
     var qqp = Array(numstep).fill(0);
     var m = 0;
 
-    if ((params.distribution.type = "gamma")) {
+    if ((args.type = "gamma")) {
       //change gamma shape factor.
-      switch (params.distribution.PRF) {
+      switch (args.prf) {
         case 101:
           m = 0.26;
           break;
@@ -249,9 +241,10 @@ export default class hydro {
       //populating the array with q/qp using Gamma distribution with PRF value.
       for (var i = 1; i < ttp.length; i++) {
         ttp[i] = Number((ttp[i - 1] + step).toFixed(2));
-        qqp[i] = Number((Math.exp(m) * Math.pow(ttp[i], m) * Math.exp(-m * ttp[i])).toFixed(3));
+        qqp[i] = Number(
+          (Math.exp(m) * Math.pow(ttp[i], m) * Math.exp(-m * ttp[i])).toFixed(3)
+        );
       }
-      console.timeEnd("dimunit");
       return [ttp, qqp];
     } else {
       alert("Please use available distributions!");
@@ -259,62 +252,65 @@ export default class hydro {
   }
 
   /**
-   * Hyetograph generator for a uniformly distributed rainfall event. Unfinished.
+   * Hyetograph generator for a uniformly distributed rainfall event. NOT FINISHED YET!
    * Considered for long duration storms.
    * The timestep should be uniformly distributed
    * @method hyetogen
    * @memberof hydro
-   * @param {Object} data - 2D array with timeseries of a rainfall event.
-   * @returns {Object[]} - n-D array of pulses per hour
+   * @param {Object} data - Contains: event (2D array with timeseries of a rainfall event)
+   * @returns {Object[]} n-D array of pulses per hour
+   * @example
+   * hydro.analyze.hydro.hyetogen({data: {event: [[time1, time2, ...], [rainf1, rainf2, ...]]}})
    */
 
-  static hyetogen(data) {
+  static hyetogen({ params, args, data } = {}) {
     var event = data.event;
     var time = event[0];
     var rainf = event[1];
 
     //if timestep in JavaScript string
-    if (typeof time[0] == 'string') {
+    if (typeof time[0] == "string") {
       for (var i = 0; i < time.length; i++) {
         time[i] = Date.parse(time[i]);
-      };
-    };
+      }
+    }
 
-    //calculate the time step of the series. 
+    //calculate the time step of the series.
     var timestep = Math.abs(time[1] - time[0]);
 
-    var count
+    var count;
 
+    //to continue!
   }
 
   /**
    * Unit hydrograph constructor NRCS constructor depending on the
-   * physical characteristics of a regularly shaped basin. Adapted from (NEH, 2007).
+   * physical characteristics of a regularly shaped basin. Adapted from https://directives.sc.egov.usda.gov/OpenNonWebContent.aspx?content=17755.wba
    * @method unithydrocons
    * @memberof hydro
-   * @param {Object} params - object that specifies the physical characteristics and the type of
-   * distribution required as well as the time step to compute the hydrograph. For the dimensioness hydrograph,
-   * the user must input the peak rate factor in accordance to the units specified.
-   * @returns {Object[]} array with time series array. If metric in m3/s, if SI in cfs.
+   * @param {Object} params - Contains: drainagearea (in sqmi or km2), type (dim, obs), units(si, m)
+   * @param {Object} args - Contains: peak (hours), tconcentration (hours), baseflow (cfs or cumecs)
+   * @param {Object} data - Contains: event either dimensionless or observed as 1d-JS array [[TSevent]]
+   * @returns {Object[]} Array with time series array. If metric in m3/s, if SI in cfs.
    * @example
-   * unithydrodata = { units: "si", unithydro: dimunit, drainagearea: 4.6, tconcentration: 2.3};
-   * var basinunit = hydro1.analyze.hydro.unithydrocons(unithydrodata);
+   * hydro.analyze.hydro.unithydrocons({params: {drainagearea: 'someNum', type: 'someNum', units: 'someUnit'}
+   * args: {peak: 'someNum', tconcentration: 'someNum', baseflow: 'someNum'},
+   * data: [[time1, time2, ...], [value1, value2,...]]});
    */
 
-  static unithydrocons(params) {
+  static unithydrocons({ params, args, data } = {}) {
     //import parameters from user.
     var area = params.drainagearea;
-    var duh = params.hydro;
-    var unit = this.matrix(2, duh[0].length, 0);
+    var duh = data;
+    var unit = this.matrix({ params: { m: 2, n: duh[0].length, d: 0 } });
 
     //unit hydro from dimensionless hydrograph.
     if (params.type == "dim") {
       //peak rate factor chosen.
-      var peak = params.config.peak;
-
+      var peak = args.peak;
 
       //calculate time step.
-      var tconc = params.config.tconcentration;
+      var tconc = args.tconcentration;
       var deltat = Number((tconc * 0.133).toFixed(3));
 
       //calculate time to peak and construct result arrays.
@@ -331,33 +327,31 @@ export default class hydro {
           break;
         default:
           alert("Please input a valid unit system!");
-      };
+      }
 
       //populate the hydrograph with time and discharge.
       for (var h = 0; h < unit[0].length; h++) {
         unit[0][h] = Number((duh[0][h] * tp).toFixed(3));
         unit[1][h] = Number((duh[1][h] * qp).toFixed(3));
-      };
-      console.timeEnd("unitcons");
+      }
       return unit;
     }
 
     //unit hydro from observed hydrograph.
     else if (params.type == "obs") {
-
-      var baseflow = params.config.baseflow;
-      var drh = this.matrix(1, duh[0].length, 0);
+      var baseflow = args.baseflow;
+      var drh = this.matrix({ params: { m: 1, n: duh[0].length, d: 0 } });
       unit[0] = duh[0];
       //timestep in hours
       var timestep = Math.abs(unit[0][1] - unit[0][0]) * 60 * 60;
 
-      console.log(unit)
+      console.log(unit);
 
       for (var i = 0; i < unit[0].length; i++) {
         drh[i] = Math.abs(duh[1][i] - baseflow);
-      };
+      }
 
-      var sum = this.totalprec(drh) * timestep;
+      var sum = this.totalprec({ data: drh }) * timestep;
       var vol = 0;
 
       switch (params.units) {
@@ -368,19 +362,18 @@ export default class hydro {
         case "m":
           //calculated in cms
           vol = Math.round((sum / area) * 100);
-      };
+      }
 
       for (var j = 0; j < unit[0].length; j++) {
         //unit hydrograph in cfs/inch or cumecs/cm
-        unit[1][j] = Math.round((drh[j] / vol))
-      };
+        unit[1][j] = Math.round(drh[j] / vol);
+      }
 
       unit[1].reverse();
 
-      console.timeEnd("unitcons");
       return {
         unithydro: unit,
-        totalvol: vol
+        totalvol: vol,
       };
     }
   }
@@ -392,27 +385,30 @@ export default class hydro {
    * blocks of rainfall in as a 2D array [[date, date, date], [rainf, rainf, rainf]]
    * @method floodhydro
    * @memberof hydro
-   * @param {Object} data - parameter object specifying landuse, rainfall, infiltration capacity and baseflow.
-   * @returns {Object[]} array with values for runoff as time series.
+   * @param {Object} params - Contains: baseflow
+   * @param {Object} args - Contains: type (SCS, obs), CN (if SCS), stormduration (event duration in hours), timestep (in hours), units (si, m)
+   * @param {Object[]} data - Contains: 2d-JS array with Timeseries Data [[TSrainfall], [TSunithydro]]
+   * @returns {Object[]} Array with values for runoff as time series.
    * @example
    * var floodconfig = {rainfall: 2darray, unithydro: 2darray, type: "obs"};
-   * var fldh = hydro1.analyze.hydro.floodhydro(floodconfig)
+   * hydro1.analyze.hydro.floodhydro({params: {baseflow: 'someNum'}, args: {type: 'someType', CN: 'someNum', stormduration: 'someNum', timestep: 'someNum'}
+   * data: [[[1,2,3][0.1,0.2,0.4]], [[1,2,3],[0.3,0.1,0.2]]]})
    */
 
-  static floodhydro(params) {
+  static floodhydro({ params, args, data } = {}) {
     //import data from parameters.
-    const rain = params.rainfall;
-    const unit = params.unithydro;
+    const rain = data[0];
+    const unit = data[1];
     var baseflow = params.baseflow;
 
     if (!params.baseflow) {
       baseflow = 0;
-    };
+    }
 
-    if (params.type == "SCS") {
-      const cn = params.cn;
-      const stormdur = params.stormduration;
-      const timestep = params.timestep;
+    if (args.type == "SCS") {
+      const cn = args.cn;
+      const stormdur = args.stormduration;
+      const timestep = args.timestep;
 
       //transform the date into javascript format.
 
@@ -420,17 +416,25 @@ export default class hydro {
       var numarray = Math.round(stormdur / timestep);
       var finalcount = numarray + unit[0].length;
       var sc = 0;
-      var accumrainf = this.matrix(2, rain[1].length, 0);
+      var accumrainf = this.matrix({
+        params: { m: 2, n: rain[1].length, d: 0 },
+      });
       accumrainf[0] = rain[0];
-      var accumrunff = this.matrix(2, rain[1].length, 0);
+      var accumrunff = this.matrix({
+        params: { m: 2, n: rain[1].length, d: 0 },
+      });
       accumrunff[0] = rain[0];
-      var incrementrunff = this.matrix(2, rain[1].length, 0);
+      var incrementrunff = this.matrix({
+        params: { m: 2, n: rain[1].length, d: 0 },
+      });
       incrementrunff[0] = rain[0];
-      var hydros = this.matrix(stormdur, finalcount, 0);
-      var finalhydro = this.matrix(2, finalcount, 0);
+      var hydros = this.matrix({
+        params: { m: stormdur, n: finalcount, d: 0 },
+      });
+      var finalhydro = this.matrix({ params: { m: 2, n: finalcount, d: 0 } });
 
       // change calculations depending on units.
-      switch (params.units) {
+      switch (args.units) {
         case "si":
           sc = 1000 / cn - 10;
           break;
@@ -482,7 +486,7 @@ export default class hydro {
         .slice()
         .reduce(
           (prev, curr, i) =>
-          (finalhydro[0][i] = Number((prev + curr).toFixed(2), 0))
+            (finalhydro[0][i] = Number((prev + curr).toFixed(2), 0))
         );
 
       for (var p = 0; p < finalhydro[1].length; p++) {
@@ -491,9 +495,8 @@ export default class hydro {
 
       finalhydro[1].reverse();
 
-      console.timeEnd("floodhydro");
       return finalhydro;
-    } else if (params.type == "obs") {
+    } else if (args.type == "obs") {
       var hydros = [];
       var timestep = Math.abs(rain[0][1] - rain[0][0]);
 
@@ -503,67 +506,67 @@ export default class hydro {
         for (var j = 0; j < unit[1].length - 1; j++) {
           neq.push(unit[1][j] * rain[1][i]);
         }
-        hydros.push(neq)
-      };
+        hydros.push(neq);
+      }
 
-      var final = this.matrix(2, unit[1].length + hydros.length, 0);
+      var final = this.matrix({
+        params: { m: 2, n: unit[1].length + hydros.length, d: 0 },
+      });
 
       //zeros up
       for (var k = 0; k < hydros.length; k++) {
         var zeros = new Array(timestep * hydros.indexOf(hydros[k])).fill(0);
-        zeros.forEach(x => hydros[k].unshift(x));
+        zeros.forEach((x) => hydros[k].unshift(x));
         hydros[k].shift();
-      };
+      }
 
       //zeros down
       for (var l = 0; l < hydros.length; l++) {
         var finalarr = hydros[hydros.length - 1].length;
         var zeros = new Array(finalarr - hydros[l].length).fill(0);
-        zeros.forEach(x => hydros[l].push(x))
-      };
+        zeros.forEach((x) => hydros[l].push(x));
+      }
 
-      final[1] = hydros[0].map((x, i) => hydros.reduce((sum, curr) => sum + curr[i], baseflow));
+      final[1] = hydros[0].map((x, i) =>
+        hydros.reduce((sum, curr) => sum + curr[i], baseflow)
+      );
 
       //time and discharge sum
       for (var p = 0; p < final[1].length; p++) {
         final[0][p] = p;
-      };
+      }
 
-      console.timeEnd("floodhydro");
       return final;
     }
   }
 
-
-
   /**
    * Simple rainfall-runoff analyses over a rainfall dataset given landuse, baseflow and infiltration capacity.It is mainly used for long-term hydrological analysis such as monthly changes.
+   * All should be in mm. For more info, refer to https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.544.5085&rep=rep1&type=pdf
    * @method bucketmodel
    * @memberof hydro
-   * @param {Object} data - parameter object landuse, rainfall, infiltration capacity and baseflow. Rainfall and evaporation must be specified as 
+   * @param {Object} params - Contains: baseflow, infiltration (in same units)
+   * @param {Object} args - Contains: landuse percentage (summing all to 1): agriculture, barerock, grassland, forest, urban
+   * @param {Object[]} data - Contains: 2d-JS array in the following order: [[rainfall], [evaporation]]
    * @returns {Object[]} 1d-array with time series according to different time spans (5min, 15 min, 1 hour, 1 day...).
    * @example
-   * var rainf = [1,2,3,4,5]
-   * var evaporation: {data: [0.1,0.2,0.4,0.3,0.2]}
-   * var bas = 1
-   * var inf = 0.3
-   * var data = arr
-   * var landuse = [0.1, 0.2, 0.5, 0.4, 0.8]
-   * var params = {rainfall: rainf, baseflow: bas, evaporation: {data: arr}, landuse: landuse}
+   * hydro.analyze.hydro.bucketmode({params:{baseflow: 1, infiltration: 0.3},
+   * args: {agriculture: 0.1, evaporation: 0.2, barerock: 0.5, grassland: 0.1, forest: 0.05, urban: 0.05},
+   * data: [[1,2,3,4,5], [0.1,0.2,0.3,0.4,0.5]})
    */
 
-  static bucketmodel(params) {
+  static bucketmodel({ params, args, data } = {}) {
     //initial parameters
-    var rainfall = params.rainfall;
+    var rainfall = data[0];
     let n = rainfall.length;
     let baseflow = params.baseflow / 24;
-    let evapodata = params.evaporation.data;
+    let evapodata = data[1];
     let landuse = [
-      params.landuse.agriculture,
-      params.landuse.barerock,
-      params.landuse.grassland,
-      params.landuse.forest,
-      params.landuse.urban,
+      args.agriculture,
+      args.barerock,
+      args.grassland,
+      args.forest,
+      args.urban,
     ];
     let infiltration = params.infiltration;
     //infiltration capacities for agriculture, bare rock, grassland, forest and
@@ -632,7 +635,6 @@ export default class hydro {
         totalflow[4][q] * landuse[4];
     }
 
-    console.timeEnd("bucket")
     /*var finalvalues = this.matrix(2,n, 0)
 
     for (var w = 0; w < finalvalues[1].length; w++) {
@@ -649,28 +651,32 @@ export default class hydro {
    * Adapted from (Molkentin, 2019).
    * @method ground1d
    * @memberof hydro
-   * @param {Object} params - object system example.
+   * @param {Object} params - Contains: length, k (discharge coeff), nodes
+   * @param {Object} args - Contains: w0 and q0 (extraction, discharge at point 0), w1 and q1 (extraction, discharge point 1)
    * @return {Object[]} Matrix with solutions.
+   * @example
+   * hydro.analyze.hydro.groud1d({params: {length: 'someNum', k: 'someNum', nodes: 'someNodes'},
+   * args: {w0: 'someNum', w1: 'someNum', q0: 'someNum', q1: 'someNum'}})
    */
 
-  static ground1d(params) {
+  static ground1d({ params, args, data } = {}) {
     //pass data from params to variables.
     var length = params.length;
     var k = params.k;
     var nodes = params.nodes;
-    var w0 = params.w0;
-    var w1 = params.w1;
+    var w0 = args.w0;
+    var w1 = args.w1;
 
-    var hL = params.hL;
-    var q0 = params.q0;
-    var qL = params.qL;
+    var hL = args.hL;
+    var q0 = args.q0;
+    var qL = args.qL;
 
     var dx = length / (nodes - 1);
 
     //create a new equation system
-    var matrix = this.matrix(nodes, nodes, 0);
-    var vec_left = this.matrix(1, nodes, 0);
-    var vec_right = this.matrix(1, nodes, 0);
+    var matrix = this.matrix({ params: { m: nodes, n: nodes, d: 0 } });
+    var vec_left = this.matrix({ params: { m: 1, n: nodes, d: 0 } });
+    var vec_right = this.matrix({ params: { m: 1, n: nodes, d: 0 } });
 
     //equation system set up.
     var factor = k / dx;
@@ -696,7 +702,10 @@ export default class hydro {
     }
 
     //solve equation system.
-    this.equationsystemsolver(matrix, vec_left, vec_right);
+    this.equationsystemsolver({
+      data: matrix,
+      params: { left: vec_left, right: vec_right },
+    });
 
     //calculate discharge in vec_right
     vec_right[0] = (-k * (vec_left[1] - vec_left[0])) / dx;
@@ -707,7 +716,6 @@ export default class hydro {
 
     vec_right[index] = (-k * (vec_left[index] - vec_left[index - 1])) / dx;
 
-    console.timeEnd("ground1d");
     return vec_left;
   }
 
@@ -717,20 +725,24 @@ export default class hydro {
    * the aggregation interval require and the data interval should be the same.
    * For aggregation, the interval for aggregation must be larger than the time step. For example,
    * 15 min or 30 min data to be aggregatted every 60 minutes. Intervals must be multiples of the final aggregaiton (2, 4, etc)
-   * @meethod rainaggr
+   * @method rainaggr
    * @memberof hydro
-   * @param {Object} params - data with rainfall and aggregation type.
-   * @returns {Object[]} array with aggregated/disaggregated data.
+   * @param {Object} params - Contains: type (aggr, disagg), interval (in minutes for both cases)
+   * @param {Object[]} data - Contains: data as 2D array in
+   * @returns {Object[]} Array with aggregated/disaggregated data.
    * @example
-   * var config = {event: arr, agg:{type: 'aggr', interval: 240}};
-   * var rain = hydro1.analyze.hydro.rainaggr(config)
+   * hydro1.analyze.hydro.rainaggr({params: {type: 'aggr', interval: 240}, data: [[rainTS]]})
    */
 
-  static rainaggr(params) {
-    var event = params.event;
-    var agtype = params.agg.type;
+  static rainaggr({ params, args, data } = {}) {
+    var event = data;
+    var agtype = params.type;
+    //time interval required by the user in minutes.
+    var finagg = params.interval;
 
-    var datetr = this.matrix(event.length, event[1].length, 0);
+    var datetr = this.matrix({
+      params: { m: event.length, n: event[1].length, d: 0 },
+    });
 
     for (var i = 0; i < event[0].length; i++) {
       if (typeof event[0][0] == "string") {
@@ -744,9 +756,6 @@ export default class hydro {
       datetr[j] = event[j];
     }
 
-    //time interval required by the user in minutes.
-    var finagg = params.agg.interval;
-
     //change the datatypes of date.
     if (agtype == "aggr") {
       //timestep and total duration in minutes.
@@ -755,22 +764,22 @@ export default class hydro {
       var lastval = 0;
 
       if (typeof event[0][0] == "string") {
-        time = Math.abs(datetr[0][0])
+        time = Math.abs(datetr[0][0]);
         timestep = Math.abs((datetr[0][0] - datetr[0][1]) / (60 * 1000));
         lastval = Math.abs(
           (datetr[0][0] - datetr[0][datetr[0].length - 1]) / (60 * 1000)
         );
       } else {
         time = Math.abs(datetr[0][0]);
-        timestep = Math.abs((datetr[0][0] - datetr[0][1]));
-        lastval = Math.abs(datetr[0][datetr[0].length - 1])
+        timestep = Math.abs(datetr[0][0] - datetr[0][1]);
+        lastval = Math.abs(datetr[0][datetr[0].length - 1]);
       }
 
       //amount of steps required and length of each step.
       var count = Math.round(finagg / timestep);
-      console.log(`Amount of steps: ${count}`)
+      console.log(`Amount of steps: ${count}`);
       var narr = Math.round(lastval / finagg);
-      console.log(`Final aggregation number: ${narr}`)
+      console.log(`Final aggregation number: ${narr}`);
 
       //initialize time and data variables to be handled separately.
       var fintime = [];
@@ -781,17 +790,19 @@ export default class hydro {
         var minidata = datetr[1].slice(j, j + count);
         if (typeof event[0][0] == "string") {
           fintime.push(
-            new Date(this.totalprec(minitime) - time).toLocaleTimeString()
+            new Date(
+              this.totalprec({ data: minitime }) - time
+            ).toLocaleTimeString()
           );
         } else {
           fintime.push(j);
         }
-        findata.push(this.totalprec(minidata));
+        findata.push(this.totalprec({ data: minidata }));
       }
-      console.timeEnd("aggr")
       return [fintime, findata];
-    } else if (agtype == "disaggregation") {
-      var finagg = params.agg.interval;
+    } else if (agtype == "disagg") {
+      var finagg = params.interval;
+      //Unfinished, still need to link more implementation.
     }
   }
 
@@ -803,41 +814,45 @@ export default class hydro {
    * Arithmetic sum of the values inside an array.
    * @method totalprec
    * @memberof hydro
-   * @param {Object[]} data - array with precipitation event.
-   * @returns {number} total amount of precipitation during an event on a given station.
+   * @param {Object[]} data - 1darray with precipitation event.
+   * @returns {Number} Total amount of precipitation during an event on a given station.
    * @example
-   * var min = hydro1.analyze.hydro.totalprec(arr)
+   * hydro.analyze.hydro.totalprec({data: [some1dArray]})
    */
 
-  static totalprec(arr) {
+  static totalprec({ params, args, data } = {}) {
     var sum = 0;
-    var k = arr.length;
+    var k = data.length;
     while (--k >= 0) {
-      sum += arr[k];
+      sum += data[k];
     }
     return sum;
   }
 
   /**
-   * Moving arrays in unit hydographs.
+   * Moving arrays from one location to another given an index.
    * @method move
    * @memberof hydro
-   * @param {Object[]} data - array that is to be pushed in subtitute array.
-   * @param {number} location - index from in original array.
-   * @param {number} location - index to in substitute array.
+   * @param {Object[]} data - Contains: array that is to be pushed in subtitute array.
+   * @param {Object} params - Contains: from (index in original array), to (index in substitute array)
+   * @returns {Object[]} Array with transposed columns
+   * @example
+   * hydro.analyze.hydro.move({params: {to: 'someNum', from: 'someNum'}, data: [somenD-Array]})
    */
 
-  static move(array, from, to) {
-    if (to === from) return array;
+  static move({ params, args, data } = {}) {
+    var from = params.from;
+    var to = params.to;
+    if (to === from) return data;
 
-    var target = array[from];
+    var target = data[from];
     var increment = to < from ? -1 : 1;
 
     for (var k = from; k != to; k += increment) {
-      array[k] = array[k + increment];
+      data[k] = data[k + increment];
     }
-    array[to] = target;
-    return array;
+    data[to] = target;
+    return data;
   }
 
   /**
@@ -845,20 +860,20 @@ export default class hydro {
    * the user requires. For numerical calculations, fill it with 0s.
    * @method matrix
    * @memberof hydro
-   * @param {number} m - columns of the matrix.
-   * @param {number} n - rows of the matrix.
-   * @param {number} d - filler for every element of the array.
-   * @returns {Object[]} matrix - m x n array.
+   * @param {Object} params - Contains: m(num columns), n (num rows), d (filler)
+   * @returns {Object[]} Matrix - m x n array.
+   * @example
+   * hydro.analyze.hydro.matrix({params: {m: someNum, n: someNum, d: someNum}})
    */
 
-  static matrix(m, n, d) {
+  static matrix({ params, args, data } = {}) {
     var mat;
-    if ((typeof d == undefined)) {
-      mat = Array(m).map(() => Array(n));
+    if (typeof params.d == undefined) {
+      mat = Array(params.m).map(() => Array(params.n));
     } else {
-      mat = Array(m)
-        .fill(d)
-        .map(() => Array(n).fill(d));
+      mat = Array(params.m)
+        .fill(params.d)
+        .map(() => Array(params.n).fill(params.d));
     }
     return mat;
   }
@@ -867,13 +882,17 @@ export default class hydro {
    * Solves linear equations in the form Ax = b.
    * @method equationsystemsolver
    * @memberof hydro
-   * @param {Object[]} vec_right - vector on right hand side.
-   * @param {Object[]} vec_left - vector on left hand side.
-   * @param {Object[]} matrix - matrix to be filled.
-   * @returns {Object[]} vec_left.
+   * @param {Object} params - Contains: right (right hand side 1D JS array), left (left hand side 1D JS array)
+   * @param {Object[]} data - Contains: matrix to be filled.
+   * @returns {Object[]} Left vector solution.
+   * @example
+   * hydro.analyze.hydro.equationsystemsolver({params: {left: [data1, data2,...], right: [data1, data2,...]}, data: [[someMatrix]]})
    */
 
-  static equationsystemsolver(matrix, vec_left, vec_right) {
+  static equationsystemsolver({ params, args, data } = {}) {
+    var matrix = data;
+    var vec_left = params.left;
+    var vec_right = params.right;
     var fMaxEl;
     var fAcc;
     var nodes = vec_left.length;
@@ -893,7 +912,7 @@ export default class hydro {
       if (m != k) {
         for (var i = k; i < nodes; i++) {
           fAcc = matrix[k][i];
-          matrix[k][i] = matrox[m][i];
+          matrix[k][i] = matrix[m][i];
           matrix[m][i] = fAcc;
         }
         fAcc = vec_right[k];
@@ -919,7 +938,7 @@ export default class hydro {
       }
       vec_left[k] = vec_left[k] / matrix[k][k];
     }
-  };
+  }
 
   /**********************************/
   /*** End of Helper functions **/
