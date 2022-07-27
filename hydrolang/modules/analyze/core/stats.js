@@ -1,5 +1,5 @@
-import "../../../modules/d3/d3.js";
-import "../../../modules/tensorflow/tensorflow.js";
+import "../../../external/d3/d3.js";
+import "../../../external/tensorflow/tensorflow.js";
 
 /**
  * Main class used for statistical analyses and data cleaning.

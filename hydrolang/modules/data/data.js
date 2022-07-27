@@ -1,5 +1,5 @@
 import * as datasources from "./datasources.js";
-import $ from "../../modules/jquery/jquery.js";
+import $ from "../../external/jquery/jquery.js";
 import stats from "../analyze/core/stats.js";
 
 /**
