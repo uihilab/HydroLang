@@ -47,6 +47,7 @@ export default {
   },
 
   requirements: {
+    type: "json",
     needProxy: true,
     requireskey: false,
     method: "GET",

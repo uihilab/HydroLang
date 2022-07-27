@@ -85,6 +85,10 @@ export default {
       range: null,
       stationValidity: null,
     },
+    methods: {
+      type: "json",
+      method: "POST",
+    },
   },
 
   // MORE API POINTS AVAILABLE
@@ -94,6 +98,5 @@ export default {
     needProxy: true,
     requireskey: true,
     keyname: "token",
-    method: "POST",
   },
 };

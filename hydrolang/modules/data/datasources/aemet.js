@@ -18,6 +18,10 @@ export default {
     params: {
       idema: null,
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   "daily-station": {
@@ -28,6 +32,10 @@ export default {
       fechaFinStr: null,
       idema: null,
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   //set of requirements from the source. If different methods for dat retrieval can be used, then "GET" is default.
@@ -35,6 +43,5 @@ export default {
     needProxy: true,
     requireskey: true,
     keyname: "api_key",
-    method: "GET",
   },
 };

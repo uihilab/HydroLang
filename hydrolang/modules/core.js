@@ -1,6 +1,6 @@
 /**
  * Function wrapper to be used on the Hydrolang class.
- * @module core 
+ * @module core
  * @extends data
  * @extends analyze
  * @extends visualize

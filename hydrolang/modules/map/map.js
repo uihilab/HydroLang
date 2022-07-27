@@ -8,7 +8,6 @@ import * as divisors from "../visualize/divisors.js";
  * @class map
  */
 
-
 //Controllers, map and layers
 //Most variables are left as internal variables for control when the hydrolang instance is live.
 var osmap;

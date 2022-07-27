@@ -17,29 +17,29 @@
  * hydro.visualize.isdivAdded({params: {divId: 'someDivName'}})
  */
 
- function isdivAdded({ params, args, data } = {}) {
-    return Boolean(document.querySelector("#" + params.divID));
-  }
-  
-  /**
-   * Function for verifying if a script has been added to the header of the webpage.
-   * @method isScriptAdded
-   * @memberof divisors
-   * @param {Object} params - Contains: name (script on screen, or not)
-   * @returns {Boolean} True if the script has been appended to the header.
-   * @example
-   * hydro.visualize.isScriptAdded ({params: {name: 'someName'}})
-   */
-  
-  function isScriptAdded({ params, args, data } = {}) {
-    //Select a name passed as an attribute instead of source for selection purposes.
-    return Boolean(document.querySelector(`script[name=${params.name}`));
-  }
+function isdivAdded({ params, args, data } = {}) {
+  return Boolean(document.querySelector("#" + params.divID));
+}
 
-  /**
+/**
+ * Function for verifying if a script has been added to the header of the webpage.
+ * @method isScriptAdded
+ * @memberof divisors
+ * @param {Object} params - Contains: name (script on screen, or not)
+ * @returns {Boolean} True if the script has been appended to the header.
+ * @example
+ * hydro.visualize.isScriptAdded ({params: {name: 'someName'}})
+ */
+
+function isScriptAdded({ params, args, data } = {}) {
+  //Select a name passed as an attribute instead of source for selection purposes.
+  return Boolean(document.querySelector(`script[name=${params.name}`));
+}
+
+/**
  * Creates a script given a source, JS text and name to be appended to the header.
  * @function createScript
-* @memberof divisors
+ * @memberof divisors
  * @param {Object} params - Contains: name (script name), src (CDN source)
  * @returns {Element} If found, returns the the script library to add listeners and handlers once loaded.
  * @example
@@ -47,22 +47,22 @@
  */
 
 function createScript({ params, args, data } = {}) {
-    //Add any external script into the DOM for external library usage.
-    if (!isScriptAdded({ params: { name: params.name } })) {
-      var sr = document.createElement("script");
-      sr.type = "text/javascript";
-      sr.src = params.src;
-      sr.setAttribute("name", params.name);
-      document.head.appendChild(sr);
-      //If the user wants to add functionality coming from the script, do after.
-    }
-    if (isScriptAdded({ params: { name: params.name } })) {
-      var sc = document.querySelector(`script[name=${params.name}]`);
-      return sc;
-    }
+  //Add any external script into the DOM for external library usage.
+  if (!isScriptAdded({ params: { name: params.name } })) {
+    var sr = document.createElement("script");
+    sr.type = "text/javascript";
+    sr.src = params.src;
+    sr.setAttribute("name", params.name);
+    document.head.appendChild(sr);
+    //If the user wants to add functionality coming from the script, do after.
   }
+  if (isScriptAdded({ params: { name: params.name } })) {
+    var sc = document.querySelector(`script[name=${params.name}]`);
+    return sc;
+  }
+}
 
-  /**
+/**
  * Creates a form appended to the DOM with a button attached to it.
  * @function createForm
  * @memberof divisor
@@ -73,12 +73,12 @@ function createScript({ params, args, data } = {}) {
  */
 
 function createForm({ params, args, data } = {}) {
-    var fr = document.createElement("form");
-    fr.className = params.class;
-    document.body.appendChild(fr);
-  }
+  var fr = document.createElement("form");
+  fr.className = params.class;
+  document.body.appendChild(fr);
+}
 
-  /**
+/**
  * Creates a div space for rendering all sorts of required divisors.
  * @function createDiv
  * @memberof divisors
@@ -89,16 +89,18 @@ function createForm({ params, args, data } = {}) {
  */
 
 function createDiv({ params, args, data } = {}) {
-    var dv = document.createElement("div");
-    dv.id = params.id;
-    dv.title = params.title;
-    dv.className = params.class;
-    dv.style = params.style;
-    (params.maindiv !== undefined) ? params.maindiv.appendChild(dv) : document.body.appendChild(dv)
-  }
-  
+  var dv = document.createElement("div");
+  dv.id = params.id;
+  dv.title = params.title;
+  dv.className = params.class;
+  dv.style = params.style;
+  params.maindiv !== undefined
+    ? params.maindiv.appendChild(dv)
+    : document.body.appendChild(dv);
+}
+
 /**********************************/
 /*** End of Supporting functions **/
 /**********************************/
 
-export {createDiv, createForm, createScript, isScriptAdded, isdivAdded}
+export { createDiv, createForm, createScript, isScriptAdded, isdivAdded };

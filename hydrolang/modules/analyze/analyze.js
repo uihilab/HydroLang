@@ -6,12 +6,8 @@
  * @extends hydro
  * @extends nn
  */
-import stats from './components/stats.js';
-import hydro from './components/hydro.js';
-import nn from './components/nn.js'
+import stats from "./components/stats.js";
+import hydro from "./components/hydro.js";
+import nn from "./components/nn.js";
 
-export {
-    stats,
-    hydro,
-    nn
-};
+export { stats, hydro, nn };

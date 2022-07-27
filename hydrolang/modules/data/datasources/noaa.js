@@ -20,6 +20,10 @@ export default {
     params: {
       //No parameters required for calling the endpoint.
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   availablestations: {
@@ -28,6 +32,10 @@ export default {
       locationid: null,
       extent: null,
       limit: null,
+    },
+    methods: {
+      type: "json",
+      method: "GET",
     },
   },
   "prec-15min": {
@@ -42,6 +50,10 @@ export default {
       limit: null,
       offset: null,
       includemetadata: false,
+    },
+    methods: {
+      type: "json",
+      method: "GET",
     },
   },
 
@@ -59,12 +71,15 @@ export default {
       includemetadata: false,
       // and more...
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   requirements: {
     needProxy: false,
     requireskey: true,
     keyname: "token",
-    method: "GET",
   },
 };

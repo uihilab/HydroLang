@@ -10,12 +10,16 @@
 // More info, please visit https://opendata.smhi.se/apidocs/metobs/index.html
 
 export default {
-  // yearly, monthlyvprecipitation per country or per basin.
+  // yearly, monthly precipitation per country or per basin.
   "find-stations": {
     endpoint: "https://api.meteostat.net/v2/stations/search",
     params: {
       query: null,
       limit: null,
+    },
+    methods: {
+      type: "json",
+      method: "GET",
     },
   },
 
@@ -27,6 +31,10 @@ export default {
       limit: null,
       radius: null,
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   "hourlydata-stations": {
@@ -37,6 +45,10 @@ export default {
       end: null,
       model: null,
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   "dailydata-station": {
@@ -45,6 +57,10 @@ export default {
       station: null,
       start: null,
       end: null,
+    },
+    methods: {
+      type: "json",
+      method: "GET",
     },
   },
 
@@ -62,6 +78,10 @@ export default {
       end: null,
       tz: null,
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   //Limit of 370 days per request.
@@ -76,6 +96,10 @@ export default {
       start: null,
       end: null,
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   // downloadable informaton as bulk data in gz format. Preferable for
@@ -87,6 +111,10 @@ export default {
       // Consider that the bulk works only for specific stations.
       station: null,
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   //set of requirements from the source. If different methods for dat retrieval can be used, then "GET" is default.
@@ -94,6 +122,5 @@ export default {
     needProxy: true,
     requireskey: true,
     keyname: "x-api-key",
-    method: "GET",
   },
 };

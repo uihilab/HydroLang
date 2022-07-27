@@ -1,9 +1,8 @@
-import * as divisors from "../../modules/visualize/divisors.js"
+import * as divisors from "../../modules/visualize/divisors.js";
 /**
  * Imports external library Google Charts.
  * @external GoogleCharts
  */
-
 
 /**
  * Appends the google charts library to header for usage on charts and tables.
@@ -16,7 +15,7 @@ import * as divisors from "../../modules/visualize/divisors.js"
  * hydro.visualize.googleCdn()
  */
 
- function googleCdn({ params, args, data } = {}) {
+function googleCdn({ params, args, data } = {}) {
   var g = divisors.createScript({
     params: {
       src: "https://www.gstatic.com/charts/loader.js",
@@ -44,4 +43,4 @@ import * as divisors from "../../modules/visualize/divisors.js"
   return [g, chartMap, tableData];
 }
 
-export {googleCdn}
+export { googleCdn };

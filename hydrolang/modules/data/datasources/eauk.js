@@ -20,10 +20,14 @@ export default {
   "flood-warnings": {
     endpoint: "http://environment.data.gov.uk/flood-monitoring/id/floods",
     params: {
-      "min-severtiy": null,
+      "min-severity": null,
       county: null,
       lat: null,
       long: null,
+    },
+    methods: {
+      type: "json",
+      method: "GET",
     },
   },
 
@@ -35,6 +39,10 @@ export default {
       lat: null,
       long: null,
       dist: null,
+    },
+    methods: {
+      type: "json",
+      method: "GET",
     },
   },
 
@@ -50,6 +58,10 @@ export default {
       search: null,
       //and more...
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   //List of stations within a certain area. Add parameter = rainfall.
@@ -63,6 +75,10 @@ export default {
       lat: null,
       long: null,
       dist: null,
+    },
+    methods: {
+      type: "json",
+      method: "GET",
     },
   },
 
@@ -79,12 +95,15 @@ export default {
       since: null,
       stationReference: null,
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   //set of requirements from the source. If different methods for dat retrieval can be used, then "GET" is default.
   requirements: {
     needProxy: false,
     requireskey: false,
-    method: "GET",
   },
 };

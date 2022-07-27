@@ -21,6 +21,10 @@ export default {
       query: null,
       limit: null,
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   "nearby-stations": {
@@ -30,6 +34,10 @@ export default {
       long: null,
       limit: null,
       radius: null,
+    },
+    methods: {
+      type: "json",
+      method: "GET",
     },
   },
 
@@ -41,6 +49,10 @@ export default {
       end: null,
       model: null,
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   "dailydata-station": {
@@ -49,6 +61,10 @@ export default {
       station: null,
       start: null,
       end: null,
+    },
+    methods: {
+      type: "json",
+      method: "GET",
     },
   },
 
@@ -66,6 +82,10 @@ export default {
       end: null,
       tz: null,
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   //Limit of 370 days per request.
@@ -80,6 +100,10 @@ export default {
       start: null,
       end: null,
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   // downloadable informaton as bulk data in gz format. Preferable for
@@ -91,6 +115,10 @@ export default {
       // Consider that the bulk works only for specific stations.
       station: null,
     },
+    methods: {
+      type: "json",
+      method: "GET",
+    },
   },
 
   //set of requirements from the source. If different methods for dat retrieval can be used, then "GET" is default.
@@ -98,6 +126,5 @@ export default {
     needProxy: true,
     requireskey: true,
     keyname: "x-api-key",
-    method: "GET",
   },
 };

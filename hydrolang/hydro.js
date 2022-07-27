@@ -9,7 +9,7 @@ import * as components from "./modules/core.js";
 class Hydrolang {
   constructor() {
     var context = this;
-    Object.entries(components).forEach( component => {
+    Object.entries(components).forEach((component) => {
       let propName = component[0];
       let propModule = component[1];
       Object.assign(context, {

@@ -17,15 +17,16 @@ class googlemapsapi {
   }
 
   async load() {
-
     await $.when(
-      $.getScript( "http://maps.googleapis.com/maps/api/js?key=${this.apiKey}&callback=${this.callbackName}" ),
-      $.Deferred(function( deferred ){
-          $( deferred.resolve );
+      $.getScript(
+        "http://maps.googleapis.com/maps/api/js?key=${this.apiKey}&callback=${this.callbackName}"
+      ),
+      $.Deferred(function (deferred) {
+        $(deferred.resolve);
       })
-  ).done(function(){
+    ).done(function () {
       console.log("Google maps is loaded.");
-  });
+    });
   }
 
   mapLoaded() {
