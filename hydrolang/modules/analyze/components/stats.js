@@ -620,7 +620,7 @@ export default class stats {
     var diff1 = [];
     var diff2 = [];
 
-    //calculate nash sutcliffe effiency
+    //calculate nash sutcliffe efficiency
     if (params.type == "NSE") {
       for (var i = 0; i < obs.length; i++) {
         diff1[i] = Math.pow(model[i] - obs[i], 2);
@@ -716,16 +716,16 @@ export default class stats {
 
   static basicstats({ params, args, data } = {}) {
     //call the basic functions for analysis.
-    var count = data.length;
-    var min = this.min({ data: data });
-    var max = this.max({ data: data });
-    var sum = this.sum({ data: data });
-    var mean = this.mean({ data: data });
-    var median = this.median({ data: data });
-    var std = this.stddev({ data: data });
-    var vari = this.variance({ data: data });
+    var count = data.length,
+    min = this.min({ data: data }),
+    max = this.max({ data: data }),
+    sum = this.sum({ data: data }),
+    mean = this.mean({ data: data }),
+    median = this.median({ data: data }),
+    std = this.stddev({ data: data }),
+    vari = this.variance({ data: data }),
 
-    var statparams = [
+    statparams = [
       ["Number of values", count],
       ["Minimum value", min],
       ["Maximum", max],
@@ -734,15 +734,167 @@ export default class stats {
       ["Median", median],
       ["Standard deviation", std],
       ["Variance", vari],
-    ];
+    ],
 
     //flatenise the data for graphing.
-    var statx = this.flatenise({
+    statx = this.flatenise({
       params: { columns: ["Metric", "Value"] },
       data: statparams,
     });
     return statx;
   }
+
+  /***************************/
+  /*****Statistic Tests ****/
+  /***************************/
+
+   /**
+   * Mann-Kendall trend test
+   * Checks for mononicity of data throughout time.
+   * Reference: Kottegoda & Rosso, 2008.
+   * @method MK
+   * @memberof stats
+   * @authors Alexander Michalek & Renato Amorim, IFC, University of Iowa.
+   * @param {Object[]} data - Contains: 1d-JS array with timeseries
+   * @returns {Object[]} 1d array with 3 values: p-value, value sum and z value
+   * @example
+   * hydro.analyze.stats.MK({data: [someData]})
+   */
+
+  static MK({params, args, data}) {
+    var flow = data,
+    S_sum = 0,
+    S = 0,
+    sign = 0,
+    z = 0,
+    sigma = 0
+
+    for (var i = 0; i < flow.length - 1; i++) {
+      for (var j = i + 1; j < flow.length; j++) {
+        sign = flow[j] - flow[i];
+        if (sign < 0) {
+          S = -1;
+        } else if (sign == 0) {
+          S = 0;
+        } else {
+          S = 1;
+        }
+        S_sum = S_sum + S;
+      }
+    }
+    sigma = (flow.length * (flow.length - 1) * (2 * flow.length + 5)) / 18;
+
+    if (S_sum < 0) {
+      z = (S_sum - 1) / Math.pow(sigma, 0.5);
+    } else if (S_sum == 0) {
+      z = 0;
+    } else {
+      z = (S_sum + 1) / Math.pow(sigma, 0.5);
+    }
+    var pvalue = 2 * (1 - normalcdf({data: Math.abs(z)}));
+
+    return [pvalue, S_sum, z];
+  }
+
+  /**
+   * Normal distribution
+   * @method normalcdf
+   * @memberof stats
+   * @authors Alexander Michalek & Renato Amorim, IFC, University of Iowa.
+   * @param {Object[]} data - Contains: 1d-JS array with timeseries
+   * @returns {Object[]} 1d array with 3 values: p-value, value sum and z value
+   * @param {Object[]} data - 1d-JS array
+   * @returns {Number} number value for the distribution 
+   * @example
+   * hydro.analyze.stats.normalcdf({data: [someData]})
+   */
+
+  static normalcdf({params, args, data}) {
+    var X = data,
+    //HASTINGS.  MAX ERROR = .000001
+    T = 1 / (1 + 0.2316419 * Math.abs(X)),
+    D = 0.3989423 * Math.exp((-X * X) / 2),
+    Prob =
+      D *
+      T *
+      (0.3193815 +
+        T * (-0.3565638 + T * (1.781478 + T * (-1.821256 + T * 1.330274))));
+    if (X > 0) {
+      Prob = 1 - Prob;
+    }
+    return Prob;
+  }
+
+  /**
+   * Kolmogorov Smirnov Two-sided Test
+   * Computes D-statistic from two samples to evaluate if they come from the same distribution
+   * Reference: Kottegoda & Rosso, 2008.
+   * @method computeD
+   * @memberof stats
+   * @authors Alexander Michalek & Renato Amorim, IFC, University of Iowa.
+   * @param {Object[]} data - 2d-JS array containing ordered as [samples_A, samples_B], with each being 1-d arrays
+   * @returns {Number} d-statistic of the samples
+   * @example
+   * hydro.analyze.stats.computeD({data: [samples_A, samples_B]})
+   */
+  static computeD({params, args, data}) {
+    var samples_A = data[0], samples_B = data[1], maximumDifference = 0, N = 1e3;
+    let minimum = d3.min(samples_A.concat(samples_B)),
+    maximum = d3.max(samples_A.concat(samples_B)),
+    N_A = samples_A.length,
+    N_B = samples_B.length;
+
+    for (var x of d3.range(minimum, maximum, (maximum - minimum) / N)) {
+      var CDF_A = samples_A.filter((d) => d <= x).length / N_A,
+      CDF_B = samples_B.filter((d) => d <= x).length / N_B,
+      difference = Math.abs(CDF_A - CDF_B);
+
+      if (difference > maximumDifference) {
+        maximumDifference = difference;
+      }
+    }
+    return maximumDifference;
+  }
+
+  /**
+   * Kolmogorov Smirnov Two-sided Test
+   * Calculates the P value, based on the D-statistic from the function above.
+   * Reference: Kottegoda & Rosso, 2008.
+   * @method KS_computePValue
+   * @memberof stats
+   * @authors Alexander Michalek & Renato Amorim, IFC, University of Iowa
+   * @param {Object[]} data - 2d-JS array containing ordered as [samples_A, samples_B], with each being 1-d arrays
+   * @returns {Object[]} array with [p-Statistic, d-Statistic]
+   * @example
+   * hydro.analyze.stats.KS_computePValue({data: [samples_A, samples_B]})
+   */
+  static KS_computePValue({params, args, data}) {
+    var samples_A = data[0], samples_B = data[1];
+    d = computeD(samples_A, samples_B),
+    n = samples_A.length,
+    m = samples_B.length,
+    p = 2 * Math.exp((-2 * d * d * (n * m)) / (n + m));
+
+    return [p, d];
+  }
+
+  /**
+   * Reject P statistic based on a significance level alpha.
+   * Reference: Kottegoda & Rosso, 2008.
+   * @method KS_rejectAtAlpha
+   * @memberof stats
+   * @authors Alexander Michalek & Renato Amorim, IFC, University of Iowa
+   * @param {Object{}} params - contains {alpha: Number} with alpha being the significance level
+   * @param {Object[]} data - 2d-JS array containing ordered as [samples_A, samples_B], with each being 1-d arrays
+   * @returns {Number} rejection if p is less than the significance level
+   * @example
+   * hydro.analyze.stats.KS_rejectAtAlpha({params: {alpha: someAlpha}, data: [samples_A, samples_B]})
+   */
+  static KS_rejectAtAlpha({params, args, data}) {
+    let [p, d] = KS_computePValue({data: data});
+    return p < params.alpha;
+  }
+
 
   /***************************/
   /***** Helper functions ****/
