@@ -5,7 +5,7 @@
  * @memberof datasources
  */
 
-export default {
+ export default {
   "instant-values": {
     endpoint: "http://waterservices.usgs.gov/nwis/iv/",
     params: {
@@ -24,6 +24,10 @@ export default {
       // "output-data-field-1": null,
       // enter data field here
     },
+    methods:{
+      type: "json",
+      method: "GET"
+    }
   },
 
   "daily-values": {
@@ -44,13 +48,15 @@ export default {
       // "output-data-field-1": null,
       // enter data field here
     },
+    methods:{
+      type: "json",
+      method: "GET"
+    }
   },
 
   requirements: {
-    type: "json",
     needProxy: true,
     requireskey: false,
-    method: "GET",
   },
 
   /* DATA SOURCE 2 */

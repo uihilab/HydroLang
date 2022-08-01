@@ -17,11 +17,11 @@
     "all-origins": {
       endpoint: "https://api.allorigins.win/raw?url=",
     },
-
+  
     "hydro-proxy":{
       endpoint: "https://hydro-proxy.herokuapp.com/"
     },
-
+  
     //Required node application to be available on the local machine.
     "local-proxy":{
       endpoint: "http://localhost:3000/"

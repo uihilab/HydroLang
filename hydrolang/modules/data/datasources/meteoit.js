@@ -12,7 +12,7 @@
  * @memberof datasources
  */
 
-export default {
+ export default {
   //obtain information about the last day
   "station-daily": {
     endpoint: "https://api.meteonetwork.it/v3/data-daily",
@@ -21,6 +21,10 @@ export default {
       observation_date: null,
       data_quality: null,
     },
+    methods:{
+      type: "json",
+      method: "POST",
+    }
   },
 
   //return last data available on station.
@@ -33,6 +37,10 @@ export default {
       stationCode: null,
       stationValidity: null,
     },
+    methods:{
+      type: "json",
+      method: "POST",
+    }
   },
 
   //obtain data of a single date for a single station.
@@ -46,6 +54,10 @@ export default {
       date: null,
       stationValidity: null,
     },
+    methods:{
+      type: "json",
+      method: "POST",
+    }
   },
 
   //obtain data for multiple stations for a single data
@@ -58,6 +70,10 @@ export default {
       date: null,
       stationValidity: null,
     },
+    methods:{
+      type: "json",
+      method: "POST",
+    }
   },
 
   //obtain data for multiple stations for a single date by country
@@ -71,6 +87,10 @@ export default {
       countryCode: null,
       stationValidity: null,
     },
+    methods:{
+      type: "json",
+      method: "POST",
+    }
   },
 
   //obtain nearby stations given locations in lat and long.
@@ -85,10 +105,10 @@ export default {
       range: null,
       stationValidity: null,
     },
-    methods: {
+    methods:{
       type: "json",
       method: "POST",
-    },
+    }
   },
 
   // MORE API POINTS AVAILABLE

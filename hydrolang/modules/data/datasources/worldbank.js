@@ -13,7 +13,7 @@
  * @memberof datasources
  */
 
-export default {
+ export default {
   // yearly, monthlyvprecipitation per country or per basin.
   "monavgs-country": {
     endpoint: "http://climatedataapi.worldbank.org/climateweb/rest/v1/mavg/pr",
@@ -27,6 +27,10 @@ export default {
       ext: null,
       // and more...
     },
+    methods:{
+      type: "json",
+      method: "GET"
+    }
   },
 
   "annualavgs-country": {
@@ -42,6 +46,10 @@ export default {
       ext: null,
       // and more...
     },
+    methods:{
+      type: "json",
+      method: "GET"
+    }
   },
 
   "monavgs-basin": {
@@ -56,6 +64,10 @@ export default {
       ext: null,
       // and more...
     },
+    methods:{
+      type: "json",
+      method: "GET"
+    }
   },
 
   "annualavgs-basin": {
@@ -71,6 +83,10 @@ export default {
       ext: null,
       // and more...
     },
+    methods:{
+      type: "json",
+      method: "GET"
+    }
   },
 
   // yearly, monthly, daily precipitation ensembles per country or per basin.
@@ -87,6 +103,10 @@ export default {
       ext: null,
       // and more...
     },
+    methods:{
+      type: "json",
+      method: "GET"
+    }
   },
 
   "dailyprec-basin": {
@@ -102,12 +122,14 @@ export default {
       ext: null,
       // and more...
     },
+    methods:{
+      type: "json",
+      method: "GET"
+    }
   },
 
   requirements: {
-    type: "json",
     needProxy: true,
     requireskey: false,
-    method: "GET",
   },
 };
