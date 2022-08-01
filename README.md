@@ -43,7 +43,7 @@ Each of the modules is accessed through chainage using the `hydro` class instanc
 ```javascript
 hydro[module][function]({params:{}, args:{}, data: []})
 ```
-`params:{}` represents an object with initial drivers for a specific function, `args:{}` is an object with additional parameters required for the function, and `data` is any data representation, usually an `n-D` array, for the function to run. For instance, in the data retrieval funtion:
+`params:{}` represents an object with initial drivers for a specific function, `args:{}` is an object with additional parameters required for the function, and `data` is any data representation, usually an `n-D` array, for the function to run. For instance, in the data retrieval function:
 ```javascript
 hydro.data.retrieve({params:{source: someSource, dataType: someType}, args:{specificArg: someArg}})
 ``` 
