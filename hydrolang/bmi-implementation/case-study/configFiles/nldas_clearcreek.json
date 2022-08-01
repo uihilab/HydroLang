@@ -1,0 +1,62 @@
+{
+  "modelName": "NLDAS_DATA_CLEARCREEK",
+  "modelCode": "MC-2022-05-30-B",
+  "moduleName": "data",
+  "functionName": "retrieve",
+  "args": {
+    "source": "nldas",
+    "dateTimeSpan": {
+      "startDate": "2018-10-08T20:00:00",
+      "endDate": "2018-10-09T20:00:00",
+      "dateTimeFormat": "yyyy-MM-dd HH:mm"
+    },
+    "geometry": {
+      "description": null,
+      "comID": 0,
+      "hucID": 111401060101,
+      "stationID": null,
+      "point": {
+        "latitude": null,
+        "longitude": null
+      },
+      "geometryMetadata": null,
+      "timezone": null
+    },
+    "dataValueFormat": "G",
+    "temporalResolution": "default",
+    "timeLocalized": false,
+    "units": "metric",
+    "outputFormat": "json",
+    "baseURL": null,
+    "inputTimeSeries": null
+  },
+  "params": {
+    "source": "epa",
+    "calls": "multiple",
+    "link": null,
+    "datatype": "precipitation",
+    "proxyServer": "local-proxy"
+  },
+  "duration": {
+    "defaultStep": 1,
+    "timeUnit": "h"
+  },
+  "inputVars": [
+    "input__1",
+    "input__2"
+  ],
+  "outputVars": [
+    "output__1",
+    "output__2"
+  ],
+  "units": {
+    "input": [
+      "mm",
+      "mm"
+    ],
+    "output": [
+      "mm",
+      "mm"
+    ]
+  }
+}

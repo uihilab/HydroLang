@@ -37,44 +37,38 @@ function retrieve({ params, args, data } = {}) {
   var dataSource = datasources[source][dataType];
   var endpoint;
   //Change the type of endpoint based on the request. In the future for SOAP requests, new sources will be added to the if statement.
-  source === "waterOneFlow" || source === "hisCentral"
-    ? (endpoint = datasources[source]["sourceType"](args["sourceType"]))
-    : (endpoint = dataSource["endpoint"]);
+  (source === "waterOneFlow" || source === "hisCentral")  ? endpoint = datasources[source]["sourceType"](args["sourceType"]) : endpoint = dataSource["endpoint"];
   var met = datasources[source][dataType]["methods"]["method"];
   //Grab the default parameter specified within the datasource type
-  var type;
-  (() =>
-    params["type"] === undefined
-      ? (type = datasources[source][dataType]["methods"]["type"])
-      : (type = params["type"]))();
+  var type; 
+  (() => params["type"] === undefined 
+  ? type = datasources[source][dataType]["methods"]["type"] 
+  : type = params["type"] )();
 
   //define proxy if required by the source
   var proxy = "";
   var proxif = datasources[source]["requirements"]["needProxy"];
 
   //Allowing the proxy server that is continously working to be called and used whenever it is required.
-  if (proxif)
-    (() =>
-      params.hasOwnProperty("proxyServer")
-        ? (proxy = datasources.proxies[params["proxyServer"]]["endpoint"])
-        : (proxy = datasources.proxies["all-origins"]["endpoint"]))();
+  if (proxif) (
+    () => params.hasOwnProperty("proxyServer") 
+  ? proxy = datasources.proxies[params["proxyServer"]]["endpoint"] 
+  //this considering that a local proxy server is in charge.
+  : proxy = datasources.proxies["local-proxy"]["endpoint"])()
 
   //create headers if required depending on the type supported.
   var head = {
-    "content-type": (() => {
-      if (type === "json") {
-        return "application/json";
-      } else if (type === "xml" || type === "soap") {
-        return "text/xml; charset=utf-8";
-      } else if (type === "csv" || type === "tab") {
-        return "application/text";
-      }
-    })(),
-  };
+  "content-type" : (()=>{
+    if (type === "json") {
+      return "application/json"
+    } else if (type === "xml" || type === "soap") {
+      return "text/xml; charset=utf-8"
+    } else if (type ==="csv" || type ==="tab") {
+      return "application/text"
+    }
+  })()};
   //Add an additonal header to the request in case the request is SOAP type
-  type === "soap"
-    ? (head["SOAPAction"] = datasources[source]["action"] + dataType)
-    : null;
+  type === "soap" ? head["SOAPAction"] = datasources[source]["action"]+dataType : null
 
   //Additiona keyname in case it is required by the resource
   var keyname = "";
@@ -90,16 +84,12 @@ function retrieve({ params, args, data } = {}) {
   }
 
   //Change the data request type depending on the type of request (GET, POST)
-  if (met === "POST" && type === "json") args = JSON.stringify(args);
-  if (met === "POST" && (type === "soap" || type === "xml"))
-    args = (() => {
-      var val = Object.values(args);
-      var env =
-        val.length != 0
-          ? datasources.envelope(dataSource["body"](args))
-          : datasources.envelope(dataSource["body"]());
-      return env;
-    })();
+  if (met === 'POST' && type === 'json') args = JSON.stringify(args)
+  if (met === 'POST' && (type === 'soap' || type === 'xml')) args = (()=>{
+    var val = Object.values(args)
+    var env = val.length != 0 ? datasources.envelope(dataSource["body"](args)) : datasources.envelope(dataSource["body"]())
+    return env
+  })()
 
   //retrieve the data and feed the data into callback.
   $.ajax({
@@ -108,29 +98,23 @@ function retrieve({ params, args, data } = {}) {
     dataType: type,
     method: met,
     headers: head,
-  }).then(
-    (data) => {
-      if (type === "soap") result.push(data.responseText);
-      else if (type === "xml" || type === "tab" || type === "CSV")
-        result.push(JSON.stringify(data));
-      else result.push(lowercasing(data));
-    },
-    (err) => {
-      if (type === "soap" || type === "xml") {
-        var xmlDoc = $.parseXML(err["responseText"]),
-          j = xml2json(xmlDoc);
-        type === "soap"
-          ? result.push(j["soap:Envelope"]["soap:Body"])
-          : result.push(j);
-        return result;
-      } else
-        alert(
-          `There was an error with the request. Please revise requirements.`
-        );
-    }
-  );
-  return result;
+  },
+  ).then((data => {
+  if  (type === "soap") result.push(((data.responseText)))
+  else if (type === "xml" || type === "tab" || type=== "CSV") result.push(JSON.stringify(data))
+  else result.push(lowercasing(data))
+  }), (err => {
+  if (type === "soap" || type === "xml") {
+    var xmlDoc = $.parseXML(err["responseText"]),
+    j = xml2json(xmlDoc);
+    type === "soap" ? result.push(j["soap:Envelope"]["soap:Body"]) : result.push(j)
+    return(result);
+  }
+  else alert(`There was an error with the request. Please revise requirements.`)
+  }))
+  return result
 }
+
 
 /**
  * Convert data types into others based on the premise of having JS objects as primary input.
@@ -147,43 +131,46 @@ function retrieve({ params, args, data } = {}) {
 function transform({ params, args, data } = {}) {
   //initial cleanup to remove metadata from object
   if (!params) {
-    data = data;
-  } else if (params.save !== undefined && args === undefined) {
+    data = data
+  }
+  else if (params.save !== undefined && args === undefined) {
     data = recursiveSearch({ obj: data, searchkey: params.save });
     data = data[0];
-  } else if (params.save !== undefined && args.keep !== undefined) {
+  }
+  else if (params.save !== undefined && args.keep !== undefined) {
     data = recursiveSearch({ obj: data, searchkey: params.save });
     data = data[0];
     args.keep = JSON.parse(args.keep);
     //Case all parameters are to be saved and the result is an array.
   } else if (params.save !== undefined && args.keep === undefined) {
     data = recursiveSearch({ obj: data, searchkey: params.save });
-    return data[0];
+    return data[0]
   }
 
   var type = args.type;
   var clean;
 
   if (data instanceof Array) {
-    //verify if the object is an object. Go to the following step.
-    var arr = data.map((_arrayElement) => Object.assign({}, _arrayElement));
-    arr = typeof arr != "object" ? JSON.parse(arr) : arr;
 
-    if (args.hasOwnProperty("keep")) {
-      clean = args["keep"];
-      //values to be left on the object according to user, fed as array.
-      var keep = new RegExp(clean.join("|"));
-      for (var i = 0; i < arr.length; i++) {
-        for (var k in arr[i]) {
-          keep.test(k) || delete arr[i][k];
-        }
+  //verify if the object is an object. Go to the following step.
+  var arr = data.map((_arrayElement) => Object.assign({}, _arrayElement));
+  arr = typeof arr != "object" ? JSON.parse(arr) : arr;
+
+  if (args.hasOwnProperty("keep")) {
+    clean = args["keep"];
+    //values to be left on the object according to user, fed as array.
+    var keep = new RegExp(clean.join("|"));
+    for (var i = 0; i < arr.length; i++) {
+      for (var k in arr[i]) {
+        keep.test(k) || delete arr[i][k];
       }
     }
-    if (!args.keep) {
-      //if params dont have a keep array, continue.
-      arr = arr;
-    }
   }
+  if (!args.keep) {
+    //if params dont have a keep array, continue.
+    arr = arr;
+  }
+}
   //convert array of objects into array of arrays for further manipulation.
   if (type === "ARR") {
     var arrays = arr.map(function (obj) {
@@ -258,18 +245,17 @@ function transform({ params, args, data } = {}) {
     //Conversion from XML to JSON, XML has been converted previously to a string.
   } else if (type === "XML2JSON") {
     const XMLJSon = (data) => {
-      var json = {};
-      for (const res of data.matchAll(
-        /(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\/>/gm
-      )) {
-        const key = res[1] || res[3];
-        const value = res[2] && XMLJSon(res[2]);
-        json[key] = value && Object.keys(value).length ? value : res[2] || null;
-      }
-      return json;
+    var json = {};
+    for (const res of data.matchAll(/(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\/>/gm)){
+      const key = res[1] || res[3];
+      const value = res[2] && XMLJSon(res[2]);
+      json[key] = ((value && Object.keys(value).length) ? value : res[2] || null)
     };
-    return XMLJSon(data);
-  } else {
+    return json;
+    }
+    return XMLJSon(data)
+  } 
+  else {
     throw new Error("Please select a supported data conversion type!");
   }
 }
@@ -356,16 +342,17 @@ function upload({ params, args, data } = {}) {
   //   cont1.classList.remove("active");
   // };
 
-  var ret;
+  var ret;  
   //create a new type of object depending on the type selected by user.
-  if (params.type === "CSV") {
-    ret = [];
-  } else if (params.type === "JSON") {
-    ret = new Object();
-  }
+    if (params.type === "CSV") {
+      ret = [];
+    } else if (params.type === "JSON") {
+      ret = new Object();
+    }
 
   //intialize the caller for obtaining the files.
   var selectors = () => {
+
     //create input file selector.
     f.onchange = (e) => {
       //select file by the user
@@ -438,14 +425,14 @@ function upload({ params, args, data } = {}) {
     };
     f.click();
   };
-  selectors();
-  return ret;
+  selectors()
+  return ret
   // return btn.addEventListener('click', selectors())
 }
 
 /**
  * Download files on different formats, depending on the formatted object. It extends the
- * the transform function to automatically transform the data. The default format
+ * the transform function to automatically transform the data. The default format 
  * @function download
  * @memberof data
  * @param {Object} params - Contains: save (string with name of array to save), output (name of output variable)
@@ -471,12 +458,11 @@ async function download({ params, args, data } = {}) {
 
     //if JSON file is required. Similar as before.
   } else if (type === "JSON") {
-    if (data instanceof Array) {
-      var js = this.transform({ params: params, args: args, data: data });
-    }
-    if (data instanceof Object) {
-      var js = await data;
-    }
+    if (data instanceof Array){
+    var js = this.transform({ params: params, args: args, data: data });
+  } if (data instanceof Object){
+    var js = await data
+  }
     blob = new Blob([JSON.stringify(await js)], {
       type: "text/json",
     });
@@ -574,7 +560,7 @@ function lowercasing(obj) {
  * @param {Document} xml - parsed XML document from text
  * @returns {Object{}} obj - tagged key-value pair from the XML document.
  * @example
- *
+ * 
  */
 function xml2json(xml) {
   try {
@@ -584,10 +570,10 @@ function xml2json(xml) {
         var item = xml.children.item(i);
         var nodeName = item.nodeName;
 
-        if (typeof obj[nodeName] == "undefined") {
+        if (typeof (obj[nodeName]) == "undefined") {
           obj[nodeName] = xml2json(item);
         } else {
-          if (typeof obj[nodeName].push == "undefined") {
+          if (typeof (obj[nodeName].push) == "undefined") {
             var old = obj[nodeName];
 
             obj[nodeName] = [];
@@ -601,7 +587,7 @@ function xml2json(xml) {
     }
     return obj;
   } catch (e) {
-    console.log(e.message);
+      console.log(e.message);
   }
 }
 
