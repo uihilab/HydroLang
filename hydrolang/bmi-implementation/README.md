@@ -52,9 +52,6 @@ Please feel free to send feedback to us on any issues found by filing an issue.
 ## Scalability and To-Do's
 New updates into the HydroLang will be reflected in any subprojects which use the framework.
 
-## License
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/uihilab/HydroLang/blob/master/LICENSE) file for details.
-
 ## Acknowledgements
 This project is developed by the University of Iowa Hydroinformatics Lab (UIHI Lab):
 https://hydroinformatics.uiowa.edu/.

@@ -5,7 +5,7 @@
 ## Table of Contents
 * [Introduction](https://github.com/uihilab/HydroLang#Introduction)
 * [How to Use](https://github.com/uihilab/HydroLang#How-to-Use)
-* [Test Examples](https://github.com/uihilab/HydroLang#Test-Examples)
+* [Expansions and Test Cases](https://github.com/uihilab/HydroLang#Expansions-and-Test-Cases)
 * [Community](https://github.com/uihilab/HydroLang#Community)
 * [Feedback](https://github.com/uihilab/HydroLang#Feedback)
 * [Scalability and To Do's](https://github.com/uihilab/HydroLang#Scalability-and-To-Dos)
@@ -23,6 +23,7 @@ This project introduces HydroLang, a web-based framework for environmental and h
 * **Visualization**: used for rendering different types of charts and tables on screen using [Google Charts](https://developers.google.com/chart).
 * **Maps**: used for rendering of maps with option of adding/removing/downloading layers of different formats (geoJSON, KML) using two options on map engines [Google Maps](https://developers.google.com/maps/documentation) and [Leaflet](https://leafletjs.com/).
 
+The current modular structure serves as a starting point for basic hydrologic and environmental analyses, with further development bringing along new functions and modules that work using the same ontological design.
 
 ## How to Use
 Please download the library and run `index.html`. If a new html file should be created, the library must be onloaded onto the file as a script
@@ -67,13 +68,19 @@ var example: hydro1.visualize.function({params: {}, args:{}, data: []})
 var example: hydro1.map.function({params: {}, args:{}, data: []}) 
 ```
 
+## Expansions and Test Cases
 
-## Test Examples
-Examples on how to use the library can be found within the following files or within each module folder:
+### Core library usage
+The usage of the library through its core structure can be found within the following files or within each module folder:
 * `test-analysis.html`
 * `test-data.html`
 * `test-maps.html`
 * `test-visualization.html`
+
+### Expansions
+The current expansions of the framework are the following:
+* [BMI specification](https://github.com/uihilab/HydroLang/tree/master/hydrolang/bmi-implementation): CSDMS basic modeling interface through steering files.
+* [HL-ML](https://github.com/uihilab/HydroLang-ML/tree/devo): HTML driven web components for hydrology and environmental sciences.
 
 For argument examples for a specific function, please refer to the library's [documentation page](https://hydro-lang.herokuapp.com/index.html).
 
