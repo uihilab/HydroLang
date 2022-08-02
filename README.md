@@ -80,7 +80,7 @@ The usage of the library through its core structure can be found within the foll
 ### Expansions
 The current expansions of the framework are the following:
 * [BMI specification](https://github.com/uihilab/HydroLang/tree/master/hydrolang/bmi-implementation): CSDMS basic modeling interface through steering files.
-* [HL-ML](https://github.com/uihilab/HydroLang-ML/tree/devo): HTML driven web components for hydrology and environmental sciences.
+* [HL-ML](https://github.com/uihilab/HydroLang-ML): HTML driven web components for hydrology and environmental sciences.
 
 For argument examples for a specific function, please refer to the library's [documentation page](https://hydro-lang.herokuapp.com/index.html).
 
@@ -107,6 +107,8 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 This project is developed by the University of Iowa Hydroinformatics Lab (UIHI Lab):
 
 https://hydroinformatics.uiowa.edu/.
+
+And with the support of the Cosortium of Universities for the Advancement of Hydrological Science [CUAHSI](https://www.cuahsi.org/) through the [Hydroinformatics Innovation Fellowship](https://www.cuahsi.org/grant-opportunities/hydroinformatics-innovation-fellowship).
 
 ## References
 

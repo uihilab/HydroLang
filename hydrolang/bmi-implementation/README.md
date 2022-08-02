@@ -54,9 +54,10 @@ New updates into the HydroLang will be reflected in any subprojects which use th
 
 ## Acknowledgements
 This project is developed by the University of Iowa Hydroinformatics Lab (UIHI Lab):
+
 https://hydroinformatics.uiowa.edu/.
 
-With the support of the Cosortium of Universities for the Advancement of Hydrological Science [CUAHSI](https://www.cuahsi.org/) through the [Hydroinformatics Innovation Fellowship](https://www.cuahsi.org/grant-opportunities/hydroinformatics-innovation-fellowship).
+And with the support of the Cosortium of Universities for the Advancement of Hydrological Science [CUAHSI](https://www.cuahsi.org/) through the [Hydroinformatics Innovation Fellowship](https://www.cuahsi.org/grant-opportunities/hydroinformatics-innovation-fellowship).
 
 ## References
 
