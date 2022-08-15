@@ -17,9 +17,7 @@ export default class stats {
    */
 
   static copydata({ params, args, data } = {}) {
-    var arr;
-    var values;
-    var keys;
+    var arr, values, keys;
 
     if (typeof data !== "object" || data === null) {
       return data;
@@ -63,9 +61,9 @@ export default class stats {
    */
 
   static datagaps({ params, args, data } = {}) {
-    var arr = data;
-    var or;
-    var gap = 0;
+    var arr = data,
+      or,
+      gap = 0;
 
     if (typeof arr[0] != "object") {
       or = this.copydata({ data: arr });
@@ -92,15 +90,15 @@ export default class stats {
    */
 
   static gapremoval({ params, args, data } = {}) {
-    var arr = data;
-    var or = this.copydata({ data: arr });
-    var val;
+    var arr = data,
+      or = this.copydata({ data: arr }),
+      val;
 
     if (typeof or[0] != "object") {
       val = this.cleaner({ data: or });
     } else {
-      var time = or[0];
-      var ds = or[1];
+      var time = or[0],
+        ds = or[1];
       for (var i = 0; i < ds.length; i++) {
         if (ds[i] === undefined || Number.isNaN(ds[i]) || ds[i] === false) {
           delete time[i];
@@ -125,9 +123,9 @@ export default class stats {
    */
 
   static timegaps({ params, args, data } = {}) {
-    var timestep = params.timestep;
-    var arr = data;
-    var or = this.copydata({ data: arr });
+    var timestep = params.timestep,
+      arr = data,
+      or = this.copydata({ data: arr });
 
     if (typeof arr[0] === "object") {
       or = this.copydata({ data: arr[0] });
@@ -142,11 +140,11 @@ export default class stats {
       }
     }
 
-    var gaps = 0;
-    var loc = [];
+    var gaps = 0,
+      loc = [],
+      //timestep and total duration in minutes.
+      time = timestep;
 
-    //timestep and total duration in minutes.
-    var time = timestep;
     for (var i = 1; i < or.length - 1; i++) {
       if (
         Math.abs(datetr[i - 1] - datetr[i]) != time ||
@@ -178,13 +176,12 @@ export default class stats {
    */
 
   static gapfiller({ params, args, data } = {}) {
-    var or = this.copydata({ data: data });
+    var or = this.copydata({ data: data }),
+      datetr = [];
 
     if (typeof data[0] === "object") {
       or = this.copydata({ data: data[0] });
     }
-
-    var datetr = [];
 
     for (var i = 0; i < or.length; i++) {
       if (typeof or[0] == "string") {
@@ -210,8 +207,7 @@ export default class stats {
    */
 
   static sum({ params, args, data } = {}) {
-    var sum = d3.sum(data);
-    return sum;
+    return d3.sum(data);
   }
 
   /**
@@ -225,8 +221,7 @@ export default class stats {
    */
 
   static mean({ params, args, data } = {}) {
-    var m = d3.mean(data);
-    return m;
+    return d3.mean(data);
   }
 
   /**
@@ -240,8 +235,7 @@ export default class stats {
    */
 
   static median({ params, args, data } = {}) {
-    var m = d3.median(data);
-    return m;
+    return d3.median(data);
   }
 
   /**
@@ -255,9 +249,9 @@ export default class stats {
    */
 
   static stddev({ params, args, data } = {}) {
-    var mean = this.mean({ data: data });
-    var SD = 0;
-    var nex = [];
+    var mean = this.mean({ data: data }),
+      SD = 0,
+      nex = [];
     for (var i = 0; i < data.length; i += 1) {
       nex.push((data[i] - mean) * (data[i] - mean));
     }
@@ -275,8 +269,7 @@ export default class stats {
    */
 
   static variance({ params, args, data } = {}) {
-    var vari = d3.variance(data);
-    return vari;
+    return d3.variance(data);
   }
 
   /**
@@ -290,8 +283,8 @@ export default class stats {
    */
 
   static sumsqrd({ params, args, data } = {}) {
-    var sum = 0;
-    var i = data.length;
+    var sum = 0,
+      i = data.length;
     while (--i >= 0) sum += data[i];
     return sum;
   }
@@ -307,8 +300,7 @@ export default class stats {
    */
 
   static min({ params, args, data } = {}) {
-    var low = d3.min(data);
-    return low;
+    return d3.min(data);
   }
 
   /**
@@ -358,8 +350,8 @@ export default class stats {
    */
 
   static frequency({ params, args, data } = {}) {
-    var _arr = this.copydata({ data: data });
-    var counter = {};
+    var _arr = this.copydata({ data: data }),
+      counter = {};
     _arr.forEach((i) => {
       counter[i] = (counter[i] || 0) + 1;
     });
@@ -377,9 +369,9 @@ export default class stats {
    */
 
   static standardize({ params, args, data } = {}) {
-    var _arr = [];
-    var stddev = this.stddev({ data: data });
-    var mean = this.mean({ data: data });
+    var _arr = [],
+      stddev = this.stddev({ data: data }),
+      mean = this.mean({ data: data });
     for (var i = 0; i < data.length; i++) {
       _arr[i] = (data[i] - mean) / stddev;
     }
@@ -406,8 +398,8 @@ export default class stats {
     if (p % 1 === 0) {
       return _arr[p];
     } else {
-      var b = Math.floor(p);
-      var rest = p - b;
+      var b = Math.floor(p),
+        rest = p - b;
       if (_arr[b + 1] !== undefined) {
         return _arr[b] + rest * (_arr[b + 1] - _arr[b]);
       } else {
@@ -428,15 +420,15 @@ export default class stats {
    */
 
   static interoutliers({ params, args, data } = {}) {
-    var q1 = params.q1;
-    var q2 = params.q2;
+    var q1 = params.q1,
+      q2 = params.q2,
+      or = this.copydata({ data: data }),
+      time = [];
+
     if (!(q1 || q2)) {
       q1 = 0.25;
       q2 = 0.75;
     }
-
-    var or = this.copydata({ data: data });
-    var time = [];
 
     switch (typeof data[0]) {
       case "object":
@@ -447,15 +439,13 @@ export default class stats {
         break;
     }
 
-    var Q_1 = this.quantile({ data: or, params: { q: q1 } });
-    var Q_2 = this.quantile({ data: or, params: { q: q2 } });
-    var IQR = Math.abs(Q_2 - Q_1);
-
-    var qd = Math.abs(Q_1 - 1.5 * IQR);
-    var qu = Math.abs(Q_2 + 1.5 * IQR);
-
-    var xa = (arra) => arra.filter((x) => x >= qd || x >= qu);
-    var re = xa(or);
+    var Q_1 = this.quantile({ data: or, params: { q: q1 } }),
+      Q_2 = this.quantile({ data: or, params: { q: q2 } }),
+      IQR = Math.abs(Q_2 - Q_1),
+      qd = Math.abs(Q_1 - 1.5 * IQR),
+      qu = Math.abs(Q_2 + 1.5 * IQR),
+      xa = (arra) => arra.filter((x) => x >= qd || x >= qu),
+      re = xa(or);
 
     if (typeof data[0] != "object") {
       return re;
@@ -483,14 +473,14 @@ export default class stats {
    */
 
   static normoutliers({ params, args, data } = {}) {
-    var high, low;
+    var high,
+      low,
+      or = this.copydata({ data: data }),
+      time = [];
     if (!(params.low || params.high)) {
       low = -0.5;
       high = 0.5;
     }
-
-    var or = this.copydata({ data: data });
-    var time = [];
 
     switch (typeof data[0]) {
       case "object":
@@ -501,11 +491,9 @@ export default class stats {
         break;
     }
 
-    var t1 = low;
-    var t2 = high;
-
-    var out = [];
-    var stnd = this.standardize({ data: or });
+    var t1 = low,
+      t2 = high;
+    (out = []), (stnd = this.standardize({ data: or }));
 
     for (var i = 0; i < or.length; i++) {
       if (stnd[i] < t1 || stnd[i] > t2) {
@@ -540,9 +528,9 @@ export default class stats {
    */
 
   static outremove({ params, args, data } = {}) {
-    var out;
-    var p1 = args.p1;
-    var p2 = args.p2;
+    var out,
+      p1 = args.p1,
+      p2 = args.p2;
 
     if (params.type === "normalized") {
       out = this.normoutliers({ params: { low: p1, high: p2 }, data: data });
@@ -553,8 +541,8 @@ export default class stats {
     if (typeof data[0] != "object") {
       return this.itemfilter(arr, out);
     } else {
-      var t = this.itemfilter(arr[0], out[0]);
-      var or = this.itemfilter(arr[1], out[1]);
+      var t = this.itemfilter(arr[0], out[0]),
+        or = this.itemfilter(arr[1], out[1]);
 
       return [t, or];
     }
@@ -572,26 +560,27 @@ export default class stats {
    */
 
   static correlation({ params, args, data } = {}) {
-    var q1 = data[0];
-    var q2 = data[1];
-    var n = q1.length + q2.length;
-    var q1q2 = [];
-    var sq1 = [];
-    var sq2 = [];
+    var q1 = data[0],
+      q2 = data[1],
+      n = q1.length + q2.length,
+      q1q2 = [],
+      sq1 = [],
+      sq2 = [];
+
     for (var i = 0; i < q1.length; i++) {
       q1q2[i] = q1[i] * q2[i];
       sq1[i] = q1[i] * q1[i];
       sq2[i] = q2[i] * q2[i];
     }
     var r1 =
-      n * this.sum({ data: q1q2 }) -
-      this.sum({ data: q1 }) * this.sum({ data: q2 });
-    var r2a = Math.sqrt(
-      n * this.sum({ data: sq1 }) - Math.pow(this.sum({ data: q1 }), 2)
-    );
-    var r2b = Math.sqrt(
-      n * this.sum({ data: sq2 }) - Math.pow(this.sum({ data: q2 }), 2)
-    );
+        n * this.sum({ data: q1q2 }) -
+        this.sum({ data: q1 }) * this.sum({ data: q2 }),
+      r2a = Math.sqrt(
+        n * this.sum({ data: sq1 }) - Math.pow(this.sum({ data: q1 }), 2)
+      ),
+      r2b = Math.sqrt(
+        n * this.sum({ data: sq2 }) - Math.pow(this.sum({ data: q2 }), 2)
+      );
     return r1 / (r2a * r2b);
   }
 
@@ -612,13 +601,12 @@ export default class stats {
    */
 
   static efficiencies({ params, args, data } = {}) {
-    var obs = data[0];
-    var model = data[1];
-    var meanobs = this.mean({ data: obs });
-    var meanmodel = this.mean({ data: model });
-
-    var diff1 = [];
-    var diff2 = [];
+    var obs = data[0],
+      model = data[1],
+      meanobs = this.mean({ data: obs }),
+      meanmodel = this.mean({ data: model }),
+      diff1 = [],
+      diff2 = [];
 
     //calculate nash sutcliffe efficiency
     if (params.type == "NSE") {
@@ -685,20 +673,16 @@ export default class stats {
     for (var i = 0; i < data.length; i++) {
       data[i] = Math.round(data[i] + 5);
     }
-    const _arr = data;
-    const results = _arr.map((n) => {
-      const tensors = [];
-      const start = performance.now();
-      console.log(start);
-      for (let i = 0; i < 100; i++) {
-        const real = tf.ones([10, n * 10]);
-        const imag = tf.ones([10, n * 10]);
-        const input = tf.complex(real, imag);
-        const res = tf.spectral.fft(input);
-        res.dataSync();
-      }
-      return performance.now() - start;
-    });
+    const _arr = data,
+      results = _arr.map((n) => {
+        for (let i = 0; i < 100; i++) {
+          const real = tf.ones([10, n * 10]),
+            imag = tf.ones([10, n * 10]),
+            input = tf.complex(real, imag),
+            res = tf.spectral.fft(input);
+          res.dataSync();
+        }
+      });
     return results;
   }
 
@@ -717,30 +701,28 @@ export default class stats {
   static basicstats({ params, args, data } = {}) {
     //call the basic functions for analysis.
     var count = data.length,
-    min = this.min({ data: data }),
-    max = this.max({ data: data }),
-    sum = this.sum({ data: data }),
-    mean = this.mean({ data: data }),
-    median = this.median({ data: data }),
-    std = this.stddev({ data: data }),
-    vari = this.variance({ data: data }),
-
-    statparams = [
-      ["Number of values", count],
-      ["Minimum value", min],
-      ["Maximum", max],
-      ["Sum", sum],
-      ["Mean", mean],
-      ["Median", median],
-      ["Standard deviation", std],
-      ["Variance", vari],
-    ],
-
-    //flatenise the data for graphing.
-    statx = this.flatenise({
-      params: { columns: ["Metric", "Value"] },
-      data: statparams,
-    });
+      min = this.min({ data: data }),
+      max = this.max({ data: data }),
+      sum = this.sum({ data: data }),
+      mean = this.mean({ data: data }),
+      median = this.median({ data: data }),
+      std = this.stddev({ data: data }),
+      vari = this.variance({ data: data }),
+      statparams = [
+        ["Number of values", count],
+        ["Minimum value", min],
+        ["Maximum", max],
+        ["Sum", sum],
+        ["Mean", mean],
+        ["Median", median],
+        ["Standard deviation", std],
+        ["Variance", vari],
+      ],
+      //flatenise the data for graphing.
+      statx = this.flatenise({
+        params: { columns: ["Metric", "Value"] },
+        data: statparams,
+      });
     return statx;
   }
 
@@ -748,7 +730,7 @@ export default class stats {
   /*****Statistic Tests ****/
   /***************************/
 
-   /**
+  /**
    * Mann-Kendall trend test
    * Checks for mononicity of data throughout time.
    * Reference: Kottegoda & Rosso, 2008.
@@ -761,13 +743,13 @@ export default class stats {
    * hydro.analyze.stats.MK({data: [someData]})
    */
 
-  static MK({params, args, data}) {
+  static MK({ params, args, data }) {
     var flow = data,
-    S_sum = 0,
-    S = 0,
-    sign = 0,
-    z = 0,
-    sigma = 0
+      S_sum = 0,
+      S = 0,
+      sign = 0,
+      z = 0,
+      sigma = 0;
 
     for (var i = 0; i < flow.length - 1; i++) {
       for (var j = i + 1; j < flow.length; j++) {
@@ -791,7 +773,7 @@ export default class stats {
     } else {
       z = (S_sum + 1) / Math.pow(sigma, 0.5);
     }
-    var pvalue = 2 * (1 - normalcdf({data: Math.abs(z)}));
+    var pvalue = 2 * (1 - normalcdf({ data: Math.abs(z) }));
 
     return [pvalue, S_sum, z];
   }
@@ -804,21 +786,21 @@ export default class stats {
    * @param {Object[]} data - Contains: 1d-JS array with timeseries
    * @returns {Object[]} 1d array with 3 values: p-value, value sum and z value
    * @param {Object[]} data - 1d-JS array
-   * @returns {Number} number value for the distribution 
+   * @returns {Number} number value for the distribution
    * @example
    * hydro.analyze.stats.normalcdf({data: [someData]})
    */
 
-  static normalcdf({params, args, data}) {
+  static normalcdf({ params, args, data }) {
     var X = data,
-    //HASTINGS.  MAX ERROR = .000001
-    T = 1 / (1 + 0.2316419 * Math.abs(X)),
-    D = 0.3989423 * Math.exp((-X * X) / 2),
-    Prob =
-      D *
-      T *
-      (0.3193815 +
-        T * (-0.3565638 + T * (1.781478 + T * (-1.821256 + T * 1.330274))));
+      //HASTINGS.  MAX ERROR = .000001
+      T = 1 / (1 + 0.2316419 * Math.abs(X)),
+      D = 0.3989423 * Math.exp((-X * X) / 2),
+      Prob =
+        D *
+        T *
+        (0.3193815 +
+          T * (-0.3565638 + T * (1.781478 + T * (-1.821256 + T * 1.330274))));
     if (X > 0) {
       Prob = 1 - Prob;
     }
@@ -837,17 +819,20 @@ export default class stats {
    * @example
    * hydro.analyze.stats.computeD({data: [samples_A, samples_B]})
    */
-  static computeD({params, args, data}) {
-    var samples_A = data[0], samples_B = data[1], maximumDifference = 0, N = 1e3;
+  static computeD({ params, args, data }) {
+    var samples_A = data[0],
+      samples_B = data[1],
+      maximumDifference = 0,
+      N = 1e3;
     let minimum = d3.min(samples_A.concat(samples_B)),
-    maximum = d3.max(samples_A.concat(samples_B)),
-    N_A = samples_A.length,
-    N_B = samples_B.length;
+      maximum = d3.max(samples_A.concat(samples_B)),
+      N_A = samples_A.length,
+      N_B = samples_B.length;
 
     for (var x of d3.range(minimum, maximum, (maximum - minimum) / N)) {
       var CDF_A = samples_A.filter((d) => d <= x).length / N_A,
-      CDF_B = samples_B.filter((d) => d <= x).length / N_B,
-      difference = Math.abs(CDF_A - CDF_B);
+        CDF_B = samples_B.filter((d) => d <= x).length / N_B,
+        difference = Math.abs(CDF_A - CDF_B);
 
       if (difference > maximumDifference) {
         maximumDifference = difference;
@@ -868,12 +853,13 @@ export default class stats {
    * @example
    * hydro.analyze.stats.KS_computePValue({data: [samples_A, samples_B]})
    */
-  static KS_computePValue({params, args, data}) {
-    var samples_A = data[0], samples_B = data[1];
-    d = computeD(samples_A, samples_B),
-    n = samples_A.length,
-    m = samples_B.length,
-    p = 2 * Math.exp((-2 * d * d * (n * m)) / (n + m));
+  static KS_computePValue({ params, args, data }) {
+    var samples_A = data[0],
+      samples_B = data[1];
+    (d = computeD(samples_A, samples_B)),
+      (n = samples_A.length),
+      (m = samples_B.length),
+      (p = 2 * Math.exp((-2 * d * d * (n * m)) / (n + m)));
 
     return [p, d];
   }
@@ -890,11 +876,10 @@ export default class stats {
    * @example
    * hydro.analyze.stats.KS_rejectAtAlpha({params: {alpha: someAlpha}, data: [samples_A, samples_B]})
    */
-  static KS_rejectAtAlpha({params, args, data}) {
-    let [p, d] = KS_computePValue({data: data});
+  static KS_rejectAtAlpha({ params, args, data }) {
+    let [p, d] = KS_computePValue({ data: data });
     return p < params.alpha;
   }
-
 
   /***************************/
   /***** Helper functions ****/

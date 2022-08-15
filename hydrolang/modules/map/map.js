@@ -10,10 +10,10 @@ import * as divisors from "../visualize/divisors.js";
 
 //Controllers, map and layers
 //Most variables are left as internal variables for control when the hydrolang instance is live.
-var osmap;
-var layercontroller;
-var drawings;
-var drawControl;
+var osmap,
+layercontroller,
+drawings,
+drawControl;
 
 //Global variables for library usages.
 window.baselayers = {};
@@ -34,9 +34,9 @@ window.overlayers = {};
 async function loader({ params, args, data } = {}) {
   //For google maps API.
   if (params.maptype == "google") {
-    const gApiKey = args.key;
+    const gApiKey = args.key,
     //call the class  constructor.
-    const gmapApi = new mapsources.googlemapsapi(gApiKey);
+    gmapApi = new mapsources.googlemapsapi(gApiKey);
     await gmapApi.load();
   }
 
@@ -63,13 +63,13 @@ async function loader({ params, args, data } = {}) {
  */
 
 async function Layers({ params, args, data } = {}) {
-  var layertype;
+  var layertype,
   //The mapconfig is set to be as OSM.
-  var mapconfig = { maptype: "osm" };
+  mapconfig = { maptype: "osm" },
   //Creating configuration object for rendering layers.
   //If a property is not found, is simply set to null.
   //Setting it up as default behavior.
-  var layertype = {
+  layertype = {
     type: args.type,
     markertype: args.type,
     geotype: args.geo,
@@ -83,9 +83,9 @@ async function Layers({ params, args, data } = {}) {
     }
     //in case the map required is osm.
     else if (mapconfig.maptype === "osm") {
-      var layer;
-      var type = layertype.type;
-      var layername = layertype.name;
+      var layer,
+      type = layertype.type,
+      layername = layertype.name;
 
       if (typeof layercontroller === "undefined") {
         //Defining the controller for the layers.
@@ -166,8 +166,8 @@ async function Layers({ params, args, data } = {}) {
 
 async function renderMap({ params, args, data } = {}) {
   //Reading layer types and map configurations from the user's parameters inputs.
-  var layertype;
-  var mapconfig = {
+  var layertype,
+  mapconfig = {
     maptype: args.maptype,
     lat: args.lat,
     lon: args.lon,
@@ -355,14 +355,14 @@ function kml({ params, args, data } = {}) {
       map: osmap,
     });
     kmlLayer.addListener("click", function (event) {
-      var content = event.featureData.infoWindowHtml;
-      var testimonial = document.getElementById("capture");
+      var content = event.featureData.infoWindowHtml,
+      testimonial = document.getElementById("capture");
       testimonial.innerHTML = content;
     });
   } else if (params.maptype == "osm") {
-    const parser = new DOMParser();
-    const kml = parser.parseFromString(data.kml, "text/xml");
-    const track = new L.KML(kml);
+    const parser = new DOMParser(),
+    kml = parser.parseFromString(data.kml, "text/xml"),
+    track = new L.KML(kml);
     return track;
   }
 }
@@ -383,8 +383,8 @@ function addMarker({ params, args, data } = {}) {
   }
 
   if (params.maptype === "osm") {
-    var type = args.markertype;
-    var coord = args.coord;
+    var type = args.markertype,
+    coord = args.coord;
 
     //the markerstyle function renders different types of preset styles. If other style types are needed
     //change the code accordingly.
@@ -443,9 +443,9 @@ function addMarker({ params, args, data } = {}) {
  */
 
 function markerStyles({ params, args, data } = {}) {
-  var map = params.map;
-  var fig = params.fig;
-  var layer;
+  var map = params.map,
+  fig = params.fig,
+  layer;
 
   //Implementation for google markers still ongoing.
   if (map === "google") {

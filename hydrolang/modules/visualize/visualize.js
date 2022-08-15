@@ -21,138 +21,135 @@ import { googleCdn } from "../../external/googlecharts/googlecharts.js";
  */
 
 function chart({ params, args, data } = {}) {
-  console.log(params, data)
-  if(!divisors.isdivAdded({ params: {divID: "visualize"}})) {
-    divisors.createDiv({ params: {id: "visualize", class: "visualize"}})
+  console.log(params, data);
+  if (!divisors.isdivAdded({ params: { divID: "visualize" } })) {
+    divisors.createDiv({ params: { id: "visualize", class: "visualize" } });
   }
   //Create a new div for the visualize options.
-    //Google CDN stable library caller.
-    var g = googleCdn();
-    g[0].addEventListener("load", () => {
-      google.charts
-        .load("current", {
-          packages: ["corechart", "table", "annotatedtimeline"],
-        })
-        .then(() => {
-          divisors.createDiv({
-            params: {
-              id: params.divID,
-              title: `Graph of ${params.divID}`,
-              class: "charts",
-              maindiv: document
-                .getElementById("visualize")
-                // .getElementsByClassName("visualize")[0],
-            },
-          });
-          //Creating a container to append the chart to.
-          var container;
-          if (divisors.isdivAdded) {
-            container = document.getElementById(params.divID);
-          }
-
+  //Google CDN stable library caller.
+  var g = googleCdn();
+  g[0].addEventListener("load", () => {
+    google.charts
+      .load("current", {
+        packages: ["corechart", "table", "annotatedtimeline"],
+      })
+      .then(() => {
+        divisors.createDiv({
+          params: {
+            id: params.divID,
+            title: `Graph of ${params.divID}`,
+            class: "charts",
+            maindiv: document.getElementById("visualize"),
+            // .getElementsByClassName("visualize")[0],
+          },
+        });
+        //Creating a container to append the chart to.
+        var container,
           //Data read from the parameters passed by the user.
-          var char = params.chartType;
-
+          char = params.chartType,
           //To avoid having to load the entire library, the optional JS evaluator is used
           //to read the requirements for drawing.
-          var ch = eval(g[1][char]);
-          var t1 = eval(g[2]["data"]);
+          ch = eval(g[1][char]),
+          t1 = eval(g[2]["data"]),
           //Declaring a t1 option
-          var dat = new t1();
+          dat = new t1(),
           //Temporal variable holder
-          var temp = [];
-
-          //Create space for column name
-          if (data[0][0] instanceof String) {
-            for (var i = 0; i < data.length; i++) {
-              data[i][0].shift();
-            }
-          }
-
+          temp = [],
           //rearrange data into nxm from mxn
-          var d = stats.arrchange({data: data});
+          d = stats.arrchange({ data: data });
 
-          //Change the way of creating charts depending on the type of chart required.
-          switch (char) {
-            case "scatter":
-              for (var k=0; k < d[0].length; k++){
-                temp.push(`Value${k}`)
-              }
-              d.unshift(temp)
-              dat = google.visualization.arrayToDataTable(d);
-              break;
+        if (divisors.isdivAdded) {
+          container = document.getElementById(params.divID);
+        }
 
-            case "column" || "combo":
-              for (var k=0; k < d[0].length; k++){
-                temp.push(`Value${k}`)
-              }
-              d.unshift(temp)
-
-              dat = google.visualization.arrayToDataTable(d);
-              break;
-
-            case "histogram":
-              for (var k=0; k < d[0].length; k++){
-                temp.push(`Value${k}`)
-              }
-              d.unshift(temp)
-
-              dat = google.visualization.arrayToDataTable(d);
-              break;
-
-            case "line" || "timeline":
-              for (var k = 0; k < d[0].length; k++) {
-                temp.push(`Value${k}`);
-              }
-              d.unshift(temp);
-
-              for (var j = 0; j < d[0].length; j++) {
-                dat.addColumn(typeof d[1][j], d[0][j]);
-              }
-
-              for (var i = 1; i < d.length; i++) {
-                dat.addRow(d[i]);
-              }
-
-              break;
-
-            default:
-              break;
+        //Create space for column name
+        if (data[0][0] instanceof String) {
+          for (var i = 0; i < data.length; i++) {
+            data[i][0].shift();
           }
+        }
 
-          //Create figure in container.
-          var fig = new ch(container);
-          //Draw the chart.
-          if (params.hasOwnProperty("options")) {
-            var options = params.options;
-            fig.draw(dat, options);
-          } else {
-            fig.draw(dat);
-          }
+        //Change the way of creating charts depending on the type of chart required.
+        switch (char) {
+          case "scatter":
+            for (var k = 0; k < d[0].length; k++) {
+              temp.push(`Value${k}`);
+            }
+            d.unshift(temp);
+            dat = google.visualization.arrayToDataTable(d);
+            break;
 
-          //Listener to add button for the chart to be downloaded once is ready.
-          google.visualization.events.addListener(fig, "ready", function () {
-            divisors.createDiv({
-              params: {
-                id: `${params.divID}_png`,
-                maindiv: container,
-              },
-            });
+          case "column" || "combo":
+            for (var k = 0; k < d[0].length; k++) {
+              temp.push(`Value${k}`);
+            }
+            d.unshift(temp);
 
-            document.getElementById(
-              `${params.divID}_png`
-            ).outerHTML = `<a download="${
-              params.divID
-            }" href="${fig.getImageURI()}"><button>Download figure ${
-              params.divID
-            }</button></a>`;
+            dat = google.visualization.arrayToDataTable(d);
+            break;
+
+          case "histogram":
+            for (var k = 0; k < d[0].length; k++) {
+              temp.push(`Value${k}`);
+            }
+            d.unshift(temp);
+
+            dat = google.visualization.arrayToDataTable(d);
+            break;
+
+          case "line" || "timeline":
+            for (var k = 0; k < d[0].length; k++) {
+              temp.push(`Value${k}`);
+            }
+            d.unshift(temp);
+
+            for (var j = 0; j < d[0].length; j++) {
+              dat.addColumn(typeof d[1][j], d[0][j]);
+            }
+
+            for (var i = 1; i < d.length; i++) {
+              dat.addRow(d[i]);
+            }
+
+            break;
+
+          default:
+            break;
+        }
+
+        //Create figure in container.
+        var fig = new ch(container);
+        //Draw the chart.
+        if (params.hasOwnProperty("options")) {
+          var options = params.options;
+          fig.draw(dat, options);
+        } else {
+          fig.draw(dat);
+        }
+
+        //Listener to add button for the chart to be downloaded once is ready.
+        google.visualization.events.addListener(fig, "ready", function () {
+          divisors.createDiv({
+            params: {
+              id: `${params.divID}_png`,
+              maindiv: container,
+            },
           });
-          //});
-          return console.log(
-            `Chart ${params.divID} is drawn based on given parameters`
-          );
+
+          document.getElementById(
+            `${params.divID}_png`
+          ).outerHTML = `<a download="${
+            params.divID
+          }" href="${fig.getImageURI()}"><button>Download figure ${
+            params.divID
+          }</button></a>`;
         });
-    });
+        //});
+        return console.log(
+          `Chart ${params.divID} is drawn based on given parameters`
+        );
+      });
+  });
 }
 
 /**
@@ -167,66 +164,64 @@ function chart({ params, args, data } = {}) {
  */
 function table({ params, args, data } = {}) {
   //Verify if the visualize div has already been added into screen.
-  if(!divisors.isdivAdded({ params: {divID: "visualize"}})) {
-    divisors.createDiv({ params: {id: "visualize"}})
+  if (!divisors.isdivAdded({ params: { divID: "visualize" } })) {
+    divisors.createDiv({ params: { id: "visualize" } });
   }
-    //Call the google charts CDN
-    var g = googleCdn();
-    g[0].addEventListener("load", () => {
-      google.charts.load("current", { packages: ["table"] }).then(() => {
-        divisors.createDiv({
-          params: {
-            id: params.divID,
-            title: `Table of ${params.divID}`,
-            class: "tables",
-            maindiv: document
-              .getElementById("visualize")
-              // .getElementsByClassName("visualize")[0],
-          },
-        });
-
-        //Create container for table.
-        var container;
-        if (divisors.isdivAdded) {
-          container = document.getElementById(params.divID);
-        }
-
-        //Call the data types required for table generation.
-        var t1 = eval(g[2]["data"]);
-        var t2 = eval(g[2]["view"]);
-        var t3 = eval(g[2]["table"]);
-
-        //Assign data into new variables for manipulation.
-        var types = params.datatype;
-        var dat = new t1();
-        var temp = [];
-
-        for (var k = 0; k < types.length; k++) {
-          dat.addColumn(types[k]);
-        }
-        var tr = stats.arrchange({ data: data });
-
-        for (var l = 0; l < tr.length; l++) {
-          temp.push(tr[l]);
-        }
-
-        dat.addRows(temp);
-
-        var view = new t2(dat);
-        var table = new t3(container);
-
-        //Draw table.
-        if (params.hasOwnProperty("options")) {
-          var options = params.options;
-          table.draw(view, options);
-        } else {
-          table.draw(view);
-        }
-        return console.log(
-          `Table ${params.divID} drawn on the given parameters.`
-        );
+  //Call the google charts CDN
+  var g = googleCdn();
+  g[0].addEventListener("load", () => {
+    google.charts.load("current", { packages: ["table"] }).then(() => {
+      divisors.createDiv({
+        params: {
+          id: params.divID,
+          title: `Table of ${params.divID}`,
+          class: "tables",
+          maindiv: document.getElementById("visualize"),
+          // .getElementsByClassName("visualize")[0],
+        },
       });
+
+      //Create container for table.
+      var container,
+        //Call the data types required for table generation.
+        t1 = eval(g[2]["data"]),
+        t2 = eval(g[2]["view"]),
+        t3 = eval(g[2]["table"]),
+        //Assign data into new variables for manipulation.
+        types = params.datatype,
+        dat = new t1(),
+        temp = [],
+        tr = stats.arrchange({ data: data });
+
+      if (divisors.isdivAdded) {
+        container = document.getElementById(params.divID);
+      }
+
+      for (var k = 0; k < types.length; k++) {
+        dat.addColumn(types[k]);
+      }
+
+      for (var l = 0; l < tr.length; l++) {
+        temp.push(tr[l]);
+      }
+
+      dat.addRows(temp);
+
+      var view = new t2(dat),
+        table = new t3(container);
+
+      //Draw table.
+      if (params.hasOwnProperty("options")) {
+        var options = params.options;
+        table.draw(view, options);
+      } else {
+        table.draw(view);
+      }
+      return console.log(
+        `Table ${params.divID} drawn on the given parameters.`
+      );
     });
+  });
 }
 
 /**
@@ -243,9 +238,9 @@ function table({ params, args, data } = {}) {
  */
 
 function draw({ params, args, data } = {}) {
-  var dat = data;
-  var pm;
-  var type = params.type;
+  var dat = data,
+    pm,
+    type = params.type;
   if (type !== "json") {
     dat[1] = dat[1].map(Number);
   }

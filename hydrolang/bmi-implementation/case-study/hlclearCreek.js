@@ -109,8 +109,8 @@ class HLclearCreek extends HydroLangBMI {
    */
 
   get_value_at_indices(var_name, dest, indices) {
-    var current = this.get_current_time();
-    var timeIndex = super.value_index(current, this.results["dates"]);
+    var current = this.get_current_time(),
+      timeIndex = super.value_index(current, this.results["dates"]);
     console.log(timeIndex);
     indices.forEach((link) => {
       this._params.source === "epa"
@@ -141,24 +141,23 @@ class HLclearCreek extends HydroLangBMI {
       // });
       // this.upload = arrayCont
       // var fnSt = step;
-      const start = performance.now();
-
-      const linkCalls = (st) => {
-        var stgFunc = [];
-        for (let k = 0; k < st[0].length; k++) {
-          this._params.link = st[0][k];
-          this.links.push(st[0][k]);
-          const fs = () =>
-            new Promise((resolve) =>
-              resolve(
-                (this._args.geometry.point.latitude = st[1][k]),
-                (this._args.geometry.point.longitude = st[2][k])
-              )
-            );
-          stgFunc.push(fs);
-        }
-        return stgFunc;
-      };
+      const start = performance.now(),
+        linkCalls = (st) => {
+          var stgFunc = [];
+          for (let k = 0; k < st[0].length; k++) {
+            this._params.link = st[0][k];
+            this.links.push(st[0][k]);
+            const fs = () =>
+              new Promise((resolve) =>
+                resolve(
+                  (this._args.geometry.point.latitude = st[1][k]),
+                  (this._args.geometry.point.longitude = st[2][k])
+                )
+              );
+            stgFunc.push(fs);
+          }
+          return stgFunc;
+        };
 
       //Creating collection of unique
       // this.grid = this.hlIns()["analyze"]["stats"]["unique"]({data: arrayCont[1]});
@@ -225,8 +224,8 @@ class HLclearCreek extends HydroLangBMI {
 
       var res = gridCalls(this.grid.slice(1, 3));
       for (let f = 0; f < res.length; f++) {
-        var intStart = performance.now();
-        var k = f * 10000;
+        var intStart = performance.now(),
+          k = f * 10000;
         setTimeout(() => {
           res[f]().then(() => {
             super.handleConfig();
@@ -298,16 +297,16 @@ class HLclearCreek extends HydroLangBMI {
 
   spreadResults() {
     //For the clear creek and EPA data
-    var stgDate = [];
-    var stgRes = {};
+    var stgDate = [],
+      stgRes = {};
     //Manipulating the results coming from the Clear Creek API
     if (this._params.source === "clearcreek") {
       (() => (this.results = this.results[0][0]))();
       //Just using the first element to get the dates in unix epoch
       this.links.slice(0, 1).forEach((link) => {
         this.results[link]["dates"].forEach((date) => {
-          var parsedDate = new Date(date);
-          var stgUnix = parsedDate.getTime() / 1000;
+          var parsedDate = new Date(date),
+            stgUnix = parsedDate.getTime() / 1000;
           this._timeUnit == "hr" ? stgUnix / 3600 : stgUnix;
           stgDate.push(stgUnix);
         });
@@ -333,14 +332,13 @@ class HLclearCreek extends HydroLangBMI {
         return indexes;
       };
 
-      var indexes = indLoc(stgDate, 3600);
-
-      var stgDateVals = [];
-      var stgArrays = [];
+      var indexes = indLoc(stgDate, 3600),
+        stgDateVals = [],
+        stgArrays = [];
       for (var k = 0; k < indexes[0].length; k++) {
-        var l = indexes[1][k];
-        var h = stgDate[indexes[0][k]];
-        var sg = Array(l).fill(0);
+        var l = indexes[1][k],
+          h = stgDate[indexes[0][k]],
+          sg = Array(l).fill(0);
         stgArrays.push(sg);
         sg = sg.map((val, c) => {
           return (val = h + 3600 * (c + 1));
@@ -425,17 +423,16 @@ class HLclearCreek extends HydroLangBMI {
     //For the gauging statation data
     //Stremflow data
     var r = h[this._moduleName]["transform"]({
-      params: { save: "value" },
-      args: { type: "ARR", keep: '["datetime", "value"]' },
-      data: this.stgGauge[0],
-    });
-
-    //Gauge height
-    var r1 = h[this._moduleName]["transform"]({
-      params: { save: "value" },
-      args: { type: "ARR", keep: '["value"]' },
-      data: this.stgGauge[0][0]["value"]["timeseries"][1],
-    });
+        params: { save: "value" },
+        args: { type: "ARR", keep: '["datetime", "value"]' },
+        data: this.stgGauge[0],
+      }),
+      //Gauge height
+      r1 = h[this._moduleName]["transform"]({
+        params: { save: "value" },
+        args: { type: "ARR", keep: '["value"]' },
+        data: this.stgGauge[0][0]["value"]["timeseries"][1],
+      });
 
     //Having all the data into a single array
     r.push(r1[0]);
@@ -474,8 +471,8 @@ class HLclearCreek extends HydroLangBMI {
    * @returns
    */
   rainID() {
-    var ev = this.results.dates;
-    var events = {};
+    var ev = this.results.dates,
+      events = {};
     for (var i = 0; i < ev.length; i++) {
       var stgDates = [];
       if (this.dataStep(ev[i], ev[i + 1]) === super.get_time_step()) {

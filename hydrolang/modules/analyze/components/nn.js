@@ -17,9 +17,9 @@ export default class nn {
    */
 
   static createModel({ params, args, data } = {}) {
-    var numinputs = params.inputs;
-    var numneurons = params.neurons;
-    var numoutputs = params.outputs;
+    var numinputs = params.inputs,
+      numneurons = params.neurons,
+      numoutputs = params.outputs;
     const model = tf.sequential();
 
     //Add input layer considering only 1 input layer for the training.
@@ -87,28 +87,26 @@ export default class nn {
    */
 
   static convertToTensor({ params, args, data } = {}) {
-    var arr1 = data[0];
-    var arr2 = data[1];
+    var arr1 = data[0],
+      arr2 = data[1];
     return tf.tidy(() => {
       //Convert the data to tensors.
       /*const inputs = arr1.map((d) => d);
       const outputs = arr2.map((d) => d);*/
 
-      const inputTensor = tf.tensor1d(arr1).reshape([1, arr1.length]);
-      const outputTensor = tf.tensor1d(arr2).reshape([1, arr2.length]);
-
-      //normalizing the data between range 0 - 1.
-      const inputMax = inputTensor.max();
-      const inputMin = inputTensor.min();
-      const outputMax = outputTensor.max();
-      const outputMin = outputTensor.min();
-
-      const normalizedInputs = inputTensor
-        .sub(inputMin)
-        .div(inputMax.sub(inputMin));
-      const normalizedOutputs = outputTensor
-        .sub(outputMin)
-        .div(outputMax.sub(outputMin));
+      const inputTensor = tf.tensor1d(arr1).reshape([1, arr1.length]),
+        outputTensor = tf.tensor1d(arr2).reshape([1, arr2.length]),
+        //normalizing the data between range 0 - 1.
+        inputMax = inputTensor.max(),
+        inputMin = inputTensor.min(),
+        outputMax = outputTensor.max(),
+        outputMin = outputTensor.min(),
+        normalizedInputs = inputTensor
+          .sub(inputMin)
+          .div(inputMax.sub(inputMin)),
+        normalizedOutputs = outputTensor
+          .sub(outputMin)
+          .div(outputMax.sub(outputMin));
 
       return {
         inputs: normalizedInputs,
@@ -140,14 +138,13 @@ export default class nn {
 
   static async trainModel({ params, args, data } = {}) {
     //Grabbing data from the parameters
-    var model = params.model;
-    var inputs = data[0];
-    var outputs = data[1];
-
-    //Grabbing data from the arguments
-    var epochs = args.epochs;
-    var learningrate = args.lr;
-    var batch = args.batch;
+    var model = params.model,
+      inputs = data[0],
+      outputs = data[1],
+      //Grabbing data from the arguments
+      epochs = args.epochs,
+      learningrate = args.lr,
+      batch = args.batch;
 
     //temporary solution for the split method to be fixed on the tf.js backend.
     tf.env().set("WEBGL_CPU_FORWARD", false);
@@ -196,16 +193,16 @@ export default class nn {
 
   static prediction({ params, args, data } = {}) {
     //Grab the data from the arguments.
-    var model = params.model;
-    var inputs = data;
-    var outputMin = args.outputMin;
-    var outputMax = args.outputMax;
+    var model = params.model,
+      inputs = data,
+      outputMin = args.outputMin,
+      outputMax = args.outputMax;
     //Create prediction from model and inputs.
-    const predictedPoints = model.predict(inputs);
-    //The predictions are normalized, unnormalizing step.
-    const unNormPreds = predictedPoints
-      .mul(outputMax.sub(outputMin))
-      .add(outputMin);
+    const predictedPoints = model.predict(inputs),
+      //The predictions are normalized, unnormalizing step.
+      unNormPreds = predictedPoints
+        .mul(outputMax.sub(outputMin))
+        .add(outputMin);
     return Array.from(unNormPreds.dataSync());
   }
 
@@ -221,8 +218,8 @@ export default class nn {
    */
 
   static async saveModel({ params, args, data } = {}) {
-    var model = params.model;
-    var name = params.name;
+    var model = params.model,
+      name = params.name;
     await model.save(`downloads://${name}`);
   }
 }

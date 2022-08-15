@@ -75,16 +75,16 @@ class HydroLangBMI extends BMI {
           //Assuming the required data to be used for simulations are the same as the API calls. If not, a time parameter must be specified.
           !data["duration"]["startTime"]
             ? (() => {
-                var stageDate = new Date(this._args["startDate"]);
-                var stgUnix = stageDate.getTime() / 1000;
+                var stageDate = new Date(this._args["startDate"]),
+                stgUnix = stageDate.getTime() / 1000;
                 this._timeUnit === "hr" ? stgUnix / 1000 : stgUnix;
                 return (this._startTime = stgUnix);
               })()
             : (this._startTime = data["duration"]["startTime"]);
           !data["duration"]["endTime"]
             ? (() => {
-                var stageDate = new Date(this._args["endDate"]);
-                var stgUnix = stageDate.getTime() / 1000;
+                var stageDate = new Date(this._args["endDate"]),
+                stgUnix = stageDate.getTime() / 1000;
                 this._timeUnit === "hr" ? stgUnix / 1000 : stgUnix;
                 return (this._endTime = stgUnix);
               })()
