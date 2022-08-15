@@ -20,9 +20,9 @@ Unnacceptable behavior in the participants include:
 * Other conduct that can be deemed inappropaite in a professional setting.
 
 ## Responsabilities
-The project maintainers are responsible for clarifying any of the standards of acceptable behavior and to take any appropiate actions towards unacceptable behavior.
+The project maintainers are in charge of outlining any acceptable behavior rules and of taking any necessary action in response to bad behavior.
 
-The maintainers have right and responsibility to remove, edit, and reject any comments, commits, code, page edits, issues or other contributions that are not following this Code of Conduct, and to temporarily or permanntly ban the contributors for any inappropiate, threatening or offensive behavior.
+Any comments, commits, code, page edits, issues, or other contributions that do not adhere to this Code of Conduct are subject to removal, editing, and rejection by the maintainers. They also have the authority to temporarily or permanently ban contributors for inappropriate, threatening, or offensive behavior.
 
 ## Attribution
 This Code of Conduct has been adaptabed from the [Contribution Covenant](https://www.contributor-covenant.org/), version 2.1, available at https://www.contributor-covenant.org/version/2/1/code_of_conduct/.
