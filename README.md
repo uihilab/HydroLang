@@ -85,14 +85,15 @@ The current expansions of the framework are the following:
 For argument examples for a specific function, please refer to the library's [documentation page](https://hydro-lang.herokuapp.com/index.html).
 
 ## Community
-The flexibility of using a modular architecture, open-source libraries, and not requiring installation provides a unique opportunity for scalability and upgrades, thus, creating the potential for the library to grow by becoming a community-based framework with collaborations from research institutions or individuals with expertise. HydroLang can be customized and extended by interested parties to suit for specific use cases, development environments, project requirements, and data resources. We encourage everyone to help extend HydroLang by either:
+It is possible for the library to expand by becoming a community-based framework with collaborations from research institutes or knowledgeable individuals thanks to the flexibility of employing a modular architecture, open-source libraries, and not requiring installation. Interested parties can adapt and expand HydroLang to fit their unique use cases, development environments, project requirements, and data resources. Everyone is encouraged to contribute to the growth of HydroLang by:
 * filing an issue to request certain features, functionality, and data,
 * implementing the desired capability on a fork, and submitting a pull request.
+Please visit the [contributing](https://github.com/uihilab/HydroLang/blob/master/docs/CONTRIBUTING.md) guidelines for more details.
 
 Furthermore, for community building, we encourage users of HydroLang to share their models, codes, and case studies on [HydroLang-Models repository](https://github.com/uihilab/HydroLang-Models).
 
 ## Feedback
-Please feel free to send feedback to us on any issues found by filing an issue.
+Please feel free to send feedback to us on any issues found by filing an [issue](https://github.com/uihilab/HydroLang/blob/master/.github/ISSUE_TEMPLATE/feature_request.md).
 
 ## Scalability and To-Do's
 The framework is not limited to the functions and modules implemented, but rather provides a boilerplate for new features to be added. Nonetheless, the following should be considered:
