@@ -89,11 +89,12 @@ function createForm({ params, args, data } = {}) {
  */
 
 function createDiv({ params, args, data } = {}) {
-  var dv = document.createElement("div");
+  var dv = document.createElement('div');
   dv.id = params.id;
   dv.title = params.title;
   dv.className = params.class;
   dv.style = params.style;
+  console.log(params)
   params.maindiv !== undefined
     ? params.maindiv.appendChild(dv)
     : document.body.appendChild(dv);

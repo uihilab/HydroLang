@@ -699,31 +699,26 @@ export default class stats {
    */
 
   static basicstats({ params, args, data } = {}) {
+    //Can pass time series data as a 2d array without additional manipulation
+    data.length > 1 ? (() => {data = data[1]; data.shift()})(): data
+    data = data.map(val => JSON.parse(val))
+    //if value is outside the values required from the api call
+    data = data.map(val => {val > 99998 ? val = 0 : val; return val})
+    var temp = [], values = [];
     //call the basic functions for analysis.
-    var count = data.length,
-      min = this.min({ data: data }),
-      max = this.max({ data: data }),
-      sum = this.sum({ data: data }),
-      mean = this.mean({ data: data }),
-      median = this.median({ data: data }),
-      std = this.stddev({ data: data }),
-      vari = this.variance({ data: data }),
-      statparams = [
-        ["Number of values", count],
-        ["Minimum value", min],
-        ["Maximum", max],
-        ["Sum", sum],
-        ["Mean", mean],
-        ["Median", median],
-        ["Standard deviation", std],
-        ["Variance", vari],
-      ],
-      //flatenise the data for graphing.
-      statx = this.flatenise({
-        params: { columns: ["Metric", "Value"] },
-        data: statparams,
-      });
-    return statx;
+    values.push("Value")
+    values.push(data.length);
+    values.push(this.min({ data: data }));
+    values.push(this.max({ data: data }));
+    values.push(this.sum({ data: data }));
+    values.push(this.mean({ data: data }));
+    values.push(this.median({ data: data }));
+    values.push(this.stddev({ data: data }));
+    values.push(this.variance({ data: data }));
+
+    temp.push(["Metric", "Number of values", "Minimum Value", "Maximum value", "Sum", "Mean", "Median", "Standard deviation", "Variance"])
+    temp.push(values)
+    return temp
   }
 
   /***************************/
@@ -879,6 +874,16 @@ export default class stats {
   static KS_rejectAtAlpha({ params, args, data }) {
     let [p, d] = KS_computePValue({ data: data });
     return p < params.alpha;
+  }
+
+  /**
+   * Returns the a normal distribution PDF
+   * @method normalDistribution
+   * @param {Object{}} params - contains {z: Number}
+   * 
+   */
+  static normalDistribution({params, args, data}) {
+    return Math.exp(-(Math.log(2 * Math.PI) + params.z * params.z) * 0.5)
   }
 
   /***************************/

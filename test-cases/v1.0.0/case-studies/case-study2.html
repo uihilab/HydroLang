@@ -4,7 +4,7 @@
 <head>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" />
   <title>Hydrolang</title>
-  <script type="module" onload="initHydrolang()" src="../hydrolang/hydro.js"></script>
+  <script type="module" onload="initHydrolang()" src="../../../hydrolang/hydro.js"></script>
 </head>
 <style>
   #map {
@@ -21,16 +21,21 @@
 </style>
 
 <body>
+
+  <button onclick="initHydrolang()">Click this shit</button>
   <script>
     async function initHydrolang() {
 
       hydro1 = new Hydrolang();
 
+      
       //Upload data from local storage.       
-      var data = hydro1.data.upload('CSV');
+      var data = new Promise(() => {var d = hydro1.data.upload({params: {type: 'CSV'}});
+      return d
+    }).then((data) => {
 
       //Clean unvalid values on the first array.    
-      data[0] = hydro1.analyze.stats.cleaner(data[0]);
+      data[0] = hydro1.analyze.stats.cleaner({data: data[0]});
 
       //Create input and output objects from the data array.
       var half1 = Math.floor(data[0].length / 2);
@@ -68,9 +73,10 @@
       hydro1.data.download(finalpreds, {
         type: 'CSV'
       });
+    })
 
       //Download the trained model.
-      hydro1.analyze.nn.savemodel(mymod, "Model_15MIN_48HR");
+      // hydro1.analyze.nn.savemodel(mymod, "Model_15MIN_48HR");
 
       /*** End of use case **/
     }

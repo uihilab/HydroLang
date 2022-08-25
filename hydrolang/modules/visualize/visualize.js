@@ -30,8 +30,8 @@ function chart({ params, args, data } = {}) {
   var g = googleCdn();
   g[0].addEventListener("load", () => {
     google.charts
-      .load("current", {
-        packages: ["corechart", "table", "annotatedtimeline"],
+      .load("visualization", '1.1', {
+        packages: ["corechart"],
       })
       .then(() => {
         divisors.createDiv({
@@ -39,7 +39,7 @@ function chart({ params, args, data } = {}) {
             id: params.divID,
             title: `Graph of ${params.divID}`,
             class: "charts",
-            maindiv: document.getElementById("visualize"),
+            // maindiv: document.getElementById("visualize")[0],
             // .getElementsByClassName("visualize")[0],
           },
         });
@@ -58,15 +58,8 @@ function chart({ params, args, data } = {}) {
           //rearrange data into nxm from mxn
           d = stats.arrchange({ data: data });
 
-        if (divisors.isdivAdded) {
+        if (divisors.isdivAdded({ params: { divID: params.divID } })) {
           container = document.getElementById(params.divID);
-        }
-
-        //Create space for column name
-        if (data[0][0] instanceof String) {
-          for (var i = 0; i < data.length; i++) {
-            data[i][0].shift();
-          }
         }
 
         //Change the way of creating charts depending on the type of chart required.
@@ -98,18 +91,18 @@ function chart({ params, args, data } = {}) {
             break;
 
           case "line" || "timeline":
-            for (var k = 0; k < d[0].length; k++) {
-              temp.push(`Value${k}`);
+            typeof d[0][0] === "string" ? temp.push({label: 'Date', type: 'date'}) : temp.push({label: 'Value', type: 'number'});
+            d.shift();
+            for (var k = 1; k < d[0].length; k++) {
+              temp.push({label: `Value_item${k}`, type: 'number'});
+            }
+
+            for (var i =0; i < d.length; i++){
+              d[i][0] = new Date(d[i][0]);
+              d[i][1] > 99998 ? d[i][1] = 0 : d[i][1]
             }
             d.unshift(temp);
-
-            for (var j = 0; j < d[0].length; j++) {
-              dat.addColumn(typeof d[1][j], d[0][j]);
-            }
-
-            for (var i = 1; i < d.length; i++) {
-              dat.addRow(d[i]);
-            }
+            dat = google.visualization.arrayToDataTable(d);
 
             break;
 
@@ -163,6 +156,7 @@ function chart({ params, args, data } = {}) {
  * hydro.visualize.table({params: {divID: "new", dataType: ["string", "number"]}, data: [data1, data2...]});
  */
 function table({ params, args, data } = {}) {
+  console.log(params, data)
   //Verify if the visualize div has already been added into screen.
   if (!divisors.isdivAdded({ params: { divID: "visualize" } })) {
     divisors.createDiv({ params: { id: "visualize" } });
@@ -170,13 +164,13 @@ function table({ params, args, data } = {}) {
   //Call the google charts CDN
   var g = googleCdn();
   g[0].addEventListener("load", () => {
-    google.charts.load("current", { packages: ["table"] }).then(() => {
+    google.charts.load("visualization", '1.1' ,{ packages: ["table"] }).then(() => {
       divisors.createDiv({
         params: {
           id: params.divID,
           title: `Table of ${params.divID}`,
           class: "tables",
-          maindiv: document.getElementById("visualize"),
+          // maindiv: document.getElementById("visualize")[0],
           // .getElementsByClassName("visualize")[0],
         },
       });
@@ -193,7 +187,7 @@ function table({ params, args, data } = {}) {
         temp = [],
         tr = stats.arrchange({ data: data });
 
-      if (divisors.isdivAdded) {
+      if (divisors.isdivAdded({ params: { divID: params.divID } })) {
         container = document.getElementById(params.divID);
       }
 
@@ -201,7 +195,8 @@ function table({ params, args, data } = {}) {
         dat.addColumn(types[k]);
       }
 
-      for (var l = 0; l < tr.length; l++) {
+      var tr = stats.arrchange({ data: data });
+      for (var l = 1; l < tr.length; l++) {
         temp.push(tr[l]);
       }
 
@@ -241,6 +236,7 @@ function draw({ params, args, data } = {}) {
   var dat = data,
     pm,
     type = params.type;
+    params.name === undefined ? params.name = params.divID : params.name
   if (type !== "json") {
     dat[1] = dat[1].map(Number);
   }
@@ -335,21 +331,22 @@ function draw({ params, args, data } = {}) {
       default:
         break;
     }
-    return chart({ params: pm, args: { maindiv: args.maindiv }, data: dat });
+    return chart({ params: pm, data: dat });
   }
   //Table options
   else if (type === "table") {
     var datatype = [];
-    for (var i = 0; i < dat.length; i++) {
-      datatype.push(typeof dat[0][i]);
-    }
+    dat[1][0] = "Value";
+    datatype.push("string");
+    datatype.push("number");
     //Customizable chart for two columns. Will be expanded to n columns.
     pm = {
-      divID: params.name,
+      divID: params.divID,
       datatype: datatype,
       options: {
-        width: "50%",
-        height: "60%",
+        title: params.divID,
+        width: "120%",
+        height: "80%",
       },
     };
     return table({ params: pm, data: dat });
