@@ -700,7 +700,7 @@ export default class stats {
 
   static basicstats({ params, args, data } = {}) {
     //Can pass time series data as a 2d array without additional manipulation
-    data.length > 1 ? (() => {data = data[1]; data.shift()})(): data
+    typeof data[0] === 'object' ? (() => {data = data[1]; data.shift()})(): data
     data = data.map(val => JSON.parse(val))
     //if value is outside the values required from the api call
     data = data.map(val => {val > 99998 ? val = 0 : val; return val})
@@ -768,7 +768,7 @@ export default class stats {
     } else {
       z = (S_sum + 1) / Math.pow(sigma, 0.5);
     }
-    var pvalue = 2 * (1 - normalcdf({ data: Math.abs(z) }));
+    var pvalue = 2 * (1 - this.normalcdf({ data: Math.abs(z) }));
 
     return [pvalue, S_sum, z];
   }
@@ -803,7 +803,7 @@ export default class stats {
   }
 
   /**
-   * Kolmogorov Smirnov Two-sided Test
+   * D-statistic
    * Computes D-statistic from two samples to evaluate if they come from the same distribution
    * Reference: Kottegoda & Rosso, 2008.
    * @method computeD
@@ -850,12 +850,11 @@ export default class stats {
    */
   static KS_computePValue({ params, args, data }) {
     var samples_A = data[0],
-      samples_B = data[1];
-    (d = computeD(samples_A, samples_B)),
-      (n = samples_A.length),
-      (m = samples_B.length),
-      (p = 2 * Math.exp((-2 * d * d * (n * m)) / (n + m)));
-
+      samples_B = data[1],
+      d = this.computeD({data: [samples_A, samples_B]}),
+      n = samples_A.length,
+      m = samples_B.length,
+      p = 2 * Math.exp((-2 * d * d * (n * m)) / (n + m));
     return [p, d];
   }
 
@@ -872,7 +871,7 @@ export default class stats {
    * hydro.analyze.stats.KS_rejectAtAlpha({params: {alpha: someAlpha}, data: [samples_A, samples_B]})
    */
   static KS_rejectAtAlpha({ params, args, data }) {
-    let [p, d] = KS_computePValue({ data: data });
+    let [p, d] = this.KS_computePValue({ data: data });
     return p < params.alpha;
   }
 

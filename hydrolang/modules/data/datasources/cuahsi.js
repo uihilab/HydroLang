@@ -143,6 +143,9 @@ const waterOneFlow = {
         break;
 
       default:
+        //Default value left to the most accessible Google Search for
+        //WaterOneFlow
+        console.log("Default value returned, there might be an error on the request. Revise parameters.")
         val = "ipswich";
         break;
     }

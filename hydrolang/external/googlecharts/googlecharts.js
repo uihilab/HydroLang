@@ -43,4 +43,4 @@ function googleCdn({ params, args, data } = {}) {
   return [g, chartMap, tableData];
 }
 
-export { googleCdn };
+export { googleCdn};

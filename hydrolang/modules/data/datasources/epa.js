@@ -47,6 +47,42 @@ export default {
     },
   },
 
+  
+  evapotranspiration: {
+    endpoint: "https://qed.epa.gov/hms/rest/api/v3/hydrology/evapotranspiration",
+    //example of request for the precipitation endpoint.
+    params: {
+      source: null,
+      dateTimeSpan: {
+        startDate: null,
+        endDate: null,
+        dateTimeFormat: "yyyy-MM-dd HH",
+      },
+      geometry: {
+        hucID: null,
+        stationID: null,
+        point: {
+          latitude: null,
+          longitude: null,
+        },
+        geometryMetadata: null,
+        timezone: null,
+      },
+      //data format can be
+      dataValueFormat: "E3",
+      temporalResolution: "default",
+      timeLocalized: false,
+      units: "metric",
+      outputFormat: "null",
+      baseURL: null,
+      inputTimeSeries: null,
+    },
+    methods: {
+      type: "json",
+      method: "POST",
+    },
+  },
+
   //set of requirements from the source. If different methods for dat retrieval can be used, then "GET" is default.
   requirements: {
     needProxy: true,

@@ -18,7 +18,7 @@
  */
 
 function isdivAdded({ params, args, data } = {}) {
-  return Boolean(document.querySelector("#" + params.divID));
+  return Boolean(document.getElementById(params.divID));
 }
 
 /**
@@ -48,7 +48,7 @@ function isScriptAdded({ params, args, data } = {}) {
 
 function createScript({ params, args, data } = {}) {
   //Add any external script into the DOM for external library usage.
-  if (!isScriptAdded({ params: { name: params.name } })) {
+  if (isScriptAdded({ params: { name: params.name } }) === false) {
     var sr = document.createElement("script");
     sr.type = "text/javascript";
     sr.src = params.src;
@@ -96,7 +96,7 @@ function createDiv({ params, args, data } = {}) {
   dv.style = params.style;
   console.log(params)
   params.maindiv !== undefined
-    ? params.maindiv.appendChild(dv)
+    ? document.getElementById(params.maindiv).appendChild(dv)
     : document.body.appendChild(dv);
 }
 
