@@ -141,6 +141,24 @@ const waterOneFlow = {
         //https://hiscentral.cuahsi.org/pub_network.aspx?n=5599
         val = "MOPEX";
         break;
+      
+      case "Swedish Monitoring":
+        //Additional info:
+        //http://hiscentral.cuahsi.org/pub_network.aspx?n=431
+        val = "SwedishMonitoringData";
+        break;
+
+      case "Humedales Atacama":
+        //Additional info:
+        //http://hiscentral.cuahsi.org/pub_network.aspx?n=5607
+        val = "Ramsar_atacama";
+        break;
+    
+      case "Global Rivers":
+        //Additional info:
+        //http://hiscentral.cuahsi.org/pub_network.aspx?n=3534
+        val = "GlobalRiversObservatory";
+        break;
 
       default:
         //Default value left to the most accessible Google Search for
@@ -156,7 +174,6 @@ const waterOneFlow = {
     //pass value as string
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSiteInfo
-    endpoint: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx",
     body: (prop) => {
       return `<GetSiteInfo xmlns="${waterOneFlow.action}"><site>${(() => {
         return Object.values(prop)
@@ -174,7 +191,6 @@ const waterOneFlow = {
     //values passed as strings.
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSiteInfoMultpleObject
-    endpoint: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx",
     body: (prop) => {
       return `<GetSiteInfoMultpleObject xmlns="${
         waterOneFlow.action
@@ -194,7 +210,6 @@ const waterOneFlow = {
     //pass value as string
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSiteInfoObject
-    endpoint: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx",
     body: (prop) => {
       return `<GetSiteInfoObject xmlns="${waterOneFlow.action}"><site>${(() => {
         return Object.values(prop)
@@ -213,7 +228,6 @@ const waterOneFlow = {
     //Pass values as array of strings
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSites
-    endpoint: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx",
     body: (prop) => {
       return `<GetSites xmlns="${waterOneFlow.action}"><site>${(() => {
         return Object.values(prop)
@@ -232,7 +246,6 @@ const waterOneFlow = {
     //Passed values must be specified within the request object (i.e. {west: somevalue, north, somevalue...})
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSitesByBoxObject
-    endpoint: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx",
     body: (prop) => {
       return `<GetSitesByBoxObject xmlns="${waterOneFlow.action}"><west>${prop["west"]}</west><south>${prop["south"]}</south><east>${prop["east"]}</east><north>${prop["north"]}</north><IncludeSeries>true</IncludeSeries></GetSitesByBoxObject>`;
     },
@@ -246,7 +259,6 @@ const waterOneFlow = {
     //Pass values as array of strings
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSitesObject
-    endpoint: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx",
     body: (prop) => {
       return `<GetSitesObject xmlns="${waterOneFlow.action}"><site>${(() => {
         return Object.values(prop)
@@ -265,7 +277,6 @@ const waterOneFlow = {
     //{location: string, variable: string, startDate: string, endDate: string}
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetValues
-    endpoint: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx",
     body: (prop) => {
       return `<GetValues xmlns="${waterOneFlow.action}"><location>NetworkName:${prop["location"]}</location><variable>NetworkName:${prop["variable"]}</variable><startDate>${prop["startDate"]}</startDate><endDate>${prop["endDate"]}</endDate></GetValues>`;
     },
@@ -279,7 +290,6 @@ const waterOneFlow = {
     //{site: string, startDate: string , endDate: string}
     //Example found in
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetValuesForASiteObject
-    endpoint: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx",
     body: (prop) => {
       return `<GetValuesForASiteObject xmlns="${waterOneFlow.action}"><site>NetworkName:${prop["site"]}</site><startDate>${prop["startDate"]}</startDate><endDate>${prop["endDate"]}</endDate></GetValuesForASiteObject>`;
     },
@@ -294,7 +304,6 @@ const waterOneFlow = {
     //{location: string, variable: string, startDate: string, endDate: string}
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetValuesObject
-    endpoint: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx",
     body: (prop) => {
       return `<GetValuesObject xmlns="${waterOneFlow.action}"><location>NetworkName:${prop["location"]}</location><variable>NetworkName:${prop["variable"]}</variable><startDate>${prop["startDate"]}</startDate><endDate>${prop["endDate"]}</endDate></GetValuesObject>`;
     },
@@ -308,7 +317,6 @@ const waterOneFlow = {
     //pass value as string
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetVariableInfo
-    endpoint: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx",
     body: (prop) => {
       return `<GetVariableInfo xmlns="${
         waterOneFlow.action
@@ -328,7 +336,6 @@ const waterOneFlow = {
     //pass value as string
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetVariableInfoObject
-    endpoint: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx",
     body: (prop) => {
       return `<GetVariableInfoObject xmlns="${
         waterOneFlow.action
@@ -348,7 +355,6 @@ const waterOneFlow = {
     //No parameters required
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetVariables
-    endpoint: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx",
     body: () => {
       return `<GetVariables xmlns="${waterOneFlow.action}"></GetVariables>`;
     },
@@ -362,7 +368,6 @@ const waterOneFlow = {
     //No parameters required
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetVariableObject
-    endpoint: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx",
     body: () => {
       return `<GetVariablesObject xmlns="${waterOneFlow.action}"></GetVariablesObject>`;
     },

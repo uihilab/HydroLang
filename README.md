@@ -113,4 +113,4 @@ And with the support of the Cosortium of Universities for the Advancement of Hyd
 
 ## References
 
-* Ramirez, C.E., Sermet, Y., Molkenthin, F. and Demir, I., 2021. HydroLang: An Open-Source Web-Based Programming Framework for Hydrological Sciences. https://doi.org/10.31223/X5M31D
+* Erazo Ramirez, C., Sermet, Y., Molkenthin, F., & Demir, I. (2022). HydroLang: An open-source web-based programming framework for hydrological sciences. Environmental Modelling & Software, 157, 105525. doi:10.1016/j.envsoft.2022.105525
