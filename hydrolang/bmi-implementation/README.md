@@ -1,3 +1,5 @@
+[![Basic Model Interface](https://img.shields.io/badge/CSDMS-Basic%20Model%20Interface-green.svg)](https://bmi.readthedocs.io/)
+
 ## Introduction
 This work pesents the usage of HydroLang through the standards set by the Community Surface Dynamics Modeling System CSDMS's [Basic Modeling Inteface](https://csdms.colorado.edu/wiki/BMI) (BMI). The variable definition was taken from UIHI's lab [BMI.js](https://github.com/uihilab/BMI-JS) implementation.
 
@@ -60,5 +62,4 @@ https://hydroinformatics.uiowa.edu/.
 And with the support of the Cosortium of Universities for the Advancement of Hydrological Science [CUAHSI](https://www.cuahsi.org/) through the [Hydroinformatics Innovation Fellowship](https://www.cuahsi.org/grant-opportunities/hydroinformatics-innovation-fellowship).
 
 ## References
-
-* Ewing, G., Erazo, C., Vaidya, A, Demir, I., ‘Coupling client-side web applications via the BMI Specification for Hydrological Modeling’, 2022 (in review)
+Ewing G., Erazo Ramirez C., Vaidya W., & Demir I. 2022. Client-side Web-based Model Coupling using Basic Model Interface for Hydrology and Water Resources. EarthArxiv, 4547. https://doi.org/10.31223/X5XP93

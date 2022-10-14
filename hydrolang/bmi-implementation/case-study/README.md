@@ -1,3 +1,5 @@
+[![Basic Model Interface](https://img.shields.io/badge/CSDMS-Basic%20Model%20Interface-green.svg)](https://bmi.readthedocs.io/)
+
 ## Introduction
 This case study represents the data model used for the implementation of hydrological modelling on
 clientside technologies thrhough the usage of the BMI standard. There are two data models which are fed into the [HLM web](https://github.com/uihilab/HLM-Web) model,
