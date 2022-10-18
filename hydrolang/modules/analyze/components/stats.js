@@ -3,7 +3,8 @@ import "../../../external/tensorflow/tensorflow.js";
 
 /**
  * Main class used for statistical analyses and data cleaning.
- * @class stats
+ * @class 
+ * @name stats
  */
 export default class stats {
   /**

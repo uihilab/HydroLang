@@ -2,7 +2,8 @@ import * as components from "./modules/core.js";
 
 /**
  * Main framework wrapper. Creates a new instance of all modules as objects.
- * @module Hydrolang
+ * @class 
+ * @name Hydrolang
  * @extends core
  * @returns {Object} creates a new instance of the whole library.
  */

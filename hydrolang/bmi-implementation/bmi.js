@@ -2,7 +2,8 @@
  * This language specification is derived from the Scientific Interface
  * Definition Language (SIDL) file bmi.sidl located at
  * https://github.com/csdms/bmi.
- * @class BMI
+ * @class
+ * @name BMI
  */
 
  export default class BMI {

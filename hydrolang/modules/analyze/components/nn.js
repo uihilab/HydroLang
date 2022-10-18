@@ -2,7 +2,8 @@ import "../../../external/tensorflow/tensorflow.js";
 
 /**
  * Main class for the creation of machine learning models using Tensorflow.
- * @class nn
+ * @class 
+ * @name nn
  */
 export default class nn {
   /**

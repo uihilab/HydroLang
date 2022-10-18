@@ -11,19 +11,13 @@ const h = Hydro.ins();
  * calls data from an preestablished model for the HLM-C implementation.
  * Provides data from EPA using grided models on an hourly scale.
  * Connects with the USGS gauging station for comparision purposes.
- * @class HLclearCreek
+ * @class
+ * @name HLclearCreek
  * @extends HydroLangBMI
- *
+ * @param {String} configfile
  */
 
 class HLclearCreek extends HydroLangBMI {
-  /**
-   * Constructor for the HLclearCreek class. It instatiates the intialize function in the
-   * HLclearCreek implementation.
-   * @constructor
-   * @augments HydroLangBMI
-   * @param {String} configfile
-   */
   constructor(configfile = undefined) {
     super(configfile);
     this.links = [];
@@ -62,7 +56,7 @@ class HLclearCreek extends HydroLangBMI {
   /**
    * Update the model until a required time,
    * Depending on the module and function required.
-   * @augments HydroLangBMI
+   * @method update
    * @param {void}
    * @memberof HLclearCreek
    */
@@ -75,7 +69,6 @@ class HLclearCreek extends HydroLangBMI {
    * of the function and module called.
    * @method update_until
    * @memberof HLclearCreek
-   * @override
    * @param {Number} time - default time to be updated depending on the model
    * @returns {void} updates the current variable to the required timestep.
    */
@@ -100,11 +93,11 @@ class HLclearCreek extends HydroLangBMI {
 
   /**
    * Obtains the rainfall values at a specific index in the results array, when an index array is passed.
+   * @method get_value_at_indices
    * @param {String} var_name - name of the variable used for the calculations
    * @param {Object[]} dest - array destiny required for the results
    * @param {Object[]} indices - array with the values of the links
    * @returns {Object[]} rainfall values perr order of link given.
-   * @override
    * @memberof HLclearCreek
    */
 
@@ -292,7 +285,7 @@ class HLclearCreek extends HydroLangBMI {
    * Overrides the values of the time used depending on the type of unit used
    * @method spreadResults
    * @memberof HLclearCreek
-   * @returns {VoidFunction} sets the results to be access later by HLM
+   * @returns {Void} sets the results to be access later by HLM
    */
 
   spreadResults() {
@@ -465,10 +458,10 @@ class HLclearCreek extends HydroLangBMI {
   }
 
   /**
-   *IMPLEMENTATION NEEDED
-   * @param {*} i
-   * @param {*} j
-   * @returns
+   * Checks for storm events given dates.
+   * @memberof HLclearCreek
+   * @todo finish implementation.
+   * @returns {Number} identification of storm event
    */
   rainID() {
     var ev = this.results.dates,
@@ -487,9 +480,9 @@ class HLclearCreek extends HydroLangBMI {
   }
 
   /**
-   * IMPLEMENTATION NEEDED
+   * Steps through an event given step size.
    * @method dataStep
-   * @memberof
+   * @memberof HLclearCreek
    * @param {Number} i - initial value
    * @param {Number} j - i + 1 value
    * @returns {Number} difference between the two

@@ -6,7 +6,8 @@ import * as divisors from "../visualize/divisors.js";
 
 /**
  * Module for dealing with data.
- * @class data
+ * @class 
+ * @name data
  */
 
 /**

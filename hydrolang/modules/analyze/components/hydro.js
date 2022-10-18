@@ -2,7 +2,8 @@ import "../../../external/tensorflow/tensorflow.js";
 
 /**
  * Main class used for hydrological analyses.
- * @class hydro
+ * @class 
+ * @name hydro
  */
 export default class hydro {
   /**

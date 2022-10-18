@@ -11,19 +11,16 @@ const hydro = Hydro.ins(),
  * BMI implementation of the functions of HydroLang.js
  * Creates and updates forcings and data following the models from configuration files
  * and makes calls from other modules.
- * @class HydroLangBMI
+ * If no link is added into the configuration, then an error will be raised.
+ * All instances of HydroLang will be accessible through the BMI configuration
+ * file.
+ * @class 
+ * @name HydroLangBMI
  * @extends BMI
+ * @param {String} configfile
  */
 
 class HydroLangBMI extends BMI {
-  /**
-   * Constructor instance for the HydroLang BMI implementation.
-   * If no link is added into the configuration, then an error will be raised.
-   * All instances of HydroLang will be accessible through the BMI configuration
-   * file.
-   * @param {String} configfile
-   */
-
   constructor(configfile = undefined) {
     super();
     if (!configfile || configfile == undefined) {
@@ -265,7 +262,6 @@ class HydroLangBMI extends BMI {
 
   /**
    * Provides the total amount of memory used for a variable.
-   * MISSING IMPLEMENTATION
    * @method get_var_nbytes
    * @memberof hydroLangBMI
    * @param {String} var_name - Input or ouput variable
@@ -664,8 +660,8 @@ class HydroLangBMI extends BMI {
   /**
    * Creates an output file downloaded to local machine with the outputs of the model
    * results.
-   * MISSING IMPLEMENTATION
    * @method generateOutputs
+   * @todo Finilize implementation
    * @memberof HydroLangBMI
    * @returns {Object} creates a memory reporter for all the values and actions taken for the model run
    */
