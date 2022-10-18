@@ -778,7 +778,7 @@ export default class stats {
    * Normal distribution
    * @method normalcdf
    * @memberof stats
-   * @authors Alexander Michalek & Renato Amorim, IFC, University of Iowa.
+   * @author Alexander Michalek & Renato Amorim, IFC, University of Iowa.
    * @param {Object[]} data - Contains: 1d-JS array with timeseries
    * @returns {Object[]} 1d array with 3 values: p-value, value sum and z value
    * @param {Object[]} data - 1d-JS array
@@ -809,7 +809,7 @@ export default class stats {
    * Reference: Kottegoda & Rosso, 2008.
    * @method computeD
    * @memberof stats
-   * @authors Alexander Michalek & Renato Amorim, IFC, University of Iowa.
+   * @author Alexander Michalek & Renato Amorim, IFC, University of Iowa.
    * @param {Object[]} data - 2d-JS array containing ordered as [samples_A, samples_B], with each being 1-d arrays
    * @returns {Number} d-statistic of the samples
    * @example
@@ -843,7 +843,7 @@ export default class stats {
    * Reference: Kottegoda & Rosso, 2008.
    * @method KS_computePValue
    * @memberof stats
-   * @authors Alexander Michalek & Renato Amorim, IFC, University of Iowa
+   * @author Alexander Michalek & Renato Amorim, IFC, University of Iowa
    * @param {Object[]} data - 2d-JS array containing ordered as [samples_A, samples_B], with each being 1-d arrays
    * @returns {Object[]} array with [p-Statistic, d-Statistic]
    * @example
@@ -864,7 +864,7 @@ export default class stats {
    * Reference: Kottegoda & Rosso, 2008.
    * @method KS_rejectAtAlpha
    * @memberof stats
-   * @authors Alexander Michalek & Renato Amorim, IFC, University of Iowa
+   * @author Alexander Michalek & Renato Amorim, IFC, University of Iowa
    * @param {Object} params - contains {alpha: Number} with alpha being the significance level
    * @param {Object[]} data - 2d-JS array containing ordered as [samples_A, samples_B], with each being 1-d arrays
    * @returns {Number} rejection if p is less than the significance level
