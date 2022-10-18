@@ -1,0 +1,511 @@
+<!DOCTYPE html><html lang="en" style="font-size:16px"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>bmi-implementation/case-study/hlclearCreek.js</title><!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="",baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body class="light" data-theme="light"><div class="sidebar-container"><div class="sidebar" id="sidebar"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="R8zbOo3H4uncLmEY9cND2"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="x1Xf9YAlFACG_0yTzYK66"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="BMIConfig.html">BMIConfig</a></div><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro_.html">hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="KHqHwjEuHjhxJ2z7FiTUx"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="hoOJRuc3HzGYXxY8dlDad"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Hydro.html">Hydro</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="rMR-ZDIwdFi-F-L92mxu1"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#hisCentral">hisCentral</a></div><div class="sidebar-section-children"><a href="global.html#normalDistribution">normalDistribution</a></div><div class="sidebar-section-children"><a href="global.html#waterOneFlow">waterOneFlow</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">bmi-implementation_case-study_hlclearCreek.js</h1></header><article><pre class="prettyprint source lang-js"><code>import HydroLangBMI from "./../hydroLangBMI.js";
+import { Hydro } from "./../globalHydro.js";
+
+const h = Hydro.ins();
+
+/**
+ * Data module implementation for the Clear Creek HLM case study model
+ * Overrides some of the methods implemented in the BMI HydroLang implementation.
+ * Extends the HydroLang functional space by inheritance.
+ * The instance calls either a data request from EPA precipitation model API's or
+ * calls data from an preestablished model for the HLM-C implementation.
+ * Provides data from EPA using grided models on an hourly scale.
+ * Connects with the USGS gauging station for comparision purposes.
+ * @class
+ * @name HLclearCreek
+ * @extends HydroLangBMI
+ * @param {String} configfile
+ */
+
+class HLclearCreek extends HydroLangBMI {
+  constructor(configfile = undefined) {
+    super(configfile);
+    this.links = [];
+    this.stgGauge = [];
+  }
+
+  /**
+   * Run if EPA data is to be queried.
+   * @method additionalData
+   * @memberof HLclearCreek
+   */
+  additionalData() {
+    if (this._params.source === "epa") {
+      this._startTime = new Date(this._args["dateTimeSpan"]["startDate"]);
+      this._startTime = this._startTime.getTime() / 1000;
+      this._endTime = new Date(this._args["dateTimeSpan"]["endDate"]);
+      this._endTime = this._endTime.getTime() / 1000;
+      (() => {
+        fetch("./data/grid_coord.json")
+          .then((res) => res.json())
+          .then((data) => {
+            this.grid = data;
+          });
+      })();
+      (() => {
+        fetch("./data/links_grid.json")
+          .then((res) => res.json())
+          .then((data) => {
+            this.gridLinks = data;
+            this.links = Object.keys(data);
+          });
+      })();
+    }
+  }
+
+  /**
+   * Update the model until a required time,
+   * Depending on the module and function required.
+   * @method update
+   * @param {void}
+   * @memberof HLclearCreek
+   */
+  update() {
+    this.update_until();
+  }
+
+  /**
+   * Updates a model and function call depending on the requirements
+   * of the function and module called.
+   * @method update_until
+   * @memberof HLclearCreek
+   * @param {Number} time - default time to be updated depending on the model
+   * @returns {void} updates the current variable to the required timestep.
+   */
+  update_until(time = this._now + this._defaultStep) {
+    time = Math.min(this._defaultStep, this._endTime);
+    //setting current time to
+    this._now === 0
+      ? (this._now = this._startTime)
+      : (this._now = this._now + time);
+  }
+
+  /**
+   * Returns the current state of the model. For HLclearCreek is the default time step.
+   * @method get_time_step
+   * @memberof HLclearCreek
+   * @returns {Number} default time step
+   */
+
+  get_time_step() {
+    return this._defaultStep;
+  }
+
+  /**
+   * Obtains the rainfall values at a specific index in the results array, when an index array is passed.
+   * @method get_value_at_indices
+   * @param {String} var_name - name of the variable used for the calculations
+   * @param {Object[]} dest - array destiny required for the results
+   * @param {Object[]} indices - array with the values of the links
+   * @returns {Object[]} rainfall values perr order of link given.
+   * @memberof HLclearCreek
+   */
+
+  get_value_at_indices(var_name, dest, indices) {
+    var current = this.get_current_time(),
+      timeIndex = super.value_index(current, this.results["dates"]);
+    console.log(timeIndex);
+    indices.forEach((link) => {
+      this._params.source === "epa"
+        ? dest.push(this.results[this.gridLinks[link]][timeIndex])
+        : dest.push(this.results[link][timeIndex]);
+    });
+
+    return dest;
+  }
+
+  /**********************************/
+  /*** Helper functions **/
+  /**********************************/
+
+  /**
+   * Method for downloading data from the provided calls for the EPA API.
+   * Calls the
+   * @method retrieveData
+   * @memberof HLclearCreek
+   * @param {Object[]} arrayCont - array with all the lat-lon coordinates for each link.
+   */
+  retrieveEpaData(arrayCont) {
+    //Downloads the data from EPA
+    if (this._params.source === "epa") {
+      //Removes first item from uploaded array
+      // arrayCont.forEach((arr) => {
+      //   arr.shift();
+      // });
+      // this.upload = arrayCont
+      // var fnSt = step;
+      const start = performance.now(),
+        linkCalls = (st) => {
+          var stgFunc = [];
+          for (let k = 0; k &lt; st[0].length; k++) {
+            this._params.link = st[0][k];
+            this.links.push(st[0][k]);
+            const fs = () =>
+              new Promise((resolve) =>
+                resolve(
+                  (this._args.geometry.point.latitude = st[1][k]),
+                  (this._args.geometry.point.longitude = st[2][k])
+                )
+              );
+            stgFunc.push(fs);
+          }
+          return stgFunc;
+        };
+
+      //Creating collection of unique
+      // this.grid = this.hlIns()["analyze"]["stats"]["unique"]({data: arrayCont[1]});
+      // this.links = this.hlIns()["analyze"]["stats"]["unique"]({data: arrayCont[0]});
+
+      //Create stage index that contains first instances of each grid id's to get lat-lon
+      // var stgInd = [];
+      // var indLatLon = [[],[]]
+      // for(var i = 0; i &lt; this.grid.length; i++){
+      //   stgInd.push(arrayCont[1].indexOf(this.grid[i]))
+      // };
+      // for (var j =0 ; j &lt; stgInd.length; j++){
+      //   indLatLon[0].push(arrayCont[3][stgInd[j]]);
+      //   indLatLon[1].push(arrayCont[2][stgInd[j]])
+      // }
+
+      const gridCalls = (st) => {
+        var stgFunc = [];
+        for (let k = 0; k &lt; st[0].length; k++) {
+          const fs = () =>
+            new Promise((resolve) =>
+              resolve(
+                (this._args.geometry.point.latitude = st[0][k]),
+                (this._args.geometry.point.longitude = st[1][k])
+              )
+            );
+          stgFunc.push(fs);
+        }
+        return stgFunc;
+      };
+
+      //Separate each call into bactches of equal step
+      //To avoid overclocking the API.
+      // for (; fnSt &lt;= arrayCont[0].length; fnSt += step) {
+      //   stgArr.push(arrayCont.map((arr) => arr.slice(iniSt, fnSt)));
+      //   iniSt += step;
+      // }
+
+      //Loop through each of the requests in each batch, awaiting
+      //a specific timespan defined by the user, compliant with what
+      //the API require.
+      // for (let i = 0; i &lt; stgArr.length; i++) {
+      //   var j = i * 240000;
+      //   setTimeout(() => {
+      //     var res = linkCalls(stgArr[i]);
+      //     for (let f = 0; f &lt; res.length; f++) {
+      //       var intStart = performance.now();
+      //       var k = f * 20000;
+      //       setTimeout(() => {
+      //         res[f]().then(() => {
+      //           super.handleConfig();
+      //           console.log(
+      //             `Request time for bulk ${i} location ${
+      //               this._args.geometry.point.latitude
+      //             }, ${this._args.geometry.point.longitude} is: ${
+      //               (performance.now() - intStart) / 1000
+      //             } s, bulk time: ${(performance.now() - start) / 1000} s`
+      //           );
+      //         });
+      //       }, k);
+      //     }
+      //   }, j);
+      // }
+
+      var res = gridCalls(this.grid.slice(1, 3));
+      for (let f = 0; f &lt; res.length; f++) {
+        var intStart = performance.now(),
+          k = f * 10000;
+        setTimeout(() => {
+          res[f]().then(() => {
+            super.handleConfig();
+            console.log(
+              `Total bulk size: ${f} items, location ${
+                this._args.geometry.point.latitude
+              }, ${this._args.geometry.point.longitude}, time sent: ${
+                (performance.now() - intStart) / 1000
+              } s, bulk time: ${(performance.now() - start) / 1000} s`
+            );
+          });
+        }, k);
+      }
+    } else {
+      return console.log("Method implemented only for EPA data sources.");
+    }
+  }
+
+  /**
+   * Downloads data from the USGS site
+   * @method retrieveGauge
+   * @memberof HLclearCreek
+   *
+   */
+
+  async retrieveGauge(startDate, endDate) {
+    //Downloads the data for the gauging station.
+
+    var gaugeData = {
+      params: {
+        source: "usgs",
+        datatype: "instant-values",
+        proxyurl:
+          this._params.proxyServer === undefined
+            ? "https://cors-anywhere.herokuapp.com/"
+            : this._params.proxyServer,
+      },
+      args: {
+        site: "USGS:05454300",
+        format: "json",
+        startDt:
+          this._params.source === "epa"
+            ? this._args.dateTimeSpan.startDate.slice(0, -9)
+            : this._args.startDate.slice(0, -6),
+        endDt:
+          this._params.source === "epa"
+            ? this._args.dateTimeSpan.endDate.slice(0, -9)
+            : this._args.endDate.slice(0, -6),
+      },
+    };
+
+    this.stgGauge.push(
+      await h[this._moduleName][this._functionName]({
+        args: gaugeData.args,
+        params: gaugeData.params,
+        data: this._inputVars,
+      })
+    );
+  }
+
+  /**
+   * Grabs the downloaded object to create the links object and parse the dates
+   * for each link so they can be in unixtime.
+   * Overrides the values of the time used depending on the type of unit used
+   * @method spreadResults
+   * @memberof HLclearCreek
+   * @returns {Void} sets the results to be access later by HLM
+   */
+
+  spreadResults() {
+    //For the clear creek and EPA data
+    var stgDate = [],
+      stgRes = {};
+    //Manipulating the results coming from the Clear Creek API
+    if (this._params.source === "clearcreek") {
+      (() => (this.results = this.results[0][0]))();
+      //Just using the first element to get the dates in unix epoch
+      this.links.slice(0, 1).forEach((link) => {
+        this.results[link]["dates"].forEach((date) => {
+          var parsedDate = new Date(date),
+            stgUnix = parsedDate.getTime() / 1000;
+          this._timeUnit == "hr" ? stgUnix / 3600 : stgUnix;
+          stgDate.push(stgUnix);
+        });
+        this.results["dates"] = stgDate;
+      });
+      this.links.forEach((link) => {
+        stgRes[link] = this.results[link]["values"];
+      });
+      stgRes["dates"] = [...stgDate];
+      this.results = stgRes;
+
+      //Gets missing index of
+      const indLoc = (arr, step) => {
+        //Adding the 0s and corresponding times to the indexes
+        var indexes = [[], []];
+        for (i = 0; i + 1 &lt; arr.length; i++) {
+          var div = (arr[i + 1] - arr[i]) / step;
+          if (div !== 1) {
+            indexes[0].push(arr.indexOf(arr[i]));
+            indexes[1].push(div - 1);
+          }
+        }
+        return indexes;
+      };
+
+      var indexes = indLoc(stgDate, 3600),
+        stgDateVals = [],
+        stgArrays = [];
+      for (var k = 0; k &lt; indexes[0].length; k++) {
+        var l = indexes[1][k],
+          h = stgDate[indexes[0][k]],
+          sg = Array(l).fill(0);
+        stgArrays.push(sg);
+        sg = sg.map((val, c) => {
+          return (val = h + 3600 * (c + 1));
+        });
+        stgDateVals.push(sg);
+      }
+
+      var stgStg = [...stgDate];
+      for (var n = 0; n &lt; stgDateVals.length; n++) {
+        var accum = indexes[1].slice(0, n).reduce((a, b) => a + b, 0);
+        stgStg.splice(
+          n === 0
+            ? indexes[0][n] + 1
+            : // : indexes[0][n] + (stgStg.length - this.results['dates'].length),
+              indexes[0][n] + accum + 1,
+          0,
+          ...stgDateVals[n]
+        );
+        this.links.forEach((link) => {
+          this.results[link].splice(
+            n === 0
+              ? indexes[0][n] + 1
+              : // : indexes[0][n] + (stgStg.length - this.results['dates'].length),
+                indexes[0][n] + accum + 1,
+            0,
+            ...stgArrays[n]
+          );
+        });
+      }
+
+      this.results["dates"] = stgStg;
+
+      //Memory cleanup
+      stgStg = [];
+      stgDateVals = [];
+      stgArrays = [];
+      stgRes = [];
+      stgDate = [];
+      //Manipulating the results coming from the EPA API's
+    } else {
+      stgDate = Object.keys(this.results[0][0].data).map((date) => {
+        var stg = new Date(date);
+        return stg.getTime() / 1000;
+      });
+      for (var i = 0; i &lt; this.results.length; i++) {
+        var stgVal = [];
+        this.results[i] = this.results[i][0].data;
+
+        stgVal = Object.values(this.results[i]).map((val) => {
+          return JSON.parse(val);
+        });
+
+        stgRes[this.grid[0][i]] = stgVal;
+      }
+      stgRes["dates"] = stgDate;
+      this.results = stgRes;
+      stgRes = [];
+      stgDate = [];
+
+      //Reassigning the values of each of the grids to the corresponding links
+      // var position = {}; this.upload[1].forEach((val, pos) => {position[val] = position[val] || []; position[val].push(pos)});
+      // var links = {}; Object.keys(position).forEach(key => {var stgLinks = position[key].map(val => this.upload[0][val]); links[key] = stgLinks});
+      // var finalLinks = {}; Object.keys(links).forEach(key => {links[key].forEach(val => {(val in finalLinks) ? null : finalLinks[val] = this.results[key]})});
+      // finalLinks["dates"] = this.results.dates
+      // this.results = finalLinks;
+
+      // //Data cleanup
+      // position = {}
+      // this.upload = [];
+      // links = {}
+      // finalLinks = {}
+    }
+  }
+
+  /**
+   * Spreads the results downloaded from the USGS service to a global variable
+   * called gauge
+   * @method spreadGauge
+   * @memberof HLclearCreek
+   */
+  spreadGauge() {
+    //For the gauging statation data
+    //Stremflow data
+    var r = h[this._moduleName]["transform"]({
+        params: { save: "value" },
+        args: { type: "ARR", keep: '["datetime", "value"]' },
+        data: this.stgGauge[0],
+      }),
+      //Gauge height
+      r1 = h[this._moduleName]["transform"]({
+        params: { save: "value" },
+        args: { type: "ARR", keep: '["value"]' },
+        data: this.stgGauge[0][0]["value"]["timeseries"][1],
+      });
+
+    //Having all the data into a single array
+    r.push(r1[0]);
+    //Converting the data types
+    r.forEach((arr) => arr.shift());
+
+    //Converting to unixtime
+    r[0] = r[0].map((val) => {
+      var stgDate = new Date(val);
+      return stgDate.getTime() / 1000;
+    });
+    //Converting to numbers
+    r[1] = r[1].map(Number);
+    r[2] = r[2].map(Number);
+
+    //Defining the gauging variable
+    this.gauge = r;
+    r = [];
+  }
+
+  /**
+   * @method getLinks
+   * @memberof HLclearCreek
+   * Searches and seeks for the name of the links for the analysis.
+   * @returns {Object[]} array with names of the links
+   */
+
+  getLinks() {
+    this.links = Object.keys(this.results[0][0]);
+  }
+
+  /**
+   * Checks for storm events given dates.
+   * @memberof HLclearCreek
+   * @todo finish implementation.
+   * @returns {Number} identification of storm event
+   */
+  rainID() {
+    var ev = this.results.dates,
+      events = {};
+    for (var i = 0; i &lt; ev.length; i++) {
+      var stgDates = [];
+      if (this.dataStep(ev[i], ev[i + 1]) === super.get_time_step()) {
+        stgDates.push(ev[i]);
+      }
+      Object.assign(events, {
+        [`Start ${stgDates[0]}`]: [stgDates[0], stgDates[stgDates.length]],
+      });
+      stgDates = [];
+    }
+    return events;
+  }
+
+  /**
+   * Steps through an event given step size.
+   * @method dataStep
+   * @memberof HLclearCreek
+   * @param {Number} i - initial value
+   * @param {Number} j - i + 1 value
+   * @returns {Number} difference between the two
+   */
+
+  dataStep(i, j) {
+    try {
+      j - i !== super.get_time_step()
+        ? (() => {
+            return j - i;
+          })()
+        : null;
+    } catch (undefined) {
+      return {};
+    }
+  }
+
+  /**********************************/
+  /*** End of Helper functions **/
+  /**********************************/
+}
+
+typeof window !== "undefined" ? (window.HLclearCreek = HLclearCreek) : null;
+export default HLclearCreek;</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="mobile-nav-links"></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="R8zbOo3H4uncLmEY9cND2"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="x1Xf9YAlFACG_0yTzYK66"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="BMIConfig.html">BMIConfig</a></div><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro_.html">hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="KHqHwjEuHjhxJ2z7FiTUx"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="hoOJRuc3HzGYXxY8dlDad"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Hydro.html">Hydro</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="rMR-ZDIwdFi-F-L92mxu1"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#hisCentral">hisCentral</a></div><div class="sidebar-section-children"><a href="global.html#normalDistribution">normalDistribution</a></div><div class="sidebar-section-children"><a href="global.html#waterOneFlow">waterOneFlow</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>
