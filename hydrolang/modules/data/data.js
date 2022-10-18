@@ -518,7 +518,7 @@ async function download({ params, args, data } = {}) {
  * Searches for an array with data passed as string.
  * @function recursiveSearch
  * @memberof data
- * @param {Object{}} obj - Object to find the results from.
+ * @param {Object} obj - Object to find the results from.
  * @param {String} searchKey - Key to find inside the object.
  * @param {Object[]} results - default parameter used to save objects.
  * @returns {Object[]} Saved object from the search.
@@ -546,7 +546,7 @@ function recursiveSearch({ obj, searchkey, results = [] } = {}) {
  * Lowercases the keys in an object. Can be nested object with arrays or what not.
  * @function lowercasing
  * @memberof data
- * @param {Object{}} obj - Object keys to lowercase them.
+ * @param {Object} obj - Object keys to lowercase them.
  * @returns {Object[]} Copy of object with keys in lowercase.
  * @example
  * lowercasing({NaMe: "myname", OtherName: "nextname"})
@@ -571,8 +571,10 @@ function lowercasing(obj) {
  * @function xml2json
  * @memberof data
  * @param {Document} xml - parsed XML document from text
- * @returns {Object{}} obj - tagged key-value pair from the XML document.
- * @example
+ * @returns {Object} obj - tagged key-value pair from the XML document.
+ * @example 
+ * xml2json(<someString attr1:1 attr2:2></someString>)
+ * returns {somestring{ attr1: 1, attr2: 2}}
  *
  */
 function xml2json(xml) {
