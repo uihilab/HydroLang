@@ -3,6 +3,9 @@
  </p>
 
 ## Table of Contents
+
+[**Link to documentation**](https://uihilab.github.io/HydroLang/)
+
 * [Introduction](https://github.com/uihilab/HydroLang#Introduction)
 * [How to Use](https://github.com/uihilab/HydroLang#How-to-Use)
 * [Expansions and Test Cases](https://github.com/uihilab/HydroLang#Expansions-and-Test-Cases)
@@ -81,8 +84,6 @@ The usage of the library through its core structure can be found within the foll
 The current expansions of the framework are the following:
 * [BMI specification](https://github.com/uihilab/HydroLang/tree/master/hydrolang/bmi-implementation): CSDMS basic modeling interface through steering files.
 * [HL-ML](https://github.com/uihilab/HydroLang-ML): HTML driven web components for hydrology and environmental sciences.
-
-For argument examples for a specific function, please refer to the library's [documentation page](https://hydro-lang.herokuapp.com/index.html).
 
 ## Community
 It is possible for the library to expand by becoming a community-based framework with collaborations from research institutes or knowledgeable individuals thanks to the flexibility of employing a modular architecture, open-source libraries, and not requiring installation. Interested parties can adapt and expand HydroLang to fit their unique use cases, development environments, project requirements, and data resources. Everyone is encouraged to contribute to the growth of HydroLang by:
