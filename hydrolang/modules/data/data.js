@@ -102,6 +102,8 @@ function retrieve({ params, args, data } = {}) {
       return env;
     })();
 
+  return new Promise((resolve, reject) => {
+
   //retrieve the data and feed the data into callback.
   $.ajax({
     url: proxy + endpoint,
@@ -113,24 +115,26 @@ function retrieve({ params, args, data } = {}) {
     (data) => {
       if (type === "soap") result.push(data.responseText);
       else if (type === "xml" || type === "tab" || type === "CSV")
-        result.push(JSON.stringify(data));
-      else result.push(lowercasing(data));
+        resolve(JSON.stringify(data));
+      else resolve(lowercasing(data));
     },
     (err) => {
       if (type === "soap" || type === "xml") {
         var xmlDoc = $.parseXML(err["responseText"]),
           j = xml2json(xmlDoc);
         type === "soap"
-          ? result.push(j["soap:Envelope"]["soap:Body"])
-          : result.push(j);
-        return result;
+          ? resolve(j["soap:Envelope"]["soap:Body"])
+          : resolve(j);
+        //return result;
       } else
         alert(
           `There was an error with the request. Please revise requirements.`
         );
+        reject(err)
     }
   );
-  return result;
+  //return result;
+})
 }
 
 /**

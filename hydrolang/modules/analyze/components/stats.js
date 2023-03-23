@@ -687,6 +687,40 @@ export default class stats {
     return results;
   }
 
+  static skewness({params, arg, data} = {}) {
+      const n = data.length;
+      const mean = this.mean({data: data})
+      const sum3 = data.reduce((acc, val) => acc + Math.pow(val - mean, 3), 0);
+      const stdDev = Math.sqrt(data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n);
+      return (n / ((n - 1) * (n - 2))) * (sum3 / Math.pow(stdDev, 3));
+  }
+
+  static kurtosis({params, args, data} ={}) {
+    const n = data.length;
+    const mean = this.mean({data: data})
+    const sum4 = data.reduce((acc, val) => acc + Math.pow(val - mean, 4), 0);
+    const stdDev = this.stddev({data: data})
+    return ((n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3))) * (sum4 / Math.pow(stdDev, 4)) - (3 * Math.pow(n - 1, 2)) / ((n - 2) * (n - 3));
+  }
+
+  static forwardFill({params, args, data } = {}) {
+    let previousValue = null;
+    let replaceIndices = [];
+    const filledData = data.map((value, index) => {
+      if (value > 0) {
+        previousValue = value;
+        return value;
+      } else if (previousValue !== null) {
+        replaceIndices.push(index);
+        return previousValue;
+      } else {
+        // Handle the case when the first value is missing
+        return null;
+      }
+    });
+    return { data: filledData, replaceIndices };
+  }
+
   /**
    * Returns an array that Contains the basic statistics
    * of a dataset. It is used afterwards to be prompted
@@ -716,8 +750,10 @@ export default class stats {
     values.push(this.median({ data: data }));
     values.push(this.stddev({ data: data }));
     values.push(this.variance({ data: data }));
+    values.push(this.skewness({data: data}));
+    values.push(this.kurtosis({data: data}));
 
-    temp.push(["Metric", "Number of values", "Minimum Value", "Maximum value", "Sum", "Mean", "Median", "Standard deviation", "Variance"])
+    temp.push(["Metric", "Number of values", "Minimum Value", "Maximum value", "Sum", "Mean", "Median", "Standard deviation", "Variance", "Skewness", "Kurtosis"])
     temp.push(values)
     return temp
   }

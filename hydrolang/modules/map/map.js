@@ -41,7 +41,7 @@ async function loader({ params, args, data } = {}) {
   }
 
   //For leaflet API.
-  if (params.maptype == "osm") {
+  if (params.maptype == "leaflet") {
     //call the class constructor.
     const mapper = new mapsources.leafletosmapi();
     await mapper.load();
@@ -65,7 +65,7 @@ async function loader({ params, args, data } = {}) {
 async function Layers({ params, args, data } = {}) {
   var layertype,
   //The mapconfig is set to be as OSM.
-  mapconfig = { maptype: "osm" },
+  mapconfig = { maptype: "leaflet" },
   //Creating configuration object for rendering layers.
   //If a property is not found, is simply set to null.
   //Setting it up as default behavior.
@@ -82,14 +82,15 @@ async function Layers({ params, args, data } = {}) {
     if (mapconfig.maptype === "google") {
     }
     //in case the map required is osm.
-    else if (mapconfig.maptype === "osm") {
+    else if (mapconfig.maptype === "leaflet") {
       var layer,
       type = layertype.type,
       layername = layertype.name;
-
+    
+    await osmap.whenReady(function () {
       if (typeof layercontroller === "undefined") {
         //Defining the controller for the layers.
-        layercontroller = new L.control.layers();
+        layercontroller = new L.control.layers().addTo(osmap);
       }
 
       if (type === "tile") {
@@ -101,26 +102,28 @@ async function Layers({ params, args, data } = {}) {
         Object.assign(baselayers, {
           [layername]: layer,
         });
-        layercontroller.addBaseLayer(layer, layername).addTo(osmap);
+        osmap.addLayer(layer)
+        layercontroller.addBaseLayer(layer, layername);
       }
-    }
-    await osmap.whenReady(function () {
+
+
       if (type === "geodata") {
         //Caller for the geoJSON data renderer.
         layer = geoJSON({ params: mapconfig, data: data });
         Object.assign(overlayers, { [layername]: layer });
-        layercontroller.addOverlay(layer, layername).addTo(osmap);
+        layercontroller.addOverlay(layer, layername);
         //osmap.fitBounds(layer.getBounds());
       } else if (type === "marker") {
         //Caller for the marker renderer.
         layer = addMarker({ params: mapconfig, args: layertype });
         Object.assign(overlayers, { [layername]: layer });
-        layercontroller.addOverlay(layer, layername).addTo(osmap);
+        osmap.addLayer(layer)
+        layercontroller.addOverlay(layer, layername);
       } else if (type === "kml") {
         //Caller for the KML data renderer.
         layer = kml({ params: mapconfig, data: data });
         Object.assign(overlayers, { [layername]: layer });
-        layercontroller.addOverlay(layer, layername).addTo(osmap);
+        layercontroller.addOverlay(layer, layername);
         //osmap.fitBounds(layer.getBounds());
       } else if (type === "draw") {
         //Caller for drawing tool renderer.
@@ -143,11 +146,14 @@ async function Layers({ params, args, data } = {}) {
         } else if (layername === "draw") {
           drawControl.remove();
         } else {
-          alert("there is no layer with that name!");
+          console.log("there is no layer with that name!");
         }
       }
     });
-  } catch (error) {}
+  }
+  } catch (error) {
+    console.error(`There was an error when generating the map`,error)
+  }
 }
 
 /**
@@ -161,7 +167,7 @@ async function Layers({ params, args, data } = {}) {
  * @returns {Element} Map object appended to the web page.
  * zoom.
  * @example
- * hydro.map.renderMap({params: {}, args: {{maptype: "osm", lat: "40", lon: "-100"}})
+ * hydro.map.renderMap({params: {}, args: {{maptype: "leaflet", lat: "40", lon: "-100"}})
  */
 
 async function renderMap({ params, args, data } = {}) {
@@ -186,26 +192,26 @@ async function renderMap({ params, args, data } = {}) {
     };
 
     mapconfig = {
-      maptype: "osm",
+      maptype: "leaflet",
       lat: 41.6572,
       lon: -91.5414,
       zoom: 13,
     };
   }
   //Rendering the map into screen.
-  await loader({ params: mapconfig });
+  //await loader({ params: mapconfig });
 
   //Creating internal divisors for the requested maps. Each map call would have its own div inside the maps
   //larger div.
-  divisors.createDiv({
-    params: {
-      id: "map",
-      class: "maps",
-      maindiv: document
-        .getElementById("hydrolang")
-        .getElementsByClassName("maps")[0],
-    },
-  });
+  // divisors.createDiv({
+  //   params: {
+  //     id: "map",
+  //     class: "maps",
+  //     maindiv: document
+  //       .getElementById("hydrolang")
+  //       .getElementsByClassName("maps")[0],
+  //   },
+  // });
 
   //Allocating a container object where the map should be set.
   var container;
@@ -225,7 +231,7 @@ async function renderMap({ params, args, data } = {}) {
     };
     //append a new map to the map variable.
     osmap = new google.maps.Map(container, options);
-  } else if (mapconfig.maptype === "osm") {
+  } else if (mapconfig.maptype === "leaflet") {
     osmap = new L.map(container.id);
     //assign the tile type to the data object for rendering.
     const tiletype = layertype.output;
@@ -250,8 +256,14 @@ async function renderMap({ params, args, data } = {}) {
   }
 }
 
+async function recenter ({ params, args, data } = {}) {
+  let latLon = L.latLng(args.lat, args.lon);
+  var bounds = latLon.toBounds(12000); // 500 = metres
+  osmap.panTo(latLon).fitBounds(bounds);
+}
+
 /***************************/
-/*** Supporting functions **/
+/*** Supporting functionargs.lat, args.lon, 40s **/
 /***************************/
 
 /**
@@ -277,7 +289,7 @@ function geoJSON({ params, args, data } = {}) {
   if (params.maptype === "google") {
     var geogoogle = osmap.data.addGeoJson(inf);
     return geogoogle;
-  } else if (params.maptype === "osm") {
+  } else if (params.maptype === "leaflet") {
     var onEachFeature = (feature, layer) => {
       if (
         feature.properties &&
@@ -359,7 +371,7 @@ function kml({ params, args, data } = {}) {
       testimonial = document.getElementById("capture");
       testimonial.innerHTML = content;
     });
-  } else if (params.maptype == "osm") {
+  } else if (params.maptype == "leaflet") {
     const parser = new DOMParser(),
     kml = parser.parseFromString(data.kml, "text/xml"),
     track = new L.KML(kml);
@@ -382,7 +394,7 @@ function addMarker({ params, args, data } = {}) {
   if (params.maptype === "google") {
   }
 
-  if (params.maptype === "osm") {
+  if (params.maptype === "leaflet") {
     var type = args.markertype,
     coord = args.coord;
 
@@ -392,37 +404,37 @@ function addMarker({ params, args, data } = {}) {
       case "rectangle":
         layer = new L.rectangle(
           coord,
-          markersStyles({ params: { map: "osm", fig: "rectangle" } })
+          markerStyles({ params: { map: "leaflet", fig: "rectangle" } })
         );
         break;
       case "circle":
         layer = new L.circle(
           coord,
-          markerStyles({ params: { map: "osm", fig: "circle" } })
+          markerStyles({ params: { map: "leaflet", fig: "circle" } })
         );
         break;
       case "circlemarker":
         layer = new L.circleMarker(
           coord,
-          markerStyles({ params: { map: "osm", fig: "circlemarker" } })
+          markerStyles({ params: { map: "leaflet", fig: "circlemarker" } })
         );
         break;
       case "polyline":
         layer = new L.polyline(
           coord,
-          markerStyles({ params: { map: "osm", fig: "polyline" } })
+          markerStyles({ params: { map: "leaflet", fig: "polyline" } })
         );
         break;
       case "polygon":
         layer = new L.polygon(
           coord,
-          markerStyles({ params: { map: "osm", fig: "polygon" } })
+          markerStyles({ params: { map: "leaflet", fig: "polygon" } })
         );
         break;
       case "marker":
         layer = new L.marker(
           coord,
-          markertyles({ params: { map: "osm", fig: "marker" } })
+          markerStyles({ params: { map: "leaflet", fig: "marker" } })
         );
         break;
       default:
@@ -452,7 +464,7 @@ function markerStyles({ params, args, data } = {}) {
   }
 
   //Full implementation of the OpenStreetMap ready for usage.
-  if (map === "osm") {
+  if (map === "leaflet") {
     switch (fig) {
       case "rectangle":
         layer = {
@@ -522,7 +534,7 @@ function draw({ params, args, data } = {}) {
   if (params.maptype == "google") {
   }
   //Full implementation of OpenStreetMaps ready for usage.
-  else if (params.maptype == "osm") {
+  else if (params.maptype == "leaflet") {
     var options = {
       position: "topleft",
       scale: true,
@@ -613,4 +625,4 @@ function draw({ params, args, data } = {}) {
 /*** End of Supporting functions **/
 /**********************************/
 
-export { loader, Layers, renderMap };
+export { loader, Layers, renderMap, recenter };
