@@ -3,7 +3,7 @@ import * as divisors from "./divisors.js";
 import { googleCdn } from "../../external/googlecharts/googlecharts.js";
 
 window.loaded = false;
-var g = googleCdn()
+var g = googleCdn();
 
 /**
  * Module for visualization of charts and tables.
@@ -16,143 +16,127 @@ var g = googleCdn()
  * It creates a new div space for each chart generated.
  * @function chart
  * @memberof visualize
- * @param {Object} params - Contains: charType, divID, drawing options (see google charts docs).
+ * @param {Object} params - Contains: charType, id, drawing options (see google charts docs).
  * @param {Object} data - Contains: data as JS nd-array.
  * @returns {Element} Chart appended to new div in body.
  * @example
- * hydro.visualize.chart({params: {chartType: 'column', divID: 'divID', options: {'some options'}}, data: [data1, data2,...]});
+ * hydro.visualize.chart({params: {chartType: 'column', id: 'id', options: {'some options'}}, data: [data1, data2,...]});
  */
 
 function chart({ params, args, data } = {}) {
-  typeof data[0] === 'number' ? 
-  (()=> {data = [Array.from(Array(data.length).keys()), data]})():
-  data
+  if (typeof data[0] === "number") {
+    data = [Array.from(Array(data.length).keys()), data];
+  }
 
-  if (divisors.isdivAdded({ params: { divID: "visualize" } }) === false) {
-    divisors.createDiv({ params: { id: "visualize", class: "visualize" } });
+  const id = params.id || "visualize";
+
+  if (!divisors.isdivAdded({ params: { id } })) {
+    divisors.createDiv({ params: { id: id, class: "visualize" } });
   }
   //Create a new div for the visualize options.
   //Google CDN stable library caller.
   // var g = googleCdn();
 
   const drawChart = () => {
-    divisors.createDiv({
-      params: {
-        id: params.divID,
-        title: `Graph of ${params.divID}`,
-        class: "charts",
-        maindiv: "visualize"
-      },
-    });
     //Creating a container to append the chart to.
     var container,
       //Data read from the parameters passed by the user.
-      char = params.chartType,
+      chartType = params.chartType,
+      options = params.options || {},
+      names = params.names || [],
       //To avoid having to load the entire library, the optional JS evaluator is used
       //to read the requirements for drawing.
-      ch = eval(g[1][char]),
+      ch = eval(g[1][chartType]),
       t1 = eval(g[2]["data"]),
-      //Declaring a t1 option
-      dat = new t1(),
       //Temporal variable holder
-      temp = [],
+      columns = [],
       //rearrange data into nxm from mxn
-      d = stats.arrchange({ data: data });
+      dataMatrix = stats.arrchange({ data });
 
-    if (divisors.isdivAdded({ params: { divID: params.divID } })) {
-      container = document.getElementById(params.divID);
+    if (divisors.isdivAdded({ params: { id: params.id } })) {
+      container = document.getElementById(params.id);
     }
 
     //Change the way of creating charts depending on the type of chart required.
-    switch (char) {
+
+    switch (chartType) {
       case "scatter":
-        for (var k = 0; k < d[0].length; k++) {
-          temp.push(`Value${k}`);
-        }
-        d.unshift(temp);
-        dat = google.visualization.arrayToDataTable(d);
-        break;
-
-      case "column" || "combo":
-        for (var k = 0; k < d[0].length; k++) {
-          temp.push(`Value${k}`);
-        }
-        d.unshift(temp);
-
-        dat = google.visualization.arrayToDataTable(d);
-        break;
-
+      case "column":
+      case "combo":
       case "histogram":
-        for (var k = 0; k < d[0].length; k++) {
-          temp.push(`Value${k}`);
+        for (let k = 0; k < dataMatrix[0].length; k++) {
+          columns.push({ label: names[k] || `Value${k}`, type: "number" });
         }
-        d.unshift(temp);
-
-        dat = google.visualization.arrayToDataTable(d);
+        dataMatrix.unshift(columns);
         break;
 
-      case "line" || "timeline":
-        typeof d[0][0] === "string" ? temp.push({label: 'Date', type: 'date'}) : temp.push({label: 'Value', type: 'number'});
-        d.shift();
-        for (var k = 1; k < d[0].length; k++) {
-          temp.push({label: `Value_item${k}`, type: 'number'});
+      case "line":
+      case "timeline":
+        if (typeof dataMatrix[0][0] === "string") {
+          columns.push({ label: "Date", type: "date" });
+        } else {
+          columns.push({ label: "Value", type: "number" });
+        }
+        dataMatrix.shift();
+        for (let k = 1; k < dataMatrix[0].length; k++) {
+          columns.push({
+            label: names[k - 1] || `Value_item${k}`,
+            type: "number",
+          });
         }
 
-        for (var i =0; i < d.length; i++){
-          d[i][0] = new Date(d[i][0]);
-          d[i][1] > 99998 ? d[i][1] = 0 : d[i][1]
+        for (let i = 0; i < dataMatrix.length; i++) {
+          dataMatrix[i][0] = new Date(dataMatrix[i][0]);
+          if (dataMatrix[i][1] > 99998) {
+            dataMatrix[i][1] = 0;
+          }
         }
-        d.unshift(temp);
-        dat = google.visualization.arrayToDataTable(d);
-
+        dataMatrix.unshift(columns);
         break;
 
       default:
         break;
     }
 
+    const dataTableObject = google.visualization.arrayToDataTable(dataMatrix);
+
     //Create figure in container.
-    var fig = new ch(container);
+    var chartObject = new ch(container);
     //Draw the chart.
+    const drawFunction = () => {
+      options
+        ? chartObject.draw(dataTableObject, options)
+        : chartObject.draw(dataTableObject);
+    };
 
-    
-    var resizer
+    drawFunction();
 
-    window.addEventListener('resize', (() => {
+    var resizer;
+
+    window.addEventListener("resize", () => {
       clearTimeout(resizer);
       resizer = setTimeout(() => {
-        if (params.hasOwnProperty("options")) {
-          var options = params.options;
-          fig.draw(dat, options);
-        } else {
-          fig.draw(dat);
-        }
-        
-                //Listener to add button for the chart to be downloaded once is ready.
-    google.visualization.events.addListener(fig, "ready", () => {
+        drawFunction();
+        //Listener to add button for the chart to be downloaded once is ready.
+        // google.visualization.events.addListener(fig, "ready", () => {
 
-              
-      if (divisors.isdivAdded({ params: { divID: `${params.divID}_png`} }) === false) {
-        divisors.createDiv({ params: { id: `${params.divID}_png`, maindiv: params.divID } });
-      } else {
-        var parent = document.getElementById(`${params.divID}_png`);
-        parent.innerHTML = '';
-      
-        parent.innerHTML = `<a download="${
-        params.divID
-      }" href="${fig.getImageURI()}"><button>${
-        params.divID
-      }</button></a>`;
-    }
+        //   if (divisors.isdivAdded({ params: { id: `${params.id}_png`} }) === false) {
+        //     divisors.createDiv({ params: { id: `${params.id}_png`, maindiv: params.id } });
+        //   } else {
+        //     var parent = document.getElementById(`${params.id}_png`);
+        //     parent.innerHTML = '';
+
+        //     parent.innerHTML = `<a download="${
+        //     params.id
+        //   }" href="${fig.getImageURI()}"><button>${
+        //     params.id
+        //   }</button></a>`;
+        // }
+        // });
+      }, 100);
     });
-        
-
-      }, 100)
-    }))
     //});
-    return console.log(
-      `Chart ${params.divID} is drawn based on given parameters`
-    );
+    return console.log(`Chart ${params.id} is drawn based on given parameters`);
   };
   drawChart();
 }
@@ -161,24 +145,24 @@ function chart({ params, args, data } = {}) {
  * Generates a new table for the data given by the user.
  * @function table
  * @memberof visualize
- * @param {Object} params - contanis:  divID, dataType and applicable options.
+ * @param {Object} params - contanis:  id, dataType and applicable options.
  * @param {Object} data - Contains: data
  * @returns {Element} Table appended to new div in body.
  * @example
- * hydro.visualize.table({params: {divID: "new", dataType: ["string", "number"]}, data: [data1, data2...]});
+ * hydro.visualize.table({params: {id: "new", dataType: ["string", "number"]}, data: [data1, data2...]});
  */
 function table({ params, args, data } = {}) {
   //Verify if the visualize div has already been added into screen.
-  if (!divisors.isdivAdded({ params: { divID: "visualize" } })) {
+  if (!divisors.isdivAdded({ params: { id: "visualize" } })) {
     divisors.createDiv({ params: { id: "visualize" } });
   }
   const drawTable = () => {
     divisors.createDiv({
       params: {
-        id: params.divID,
-        title: `Table of ${params.divID}`,
+        id: params.id,
+        title: `Table of ${params.id}`,
         class: "tables",
-        maindiv: "visualize"
+        maindiv: "visualize",
       },
     });
 
@@ -191,11 +175,11 @@ function table({ params, args, data } = {}) {
       //Assign data into new variables for manipulation.
       types = params.datatype,
       dat = new t1(),
-      temp = [],
+      columns = [],
       tr = stats.arrchange({ data: data });
 
-    if (divisors.isdivAdded({ params: { divID: params.divID } })) {
-      container = document.getElementById(params.divID);
+    if (divisors.isdivAdded({ params: { id: params.id } })) {
+      container = document.getElementById(params.id);
     }
 
     for (var k = 0; k < types.length; k++) {
@@ -204,10 +188,10 @@ function table({ params, args, data } = {}) {
 
     var tr = stats.arrchange({ data: data });
     for (var l = 1; l < tr.length; l++) {
-      temp.push(tr[l]);
+      columns.push(tr[l]);
     }
 
-    dat.addRows(temp);
+    dat.addRows(columns);
 
     var view = new t2(dat),
       table = new t3(container);
@@ -218,12 +202,11 @@ function table({ params, args, data } = {}) {
       table.draw(view, options);
     } else {
       table.draw(view);
-    }``
-    return console.log(
-      `Table ${params.divID} drawn on the given parameters.`
-    );
-  }
-    drawTable()
+    }
+    ``;
+    return console.log(`Table ${params.id} drawn on the given parameters.`);
+  };
+  drawTable();
 }
 
 /**
@@ -239,118 +222,116 @@ function table({ params, args, data } = {}) {
  * hydro.visualize.draw({params: {type: 'chart', name: 'someName'}, args: {charttype: 'column'}}, data: [data1, data2,...]});
  */
 
-function draw({ params, args, data } = {}) {
-
-  if(!window.loaded) {
-    (() => { 
-    google.charts
-    .load("current", {
-      packages: ["corechart", "table", "line"]});
-    })()
+function draw({ params = {}, args = {}, data = [] } = {}) {
+  if (!window.loaded) {
+    (() => {
+      google.charts.load("current", {
+        packages: ["corechart", "table", "line"],
+      });
+    })();
   }
   window.loaded = true;
-  
+
+  let {
+    type,
+    id = `chart-${Math.floor(Math.random() * 100)}-gen`,
+    name,
+  } = params;
+  name === undefined ? (name = id) : name;
+
   var dat = data,
-    pm,
-    type = params.type;
-    params.name === undefined ? params.name = params.divID : params.name
+    pm;
   if (type !== "json") {
+    //change the input in case its just a 1d array
+    if (typeof dat[0] === "number") {
+      let m = Array.from({ length: dat.length }, (_, i) => i);
+      dat = [m, dat];
+    } else {
+      dat = dat;
+    }
     dat[1] = dat[1].map(Number);
   }
 
+  //defaults in case the user wants to generate a chart
+  let { charttype = "line", names } = args;
+
   //Chart drawing options.
   if (type === "chart") {
-    var charts = args.charttype;
-    switch (charts) {
+    var pm = {
+      chartType: charttype,
+      id: name,
+      options: {
+        title: name,
+        fontName: "monospace",
+      },
+      names: names,
+    };
+
+    switch (charttype) {
       case "column":
-        pm = {
-          chartType: charts,
-          divID: params.name,
-          options: {
-            title: params.name,
-            titlePosition: "center",
-            width: "100%",
-            height: "100%",
-            fontName: "monospace",
-            legend: {
-              position: "top",
-            },
-            bar: {
-              groupWidth: "95%",
-            },
-            explorer: {
-              actions: ["dragToZoom", "rightClickToReset"],
-            },
+        Object.assign(pm.options, {
+          titlePosition: "center",
+          width: "100%",
+          height: "100%",
+          legend: {
+            position: "top",
           },
-        };
+          bar: {
+            groupWidth: "95%",
+          },
+          explorer: {
+            actions: ["dragToZoom", "rightClickToReset"],
+          },
+        });
         break;
 
       case "line":
-        pm = {
-          chartType: charts,
-          divID: params.name,
-          options: {
-            title: params.name,
-            fontName: "monospace",
-            curveType: "function",
-            lineWidth: 2,
-            explorer: {
-              actions: ["dragToZoom", "rightClickToReset"],
-            },
-            legend: {
-              position: "bottom",
-            },
-            style: {
-              height: 500,
-              width: 900,
-            },
+        Object.assign(pm.options, {
+          curveType: "function",
+          lineWidth: 2,
+          explorer: {
+            actions: ["dragToZoom", "rightClickToReset"],
           },
-        };
+          legend: {
+            position: "bottom",
+          },
+          style: {
+            height: "100%",
+            width: "100%",
+          },
+        });
         break;
 
       case "scatter":
-        pm = {
-          chartType: charts,
-          divID: params.name,
-          options: {
-            title: params.name,
-            fontName: "monospace",
-            legend: {
-              position: "bottom",
-            },
-            crosshair: {
-              tigger: "both",
-              orientation: "both",
-            },
-            trendlines: {
-              0: {
-                type: "polynomial",
-                degree: 3,
-                visibleInLegend: true,
-              },
-            },
+        Object.assign(pm.options, {
+          legend: {
+            position: "bottom",
           },
-        };
+          crosshair: {
+            trigger: "both",
+            orientation: "both",
+          },
+        });
         break;
 
       case "timeline":
-        pm = {
-          chartType: charts,
-          divID: params.name,
+        Object.assign(pm, {
           fontName: "monospace",
           options: {
             dateFormat: "HH:mm MMMM dd, yyyy",
             thickness: 1,
           },
-        };
+        });
         break;
 
       default:
         break;
     }
-    setTimeout(() => chart({ params: pm, data: dat }), 200)
-    return
+
+    setTimeout(() => chart({ params: pm, data: dat }), 200);
+    return;
   }
+
   //Table options
   else if (type === "table") {
     var datatype = [];
@@ -359,16 +340,16 @@ function draw({ params, args, data } = {}) {
     datatype.push("number");
     //Customizable chart for two columns. Will be expanded to n columns.
     pm = {
-      divID: params.divID,
+      id: id,
       datatype: datatype,
       options: {
-        title: params.divID,
-        width: "120%",
+        title: id,
+        width: "100%",
         height: "80%",
       },
     };
-    setTimeout(() => table({ params: pm, data: dat }), 200)
-    return
+    setTimeout(() => table({ params: pm, data: dat }), 200);
+    return;
   }
   //JSON options.
   else if (type === "json") {
@@ -390,14 +371,11 @@ function draw({ params, args, data } = {}) {
 
 function prettyPrint({ params, args, data } = {}) {
   //Add div for rendering JSON
-  if (!divisors.isdivAdded({ params: { divID: "jsonrender" } })) {
+  if (!divisors.isdivAdded({ params: { id: "jsonrender" } })) {
     divisors.createDiv({
       params: {
         id: "jsonrender",
         class: "jsonrender",
-        maindiv: document
-          .getElementById("hydrolang")
-          .getElementsByClassName("visualize")[0],
       },
     });
   }
@@ -411,12 +389,18 @@ function prettyPrint({ params, args, data } = {}) {
     //Change
     renderjson.set_icons("+", "-");
     renderjson.set_show_to_level(1);
-    if (divisors.isdivAdded({ params: { divID: "jsonrender" } })) {
+    if (divisors.isdivAdded({ params: { id: "jsonrender" } })) {
       var name;
-      if (window.localStorage.length === 0) {
-        return alert("No items stored!");
-      }
-      if (params.input === "all") {
+      if (data) {
+        // Render the JSON object passed to the function
+        name = document.createTextNode(params.title || "");
+        document.getElementById("jsonrender").appendChild(name);
+        document.getElementById("jsonrender").appendChild(renderjson(data));
+      } else {
+        // Render the objects saved in local storage
+        if (window.localStorage.length === 0) {
+          return alert("No items stored!");
+        }
         for (var i = 0; i < Object.keys(window.localStorage).length; i++) {
           name = document.createTextNode(Object.keys(window.localStorage)[i]);
           document.getElementById("jsonrender").appendChild(name);
@@ -431,12 +415,8 @@ function prettyPrint({ params, args, data } = {}) {
             );
         }
       }
-      if (!(params.input === "all")) {
-        name = document.createTextNode(params.input);
-        document.getElementById("jsonrender").appendChild(name);
-        document.getElementById("jsonrender").appendChild(renderjson(data));
-      }
     }
   });
 }
+
 export { draw };

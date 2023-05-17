@@ -14,6 +14,8 @@
  *
  * Main request site
  * https://hydroportal.cuahsi.org/
+ * @type {Object}
+ * @memberof datasources
  *
  */
 const waterOneFlow = {
@@ -556,9 +558,12 @@ const hisCentral = {
   },
 };
 
-//HydroShare API, enabling acccess to data resources, examples, models and more hosted within the HydroShare sphere.
-//Swagger example found in the following link:
-//https://www.hydroshare.org/hsapi/
+/**
+ * HydroShare API, enabling acccess to data resources, examples, models and more hosted within the HydroShare sphere.
+ * Swagger example found in the following link:https://www.hydroshare.org/hsapi/
+ * @type {Object}
+ * @memberof datasources
+ */
 const hydroShare = {
   resource_list: {
     endpoint: "https://www.hydroshare.org/hsapi/resource",

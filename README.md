@@ -42,6 +42,7 @@ Once the library is loaded, a new intance of HydroLang is added to the body of t
 ```javascript
 var hydro1 = new Hydrolang();
 ```
+
 Each of the modules is accessed through chainage using the `hydro` class instance. Functions on the third level chainage have been declared as static methods and thus, will not appear as quick access on the browser. Parameter destructuring has been added to most driving function within the framework to create an easier way to declare workflows. The destructuring is driven mainly in the following scope:
 
 ```javascript

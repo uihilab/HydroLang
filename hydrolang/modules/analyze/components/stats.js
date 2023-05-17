@@ -1,9 +1,6 @@
-import "../../../external/d3/d3.js";
-import "../../../external/tensorflow/tensorflow.js";
-
 /**
  * Main class used for statistical analyses and data cleaning.
- * @class 
+ * @class
  * @name stats
  */
 export default class stats {
@@ -49,6 +46,25 @@ export default class stats {
     var arr = [];
     arr.push(data[1]);
     return arr;
+  }
+
+  /**
+   *
+   * @param {*} param0
+   * @returns
+   */
+  static range({ params, args, data } = {}) {
+    const min = this.min({ data }),
+      max = this.max({ data });
+    const N = params.N || data.length;
+    const step = (max - min) / N;
+    const range = [];
+
+    for (let i = 0; i <= N; i++) {
+      range.push(min + i * step);
+    }
+
+    return range;
   }
 
   /**
@@ -208,7 +224,7 @@ export default class stats {
    */
 
   static sum({ params, args, data } = {}) {
-    return d3.sum(data);
+    return data.reduce((acc, curr) => acc + curr, 0);
   }
 
   /**
@@ -222,7 +238,9 @@ export default class stats {
    */
 
   static mean({ params, args, data } = {}) {
-    return d3.mean(data);
+    const sum = this.sum({ data });
+    const mean = sum / data.length;
+    return mean;
   }
 
   /**
@@ -236,7 +254,16 @@ export default class stats {
    */
 
   static median({ params, args, data } = {}) {
-    return d3.median(data);
+    const sortedArray = data.slice().sort((a, b) => a - b);
+    const middleIndex = Math.floor(sortedArray.length / 2);
+
+    if (sortedArray.length % 2 === 0) {
+      const left = sortedArray[middleIndex - 1];
+      const right = sortedArray[middleIndex];
+      return (left + right) / 2;
+    } else {
+      return sortedArray[middleIndex];
+    }
   }
 
   /**
@@ -250,7 +277,7 @@ export default class stats {
    */
 
   static stddev({ params, args, data } = {}) {
-    var mean = this.mean({ data: data }),
+    var mean = this.mean({ data }),
       SD = 0,
       nex = [];
     for (var i = 0; i < data.length; i += 1) {
@@ -270,7 +297,11 @@ export default class stats {
    */
 
   static variance({ params, args, data } = {}) {
-    return d3.variance(data);
+    const mean = this.mean({ data });
+    const squareDiffs = data.map((num) => (num - mean) ** 2);
+    const sumSquareDiffs = squareDiffs.reduce((acc, curr) => acc + curr, 0);
+    const variance = sumSquareDiffs / data.length;
+    return variance;
   }
 
   /**
@@ -301,7 +332,7 @@ export default class stats {
    */
 
   static min({ params, args, data } = {}) {
-    return d3.min(data);
+    return Math.min(...data);
   }
 
   /**
@@ -315,7 +346,7 @@ export default class stats {
    */
 
   static max({ params, args, data } = {}) {
-    return d3.max(data);
+    return Math.max(...data);
   }
 
   /**
@@ -410,109 +441,89 @@ export default class stats {
   }
 
   /**
-   * Identify the outliers on a timeseries using interquartile range.
-   * @method interouliers
+   * Removes interquartile outliers from an array or a set of arrays.
+   * @method interoutliers
    * @memberof stats
-   * @param {Object} params - Contains: q1 (first quartile i.e. 0.25), q2 (second quartile i.e. 0.75)
-   * @param {Object} data - Contains: 2d-JS array object with time series data as [[time], [data]].
-   * @returns {Object[]} Array with outliers.
+   * @param {Object} [params={ q1: 0.25, q2: 0.75 }] - Parameters object.
+   * @param {Array} data - Data to filter. If a 2D array is provided, the first array will be considered as a time array.
+   * @returns {Array} - Filtered data.
    * @example
-   * hydro.analyze.stats.interoutliers({params: {q1: 'someNum', q2: 'someNum'}, data: [[time1, time2,...],[data1, data2,...]]})
+   * hydro.analyze.stats.interoutliers({ params: { q1: 0.25, q2: 0.75 }, data: [1, 2, 3, 100, 4, 5, 6]});
    */
 
-  static interoutliers({ params, args, data } = {}) {
-    var q1 = params.q1,
-      q2 = params.q2,
-      or = this.copydata({ data: data }),
-      time = [];
+  static interoutliers({ params = { q1: 0.25, q2: 0.75 }, data = [] } = {}) {
+    const { q1, q2 } = params;
+    const or = [...data];
+    let time = [];
 
-    if (!(q1 || q2)) {
-      q1 = 0.25;
-      q2 = 0.75;
+    if (Array.isArray(data[0])) {
+      [time, or] = data;
     }
 
-    switch (typeof data[0]) {
-      case "object":
-        time = this.copydata({ data: data[0] });
-        or = this.copydata({ data: data[1] });
-        break;
-      default:
-        break;
-    }
+    const Q1 = this.quantile({ data: or, params: { q: q1 } });
+    const Q3 = this.quantile({ data: or, params: { q: q2 } });
+    const IQR = Math.abs(Q3 - Q1);
+    const qd = Math.abs(Q1 - 1.5 * IQR);
+    const qu = Math.abs(Q3 + 1.5 * IQR);
 
-    var Q_1 = this.quantile({ data: or, params: { q: q1 } }),
-      Q_2 = this.quantile({ data: or, params: { q: q2 } }),
-      IQR = Math.abs(Q_2 - Q_1),
-      qd = Math.abs(Q_1 - 1.5 * IQR),
-      qu = Math.abs(Q_2 + 1.5 * IQR),
-      xa = (arra) => arra.filter((x) => x >= qd || x >= qu),
-      re = xa(or);
-
-    if (typeof data[0] != "object") {
-      return re;
-    } else {
-      var t = [];
-      for (var j = 0; j < or.length; j++) {
-        if (or[j] >= qd || or[j] >= qu) {
-          t.push(time[j]);
+    const filteredData = or.filter((value, index) => {
+      if (value >= qd && value <= qu) {
+        if (time.length) {
+          return [time[index], value];
+        } else {
+          return value;
         }
       }
-      return [t, re];
-    }
+    });
+
+    return time.length ? filteredData : filteredData;
   }
 
   /**
-   * Identifies outliers in a timeseries dataset by normalizing the data given two thresholds.
-   * If the thresholds are not included then a lower value of -0.5 and high value of 0.5 are used.
-   * @method normoutliers
+   * Filters the outliers from the given data set based on its standard score (z-score).
+   *
    * @memberof stats
-   * @param {Object} params - Contains: low (threshold as number), high (threshold as number)
-   * @param {Object} data - Contains: 2d-JS array with time series data as [[time],[data]].
-   * @returns {Object[]} arr - array with outliers.
+   * @static
+   * @method normoutliers
+   *
+   * @param {Object} [params={}] - An object containing optional parameters.
+   * @param {Number} [params.low=-0.5] - The lower threshold value for filtering data.
+   * @param {Number} [params.high=0.5] - The higher threshold value for filtering data.
+   * @param {Object} [args] - An object containing any additional arguments.
+   * @param {Array} data - The data set to filter outliers from.
+   * @param {Array} [data[0]=[]] - An optional array of timestamps corresponding to the data.
+   * @param {Array} data[1] - The main data array containing values to filter outliers from.
+   *
+   * @returns {Array} Returns the filtered data set. If timestamps are provided, it will return an array of
+   * timestamps and filtered data set as [t, out]. If no timestamps are provided, it will return the filtered data set.
+   *
    * @example
-   * hydro.analyze.stats.normoutliers({params: {high: 'someValue', low: 'someValue'}, data: [[time1, time2,...], [data1, data2,...]]})
+   *
+   * // Filter outliers from the data set between z-scores of -0.5 and 0.5
+   * let data = [1, 2, 3, 4, 5, 10, 12, 15, 20];
+   * let filteredData = hydro.analyze.stats.normoutliers({ params: { low: -0.5, high: 0.5 }, data: data });
+   * // filteredData => [1, 2, 3, 4, 5, 15, 20]
+   *
+   * // Filter outliers from the data set between z-scores of -1 and 1 with timestamps
+   * let data = [[1, 2, 3, 4, 5, 10, 12, 15, 20], [1, 2, 3, 4, 5, 10, 12, 15, 200]];
+   * let [timestamps, filteredData] = hydro.analyze.stats.normoutliers({ params: { low: -1, high: 1 }, data: data });
+   * // timestamps => [1, 2, 3, 4, 5, 10, 12, 15]
+   * // filteredData => [1, 2, 3, 4, 5, 10, 12, 15]
    */
 
-  static normoutliers({ params, args, data } = {}) {
-    var high,
-      low,
-      or = this.copydata({ data: data }),
-      time = [];
-    if (!(params.low || params.high)) {
-      low = -0.5;
-      high = 0.5;
-    }
+  static normoutliers({ params = {}, args, data } = {}) {
+    const { lowerBound = -0.5, upperBound = 0.5 } = params;
+    const [time, or] = Array.isArray(data[0]) ? data : [[], data];
+    const stnd = this.standardize({ data: or });
 
-    switch (typeof data[0]) {
-      case "object":
-        time = this.copydata({ data: data[0] });
-        or = this.copydata({ data: data[1] });
-        break;
-      default:
-        break;
-    }
+    const out = or.filter(
+      (_, i) => stnd[i] < lowerBound || stnd[i] > upperBound
+    );
+    const t = time.filter(
+      (_, j) => stnd[j] < lowerBound || stnd[j] > upperBound
+    );
 
-    var t1 = low,
-      t2 = high;
-    (out = []), (stnd = this.standardize({ data: or }));
-
-    for (var i = 0; i < or.length; i++) {
-      if (stnd[i] < t1 || stnd[i] > t2) {
-        out.push(or[i]);
-      }
-    }
-
-    if (typeof data[0] != "object") {
-      return out;
-    } else {
-      var t = [];
-      for (var j = 0; j < stnd.length; j++) {
-        if (stnd[j] < t1 || stnd[j] > t2) {
-          t.push(time[j]);
-        }
-      }
-      return [t, out];
-    }
+    return time.length === 0 ? out : [t, out];
   }
 
   /**
@@ -554,34 +565,36 @@ export default class stats {
    * The sets must be of the same size.
    * @method correlation
    * @memberof stats
-   * @param {Object} data - Contains: 2d-JS array with datasets to be compared as [[dataSet1], [dataSet2]]
+   * @param {Object} params.data - An object containing the two data sets as set1 and set2.
    * @returns {Number} Pearson coefficient.
    * @example
-   * hydro.analyze.stats.correlation({data: [[dataSet1], [dataSet2]]})
+   * const data = {set1: [1,2,3], set2: [2,4,6]};
+   * const pearsonCoefficient = hydro1.analyze.stats.correlation({data})
    */
 
   static correlation({ params, args, data } = {}) {
-    var q1 = data[0],
-      q2 = data[1],
-      n = q1.length + q2.length,
-      q1q2 = [],
-      sq1 = [],
-      sq2 = [];
+    const { set1, set2 } = data;
+    const n = set1.length + set2.length;
+    const q1q2 = [];
+    const sq1 = [];
+    const sq2 = [];
 
-    for (var i = 0; i < q1.length; i++) {
-      q1q2[i] = q1[i] * q2[i];
-      sq1[i] = q1[i] * q1[i];
-      sq2[i] = q2[i] * q2[i];
+    for (let i = 0; i < set1.length; i++) {
+      q1q2[i] = set1[i] * set2[i];
+      sq1[i] = set1[i] ** 2;
+      sq2[i] = set2[i] ** 2;
     }
-    var r1 =
-        n * this.sum({ data: q1q2 }) -
-        this.sum({ data: q1 }) * this.sum({ data: q2 }),
-      r2a = Math.sqrt(
-        n * this.sum({ data: sq1 }) - Math.pow(this.sum({ data: q1 }), 2)
-      ),
-      r2b = Math.sqrt(
-        n * this.sum({ data: sq2 }) - Math.pow(this.sum({ data: q2 }), 2)
-      );
+
+    const r1 =
+      n * this.sum({ data: q1q2 }) -
+      this.sum({ data: set1 }) * this.sum({ data: set2 });
+    const r2a = Math.sqrt(
+      n * this.sum({ data: sq1 }) - this.sum({ data: set1 }) ** 2
+    );
+    const r2b = Math.sqrt(
+      n * this.sum({ data: sq2 }) - this.sum({ data: set2 }) ** 2
+    );
+
     return r1 / (r2a * r2b);
   }
 
@@ -594,39 +607,44 @@ export default class stats {
    * All efficiencies have limitations and showcase statistically the well performance of a model, but should not be considered as only variable for evaluation.
    * @method efficiencies
    * @memberof stats
-   * @param {Object} params - Contains: type ('NSE','determination', 'agreement')
-   * @param {Object} data - Contains: 2d-JS array with values arranged as [[observed], [model]]
-   * @returns {Number} Calculated metric
+   * @param {Object} options - The options object.
+   * @param {Object} options.params - An object containing the type of efficiency to calculate ('NSE','determination', 'agreement', 'all').
+   * @param {Object} options.data - A 2D array with values arranged as [[observed], [model]].
+   * @param {Array} [options.args] - An optional array of additional arguments to pass to the function.
+   * @returns {Number|Object} - A number representing the calculated metric, or an object containing multiple metrics if 'all' is specified.
    * @example
-   * hydro.analyze.stats.efficiencies({params: {type: 'someType'}, data: [[observed], [model]]})
+   * // Calculate Nash-Sutcliffe efficiency:
+   * const obs = [1, 2, 3];
+   * const model = [1.5, 2.5, 3.5];
+   * const NSE = hydro.analyze.stats.efficiencies({ params: { type: 'NSE' }, data: [obs, model] });
+   *
+   * // Calculate all efficiencies:
+   * const metrics = hydro.analyze.stats.efficiencies({ params: { type: 'all' }, data: [obs, model] });
+   * // metrics = { NSE: 0.72, r2: 0.5, d: 0.62 }
    */
 
   static efficiencies({ params, args, data } = {}) {
-    var obs = data[0],
-      model = data[1],
-      meanobs = this.mean({ data: obs }),
-      meanmodel = this.mean({ data: model }),
-      diff1 = [],
-      diff2 = [];
+    let { type } = params,
+      [obs, model] = data;
+    const meanobs = this.mean({ data: obs });
+    const meanmodel = this.mean({ data: model });
 
-    //calculate nash sutcliffe efficiency
-    if (params.type == "NSE") {
-      for (var i = 0; i < obs.length; i++) {
-        diff1[i] = Math.pow(model[i] - obs[i], 2);
-        diff2[i] = Math.pow(obs[i] - meanobs, 2);
-      }
-      var NSE = 1 - this.sum({ data: diff1 }) / this.sum({ data: diff2 });
+    if (type === "NSE") {
+      const diff1 = model.map((val, i) => Math.pow(val - obs[i], 2));
+      const diff2 = obs.map((val) => Math.pow(val - meanobs, 2));
+      const NSE = 1 - this.sum({ data: diff1 }) / this.sum({ data: diff2 });
       return NSE;
-    }
+    } else if (type === "determination") {
+      const diff1 = [];
+      const diff2 = [];
+      const diff3 = [];
 
-    //calculate coefficient of determination r2
-    else if (params.type == "determination") {
-      var diff3 = [];
-      for (var i = 0; i < obs.length; i++) {
+      for (let i = 0; i < obs.length; i++) {
         diff1[i] = (model[i] - meanmodel) * (obs[i] - meanobs);
         diff2[i] = Math.pow(model[i] - meanmodel, 2);
         diff3[i] = Math.pow(obs[i] - meanobs, 2);
       }
+
       console.log(
         `The values are - Upper: ${this.sum({
           data: diff1,
@@ -634,26 +652,39 @@ export default class stats {
           data: diff3,
         })}`
       );
-      var r = Math.pow(
+
+      const r = Math.pow(
         this.sum({ data: diff1 }) /
           (Math.sqrt(this.sum({ data: diff2 })) *
             Math.sqrt(this.sum({ data: diff3 }))),
         2
       );
       return r;
+    } else if (type === "agreement") {
+      const diff1 = obs.map((val, i) => Math.pow(val - model[i], 2));
+      const diff2 = obs.map((val, i) =>
+        Math.pow(Math.abs(model[i] - meanobs) + Math.abs(val - meanobs), 2)
+      );
+      const d = 1 - this.sum({ data: diff1 }) / this.sum({ data: diff2 });
+      return d;
     }
 
-    //calculate index of agreement d
-    else if (params.type == "agreement") {
-      for (var i = 0; i < obs.length; i++) {
-        diff1[i] = Math.pow(obs[i] - model[i], 2);
-        diff2[i] = Math.pow(
-          Math.abs(model[i] - meanobs) + Math.abs(obs[i] - meanobs),
-          2
-        );
-      }
-      var d = 1 - this.sum({ data: diff1 }) / this.sum({ data: diff2 });
-      return d;
+    if (type === "all") {
+      const metrics = {
+        NSE: this.efficiencies({
+          params: { type: "NSE" },
+          data: [obs, model],
+        }),
+        r2: this.efficiencies({
+          params: { type: "determination" },
+          data: [obs, model],
+        }),
+        d: this.efficiencies({
+          params: { type: "agreement" },
+          data: [obs, model],
+        }),
+      };
+      return metrics;
     }
   }
 
@@ -669,41 +700,76 @@ export default class stats {
    * hydro.analyze.stats.fastfourier({data: [someData]})
    */
 
-  static fastfourier({ params, args, data } = {}) {
-    tf.setBackend("webgl");
-    for (var i = 0; i < data.length; i++) {
-      data[i] = Math.round(data[i] + 5);
-    }
-    const _arr = data,
-      results = _arr.map((n) => {
-        for (let i = 0; i < 100; i++) {
-          const real = tf.ones([10, n * 10]),
-            imag = tf.ones([10, n * 10]),
-            input = tf.complex(real, imag),
-            res = tf.spectral.fft(input);
-          res.dataSync();
-        }
-      });
-    return results;
+  static fastFourier({ params, args, data } = {}) {
+    const nearest = Math.pow(2, Math.ceil(Math.log2(data.length)));
+    let paddedData = tf.pad1d(data, [0, nearest - data.length]);
+    const imag = tf.zerosLike(paddedData);
+    const complexData = tf.complex(paddedData, imag);
+    const fft = tf.spectral.fft(complexData);
+    const fftResult = fft.arraySync();
+    return fftResult;
   }
 
-  static skewness({params, arg, data} = {}) {
-      const n = data.length;
-      const mean = this.mean({data: data})
-      const sum3 = data.reduce((acc, val) => acc + Math.pow(val - mean, 3), 0);
-      const stdDev = Math.sqrt(data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n);
-      return (n / ((n - 1) * (n - 2))) * (sum3 / Math.pow(stdDev, 3));
-  }
-
-  static kurtosis({params, args, data} ={}) {
+  /**
+   * Calculates the skewness of a dataset
+   * @method skewnes
+   * @memberof stat
+   * @param {Object} params - Contains: none
+   * @param {Array} data - Array of numeric values
+   * @returns {Number} Skewness value
+   * @exampl
+   * hydro.analyze.stats.skewness({data: [1, 2, 3, 4, 5]})
+   */
+  static skewness({ params, arg, data } = {}) {
     const n = data.length;
-    const mean = this.mean({data: data})
-    const sum4 = data.reduce((acc, val) => acc + Math.pow(val - mean, 4), 0);
-    const stdDev = this.stddev({data: data})
-    return ((n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3))) * (sum4 / Math.pow(stdDev, 4)) - (3 * Math.pow(n - 1, 2)) / ((n - 2) * (n - 3));
+    const mean = this.mean({ data: data });
+    const sum3 = data.reduce((acc, val) => acc + Math.pow(val - mean, 3), 0);
+    const stdDev = Math.sqrt(
+      data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n
+    );
+    return (n / ((n - 1) * (n - 2))) * (sum3 / Math.pow(stdDev, 3));
   }
 
-  static forwardFill({params, args, data } = {}) {
+  /**
+   * Calculates the kurtosis of a dataset
+   * @method kurtosi
+   * @memberof stat
+   * @param {Object} params - Contains: none
+   * @param {Array} data - Array of numeri
+   * values
+   * @returns {Number} Kurtosis value
+   * @example
+   * hydro.analyze.stats.kurtosis({data: [1
+   * 2, 3, 4, 5]})
+   */
+  static kurtosis({ params, args, data } = {}) {
+    const n = data.length;
+    const mean = this.mean({ data: data });
+    const sum4 = data.reduce((acc, val) => acc + Math.pow(val - mean, 4), 0);
+    const stdDev = this.stddev({ data: data });
+    return (
+      ((n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3))) *
+        (sum4 / Math.pow(stdDev, 4)) -
+      (3 * Math.pow(n - 1, 2)) / ((n - 2) * (n - 3))
+    );
+  }
+
+  /**
+   * Performs forward fill to replace missin
+   * values in an array with the last
+   * non-null value
+   * @method forwardFil
+   * @memberof stat
+   * @param {Object} params - Contains: none
+   * @param {Array} data - Array of value
+   * with missing entries
+   * @returns {Object} Object containing th
+   * filled data array and an array of
+   * replace indices
+   * @example hydro.analyze.stats.forwardFi
+   * ({data: [1, null, 3, null, null, 6]})
+   */
+  static forwardFill({ params, args, data } = {}) {
     let previousValue = null;
     let replaceIndices = [];
     const filledData = data.map((value, index) => {
@@ -735,27 +801,48 @@ export default class stats {
 
   static basicstats({ params, args, data } = {}) {
     //Can pass time series data as a 2d array without additional manipulation
-    typeof data[0] === 'object' ? (() => {data = data[1]; data.shift()})(): data
-    data = data.map(val => JSON.parse(val))
+    typeof data[0] === "object"
+      ? (() => {
+          data = data[1];
+          data.shift();
+        })()
+      : data;
+    data = data.map((val) => JSON.parse(val));
     //if value is outside the values required from the api call
-    data = data.map(val => {val > 99998 ? val = 0 : val; return val})
-    var temp = [], values = [];
+    data = data.map((val) => {
+      val > 99998 ? (val = 0) : val;
+      return val;
+    });
+    var temp = [],
+      values = [];
     //call the basic functions for analysis.
-    values.push("Value")
+    values.push("Value");
     values.push(data.length);
-    values.push(this.min({ data: data }));
-    values.push(this.max({ data: data }));
-    values.push(this.sum({ data: data }));
-    values.push(this.mean({ data: data }));
-    values.push(this.median({ data: data }));
-    values.push(this.stddev({ data: data }));
-    values.push(this.variance({ data: data }));
-    values.push(this.skewness({data: data}));
-    values.push(this.kurtosis({data: data}));
+    values.push(this.min({ data }));
+    values.push(this.max({ data }));
+    values.push(this.sum({ data }));
+    values.push(this.mean({ data }));
+    values.push(this.median({ data }));
+    values.push(this.stddev({ data }));
+    values.push(this.variance({ data }));
+    values.push(this.skewness({ data }));
+    values.push(this.kurtosis({ data }));
 
-    temp.push(["Metric", "Number of values", "Minimum Value", "Maximum value", "Sum", "Mean", "Median", "Standard deviation", "Variance", "Skewness", "Kurtosis"])
-    temp.push(values)
-    return temp
+    temp.push([
+      "Metric",
+      "Number of values",
+      "Minimum Value",
+      "Maximum value",
+      "Sum",
+      "Mean",
+      "Median",
+      "Standard deviation",
+      "Variance",
+      "Skewness",
+      "Kurtosis",
+    ]);
+    temp.push(values);
+    return temp;
   }
 
   /***************************/
@@ -824,19 +911,23 @@ export default class stats {
    */
 
   static normalcdf({ params, args, data }) {
-    var X = data,
-      //HASTINGS.  MAX ERROR = .000001
-      T = 1 / (1 + 0.2316419 * Math.abs(X)),
-      D = 0.3989423 * Math.exp((-X * X) / 2),
-      Prob =
-        D *
-        T *
-        (0.3193815 +
-          T * (-0.3565638 + T * (1.781478 + T * (-1.821256 + T * 1.330274))));
-    if (X > 0) {
-      Prob = 1 - Prob;
+    let results = [];
+    for (var i = 0; i < data.length; i++) {
+      var X = data[i],
+        //HASTINGS.  MAX ERROR = .000001
+        T = 1 / (1 + 0.2316419 * Math.abs(X)),
+        D = 0.3989423 * Math.exp((-X * X) / 2),
+        Prob =
+          D *
+          T *
+          (0.3193815 +
+            T * (-0.3565638 + T * (1.781478 + T * (-1.821256 + T * 1.330274))));
+      if (X > 0) {
+        Prob = 1 - Prob;
+      }
+      results.push(Prob);
     }
-    return Prob;
+    return results;
   }
 
   /**
@@ -852,18 +943,17 @@ export default class stats {
    * hydro.analyze.stats.computeD({data: [samples_A, samples_B]})
    */
   static computeD({ params, args, data }) {
-    var samples_A = data[0],
-      samples_B = data[1],
+    var { sampleA, sampleB } = data,
       maximumDifference = 0,
       N = 1e3;
-    let minimum = d3.min(samples_A.concat(samples_B)),
-      maximum = d3.max(samples_A.concat(samples_B)),
-      N_A = samples_A.length,
-      N_B = samples_B.length;
+    let minimum = this.min({ data: sampleA.concat(sampleB) }),
+      maximum = this.max({ data: sampleA.concat(sampleB) }),
+      N_A = sampleA.length,
+      N_B = sampleB.length;
 
-    for (var x of d3.range(minimum, maximum, (maximum - minimum) / N)) {
-      var CDF_A = samples_A.filter((d) => d <= x).length / N_A,
-        CDF_B = samples_B.filter((d) => d <= x).length / N_B,
+    for (var x of this.range({ params: { N }, data })) {
+      var CDF_A = sampleA.filter((d) => d <= x).length / N_A,
+        CDF_B = sampleB.filter((d) => d <= x).length / N_B,
         difference = Math.abs(CDF_A - CDF_B);
 
       if (difference > maximumDifference) {
@@ -888,7 +978,7 @@ export default class stats {
   static KS_computePValue({ params, args, data }) {
     var samples_A = data[0],
       samples_B = data[1],
-      d = this.computeD({data: [samples_A, samples_B]}),
+      d = this.computeD({ data: [samples_A, samples_B] }),
       n = samples_A.length,
       m = samples_B.length,
       p = 2 * Math.exp((-2 * d * d * (n * m)) / (n + m));
@@ -913,13 +1003,21 @@ export default class stats {
   }
 
   /**
-   * Returns the a normal distribution PDF
-   * @method normalDistribution
-   * @param {Object} params - contains {z: Number}
-   * 
-   */
-  static normalDistribution({params, args, data}) {
-    return Math.exp(-(Math.log(2 * Math.PI) + params.z * params.z) * 0.5)
+
+Computes the probability density function
+of a normal distribution.
+@method normalDistribution
+@memberof stats
+@param {Object} params - Contains:
+z-value.
+@returns {Number} Probability density
+function of the normal distribution.
+@example
+hydro.analyze.stats.normalDistributio
+({params: {z: 1.5}})
+*/
+  static normalDistribution({ params, args, data }) {
+    return Math.exp(-(Math.log(2 * Math.PI) + params.z * params.z) * 0.5);
   }
 
   /***************************/
@@ -1072,6 +1170,31 @@ export default class stats {
         data[0][j].push(data[1][j][i]);
       }
     return arr1;
+  }
+
+  /**
+   * Generates an array of random integers within a specified range.
+   * @method generateRandomData
+   * @memberof stats
+   * @param {number} size - The number of
+   * elements in the array to be generated.
+   * @param {number} [range=100] - The upper
+   * limit (exclusive) of the range from which
+   * the random integers will be generated.
+   * @returns {number[]} An array of random
+   * integers between 0 and range-1, of length
+   * size.
+   * @example
+   * hydro.analyze.stats.generateRandomDat
+   * (10, 50) // returns [23, 48, 15, 9, 36,
+   * 28, 39, 18, 20, 22]
+   */
+  static generateRandomData(size, range = 100) {
+    let data = [];
+    for (let i = 0; i < size; i++) {
+      data.push(Math.floor(Math.random() * range)); // generates a random integer between 0 and 99
+    }
+    return data;
   }
 
   /**********************************/

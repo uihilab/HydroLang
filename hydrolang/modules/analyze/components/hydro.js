@@ -1,8 +1,6 @@
-import "../../../external/tensorflow/tensorflow.js";
-
 /**
  * Main class used for hydrological analyses.
- * @class 
+ * @class
  * @name hydro
  */
 export default class hydro {
@@ -36,32 +34,55 @@ export default class hydro {
     return filtered;
   }
 
-  /**
-   * Calculates average precipitation for a basin considering there is
-   * one station per sub basin.
+  /**Thiessen polygon method for rainfall areal averaging.
+   * Calculates the weighted average of point rainfall observations by dividing the study area into polygonal subareas and weighting each observation by the proportion of the total area it contributes to.
    * @method thiessen
    * @memberof hydro
-   * @param {Object} params - Contains: rainfall(nD-JS array), areas (1d-JS array)
-   * @returns {Object[]} Array with time series of average precipitation over a whole basin.
+   * @param {Object} params - Contains: areas (array with the areas of each polygon)
+   * @param {Object} args - Empty for now
+   * @param {Object} data - Contains: an array of arrays with rainfall observations for each point
+   * @returns {Array} - Array with the weighted average of point rainfall observations for each time step
    * @example
-   * hydro.analyze.hydro.thiessen({params: {rainfall:[[1,2,1,2,3], [1,2,34,1,2], [2,4,3,1,4]], areas: [30,40,30]}})
+   * hydro.analyze.thiessen({params: {areas: [10, 20, 30]}data: [[0.3, 0.2, 0.5], [0.2, 0.3, 0.4], [0.1, 0.4, 0.5]]});
    */
 
   static thiessen({ params, args, data } = {}) {
-    var precs = params.rainfall,
-      areas = params.areas,
-      totarea = this.totalprec({ data: areas }),
-      res = this.matrix({
-        params: { m: precs.length, n: areas.length, d: 0 },
-      }),
-      out = this.matrix({ params: { m: 1, n: precs[0].length, d: 0 } });
+    const areas = params.areas;
 
-    for (var i = 0; i < precs.length; i++) {
-      for (var j = 0; j < precs[0].length; j++) {
-        res[i][j] = precs[i][j] * areas[i];
-        out[j] = +res[i][j] / totarea;
+    // Check if number of data arrays matches number of areas, fill remaining with empty arrays
+    const numAreas = areas.length;
+    const numDataArrays = data.length;
+    if (numDataArrays < numAreas) {
+      const emptyArrays = Array(numAreas - numDataArrays).fill([]);
+      data = [...data, ...emptyArrays];
+    }
+
+    // Check if areas array contains valid numbers
+    if (areas.some(isNaN)) {
+      throw new Error("Invalid input: areas array contains non-numeric values");
+    }
+
+    const totalarea = this.totalprec({ data: areas });
+
+    // Find the longest rainfall array and set its length as the number of columns
+    const maxLength = Math.max(...data.map((arr) => arr.length));
+    const rainfallData = data.map((arr) =>
+      Array.from({ length: maxLength }, (_, i) => arr[i] ?? 0)
+    );
+
+    const res = this.matrix({
+      params: { m: rainfallData.length, n: areas.length, d: 0 },
+    });
+    const out = Array.from({ length: maxLength }, (_, i) => 0);
+
+    for (let i = 0; i < rainfallData.length; i++) {
+      for (let j = 0; j < maxLength; j++) {
+        res[i][j] = rainfallData[i][j] * areas[i];
+        // Check if totarea is not zero before dividing
+        out[j] = totalarea !== 0 ? out[j] + res[i][j] / totalarea : out[j];
       }
     }
+
     return out;
   }
 
@@ -107,7 +128,7 @@ export default class hydro {
           break;
 
         default:
-          alert("Please use a correct unit system!");
+          throw error("Please use a correct unit system!");
       }
 
       tc =
@@ -139,7 +160,7 @@ export default class hydro {
           M = 0.828;
           break;
         default:
-          alert("Please use a correct unit system!");
+          throw error("Please use a correct unit system!");
       }
       //calculating catchment time
       var tov = M * (Math.pow(lon * N), 0.467) * Math.pow(sl / 100, -0.235),
@@ -169,7 +190,7 @@ export default class hydro {
             60;
           break;
         default:
-          alert("Please use a correct unit system!");
+          throw error("Please use a correct unit system!");
       }
       tp = 0.7 * tc;
       lag = 0.6 * tc;
@@ -182,22 +203,24 @@ export default class hydro {
   }
 
   /**
-   * Creates a dimensionless unit hydrograph using the gamma distribution for calculating Q/Qp.
-   * For selection of the peak rate factor, consider that a PRF of 100 is for less flat areas
-   * while a PRF of 600 is for very steep terrain.
-   * Adapted from from (NEH, 2007).
-   * @method dimunithydro
-   * @memberof hydro
-   * @param {Object} params - Contains: timestep, numhours,
-   * @param {Object} args - Contains: type (gamma), prf (peak rate flow between 101 and 566)
-   * @returns {Object[]} Array with dimensionless hydrograph.
-   * @example
-   * hydro.analyze.hydro.dimunithydro({params: {timestep: 0.2,numhours: 5}, args: {type: "gamma", PRF: 484}})
+   * Generates a hydrograph using various distribution types (gamma, LP3, weibull) for a given duration and time step
+   * @method dimunithydr
+   * @memberof hydr
+   * @param {Object} params - Contains: timeStep (time step between data points), numhours (total duration in hours
+   * @param {Object} args - Contains: type (distribution type: "gamma", "lp3", "weibull"), prf (peak reduction factor), lambda (parameter for LP3 distribution), tpeak (peak time for LP3 distribution), alpha (shape parameter for Weibull distribution), beta (scale parameter for Weibull distribution), t0 (location parameter for Weibull distribution
+   * @param {Array} data - Additional data
+   * @returns {Array} Array of two arrays: ttp (time values) and qqp (flow values)
+   * @exampl
+   * hydro.analyze.hydro.dimunithydro(
+   * params: { timeStep: 0.1, numhours: 10 }
+   * args: { type: "gamma", prf: 238 }
+   * data: [
+   * });
    */
 
   static dimunithydro({ params, args, data } = {}) {
     //populate
-    var step = params.times,
+    var step = params.timeStep,
       hours = params.numhours,
       //calculate the number of steps in the hydrograph
       numstep = Math.round(hours / step) + 1,
@@ -206,7 +229,7 @@ export default class hydro {
       qqp = Array(numstep).fill(0),
       m = 0;
 
-    if ((args.type = "gamma")) {
+    if (args.type === "gamma") {
       //change gamma shape factor.
       switch (args.prf) {
         case 101:
@@ -231,7 +254,9 @@ export default class hydro {
           m = 5;
           break;
         default:
-          alert("Please choose value between 101,238,349,433,484,504,566.");
+          throw Error(
+            "Please choose value between 101,238,349,433,484,504,566."
+          );
       }
 
       //populating the array with t/tp relationship every 0.1t.
@@ -243,42 +268,91 @@ export default class hydro {
         );
       }
       return [ttp, qqp];
+    } else if (args.type === "lp3") {
+      //populating the array with t/tp relationship every 0.1t.
+      //populating the array with q/qp using LP3 distribution with PRF value.
+      for (var i = 1; i < ttp.length; i++) {
+        ttp[i] = Number((ttp[i - 1] + step).toFixed(2));
+        qqp[i] = Number(
+          (1 / args.lambda) *
+            Math.pow((3 / 2) * (ttp[i] / args.tpeak), args.lambda) *
+            Math.exp(-Math.pow(ttp[i] / args.tpeak, args.lambda) * (3 / 2))
+        ).toFixed(3);
+      }
+      return [ttp, qqp];
+    } else if (args.type === "weibull") {
+      var alpha = args.alpha,
+        beta = args.beta,
+        t0 = args.t0;
+      var c1 = (beta / alpha) * Math.exp(-Math.pow(t0 / alpha, beta));
+
+      for (var i = 1; i < ttp.length; i++) {
+        ttp[i] = Number((ttp[i - 1] + step).toFixed(2));
+        qqp[i] =
+          c1 *
+          Math.exp(-Math.pow((ttp[i] - t0) / alpha, beta)) *
+          (Math.exp((beta / alpha) * ttp[i]) -
+            Math.exp((beta / alpha) * ttp[i - 1]));
+      }
+      return [ttp, qqp];
     } else {
-      alert("Please use available distributions!");
+      throw Error("Please use available distributions!");
     }
   }
 
   /**
-   * Hyetograph generator for a uniformly distributed rainfall event. NOT FINISHED YET!
-   * Considered for long duration storms.
-   * The timestep should be uniformly distributed
-   * TODO
+   * Hyetograph generator for a uniformly distributed rainfall event.
+   * This function generates a hyetograph for a long-duration storm based on a uniformly distributed rainfall event.
    * @method hyetogen
    * @memberof hydro
-   * @param {Object} data - Contains: event (2D array with timeseries of a rainfall event)
-   * @returns {Object[]} n-D array of pulses per hour
+   * @param {Object} params - Contains: duration (number) representing the duration of the storm in hours, timestep (number) representing the time interval for the hyetograph in hours, and intensity (number) representing the rainfall intensity in mm/hour.
+   * @param {Object} data - Contains: event (2D array with timeseries of a rainfall event).
+   * @returns {Object} An object containing the hyetograph array and the timestep used to generate it.
    * @example
+   * hydro.analyze.hydro.hyetogen({params: {duration: 24, timestep: 1, intensity: 20}})
    * hydro.analyze.hydro.hyetogen({data: {event: [[time1, time2, ...], [rainf1, rainf2, ...]]}})
    */
 
   static hyetogen({ params, args, data } = {}) {
-    var event = data.event,
-      time = event[0],
-      rainf = event[1];
+    const duration = params.duration;
+    let hyetograph = [];
+    let timestep = params.timestep;
+    let intensity;
 
-    //if timestep in JavaScript string
-    if (typeof time[0] == "string") {
-      for (var i = 0; i < time.length; i++) {
-        time[i] = Date.parse(time[i]);
+    // If rainfall data is provided, infer hyetograph intensity and generate hyetograph
+    if (data) {
+      const rainfall = data;
+      const totalRainfall = rainfall.reduce((a, b) => a + b, 0);
+      const intensity = totalRainfall / duration;
+
+      for (let i = 0; i < rainfall.length; i++) {
+        hyetograph.push(rainfall[i] / timestep);
       }
     }
 
-    //calculate the time step of the series.
-    var timestep = Math.abs(time[1] - time[0]);
+    // If intensity is provided, generate hyetograph using normal distribution
+    else if (params.intensity) {
+      intensity = params.intensity;
+      const mean = duration / 2;
+      const stddev = duration / 6;
+      const count = Math.round(duration / timestep);
+      const gaussian = (x) =>
+        Math.exp(-Math.pow(x - mean, 2) / (2 * Math.pow(stddev, 2)));
+      const normalize = (x) => x / gaussian(mean);
 
-    var count;
+      timestep = duration / count;
 
-    //to continue!
+      for (let i = 0; i < count; i++) {
+        const x = i * timestep;
+        const y = normalize(gaussian(x)) * intensity;
+        hyetograph.push(y);
+      }
+    }
+
+    return {
+      hyetograph: hyetograph,
+      timestep: timestep,
+    };
   }
 
   /**
@@ -391,15 +465,9 @@ export default class hydro {
    * data: [[[1,2,3][0.1,0.2,0.4]], [[1,2,3],[0.3,0.1,0.2]]]})
    */
 
-  static floodhydro({ params, args, data } = {}) {
-    //import data from parameters.
-    const rain = data[0],
-      unit = data[1];
-    var baseflow = params.baseflow;
-
-    if (!params.baseflow) {
-      baseflow = 0;
-    }
+  static floodhydro({ params = {}, args = {}, data = [] } = {}) {
+    const [rain, unit] = data;
+    let { baseflow = 0 } = params;
 
     if (args.type == "SCS") {
       const cn = args.cn,
@@ -552,37 +620,36 @@ export default class hydro {
    */
 
   static bucketmodel({ params, args, data } = {}) {
-    //initial parameters
-    let rainfall = data[0],
-      n = rainfall.length,
-      baseflow = params.baseflow / 24,
-      evapodata = data[1],
-      landuse = [
-        args.agriculture,
-        args.barerock,
-        args.grassland,
-        args.forest,
-        args.urban,
-      ],
-      infiltration = params.infiltration,
-      //infiltration capacities for agriculture, bare rock, grassland, forest and
-      //urban, respectively in mm.
-      FieldCaps = [25, 5, 25, 50, 5];
+    // Initial parameters
+    const { rainfall, evaporation } = data;
+    let { baseflow, infiltration } = params;
+    const { agriculture, barerock, grassland, forest, urban } = args;
+    const n = rainfall.length;
+    const landuse = [agriculture, barerock, grassland, forest, urban];
+    baseflow = baseflow / 86400; // Convert from m3/s to mm/s
 
-    //arrays and variables
-    var initial = this.matrix(landuse.length, n, 0),
-      interflow = this.matrix(landuse.length, n, 0),
-      overflow = this.matrix(landuse.length, n, 0),
-      totalflow = this.matrix(landuse.length, n, 0),
-      totalrunoff = this.matrix(landuse.length, n, 0);
+    // Infiltration capacities for agriculture, bare rock, grassland, forest and
+    // urban, respectively in mm.
+    const FieldCaps = [25, 5, 25, 50, 5];
 
-    // initial moisture
-    for (var i = 0; i < FieldCaps.length; i++) {
-      initial[i][0] = FieldCaps[i] * landuse[i] + rainfall[0] - evapodata[0];
+    // Arrays and variables
+    const initial = this.matrix({ params: { m: landuse.length, n: n, d: 0 } });
+    const interflow = this.matrix({
+      params: { m: landuse.length, n: n, d: 0 },
+    });
+    const overflow = this.matrix({ params: { m: landuse.length, n: n, d: 0 } });
+    const totalflow = this.matrix({
+      params: { m: landuse.length, n: n, d: 0 },
+    });
+    const totalrunoff = new Array(n).fill(0);
+
+    // Initial moisture
+    for (let i = 0; i < FieldCaps.length; i++) {
+      initial[i][0] = FieldCaps[i] * landuse[i] + rainfall[0] - evaporation[0];
     }
 
-    //initial soil moisture
-    for (var k = 0; k < FieldCaps.length; k++) {
+    // Initial soil moisture
+    for (let k = 0; k < FieldCaps.length; k++) {
       if (initial[k][0] > FieldCaps[k]) {
         overflow[k][0] = initial[k][0] - FieldCaps[k];
         initial[k][0] = FieldCaps[k];
@@ -596,14 +663,14 @@ export default class hydro {
       }
     }
 
-    //calculating overland and interflow
-    for (var m = 0; m < FieldCaps.length; m++) {
-      for (var p = 1; p < n; p++) {
+    // Calculating overland and interflow
+    for (let m = 0; m < FieldCaps.length; m++) {
+      for (let p = 1; p < n; p++) {
         initial[m][p] =
-          initial[m][p - 1] * (1 - infiltration) + rainfall[p] - evapodata[p];
+          initial[m][p - 1] * (1 - infiltration) + rainfall[p] - evaporation[p];
         if (initial[m][p] > FieldCaps[m]) {
           overflow[m][p] = initial[m][p] - FieldCaps[m];
-          initial[m][p] = 0;
+          initial[m][p] = FieldCaps[m];
         } else {
           overflow[m][p] = 0;
         }
@@ -615,10 +682,11 @@ export default class hydro {
       }
     }
 
-    //calculating the total amount of flow from overflow, baseflow and interflow
-    for (var j = 0; j < FieldCaps.length; j++) {
-      for (var h = 0; h < n; h++) {
-        totalflow[j][h] = overflow[j][h] + interflow[j][h] + baseflow;
+    // Calculating the total amount of flow from overflow, baseflow and interflow
+    for (let j = 0; j < FieldCaps.length; j++) {
+      for (let h = 0; h < n; h++) {
+        totalflow[j][h] =
+          overflow[j][h] + interflow[j][h] + baseflow * landuse[j];
       }
     }
     //calculating total runoff
@@ -643,7 +711,7 @@ export default class hydro {
   }
 
   /**
-   * Solves 1d groundwater steady simulation using gaussian elimination.
+   * Solves 1d groundwater steady simulation using gaussian elimination for a static setting.
    * Adapted from (Molkentin, 2019).
    * @method ground1d
    * @memberof hydro
@@ -655,7 +723,7 @@ export default class hydro {
    * args: {w0: 'someNum', w1: 'someNum', q0: 'someNum', q1: 'someNum'}})
    */
 
-  static ground1d({ params, args, data } = {}) {
+  static staticGround1d({ params, args, data } = {}) {
     //pass data from params to variables.
     var length = params.length,
       k = params.k,
@@ -707,6 +775,78 @@ export default class hydro {
     }
 
     vec_right[index] = (-k * (vec_left[index] - vec_left[index - 1])) / dx;
+
+    return vec_left;
+  }
+
+  /**
+   * Solves 1D dynamic groundwater simulation using the Crank-Nicolson method
+   * Adapted from (Molkentin, 2019)
+   * @method dynamicGround1D
+   * @memberof hydro
+   * @param {Object} params - Contains: length (length of the domain), nodes (number of nodes), k (hydraulic conductivity
+   * @param {Object} args - Contains: dt (time step), T (total simulation time), h0 (initial hydraulic head), hL (hydraulic head at the boundary), q0 (flow rate at the boundary), qL (flow rate at the boundary), phi (porosity), Ss (specific storage), Sy (specific yield
+   * @param {Array} data - Additional data
+   * @returns {Array} Array of solutions representing the hydraulic head at each node
+   * @example
+   * hydro.analyze.hydro.dynamicGround1D(
+   * params: { length: 100, nodes: 10, k: 0.5 }
+   * args: { dt: 0.1, T: 10, h0: 10, hL: 5, q0: 1, qL: 0.5, phi: 0.3, Ss: 0.002, Sy: 0.15 }
+   * data: [
+   * });
+   */
+  static dynamicGround1D({ params, args, data } = {}) {
+    // pass data from params to variables
+    const { length, nodes, k } = params;
+    const { dt, T, h0, hL, q0, qL, phi, Ss, Sy } = args;
+
+    const dx = length / (nodes - 1);
+    const a = k / (phi * Ss);
+    const b = (Sy * a) / dt;
+    const c = k / dx;
+    const d = Sy * h0 + (1 - Sy) * hL;
+
+    // create a new equation system
+    const matrix = this.matrix({ params: { m: nodes, n: nodes, d: 0 } });
+    const vec_left = this.matrix({ params: { m: 1, n: nodes, d: 0 } });
+    const vec_right = this.matrix({ params: { m: 1, n: nodes, d: 0 } });
+
+    // equation system set up
+    matrix[0][0] = 1;
+    vec_left[0] = h0;
+    matrix[nodes - 1][nodes - 1] = 1;
+    vec_left[nodes - 1] = hL;
+
+    // calculate inner nodes using Crank-Nicolson method for each time step
+    const numTimeSteps = Math.round(T / dt);
+    for (let t = 0; t < numTimeSteps; t++) {
+      for (let i = 1; i < nodes - 1; i++) {
+        const aTerm = a / dx ** 2;
+        const bTerm = b / 2;
+        const cTerm = c / 2;
+        const laplacian =
+          (vec_left[i + 1] - 2 * vec_left[i] + vec_left[i - 1]) * aTerm;
+
+        const e = (Sy * vec_left[i] + (1 - Sy) * hL + b * q0 - laplacian) / b;
+        matrix[i][i - 1] = -cTerm;
+        matrix[i][i] = 1 / dt + cTerm + 2 * aTerm;
+        matrix[i][i + 1] = -cTerm;
+        vec_right[i] = vec_left[i] / dt + q0 * cTerm + laplacian + bTerm * e;
+      }
+
+      // solve equation system for this time step
+      this.equationsystemsolver({
+        data: matrix,
+        params: { left: vec_left, right: vec_right },
+      });
+
+      // update boundary conditions for this time step
+      vec_right[0] = q0;
+      for (let i = 1; i < nodes - 1; i++) {
+        vec_right[i] = (-k * (vec_left[i + 1] - vec_left[i - 1])) / (2 * dx);
+      }
+      vec_right[nodes - 1] = qL;
+    }
 
     return vec_left;
   }
@@ -859,7 +999,7 @@ export default class hydro {
 
   static matrix({ params, args, data } = {}) {
     var mat;
-    if (typeof params.d == undefined) {
+    if (typeof params.d === "undefined") {
       mat = Array(params.m).map(() => Array(params.n));
     } else {
       mat = Array(params.m)
@@ -911,7 +1051,7 @@ export default class hydro {
         vec_right[m] = fAcc;
       }
       if (Math.abs(matrix[k][k]) < 1e-10) {
-        alert("Singular matrix" + k + " " + matrix[k][k]);
+        console.log("Singular matrix" + k + " " + matrix[k][k]);
       }
       for (var j = k + 1; j < nodes; j++) {
         fAcc = -matrix[j][k] / matrix[k][k];

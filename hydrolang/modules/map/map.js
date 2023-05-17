@@ -1,6 +1,5 @@
 import * as mapsources from "../../external/maps/mapsources.js";
 import tileprov from "../../external/maps/tileprov.js";
-import _ from "../../external/d3/d3.js";
 import * as divisors from "../visualize/divisors.js";
 
 /**
@@ -13,6 +12,7 @@ import * as divisors from "../visualize/divisors.js";
 var osmap,
 layercontroller,
 drawings,
+isDrawToolAdded = false,
 drawControl;
 
 //Global variables for library usages.
@@ -31,7 +31,7 @@ window.overlayers = {};
  * hydro.map.loader({params: {maptype: 'osm'}, args: {key: 'somekey'}})
  */
 
-async function loader({ params, args, data } = {}) {
+async function loader({ params = {maptype: "leaflet"}, args = {}, data = {}} = {}) {
   //For google maps API.
   if (params.maptype == "google") {
     const gApiKey = args.key,
@@ -52,14 +52,14 @@ async function loader({ params, args, data } = {}) {
  * Layer function for appending tiles, geodata, markers, kml or drawing tools to a map.
  * @function Layers
  * @memberof map
- * @param {Object} args - Contains: type (tile, geodata, markers, kml, draw, removelayers), output (name of layer)
+ * @param {Object} args - Contains: type (tile, geodata, markers, kml, draw, removelayers), name (name of layer)
  * @param {Object} data - Contains: data as a JS array.
  * @returns {Element} Layer appended to a map div that has already been created. The layer is added into the global
  * layer object.
  * @example
- * hydro.map.Layers({args: {type: 'tile', output: 'someName'}, data: [data1, data2...]})
- * hydro.map.Layers({args: {type: 'geodata', output: 'someName'}, data: {somegeoJSON}})
- * hydro.map.Layers({args: {type: 'marker', output: 'someName'}, data: [markerLat, marketLon]})
+ * hydro.map.Layers({args: {type: 'tile', name: 'someName'}, data: [data1, data2...]})
+ * hydro.map.Layers({args: {type: 'geodata', name: 'someName'}, data: {somegeoJSON}})
+ * hydro.map.Layers({args: {type: 'marker', name: 'someName'}, data: [markerLat, marketLon]})
  */
 
 async function Layers({ params, args, data } = {}) {
@@ -74,8 +74,9 @@ async function Layers({ params, args, data } = {}) {
     markertype: args.type,
     geotype: args.geo,
     data: data,
-    name: args.output,
+    name: args.name,
     coord: data,
+    popUpContent:  args.popUp|| null
   };
 
   try {
@@ -107,7 +108,7 @@ async function Layers({ params, args, data } = {}) {
       }
 
 
-      if (type === "geodata") {
+      if (type === "geojson") {
         //Caller for the geoJSON data renderer.
         layer = geoJSON({ params: mapconfig, data: data });
         Object.assign(overlayers, { [layername]: layer });
@@ -126,10 +127,15 @@ async function Layers({ params, args, data } = {}) {
         layercontroller.addOverlay(layer, layername);
         //osmap.fitBounds(layer.getBounds());
       } else if (type === "draw") {
+        if (!isDrawToolAdded) {
         //Caller for drawing tool renderer.
         drawings = new L.FeatureGroup();
         draw({ params: mapconfig });
-        osmap.addLayer(mapdrawings);
+        isDrawToolAdded = true
+      } else {
+        console.log("Draw tool is already added in the map.")
+      }
+        osmap.addLayer(drawings);
       } else if (type === "removelayers") {
         //If using HydroLang-ML, there is no need to use this functions since the layers that are not to be included in a map
         //Are simply not added into the request as a layer.
@@ -170,54 +176,41 @@ async function Layers({ params, args, data } = {}) {
  * hydro.map.renderMap({params: {}, args: {{maptype: "leaflet", lat: "40", lon: "-100"}})
  */
 
-async function renderMap({ params, args, data } = {}) {
+async function renderMap({ params = {}, args = {}, data } = {}) {
+  await Promise.resolve(loader({params}));
   //Reading layer types and map configurations from the user's parameters inputs.
   var layertype,
-  mapconfig = {
-    maptype: args.maptype,
-    lat: args.lat,
-    lon: args.lon,
-    zoom: 15,
+  { maptype = "leaflet", lat = 41.6572, lon = -91.5414 } = params;
+
+  let mapconfig = {
+    maptype,
+    lat,
+    lon,
+    zoom: 10
   };
-
-  //Default scenario using Open Street Maps over Iowa Flood Center.
-  if (
-    typeof mapconfig.maptype === "undefined" ||
-    typeof mapconfig.maptype === null ||
-    !params
-  ) {
-    layertype = {
-      type: "tile",
-      output: "OpenStreetMap",
-    };
-
-    mapconfig = {
-      maptype: "leaflet",
-      lat: 41.6572,
-      lon: -91.5414,
-      zoom: 13,
-    };
-  }
-  //Rendering the map into screen.
-  //await loader({ params: mapconfig });
-
-  //Creating internal divisors for the requested maps. Each map call would have its own div inside the maps
-  //larger div.
-  // divisors.createDiv({
-  //   params: {
-  //     id: "map",
-  //     class: "maps",
-  //     maindiv: document
-  //       .getElementById("hydrolang")
-  //       .getElementsByClassName("maps")[0],
-  //   },
-  // });
 
   //Allocating a container object where the map should be set.
   var container;
-  if (divisors.isdivAdded) {
-    container = document.getElementById("map");
-  }
+  !divisors.isdivAdded({params:{id: "map"}}) ? 
+    divisors.createDiv({
+      params: {
+        id: "map",
+        style: `
+        #map {
+          height: 400px;
+          width: 800px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+      
+        .content {
+          max-width: 900px;
+          margin: auto
+        }
+      `
+      }
+    }) : null;
+  container = document.getElementById("map");
 
   //From here onwards, the the library caller renders either Google Maps or Leaflet Maps.
   if (mapconfig.maptype === "google") {
@@ -232,9 +225,15 @@ async function renderMap({ params, args, data } = {}) {
     //append a new map to the map variable.
     osmap = new google.maps.Map(container, options);
   } else if (mapconfig.maptype === "leaflet") {
+    let {type = "tile", name = "OpenStreetMap"} = args
+    layertype = {
+      type,
+      name
+    };
+
     osmap = new L.map(container.id);
     //assign the tile type to the data object for rendering.
-    const tiletype = layertype.output;
+    const tiletype = layertype.name;
     //Rendering the tile type the user has requested from the available tile types.
     if (tiletype === "tile" && !tileprov.hasOwnProperty(tiletype)) {
       console.log("No tile found!");
@@ -256,6 +255,10 @@ async function renderMap({ params, args, data } = {}) {
   }
 }
 
+/**
+ * 
+ * @param {*} param0 
+ */
 async function recenter ({ params, args, data } = {}) {
   let latLon = L.latLng(args.lat, args.lon);
   var bounds = latLon.toBounds(12000); // 500 = metres
@@ -278,74 +281,52 @@ async function recenter ({ params, args, data } = {}) {
  * hydro.map.geoJSON({params: {maptype: 'someMapType'}, data: {somegeoJSON}})
  */
 
-function geoJSON({ params, args, data } = {}) {
-  var geotype;
+ function geoJSON({ params, args, data } = {}) {
+  let geoType;
   if (data.type === "FeatureCollection") {
-    geotype = data.features[0].geometry.type;
+    geoType = data.features[0].geometry.type;
   } else if (data.type === "Feature") {
-    geotype = data.geometry.type;
+    geoType = data.geometry.type;
   }
 
   if (params.maptype === "google") {
-    var geogoogle = osmap.data.addGeoJson(inf);
-    return geogoogle;
+    return osmap.data.addGeoJson(data);
   } else if (params.maptype === "leaflet") {
-    var onEachFeature = (feature, layer) => {
-      if (
-        feature.properties &&
-        feature.properties.Name &&
-        feature.properties.Lat &&
-        feature.properties.Lon
-      ) {
-        layer.bindPopup(
-          feature.properties.Name +
-            "(" +
-            feature.properties.Lat +
-            "," +
-            feature.properties.Lon +
-            ")"
-        );
+    const onEachFeature = (feature, layer) => {
+      if (feature.properties && feature.properties.Name && feature.properties.Lat && feature.properties.Lon) {
+        layer.bindPopup(`${feature.properties.Name} (${feature.properties.Lat}, ${feature.properties.Lon})`);
       }
     };
-    //Each type of geometry point has an already predefined style attached to it.
-    //If a different style is requred please change the following section.
-    var geopoint = () => {
-      var style = {
-        radius: 10,
-        fillColor: "#2ce4f3",
-        color: "#0dc1d3",
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.7,
-      };
-      var xo = new L.geoJSON(data, {
-        pointToLayer: function (feature, latlng) {
-          return new L.circleMarker(latlng, style);
-        },
-        onEachFeature: onEachFeature,
-        style: style,
-      });
-      return xo;
+    const geoPoint = {
+      radius: 10,
+      fillColor: "#2ce4f3",
+      color: "#0dc1d3",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.7,
+    };
+    const geoPolygon = {
+      weight: 2,
+      color: "#432",
     };
 
-    var geopoly = () => {
-      var style = {
-        weight: 2,
-        color: "#432",
-      };
-      var xa = new L.geoJSON(data, {
-        style: style,
+    if (geoType === "Point") {
+      return L.geoJSON(data, {
+        pointToLayer: function (feature, latlng) {
+          return L.circleMarker(latlng, geoPoint);
+        },
+        onEachFeature: onEachFeature,
+        style: geoPoint,
+      });
+    } else if (geoType === "Polygon") {
+      return L.geoJSON(data, {
+        style: geoPolygon,
         onEachFeature: onEachFeature,
       });
-      return xa;
-    };
-    if (geotype === "Point") {
-      return geopoint();
-    } else if (geotype === "Polygon") {
-      return geopoly();
     }
   }
 }
+
 
 /**
  * Creates layer of kml data passed through an object to anexisting map.
@@ -361,7 +342,7 @@ function geoJSON({ params, args, data } = {}) {
 
 function kml({ params, args, data } = {}) {
   if (params.maptype == "google") {
-    var kmlLayer = new google.maps.KmlLayer(data.kml, {
+    var kmlLayer = new google.maps.KmlLayer(data, {
       suppressInfoWindows: true,
       preserveViewport: false,
       map: osmap,
@@ -373,7 +354,7 @@ function kml({ params, args, data } = {}) {
     });
   } else if (params.maptype == "leaflet") {
     const parser = new DOMParser(),
-    kml = parser.parseFromString(data.kml, "text/xml"),
+    kml = parser.parseFromString(data, "text/xml"),
     track = new L.KML(kml);
     return track;
   }
@@ -435,7 +416,7 @@ function addMarker({ params, args, data } = {}) {
         layer = new L.marker(
           coord,
           markerStyles({ params: { map: "leaflet", fig: "marker" } })
-        );
+        ).bindPopup(args.popUpContent || `Coordinates: lat: ${coord[0]}, lon: ${coord[1]}`);
         break;
       default:
         alert("no markers with that name");
@@ -592,15 +573,16 @@ function draw({ params, args, data } = {}) {
     //Event triggers added to clicking inside the maps through different types of markers and styles..
     osmap.on("draw:created", function (e) {
       var type = e.layerType,
-        layer = e.layer;
+        layer = e.layer,
+        latLngs = layer.getLatLngs();
       if (type === "marker") {
         layer.on("click", function () {
-          layer.bindPopup(`Marker coordinates: ${layer.getLatLng()}.`);
+          layer.bindPopup(`Marker coordinates: ${latLngs}.`);
         });
       } else if (type === "rectangle") {
         layer.on("click", function () {
           layer.bindPopup(
-            `Rectangle corners coordinates: ${layer.getLatLngs()}.`
+            `Rectangle corners coordinates: ${latLngs}.`
           );
         });
       } else if (type === "circle") {

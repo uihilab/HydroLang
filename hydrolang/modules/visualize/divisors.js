@@ -11,14 +11,15 @@
  * Function for verifying if a div has already been added into the document.
  * @method isdivAdded
  * @memberof divisors
- * @param {Object} params - Contains: divID (specific name for the divisor).
+ * @param {Object} params - Contains: id (specific name for the divisor).
  * @returns {Boolean} True of a div with the given id is found in the document.
  * @example
- * hydro.visualize.isdivAdded({params: {divId: 'someDivName'}})
+ * hydro.visualize.isdivAdded({params: {id: 'someDivName'}})
  */
 
 function isdivAdded({ params, args, data } = {}) {
-  return Boolean(document.getElementById(params.divID));
+  const element = document.getElementById(params.id);
+  return Boolean(element && element.nodeName === 'DIV');
 }
 
 /**
@@ -89,16 +90,27 @@ function createForm({ params, args, data } = {}) {
  */
 
 function createDiv({ params, args, data } = {}) {
-  var dv = document.createElement('div');
-  dv.id = params.id;
-  dv.title = params.title;
-  dv.className = params.class;
-  dv.style = params.style;
-  console.log(params)
-  params.maindiv !== undefined
-    ? document.getElementById(params.maindiv).appendChild(dv)
-    : document.body.appendChild(dv);
+  if (isdivAdded({params: params.id})) {
+    return;
+  } else {
+    var dv = document.createElement('div');
+    dv.id = params.id;
+    dv.title = params.title;
+    dv.className = params.class;
+    dv.style = params.style;
+    
+    // Append style to head of document
+    var style = document.createElement('style');
+    style.type = 'text/css';
+    style.appendChild(document.createTextNode(params.style));
+    document.head.appendChild(style);
+    
+    params.maindiv !== undefined
+      ? document.getElementById(params.maindiv).appendChild(dv)
+      : document.body.appendChild(dv);
+  }
 }
+
 
 /**********************************/
 /*** End of Supporting functions **/

@@ -1,8 +1,6 @@
 import * as datasources from "./datasources.js";
 import $ from "../../external/jquery/jquery.js";
 import stats from "../analyze/components/stats.js";
-import * as visualize from "../visualize/visualize.js";
-import * as divisors from "../visualize/divisors.js";
 
 /**
  * Module for dealing with data.
@@ -25,6 +23,7 @@ function retrieve({ params, args, data } = {}) {
   //obtain data from parameters set by user.
   var source = params["source"],
     dataType = params["datatype"],
+    trans = params["transform"] || false,
     args = args,
     result = [],
     //if source exists, then obtain the object from sources.
@@ -54,11 +53,7 @@ function retrieve({ params, args, data } = {}) {
 
   //Allowing the proxy server that is continously working to be called and used whenever it is required.
   if (proxif)
-    (() =>
-      params.hasOwnProperty("proxyServer")
-        ? (proxy = datasources.proxies[params["proxyServer"]]["endpoint"])
-        : //this considering that a local proxy server is in charge.
-          (proxy = datasources.proxies["local-proxy"]["endpoint"]))();
+  proxy = datasources.proxies["local-proxy"]["endpoint"]
 
   //create headers if required depending on the type supported.
   var head = {
@@ -116,7 +111,21 @@ function retrieve({ params, args, data } = {}) {
       if (type === "soap") result.push(data.responseText);
       else if (type === "xml" || type === "tab" || type === "CSV")
         resolve(JSON.stringify(data));
-      else resolve(lowercasing(data));
+      else { 
+        if (trans){
+          if (source === "usgs") {
+            let transformed_value = transform({ 
+              params: { save: 'value'}, 
+              args: { keep: '["datetime", "value"]', type: 'ARR'}, 
+              data: lowercasing(data)
+              })
+            resolve(transformed_value)
+          }
+          else {
+            resolve(lowercasing(data))
+          }
+        } 
+        }
     },
     (err) => {
       if (type === "soap" || type === "xml") {
@@ -132,7 +141,7 @@ function retrieve({ params, args, data } = {}) {
         );
         reject(err)
     }
-  );
+  )
   //return result;
 })
 }
@@ -289,163 +298,67 @@ function transform({ params, args, data } = {}) {
  * hydro.data.upload({params: {type: 'someType'}})
  */
 
-function upload({ params, args, data } = {}) {
-  //Container for the uploading area
+async function upload({ params, args, data } = {}) {
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = params.type;
 
-  // !divisors.isdivAdded({params: {divID: 'hydrolang'}}) ?
-  // divisors.createDiv({
-  //   params: {
-  //     id: "hydrolang",
-  //   }
-  // }) : null
+  let ret = null;
 
-  // divisors.createDiv({
-  //   params: {
-  //     id: "drop-area",
-  //     maindiv: document
-  //       .getElementById("hydrolang")
-  //       // .getElementsByClassName("data")[0],
-  //   },
-  // });
-
-  // //form for the uploading area
-  // var fr = document.createElement("form");
-  // fr.className = "upload-form";
-
-  // var cont1;
-  // if (divisors.isdivAdded({params: {divID: "drop-area"}})) {
-  //   cont1 = document.getElementById("drop-area");
-  // }
-
-  //create a new element to upload on header.
-  var f = document.createElement("input");
-  f.type = "file";
-  f.id = "fileElem";
-  f.accept = params.type;
-
-  // //create button label
-  // var btn = document.createElement("LABEL");
-  // btn.className = "button";
-  // btn.htmlFor = "fileElem";
-  // btn.innerHTML = "Upload file here!";
-
-  // //Append all created elements to div
-  // fr.appendChild(f);
-  // cont1.appendChild(fr);
-  // cont1.appendChild(btn);
-
-  // //Preventing default drag behaviors
-  // ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
-  //   cont1.addEventListener(eventName, preventDefaults, false);
-  //   document.body.addEventListener(eventName, preventDefaults, false);
-  // });
-
-  // //Highlighting drop area when dragged over it
-  // ["dragenter", "dragover"].forEach((eventName) => {
-  //   cont1.addEventListener(eventName, highlight, false);
-  // });
-  // ["dragleave", "drop"].forEach((eventName) => {
-  //   cont1.addEventListener(eventName, unhighlight, false);
-  // });
-
-  // cont1.addEventListener("drop", selectors, false);
-
-  // var preventDefaults = (e) => {
-  //   e.preventDefault();
-  //   e.stopPropagation();
-  // };
-  // var highlight = (e) => {
-  //   cont1.classList.add("highlight");
-  // };
-  // var unhighlight = (e) => {
-  //   cont1.classList.remove("active");
-  // };
-
-  var ret;
-  //create a new type of object depending on the type selected by user.
-  if (params.type === "CSV") {
-    ret = [];
-  } else if (params.type === "JSON") {
-    ret = new Object();
-  }
-
-  //intialize the caller for obtaining the files.
-  var selectors = () => {
-    //create input file selector.
-    f.onchange = (e) => {
-      //select file by the user
-      var file = e.target.files[0],
-        //read the file
-        reader = new FileReader();
-
-      //read as text file.
-      reader.readAsBinaryString(file);
-
-      //file reading started.
-      reader.addEventListener("loadstart", () => {
-        console.log("File is being read.");
-      });
-
-      //file reading failed
-      reader.addEventListener("error", () => {
-        alert("Error: Failed to read file.");
-      });
-
-      //file read progress
-      reader.addEventListener("progress", (e) => {
-        if (e.lengthComputable == true) {
-          var percent = Math.floor((e.loaded / e.total) * 100);
-          console.log(percent + "% read.");
-        }
-      });
-
-      //after the data has been loaded, change it to the required type.
-      reader.onload = (readerEvent) => {
-        var content = readerEvent.target.result;
-
-        //conversion of the data from CSV to array.
-        if (params.type === "CSV") {
-          var alltext = content.split(/\r\n|\n/),
-            med = [];
-          for (var i = 0; i < alltext.length; i++) {
-            var data = alltext[i].split(",");
-            var tarr = [];
-            for (var j = 0; j < data.length; j++) {
-              tarr.push(data[j].replace(/^"|"$/g, ""));
-            }
-            med.push(tarr);
-          }
-
-          //map the objects from m x n to n x m
-          const arraycol = (arr, n) => arr.map((x) => x[n]);
-
-          //the uploaded data Contains additional "". Remove them once for dates and twice for data.
-          for (var j = 0; j < med[0].length; j++) {
-            ret.push(arraycol(med, j));
-          }
-
-          ret[1] = stats.numerise({ data: ret[1] });
-
-          for (var k = 0; k < ret.length; k++) {
-            ret[k].pop();
-          }
-
-          for (var j = 0; j < ret.length; j++) {
-            ret[j] = stats.numerise({ data: ret[j] });
-          }
-
-          //transfrom from JSON file to new JS Object.
-        } else if (params.type === "JSON") {
-          Object.assign(ret, JSON.parse(content));
-        }
-      };
-    };
-    f.click();
+  const getFileContent = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    });
   };
-  selectors();
-  return ret;
-  // return btn.addEventListener('click', selectors())
+
+  const isNumeric = (value) => {
+    return /^-?\d+\.?\d*$/.test(value);
+  };
+
+  const handleFileSelect = async (event) => {
+    const file = event.target.files[0];
+    const content = await getFileContent(file);
+
+    if (params.type === "CSV") {
+      const rows = content.split(/\r\n|\n/).map((row) => {
+        return row.split(",").map((value) => value.replace(/^"|"$/g, ""));
+      });
+
+      const columns = rows[0].map((_, i) => rows.map((row) => row[i]));
+      ret = [];
+      columns.forEach((column, i) => {
+        if (column.every(isNumeric)) {
+          ret.push(column.map((value) => parseFloat(value)));
+        } else {
+          ret.push(column);
+        }
+      });
+
+    } else if (params.type === "JSON") {
+      ret = JSON.parse(content);
+
+    } else if (params.type === "KML") {
+      ret = content
+    }
+  };
+
+  fileInput.addEventListener("change", handleFileSelect);
+  fileInput.click();
+
+  return new Promise((resolve) => {
+    const intervalId = setInterval(() => {
+      if (ret !== null) {
+        clearInterval(intervalId);
+        resolve(ret);
+      }
+    }, 100);
+  });
 }
+
+
 
 /**
  * Download files on different formats, depending on the formatted object. It extends the
@@ -461,58 +374,52 @@ function upload({ params, args, data } = {}) {
  */
 
 async function download({ params, args, data } = {}) {
-  var type = args.type,
-    blob,
-    exportfilename = "";
+  let { type } = args;
+  let blob = null;
+  let exportfilename = null;
+  const { fileName } = params || generateDateString();
 
   //if CSV is required to be download, call the transform function.
   if (type === "CSV") {
-    var csv = this.transform({ params: params, args: args, data: await data });
+    const csv = this.transform({ params, args, data: await data });
     blob = new Blob([csv], {
-      type: "text/csv; charset = utf-8;",
+      type: "text/csv; charset=utf-8;",
     });
-    exportfilename = `${params.input}.csv`;
+    exportfilename = `${fileName}.csv`;
 
-    //if JSON file is required. Similar as before.
+  //if JSON file is required. Similar as before.
   } else if (type === "JSON") {
-    if (data instanceof Array) {
-      var js = this.transform({ params: params, args: args, data: data });
-    }
-    if (data instanceof Object) {
-      var js = await data;
+    let js;
+    if (Array.isArray(data)) {
+      js = this.transform({ params, args, data });
+    } else {
+      js = data;
     }
     blob = new Blob([JSON.stringify(await js)], {
       type: "text/json",
     });
-    exportfilename = `${params.input}.json`;
+    exportfilename = `${fileName}.json`;
   }
 
   //if XML file is required for loading. Needs improvement.
-
   /*else if (type === 'XML') {
-		var xs = this.transform(data,config);
+		const xs = this.transform(data, config);
 		blob = new Blob([xs], {type: 'text/xml'});
 		exportfilename = 'export.xml';
-	}; */
-
-  /*if (config['convtype'] = 'CSV') {
-    	if (config['options'].hasOwnProperty('headers')){
-    		var head= config['options']['headers']
-    		arr.unshift(head)
-    	};
-    */
+	};*/
 
   //after the data has been transformed, create a new download file and link. No name is given but "export".
   if (navigator.msSaveOrOpenBlob) {
-    msSaveBlob(blob, exportfilename);
+    navigator.msSaveOrOpenBlob(blob, exportfilename);
   } else {
-    var a = document.createElement("a");
+    const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = exportfilename;
     a.click();
     a.remove();
   }
 }
+
 
 /***************************/
 /***** Helper functions ****/
@@ -608,6 +515,20 @@ function xml2json(xml) {
   } catch (e) {
     console.log(e.message);
   }
+}
+
+/**
+ * 
+ * @returns {String} - generates a string in format YY.MM.DD.HH.MM
+ */
+function generateDateString() {
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2);
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  return `${year}.${month}.${day}.${hours}:${minutes}`;
 }
 
 /**********************************/
