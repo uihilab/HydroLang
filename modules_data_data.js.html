@@ -1,10 +1,8 @@
 <!DOCTYPE html><html lang="en" style="font-size:16px"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Source: modules/data/data.js</title><!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="",baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body class="light" data-theme="light"><div class="sidebar-container"><div class="sidebar" id="sidebar"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="jZSIiaomWGZ8pC9JD2K_2"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="s1v8K25mU7ZdjT5Ew90f6"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="BMIConfig.html">BMIConfig</a></div><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro_.html">hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="dFmrGpCHip9nJfPf1NO6p"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="lACzs8wnM0bweCNkU92qd"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Hydro.html">Hydro</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="jUZRyrb-kRrXdj0rBJvKH"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#hisCentral">hisCentral</a></div><div class="sidebar-section-children"><a href="global.html#normalDistribution">normalDistribution</a></div><div class="sidebar-section-children"><a href="global.html#waterOneFlow">waterOneFlow</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">modules_data_data.js</h1></header><article><pre class="prettyprint source lang-js"><code>import * as datasources from "./datasources.js";
+    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="",baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body class="light" data-theme="light"><div class="sidebar-container"><div class="sidebar" id="sidebar"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="wI2_wLYbdJkjnRD_TYmkB"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="gWDsMEAhms-I29hJJfknU"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="BMIConfig.html">BMIConfig</a></div><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro_.html">hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="N-xbog7vVj2TZaO323FLf"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="agOjYvsi9_hwJwbVI2Laz"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Hydro.html">Hydro</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="n0vbqYIxXZXZm0QJAoNjB"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#generateDateString">generateDateString</a></div><div class="sidebar-section-children"><a href="global.html#hisCentral">hisCentral</a></div><div class="sidebar-section-children"><a href="global.html#recenter">recenter</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">modules_data_data.js</h1></header><article><pre class="prettyprint source lang-js"><code>import * as datasources from "./datasources.js";
 import $ from "../../external/jquery/jquery.js";
 import stats from "../analyze/components/stats.js";
-import * as visualize from "../visualize/visualize.js";
-import * as divisors from "../visualize/divisors.js";
 
 /**
  * Module for dealing with data.
@@ -27,6 +25,7 @@ function retrieve({ params, args, data } = {}) {
   //obtain data from parameters set by user.
   var source = params["source"],
     dataType = params["datatype"],
+    trans = params["transform"] || false,
     args = args,
     result = [],
     //if source exists, then obtain the object from sources.
@@ -56,11 +55,7 @@ function retrieve({ params, args, data } = {}) {
 
   //Allowing the proxy server that is continously working to be called and used whenever it is required.
   if (proxif)
-    (() =>
-      params.hasOwnProperty("proxyServer")
-        ? (proxy = datasources.proxies[params["proxyServer"]]["endpoint"])
-        : //this considering that a local proxy server is in charge.
-          (proxy = datasources.proxies["local-proxy"]["endpoint"]))();
+  proxy = datasources.proxies["local-proxy"]["endpoint"]
 
   //create headers if required depending on the type supported.
   var head = {
@@ -118,7 +113,21 @@ function retrieve({ params, args, data } = {}) {
       if (type === "soap") result.push(data.responseText);
       else if (type === "xml" || type === "tab" || type === "CSV")
         resolve(JSON.stringify(data));
-      else resolve(lowercasing(data));
+      else { 
+        if (trans){
+          if (source === "usgs") {
+            let transformed_value = transform({ 
+              params: { save: 'value'}, 
+              args: { keep: '["datetime", "value"]', type: 'ARR'}, 
+              data: lowercasing(data)
+              })
+            resolve(transformed_value)
+          }
+          else {
+            resolve(lowercasing(data))
+          }
+        } 
+        }
     },
     (err) => {
       if (type === "soap" || type === "xml") {
@@ -134,7 +143,7 @@ function retrieve({ params, args, data } = {}) {
         );
         reject(err)
     }
-  );
+  )
   //return result;
 })
 }
@@ -291,163 +300,67 @@ function transform({ params, args, data } = {}) {
  * hydro.data.upload({params: {type: 'someType'}})
  */
 
-function upload({ params, args, data } = {}) {
-  //Container for the uploading area
+async function upload({ params, args, data } = {}) {
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = params.type;
 
-  // !divisors.isdivAdded({params: {divID: 'hydrolang'}}) ?
-  // divisors.createDiv({
-  //   params: {
-  //     id: "hydrolang",
-  //   }
-  // }) : null
+  let ret = null;
 
-  // divisors.createDiv({
-  //   params: {
-  //     id: "drop-area",
-  //     maindiv: document
-  //       .getElementById("hydrolang")
-  //       // .getElementsByClassName("data")[0],
-  //   },
-  // });
-
-  // //form for the uploading area
-  // var fr = document.createElement("form");
-  // fr.className = "upload-form";
-
-  // var cont1;
-  // if (divisors.isdivAdded({params: {divID: "drop-area"}})) {
-  //   cont1 = document.getElementById("drop-area");
-  // }
-
-  //create a new element to upload on header.
-  var f = document.createElement("input");
-  f.type = "file";
-  f.id = "fileElem";
-  f.accept = params.type;
-
-  // //create button label
-  // var btn = document.createElement("LABEL");
-  // btn.className = "button";
-  // btn.htmlFor = "fileElem";
-  // btn.innerHTML = "Upload file here!";
-
-  // //Append all created elements to div
-  // fr.appendChild(f);
-  // cont1.appendChild(fr);
-  // cont1.appendChild(btn);
-
-  // //Preventing default drag behaviors
-  // ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
-  //   cont1.addEventListener(eventName, preventDefaults, false);
-  //   document.body.addEventListener(eventName, preventDefaults, false);
-  // });
-
-  // //Highlighting drop area when dragged over it
-  // ["dragenter", "dragover"].forEach((eventName) => {
-  //   cont1.addEventListener(eventName, highlight, false);
-  // });
-  // ["dragleave", "drop"].forEach((eventName) => {
-  //   cont1.addEventListener(eventName, unhighlight, false);
-  // });
-
-  // cont1.addEventListener("drop", selectors, false);
-
-  // var preventDefaults = (e) => {
-  //   e.preventDefault();
-  //   e.stopPropagation();
-  // };
-  // var highlight = (e) => {
-  //   cont1.classList.add("highlight");
-  // };
-  // var unhighlight = (e) => {
-  //   cont1.classList.remove("active");
-  // };
-
-  var ret;
-  //create a new type of object depending on the type selected by user.
-  if (params.type === "CSV") {
-    ret = [];
-  } else if (params.type === "JSON") {
-    ret = new Object();
-  }
-
-  //intialize the caller for obtaining the files.
-  var selectors = () => {
-    //create input file selector.
-    f.onchange = (e) => {
-      //select file by the user
-      var file = e.target.files[0],
-        //read the file
-        reader = new FileReader();
-
-      //read as text file.
-      reader.readAsBinaryString(file);
-
-      //file reading started.
-      reader.addEventListener("loadstart", () => {
-        console.log("File is being read.");
-      });
-
-      //file reading failed
-      reader.addEventListener("error", () => {
-        alert("Error: Failed to read file.");
-      });
-
-      //file read progress
-      reader.addEventListener("progress", (e) => {
-        if (e.lengthComputable == true) {
-          var percent = Math.floor((e.loaded / e.total) * 100);
-          console.log(percent + "% read.");
-        }
-      });
-
-      //after the data has been loaded, change it to the required type.
-      reader.onload = (readerEvent) => {
-        var content = readerEvent.target.result;
-
-        //conversion of the data from CSV to array.
-        if (params.type === "CSV") {
-          var alltext = content.split(/\r\n|\n/),
-            med = [];
-          for (var i = 0; i &lt; alltext.length; i++) {
-            var data = alltext[i].split(",");
-            var tarr = [];
-            for (var j = 0; j &lt; data.length; j++) {
-              tarr.push(data[j].replace(/^"|"$/g, ""));
-            }
-            med.push(tarr);
-          }
-
-          //map the objects from m x n to n x m
-          const arraycol = (arr, n) => arr.map((x) => x[n]);
-
-          //the uploaded data Contains additional "". Remove them once for dates and twice for data.
-          for (var j = 0; j &lt; med[0].length; j++) {
-            ret.push(arraycol(med, j));
-          }
-
-          ret[1] = stats.numerise({ data: ret[1] });
-
-          for (var k = 0; k &lt; ret.length; k++) {
-            ret[k].pop();
-          }
-
-          for (var j = 0; j &lt; ret.length; j++) {
-            ret[j] = stats.numerise({ data: ret[j] });
-          }
-
-          //transfrom from JSON file to new JS Object.
-        } else if (params.type === "JSON") {
-          Object.assign(ret, JSON.parse(content));
-        }
-      };
-    };
-    f.click();
+  const getFileContent = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    });
   };
-  selectors();
-  return ret;
-  // return btn.addEventListener('click', selectors())
+
+  const isNumeric = (value) => {
+    return /^-?\d+\.?\d*$/.test(value);
+  };
+
+  const handleFileSelect = async (event) => {
+    const file = event.target.files[0];
+    const content = await getFileContent(file);
+
+    if (params.type === "CSV") {
+      const rows = content.split(/\r\n|\n/).map((row) => {
+        return row.split(",").map((value) => value.replace(/^"|"$/g, ""));
+      });
+
+      const columns = rows[0].map((_, i) => rows.map((row) => row[i]));
+      ret = [];
+      columns.forEach((column, i) => {
+        if (column.every(isNumeric)) {
+          ret.push(column.map((value) => parseFloat(value)));
+        } else {
+          ret.push(column);
+        }
+      });
+
+    } else if (params.type === "JSON") {
+      ret = JSON.parse(content);
+
+    } else if (params.type === "KML") {
+      ret = content
+    }
+  };
+
+  fileInput.addEventListener("change", handleFileSelect);
+  fileInput.click();
+
+  return new Promise((resolve) => {
+    const intervalId = setInterval(() => {
+      if (ret !== null) {
+        clearInterval(intervalId);
+        resolve(ret);
+      }
+    }, 100);
+  });
 }
+
+
 
 /**
  * Download files on different formats, depending on the formatted object. It extends the
@@ -463,58 +376,52 @@ function upload({ params, args, data } = {}) {
  */
 
 async function download({ params, args, data } = {}) {
-  var type = args.type,
-    blob,
-    exportfilename = "";
+  let { type } = args;
+  let blob = null;
+  let exportfilename = null;
+  const { fileName } = params || generateDateString();
 
   //if CSV is required to be download, call the transform function.
   if (type === "CSV") {
-    var csv = this.transform({ params: params, args: args, data: await data });
+    const csv = this.transform({ params, args, data: await data });
     blob = new Blob([csv], {
-      type: "text/csv; charset = utf-8;",
+      type: "text/csv; charset=utf-8;",
     });
-    exportfilename = `${params.input}.csv`;
+    exportfilename = `${fileName}.csv`;
 
-    //if JSON file is required. Similar as before.
+  //if JSON file is required. Similar as before.
   } else if (type === "JSON") {
-    if (data instanceof Array) {
-      var js = this.transform({ params: params, args: args, data: data });
-    }
-    if (data instanceof Object) {
-      var js = await data;
+    let js;
+    if (Array.isArray(data)) {
+      js = this.transform({ params, args, data });
+    } else {
+      js = data;
     }
     blob = new Blob([JSON.stringify(await js)], {
       type: "text/json",
     });
-    exportfilename = `${params.input}.json`;
+    exportfilename = `${fileName}.json`;
   }
 
   //if XML file is required for loading. Needs improvement.
-
   /*else if (type === 'XML') {
-		var xs = this.transform(data,config);
+		const xs = this.transform(data, config);
 		blob = new Blob([xs], {type: 'text/xml'});
 		exportfilename = 'export.xml';
-	}; */
-
-  /*if (config['convtype'] = 'CSV') {
-    	if (config['options'].hasOwnProperty('headers')){
-    		var head= config['options']['headers']
-    		arr.unshift(head)
-    	};
-    */
+	};*/
 
   //after the data has been transformed, create a new download file and link. No name is given but "export".
   if (navigator.msSaveOrOpenBlob) {
-    msSaveBlob(blob, exportfilename);
+    navigator.msSaveOrOpenBlob(blob, exportfilename);
   } else {
-    var a = document.createElement("a");
+    const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = exportfilename;
     a.click();
     a.remove();
   }
 }
+
 
 /***************************/
 /***** Helper functions ****/
@@ -612,9 +519,23 @@ function xml2json(xml) {
   }
 }
 
+/**
+ * 
+ * @returns {String} - generates a string in format YY.MM.DD.HH.MM
+ */
+function generateDateString() {
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2);
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  return `${year}.${month}.${day}.${hours}:${minutes}`;
+}
+
 /**********************************/
 /*** End of Helper functions **/
 /**********************************/
 
 export { retrieve, transform, download, upload, recursiveSearch };
-</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="mobile-nav-links"></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="jZSIiaomWGZ8pC9JD2K_2"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="s1v8K25mU7ZdjT5Ew90f6"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="BMIConfig.html">BMIConfig</a></div><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro_.html">hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="dFmrGpCHip9nJfPf1NO6p"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="lACzs8wnM0bweCNkU92qd"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Hydro.html">Hydro</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="jUZRyrb-kRrXdj0rBJvKH"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#hisCentral">hisCentral</a></div><div class="sidebar-section-children"><a href="global.html#normalDistribution">normalDistribution</a></div><div class="sidebar-section-children"><a href="global.html#waterOneFlow">waterOneFlow</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>
+</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="mobile-nav-links"></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="wI2_wLYbdJkjnRD_TYmkB"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="gWDsMEAhms-I29hJJfknU"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="BMIConfig.html">BMIConfig</a></div><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro_.html">hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="N-xbog7vVj2TZaO323FLf"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="agOjYvsi9_hwJwbVI2Laz"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Hydro.html">Hydro</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="n0vbqYIxXZXZm0QJAoNjB"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#generateDateString">generateDateString</a></div><div class="sidebar-section-children"><a href="global.html#hisCentral">hisCentral</a></div><div class="sidebar-section-children"><a href="global.html#recenter">recenter</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>

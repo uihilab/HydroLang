@@ -1,11 +1,8 @@
 <!DOCTYPE html><html lang="en" style="font-size:16px"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Source: modules/analyze/components/stats.js</title><!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="",baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body class="light" data-theme="light"><div class="sidebar-container"><div class="sidebar" id="sidebar"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="jZSIiaomWGZ8pC9JD2K_2"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="s1v8K25mU7ZdjT5Ew90f6"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="BMIConfig.html">BMIConfig</a></div><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro_.html">hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="dFmrGpCHip9nJfPf1NO6p"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="lACzs8wnM0bweCNkU92qd"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Hydro.html">Hydro</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="jUZRyrb-kRrXdj0rBJvKH"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#hisCentral">hisCentral</a></div><div class="sidebar-section-children"><a href="global.html#normalDistribution">normalDistribution</a></div><div class="sidebar-section-children"><a href="global.html#waterOneFlow">waterOneFlow</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">modules_analyze_components_stats.js</h1></header><article><pre class="prettyprint source lang-js"><code>import "../../../external/d3/d3.js";
-import "../../../external/tensorflow/tensorflow.js";
-
-/**
+    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="",baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body class="light" data-theme="light"><div class="sidebar-container"><div class="sidebar" id="sidebar"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="wI2_wLYbdJkjnRD_TYmkB"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="gWDsMEAhms-I29hJJfknU"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="BMIConfig.html">BMIConfig</a></div><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro_.html">hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="N-xbog7vVj2TZaO323FLf"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="agOjYvsi9_hwJwbVI2Laz"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Hydro.html">Hydro</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="n0vbqYIxXZXZm0QJAoNjB"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#generateDateString">generateDateString</a></div><div class="sidebar-section-children"><a href="global.html#hisCentral">hisCentral</a></div><div class="sidebar-section-children"><a href="global.html#recenter">recenter</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">modules_analyze_components_stats.js</h1></header><article><pre class="prettyprint source lang-js"><code>/**
  * Main class used for statistical analyses and data cleaning.
- * @class 
+ * @class
  * @name stats
  */
 export default class stats {
@@ -54,13 +51,36 @@ export default class stats {
   }
 
   /**
+   * Gives the range of a dataset
+   * @method range
+   * @memberof stats
+   * @param {Object} data - Contains: 1d-JS array with data as [data].
+   * @returns {Array} Range of the data.
+   * @example
+   * hydro.analyze.stats.range({data: [someData]})
+   */
+  static range({ params, args, data } = {}) {
+    const min = this.min({ data }),
+      max = this.max({ data });
+    const N = params.N || data.length;
+    const step = (max - min) / N;
+    const range = [];
+
+    for (let i = 0; i &lt;= N; i++) {
+      range.push(min + i * step);
+    }
+
+    return range;
+  }
+
+  /**
    * Identifies gaps in data.
    * @method datagaps
    * @memberof stats
    * @param {Object} data - Contains: 1d-JS array with data as [data].
    * @returns {Number} Number of gaps in data.
    * @example
-   * hydro.analyze.stats.gapid({data: [someData]})
+   * hydro.analyze.stats.datagaps({data: [someData]})
    */
 
   static datagaps({ params, args, data } = {}) {
@@ -210,7 +230,7 @@ export default class stats {
    */
 
   static sum({ params, args, data } = {}) {
-    return d3.sum(data);
+    return data.reduce((acc, curr) => acc + curr, 0);
   }
 
   /**
@@ -224,7 +244,9 @@ export default class stats {
    */
 
   static mean({ params, args, data } = {}) {
-    return d3.mean(data);
+    const sum = this.sum({ data });
+    const mean = sum / data.length;
+    return mean;
   }
 
   /**
@@ -238,7 +260,16 @@ export default class stats {
    */
 
   static median({ params, args, data } = {}) {
-    return d3.median(data);
+    const sortedArray = data.slice().sort((a, b) => a - b);
+    const middleIndex = Math.floor(sortedArray.length / 2);
+
+    if (sortedArray.length % 2 === 0) {
+      const left = sortedArray[middleIndex - 1];
+      const right = sortedArray[middleIndex];
+      return (left + right) / 2;
+    } else {
+      return sortedArray[middleIndex];
+    }
   }
 
   /**
@@ -252,7 +283,7 @@ export default class stats {
    */
 
   static stddev({ params, args, data } = {}) {
-    var mean = this.mean({ data: data }),
+    var mean = this.mean({ data }),
       SD = 0,
       nex = [];
     for (var i = 0; i &lt; data.length; i += 1) {
@@ -272,7 +303,11 @@ export default class stats {
    */
 
   static variance({ params, args, data } = {}) {
-    return d3.variance(data);
+    const mean = this.mean({ data });
+    const squareDiffs = data.map((num) => (num - mean) ** 2);
+    const sumSquareDiffs = squareDiffs.reduce((acc, curr) => acc + curr, 0);
+    const variance = sumSquareDiffs / data.length;
+    return variance;
   }
 
   /**
@@ -303,7 +338,7 @@ export default class stats {
    */
 
   static min({ params, args, data } = {}) {
-    return d3.min(data);
+    return Math.min(...data);
   }
 
   /**
@@ -317,7 +352,7 @@ export default class stats {
    */
 
   static max({ params, args, data } = {}) {
-    return d3.max(data);
+    return Math.max(...data);
   }
 
   /**
@@ -412,109 +447,89 @@ export default class stats {
   }
 
   /**
-   * Identify the outliers on a timeseries using interquartile range.
-   * @method interouliers
+   * Removes interquartile outliers from an array or a set of arrays.
+   * @method interoutliers
    * @memberof stats
-   * @param {Object} params - Contains: q1 (first quartile i.e. 0.25), q2 (second quartile i.e. 0.75)
-   * @param {Object} data - Contains: 2d-JS array object with time series data as [[time], [data]].
-   * @returns {Object[]} Array with outliers.
+   * @param {Object} [params={ q1: 0.25, q2: 0.75 }] - Parameters object.
+   * @param {Array} data - Data to filter. If a 2D array is provided, the first array will be considered as a time array.
+   * @returns {Array} - Filtered data.
    * @example
-   * hydro.analyze.stats.interoutliers({params: {q1: 'someNum', q2: 'someNum'}, data: [[time1, time2,...],[data1, data2,...]]})
+   * hydro.analyze.stats.interoutliers({ params: { q1: 0.25, q2: 0.75 }, data: [1, 2, 3, 100, 4, 5, 6]});
    */
 
-  static interoutliers({ params, args, data } = {}) {
-    var q1 = params.q1,
-      q2 = params.q2,
-      or = this.copydata({ data: data }),
-      time = [];
+  static interoutliers({ params = { q1: 0.25, q2: 0.75 }, data = [] } = {}) {
+    const { q1, q2 } = params;
+    const or = [...data];
+    let time = [];
 
-    if (!(q1 || q2)) {
-      q1 = 0.25;
-      q2 = 0.75;
+    if (Array.isArray(data[0])) {
+      [time, or] = data;
     }
 
-    switch (typeof data[0]) {
-      case "object":
-        time = this.copydata({ data: data[0] });
-        or = this.copydata({ data: data[1] });
-        break;
-      default:
-        break;
-    }
+    const Q1 = this.quantile({ data: or, params: { q: q1 } });
+    const Q3 = this.quantile({ data: or, params: { q: q2 } });
+    const IQR = Math.abs(Q3 - Q1);
+    const qd = Math.abs(Q1 - 1.5 * IQR);
+    const qu = Math.abs(Q3 + 1.5 * IQR);
 
-    var Q_1 = this.quantile({ data: or, params: { q: q1 } }),
-      Q_2 = this.quantile({ data: or, params: { q: q2 } }),
-      IQR = Math.abs(Q_2 - Q_1),
-      qd = Math.abs(Q_1 - 1.5 * IQR),
-      qu = Math.abs(Q_2 + 1.5 * IQR),
-      xa = (arra) => arra.filter((x) => x >= qd || x >= qu),
-      re = xa(or);
-
-    if (typeof data[0] != "object") {
-      return re;
-    } else {
-      var t = [];
-      for (var j = 0; j &lt; or.length; j++) {
-        if (or[j] >= qd || or[j] >= qu) {
-          t.push(time[j]);
+    const filteredData = or.filter((value, index) => {
+      if (value >= qd &amp;&amp; value &lt;= qu) {
+        if (time.length) {
+          return [time[index], value];
+        } else {
+          return value;
         }
       }
-      return [t, re];
-    }
+    });
+
+    return time.length ? filteredData : filteredData;
   }
 
   /**
-   * Identifies outliers in a timeseries dataset by normalizing the data given two thresholds.
-   * If the thresholds are not included then a lower value of -0.5 and high value of 0.5 are used.
-   * @method normoutliers
+   * Filters the outliers from the given data set based on its standard score (z-score).
+   *
    * @memberof stats
-   * @param {Object} params - Contains: low (threshold as number), high (threshold as number)
-   * @param {Object} data - Contains: 2d-JS array with time series data as [[time],[data]].
-   * @returns {Object[]} arr - array with outliers.
+   * @static
+   * @method normoutliers
+   *
+   * @param {Object} [params={}] - An object containing optional parameters.
+   * @param {Number} [params.low=-0.5] - The lower threshold value for filtering data.
+   * @param {Number} [params.high=0.5] - The higher threshold value for filtering data.
+   * @param {Object} [args] - An object containing any additional arguments.
+   * @param {Array} data - The data set to filter outliers from.
+   * @param {Array} [data[0]=[]] - An optional array of timestamps corresponding to the data.
+   * @param {Array} data[1] - The main data array containing values to filter outliers from.
+   *
+   * @returns {Array} Returns the filtered data set. If timestamps are provided, it will return an array of
+   * timestamps and filtered data set as [t, out]. If no timestamps are provided, it will return the filtered data set.
+   *
    * @example
-   * hydro.analyze.stats.normoutliers({params: {high: 'someValue', low: 'someValue'}, data: [[time1, time2,...], [data1, data2,...]]})
+   *
+   * // Filter outliers from the data set between z-scores of -0.5 and 0.5
+   * let data = [1, 2, 3, 4, 5, 10, 12, 15, 20];
+   * let filteredData = hydro.analyze.stats.normoutliers({ params: { low: -0.5, high: 0.5 }, data: data });
+   * // filteredData => [1, 2, 3, 4, 5, 15, 20]
+   *
+   * // Filter outliers from the data set between z-scores of -1 and 1 with timestamps
+   * let data = [[1, 2, 3, 4, 5, 10, 12, 15, 20], [1, 2, 3, 4, 5, 10, 12, 15, 200]];
+   * let [timestamps, filteredData] = hydro.analyze.stats.normoutliers({ params: { low: -1, high: 1 }, data: data });
+   * // timestamps => [1, 2, 3, 4, 5, 10, 12, 15]
+   * // filteredData => [1, 2, 3, 4, 5, 10, 12, 15]
    */
 
-  static normoutliers({ params, args, data } = {}) {
-    var high,
-      low,
-      or = this.copydata({ data: data }),
-      time = [];
-    if (!(params.low || params.high)) {
-      low = -0.5;
-      high = 0.5;
-    }
+  static normoutliers({ params = {}, args, data } = {}) {
+    const { lowerBound = -0.5, upperBound = 0.5 } = params;
+    const [time, or] = Array.isArray(data[0]) ? data : [[], data];
+    const stnd = this.standardize({ data: or });
 
-    switch (typeof data[0]) {
-      case "object":
-        time = this.copydata({ data: data[0] });
-        or = this.copydata({ data: data[1] });
-        break;
-      default:
-        break;
-    }
+    const out = or.filter(
+      (_, i) => stnd[i] &lt; lowerBound || stnd[i] > upperBound
+    );
+    const t = time.filter(
+      (_, j) => stnd[j] &lt; lowerBound || stnd[j] > upperBound
+    );
 
-    var t1 = low,
-      t2 = high;
-    (out = []), (stnd = this.standardize({ data: or }));
-
-    for (var i = 0; i &lt; or.length; i++) {
-      if (stnd[i] &lt; t1 || stnd[i] > t2) {
-        out.push(or[i]);
-      }
-    }
-
-    if (typeof data[0] != "object") {
-      return out;
-    } else {
-      var t = [];
-      for (var j = 0; j &lt; stnd.length; j++) {
-        if (stnd[j] &lt; t1 || stnd[j] > t2) {
-          t.push(time[j]);
-        }
-      }
-      return [t, out];
-    }
+    return time.length === 0 ? out : [t, out];
   }
 
   /**
@@ -556,34 +571,36 @@ export default class stats {
    * The sets must be of the same size.
    * @method correlation
    * @memberof stats
-   * @param {Object} data - Contains: 2d-JS array with datasets to be compared as [[dataSet1], [dataSet2]]
+   * @param {Object} params.data - An object containing the two data sets as set1 and set2.
    * @returns {Number} Pearson coefficient.
    * @example
-   * hydro.analyze.stats.correlation({data: [[dataSet1], [dataSet2]]})
+   * const data = {set1: [1,2,3], set2: [2,4,6]};
+   * const pearsonCoefficient = hydro1.analyze.stats.correlation({data})
    */
 
   static correlation({ params, args, data } = {}) {
-    var q1 = data[0],
-      q2 = data[1],
-      n = q1.length + q2.length,
-      q1q2 = [],
-      sq1 = [],
-      sq2 = [];
+    const { set1, set2 } = data;
+    const n = set1.length + set2.length;
+    const q1q2 = [];
+    const sq1 = [];
+    const sq2 = [];
 
-    for (var i = 0; i &lt; q1.length; i++) {
-      q1q2[i] = q1[i] * q2[i];
-      sq1[i] = q1[i] * q1[i];
-      sq2[i] = q2[i] * q2[i];
+    for (let i = 0; i &lt; set1.length; i++) {
+      q1q2[i] = set1[i] * set2[i];
+      sq1[i] = set1[i] ** 2;
+      sq2[i] = set2[i] ** 2;
     }
-    var r1 =
-        n * this.sum({ data: q1q2 }) -
-        this.sum({ data: q1 }) * this.sum({ data: q2 }),
-      r2a = Math.sqrt(
-        n * this.sum({ data: sq1 }) - Math.pow(this.sum({ data: q1 }), 2)
-      ),
-      r2b = Math.sqrt(
-        n * this.sum({ data: sq2 }) - Math.pow(this.sum({ data: q2 }), 2)
-      );
+
+    const r1 =
+      n * this.sum({ data: q1q2 }) -
+      this.sum({ data: set1 }) * this.sum({ data: set2 });
+    const r2a = Math.sqrt(
+      n * this.sum({ data: sq1 }) - this.sum({ data: set1 }) ** 2
+    );
+    const r2b = Math.sqrt(
+      n * this.sum({ data: sq2 }) - this.sum({ data: set2 }) ** 2
+    );
+
     return r1 / (r2a * r2b);
   }
 
@@ -596,39 +613,44 @@ export default class stats {
    * All efficiencies have limitations and showcase statistically the well performance of a model, but should not be considered as only variable for evaluation.
    * @method efficiencies
    * @memberof stats
-   * @param {Object} params - Contains: type ('NSE','determination', 'agreement')
-   * @param {Object} data - Contains: 2d-JS array with values arranged as [[observed], [model]]
-   * @returns {Number} Calculated metric
+   * @param {Object} options - The options object.
+   * @param {Object} options.params - An object containing the type of efficiency to calculate ('NSE','determination', 'agreement', 'all').
+   * @param {Object} options.data - A 2D array with values arranged as [[observed], [model]].
+   * @param {Array} [options.args] - An optional array of additional arguments to pass to the function.
+   * @returns {Number|Object} - A number representing the calculated metric, or an object containing multiple metrics if 'all' is specified.
    * @example
-   * hydro.analyze.stats.efficiencies({params: {type: 'someType'}, data: [[observed], [model]]})
+   * // Calculate Nash-Sutcliffe efficiency:
+   * const obs = [1, 2, 3];
+   * const model = [1.5, 2.5, 3.5];
+   * const NSE = hydro.analyze.stats.efficiencies({ params: { type: 'NSE' }, data: [obs, model] });
+   *
+   * // Calculate all efficiencies:
+   * const metrics = hydro.analyze.stats.efficiencies({ params: { type: 'all' }, data: [obs, model] });
+   * // metrics = { NSE: 0.72, r2: 0.5, d: 0.62 }
    */
 
   static efficiencies({ params, args, data } = {}) {
-    var obs = data[0],
-      model = data[1],
-      meanobs = this.mean({ data: obs }),
-      meanmodel = this.mean({ data: model }),
-      diff1 = [],
-      diff2 = [];
+    let { type } = params,
+      [obs, model] = data;
+    const meanobs = this.mean({ data: obs });
+    const meanmodel = this.mean({ data: model });
 
-    //calculate nash sutcliffe efficiency
-    if (params.type == "NSE") {
-      for (var i = 0; i &lt; obs.length; i++) {
-        diff1[i] = Math.pow(model[i] - obs[i], 2);
-        diff2[i] = Math.pow(obs[i] - meanobs, 2);
-      }
-      var NSE = 1 - this.sum({ data: diff1 }) / this.sum({ data: diff2 });
+    if (type === "NSE") {
+      const diff1 = model.map((val, i) => Math.pow(val - obs[i], 2));
+      const diff2 = obs.map((val) => Math.pow(val - meanobs, 2));
+      const NSE = 1 - this.sum({ data: diff1 }) / this.sum({ data: diff2 });
       return NSE;
-    }
+    } else if (type === "determination") {
+      const diff1 = [];
+      const diff2 = [];
+      const diff3 = [];
 
-    //calculate coefficient of determination r2
-    else if (params.type == "determination") {
-      var diff3 = [];
-      for (var i = 0; i &lt; obs.length; i++) {
+      for (let i = 0; i &lt; obs.length; i++) {
         diff1[i] = (model[i] - meanmodel) * (obs[i] - meanobs);
         diff2[i] = Math.pow(model[i] - meanmodel, 2);
         diff3[i] = Math.pow(obs[i] - meanobs, 2);
       }
+
       console.log(
         `The values are - Upper: ${this.sum({
           data: diff1,
@@ -636,26 +658,39 @@ export default class stats {
           data: diff3,
         })}`
       );
-      var r = Math.pow(
+
+      const r = Math.pow(
         this.sum({ data: diff1 }) /
           (Math.sqrt(this.sum({ data: diff2 })) *
             Math.sqrt(this.sum({ data: diff3 }))),
         2
       );
       return r;
+    } else if (type === "agreement") {
+      const diff1 = obs.map((val, i) => Math.pow(val - model[i], 2));
+      const diff2 = obs.map((val, i) =>
+        Math.pow(Math.abs(model[i] - meanobs) + Math.abs(val - meanobs), 2)
+      );
+      const d = 1 - this.sum({ data: diff1 }) / this.sum({ data: diff2 });
+      return d;
     }
 
-    //calculate index of agreement d
-    else if (params.type == "agreement") {
-      for (var i = 0; i &lt; obs.length; i++) {
-        diff1[i] = Math.pow(obs[i] - model[i], 2);
-        diff2[i] = Math.pow(
-          Math.abs(model[i] - meanobs) + Math.abs(obs[i] - meanobs),
-          2
-        );
-      }
-      var d = 1 - this.sum({ data: diff1 }) / this.sum({ data: diff2 });
-      return d;
+    if (type === "all") {
+      const metrics = {
+        NSE: this.efficiencies({
+          params: { type: "NSE" },
+          data: [obs, model],
+        }),
+        r2: this.efficiencies({
+          params: { type: "determination" },
+          data: [obs, model],
+        }),
+        d: this.efficiencies({
+          params: { type: "agreement" },
+          data: [obs, model],
+        }),
+      };
+      return metrics;
     }
   }
 
@@ -671,41 +706,76 @@ export default class stats {
    * hydro.analyze.stats.fastfourier({data: [someData]})
    */
 
-  static fastfourier({ params, args, data } = {}) {
-    tf.setBackend("webgl");
-    for (var i = 0; i &lt; data.length; i++) {
-      data[i] = Math.round(data[i] + 5);
-    }
-    const _arr = data,
-      results = _arr.map((n) => {
-        for (let i = 0; i &lt; 100; i++) {
-          const real = tf.ones([10, n * 10]),
-            imag = tf.ones([10, n * 10]),
-            input = tf.complex(real, imag),
-            res = tf.spectral.fft(input);
-          res.dataSync();
-        }
-      });
-    return results;
+  static fastFourier({ params, args, data } = {}) {
+    const nearest = Math.pow(2, Math.ceil(Math.log2(data.length)));
+    let paddedData = tf.pad1d(data, [0, nearest - data.length]);
+    const imag = tf.zerosLike(paddedData);
+    const complexData = tf.complex(paddedData, imag);
+    const fft = tf.spectral.fft(complexData);
+    const fftResult = fft.arraySync();
+    return fftResult;
   }
 
-  static skewness({params, arg, data} = {}) {
-      const n = data.length;
-      const mean = this.mean({data: data})
-      const sum3 = data.reduce((acc, val) => acc + Math.pow(val - mean, 3), 0);
-      const stdDev = Math.sqrt(data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n);
-      return (n / ((n - 1) * (n - 2))) * (sum3 / Math.pow(stdDev, 3));
-  }
-
-  static kurtosis({params, args, data} ={}) {
+  /**
+   * Calculates the skewness of a dataset
+   * @method skewnes
+   * @memberof stat
+   * @param {Object} params - Contains: none
+   * @param {Array} data - Array of numeric values
+   * @returns {Number} Skewness value
+   * @example
+   * hydro.analyze.stats.skewness({data: [1, 2, 3, 4, 5]})
+   */
+  static skewness({ params, arg, data } = {}) {
     const n = data.length;
-    const mean = this.mean({data: data})
-    const sum4 = data.reduce((acc, val) => acc + Math.pow(val - mean, 4), 0);
-    const stdDev = this.stddev({data: data})
-    return ((n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3))) * (sum4 / Math.pow(stdDev, 4)) - (3 * Math.pow(n - 1, 2)) / ((n - 2) * (n - 3));
+    const mean = this.mean({ data: data });
+    const sum3 = data.reduce((acc, val) => acc + Math.pow(val - mean, 3), 0);
+    const stdDev = Math.sqrt(
+      data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n
+    );
+    return (n / ((n - 1) * (n - 2))) * (sum3 / Math.pow(stdDev, 3));
   }
 
-  static forwardFill({params, args, data } = {}) {
+  /**
+   * Calculates the kurtosis of a dataset
+   * @method kurtosi
+   * @memberof stat
+   * @param {Object} params - Contains: none
+   * @param {Array} data - Array of numeri
+   * values
+   * @returns {Number} Kurtosis value
+   * @example
+   * hydro.analyze.stats.kurtosis({data: [1
+   * 2, 3, 4, 5]})
+   */
+  static kurtosis({ params, args, data } = {}) {
+    const n = data.length;
+    const mean = this.mean({ data: data });
+    const sum4 = data.reduce((acc, val) => acc + Math.pow(val - mean, 4), 0);
+    const stdDev = this.stddev({ data: data });
+    return (
+      ((n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3))) *
+        (sum4 / Math.pow(stdDev, 4)) -
+      (3 * Math.pow(n - 1, 2)) / ((n - 2) * (n - 3))
+    );
+  }
+
+  /**
+   * Performs forward fill to replace missin
+   * values in an array with the last
+   * non-null value
+   * @method forwardFil
+   * @memberof stat
+   * @param {Object} params - Contains: none
+   * @param {Array} data - Array of value
+   * with missing entries
+   * @returns {Object} Object containing th
+   * filled data array and an array of
+   * replace indices
+   * @example hydro.analyze.stats.forwardFi
+   * ({data: [1, null, 3, null, null, 6]})
+   */
+  static forwardFill({ params, args, data } = {}) {
     let previousValue = null;
     let replaceIndices = [];
     const filledData = data.map((value, index) => {
@@ -737,27 +807,48 @@ export default class stats {
 
   static basicstats({ params, args, data } = {}) {
     //Can pass time series data as a 2d array without additional manipulation
-    typeof data[0] === 'object' ? (() => {data = data[1]; data.shift()})(): data
-    data = data.map(val => JSON.parse(val))
+    typeof data[0] === "object"
+      ? (() => {
+          data = data[1];
+          data.shift();
+        })()
+      : data;
+    data = data.map((val) => JSON.parse(val));
     //if value is outside the values required from the api call
-    data = data.map(val => {val > 99998 ? val = 0 : val; return val})
-    var temp = [], values = [];
+    data = data.map((val) => {
+      val > 99998 ? (val = 0) : val;
+      return val;
+    });
+    var temp = [],
+      values = [];
     //call the basic functions for analysis.
-    values.push("Value")
+    values.push("Value");
     values.push(data.length);
-    values.push(this.min({ data: data }));
-    values.push(this.max({ data: data }));
-    values.push(this.sum({ data: data }));
-    values.push(this.mean({ data: data }));
-    values.push(this.median({ data: data }));
-    values.push(this.stddev({ data: data }));
-    values.push(this.variance({ data: data }));
-    values.push(this.skewness({data: data}));
-    values.push(this.kurtosis({data: data}));
+    values.push(this.min({ data }));
+    values.push(this.max({ data }));
+    values.push(this.sum({ data }));
+    values.push(this.mean({ data }));
+    values.push(this.median({ data }));
+    values.push(this.stddev({ data }));
+    values.push(this.variance({ data }));
+    values.push(this.skewness({ data }));
+    values.push(this.kurtosis({ data }));
 
-    temp.push(["Metric", "Number of values", "Minimum Value", "Maximum value", "Sum", "Mean", "Median", "Standard deviation", "Variance", "Skewness", "Kurtosis"])
-    temp.push(values)
-    return temp
+    temp.push([
+      "Metric",
+      "Number of values",
+      "Minimum Value",
+      "Maximum value",
+      "Sum",
+      "Mean",
+      "Median",
+      "Standard deviation",
+      "Variance",
+      "Skewness",
+      "Kurtosis",
+    ]);
+    temp.push(values);
+    return temp;
   }
 
   /***************************/
@@ -826,19 +917,23 @@ export default class stats {
    */
 
   static normalcdf({ params, args, data }) {
-    var X = data,
-      //HASTINGS.  MAX ERROR = .000001
-      T = 1 / (1 + 0.2316419 * Math.abs(X)),
-      D = 0.3989423 * Math.exp((-X * X) / 2),
-      Prob =
-        D *
-        T *
-        (0.3193815 +
-          T * (-0.3565638 + T * (1.781478 + T * (-1.821256 + T * 1.330274))));
-    if (X > 0) {
-      Prob = 1 - Prob;
+    let results = [];
+    for (var i = 0; i &lt; data.length; i++) {
+      var X = data[i],
+        //HASTINGS.  MAX ERROR = .000001
+        T = 1 / (1 + 0.2316419 * Math.abs(X)),
+        D = 0.3989423 * Math.exp((-X * X) / 2),
+        Prob =
+          D *
+          T *
+          (0.3193815 +
+            T * (-0.3565638 + T * (1.781478 + T * (-1.821256 + T * 1.330274))));
+      if (X > 0) {
+        Prob = 1 - Prob;
+      }
+      results.push(Prob);
     }
-    return Prob;
+    return results;
   }
 
   /**
@@ -854,18 +949,17 @@ export default class stats {
    * hydro.analyze.stats.computeD({data: [samples_A, samples_B]})
    */
   static computeD({ params, args, data }) {
-    var samples_A = data[0],
-      samples_B = data[1],
+    var { sampleA, sampleB } = data,
       maximumDifference = 0,
       N = 1e3;
-    let minimum = d3.min(samples_A.concat(samples_B)),
-      maximum = d3.max(samples_A.concat(samples_B)),
-      N_A = samples_A.length,
-      N_B = samples_B.length;
+    let minimum = this.min({ data: sampleA.concat(sampleB) }),
+      maximum = this.max({ data: sampleA.concat(sampleB) }),
+      N_A = sampleA.length,
+      N_B = sampleB.length;
 
-    for (var x of d3.range(minimum, maximum, (maximum - minimum) / N)) {
-      var CDF_A = samples_A.filter((d) => d &lt;= x).length / N_A,
-        CDF_B = samples_B.filter((d) => d &lt;= x).length / N_B,
+    for (var x of this.range({ params: { N }, data })) {
+      var CDF_A = sampleA.filter((d) => d &lt;= x).length / N_A,
+        CDF_B = sampleB.filter((d) => d &lt;= x).length / N_B,
         difference = Math.abs(CDF_A - CDF_B);
 
       if (difference > maximumDifference) {
@@ -890,7 +984,7 @@ export default class stats {
   static KS_computePValue({ params, args, data }) {
     var samples_A = data[0],
       samples_B = data[1],
-      d = this.computeD({data: [samples_A, samples_B]}),
+      d = this.computeD({ data: [samples_A, samples_B] }),
       n = samples_A.length,
       m = samples_B.length,
       p = 2 * Math.exp((-2 * d * d * (n * m)) / (n + m));
@@ -915,13 +1009,21 @@ export default class stats {
   }
 
   /**
-   * Returns the a normal distribution PDF
-   * @method normalDistribution
-   * @param {Object} params - contains {z: Number}
-   * 
-   */
-  static normalDistribution({params, args, data}) {
-    return Math.exp(-(Math.log(2 * Math.PI) + params.z * params.z) * 0.5)
+
+Computes the probability density function
+of a normal distribution.
+@method normalDistribution
+@memberof stats
+@param {Object} params - Contains:
+z-value.
+@returns {Number} Probability density
+function of the normal distribution.
+@example
+hydro.analyze.stats.normalDistributio
+({params: {z: 1.5}})
+*/
+  static normalDistribution({ params, args, data }) {
+    return Math.exp(-(Math.log(2 * Math.PI) + params.z * params.z) * 0.5);
   }
 
   /***************************/
@@ -1076,8 +1178,33 @@ export default class stats {
     return arr1;
   }
 
+  /**
+   * Generates an array of random integers within a specified range.
+   * @method generateRandomData
+   * @memberof stats
+   * @param {number} size - The number of
+   * elements in the array to be generated.
+   * @param {number} [range=100] - The upper
+   * limit (exclusive) of the range from which
+   * the random integers will be generated.
+   * @returns {number[]} An array of random
+   * integers between 0 and range-1, of length
+   * size.
+   * @example
+   * hydro.analyze.stats.generateRandomDat
+   * (10, 50) // returns [23, 48, 15, 9, 36,
+   * 28, 39, 18, 20, 22]
+   */
+  static generateRandomData(size, range = 100) {
+    let data = [];
+    for (let i = 0; i &lt; size; i++) {
+      data.push(Math.floor(Math.random() * range)); // generates a random integer between 0 and 99
+    }
+    return data;
+  }
+
   /**********************************/
   /*** End of Helper functions **/
   /**********************************/
 }
-</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="mobile-nav-links"></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="jZSIiaomWGZ8pC9JD2K_2"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="s1v8K25mU7ZdjT5Ew90f6"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="BMIConfig.html">BMIConfig</a></div><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro_.html">hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="dFmrGpCHip9nJfPf1NO6p"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="lACzs8wnM0bweCNkU92qd"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Hydro.html">Hydro</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="jUZRyrb-kRrXdj0rBJvKH"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#hisCentral">hisCentral</a></div><div class="sidebar-section-children"><a href="global.html#normalDistribution">normalDistribution</a></div><div class="sidebar-section-children"><a href="global.html#waterOneFlow">waterOneFlow</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>
+</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="mobile-nav-links"></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="wI2_wLYbdJkjnRD_TYmkB"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="gWDsMEAhms-I29hJJfknU"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="BMIConfig.html">BMIConfig</a></div><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro_.html">hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="N-xbog7vVj2TZaO323FLf"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="agOjYvsi9_hwJwbVI2Laz"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Hydro.html">Hydro</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="n0vbqYIxXZXZm0QJAoNjB"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#generateDateString">generateDateString</a></div><div class="sidebar-section-children"><a href="global.html#hisCentral">hisCentral</a></div><div class="sidebar-section-children"><a href="global.html#recenter">recenter</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>
