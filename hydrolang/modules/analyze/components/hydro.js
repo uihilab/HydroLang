@@ -210,7 +210,7 @@ export default class hydro {
    * @param {Object} args - Contains: type (distribution type: "gamma", "lp3", "weibull"), prf (peak reduction factor), lambda (parameter for LP3 distribution), tpeak (peak time for LP3 distribution), alpha (shape parameter for Weibull distribution), beta (scale parameter for Weibull distribution), t0 (location parameter for Weibull distribution
    * @param {Array} data - Additional data
    * @returns {Array} Array of two arrays: ttp (time values) and qqp (flow values)
-   * @exampl
+   * @example
    * hydro.analyze.hydro.dimunithydro(
    * params: { timeStep: 0.1, numhours: 10 }
    * args: { type: "gamma", prf: 238 }

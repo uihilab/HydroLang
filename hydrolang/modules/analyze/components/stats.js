@@ -49,9 +49,13 @@ export default class stats {
   }
 
   /**
-   *
-   * @param {*} param0
-   * @returns
+   * Gives the range of a dataset
+   * @method range
+   * @memberof stats
+   * @param {Object} data - Contains: 1d-JS array with data as [data].
+   * @returns {Array} Range of the data.
+   * @example
+   * hydro.analyze.stats.range({data: [someData]})
    */
   static range({ params, args, data } = {}) {
     const min = this.min({ data }),
@@ -74,7 +78,7 @@ export default class stats {
    * @param {Object} data - Contains: 1d-JS array with data as [data].
    * @returns {Number} Number of gaps in data.
    * @example
-   * hydro.analyze.stats.gapid({data: [someData]})
+   * hydro.analyze.stats.datagaps({data: [someData]})
    */
 
   static datagaps({ params, args, data } = {}) {
@@ -717,7 +721,7 @@ export default class stats {
    * @param {Object} params - Contains: none
    * @param {Array} data - Array of numeric values
    * @returns {Number} Skewness value
-   * @exampl
+   * @example
    * hydro.analyze.stats.skewness({data: [1, 2, 3, 4, 5]})
    */
   static skewness({ params, arg, data } = {}) {
