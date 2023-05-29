@@ -4,6 +4,8 @@
  * https://github.com/csdms/bmi.
  * @class
  * @name BMI
+ * @memberof HydroBMI
+ * @see https://github.com/uihilab/BMI-JS
  */
 
  export default class BMI {

@@ -14,10 +14,28 @@ const hydro = Hydro.ins(),
  * If no link is added into the configuration, then an error will be raised.
  * All instances of HydroLang will be accessible through the BMI configuration
  * file.
- * @class 
+ * @class
  * @name HydroLangBMI
  * @extends BMI
- * @param {String} configfile
+ * @param {Object} configfile - The configuration file object.
+ * @param {string} configfile.modelName - The name of the model.
+ * @param {string} configfile.componentName - The name of the component.
+ * @param {string} configfile.moduleName - The name of the module.
+ * @param {string} configfile.modelCode - The code of the model.
+ * @param {string} configfile.functionName - The name of the function.
+ * @param {Array} configfile.args - The arguments for the function.
+ * @param {Array} configfile.params - The parameters for the function.
+ * @param {Object} configfile.duration - The duration configuration.
+ * @param {number} [configfile.duration.defaultStep] - The default step duration in hours.
+ * @param {string} [configfile.duration.timeUnit] - The time unit for the default step (possible values: "s", "min", "h", "d").
+ * @param {number} [configfile.duration.startTime] - The start time for the simulation in Unix timestamp.
+ * @param {number} [configfile.duration.endTime] - The end time for the simulation in Unix timestamp.
+ * @param {Array} configfile.inputVars - The input variables for the function.
+ * @param {Array} configfile.outputVars - The output variables for the function.
+ * @param {number} [configfile.now] - The current time in the simulation.
+ * @param {Object} configfile.units - The units configuration.
+ * @param {Object} configfile.units.input - The input units.
+ * @param {Object} configfile.units.output - The output units.
  */
 
 class HydroLangBMI extends BMI {

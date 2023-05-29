@@ -518,7 +518,9 @@ function xml2json(xml) {
 }
 
 /**
- * 
+ * Creates a date a outof a string.
+ * @function generateDateString
+ * @memberof data
  * @returns {String} - generates a string in format YY.MM.DD.HH.MM
  */
 function generateDateString() {

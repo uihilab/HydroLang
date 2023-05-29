@@ -256,8 +256,10 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
 }
 
 /**
- * 
- * @param {*} param0 
+ * Recenters a map at zoom of 500 m to a specific latlon.
+ * @method recenter
+ * @memberof map
+ * @param {Object} args - lat and lon for recentering a map.
  */
 async function recenter ({ params, args, data } = {}) {
   let latLon = L.latLng(args.lat, args.lon);
@@ -266,7 +268,7 @@ async function recenter ({ params, args, data } = {}) {
 }
 
 /***************************/
-/*** Supporting functionargs.lat, args.lon, 40s **/
+/*** Supporting functions **/
 /***************************/
 
 /**

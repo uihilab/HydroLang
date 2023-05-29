@@ -391,6 +391,8 @@ const waterOneFlow = {
  * without the need of manipulation a large chunk of data, but rather, allow a function to query the data. Each function has its own usage and is constrained by
  * the parameters passed within HydroLang functions. More information about HIS Central can be found in the following link:
  * https://his.cuahsi.org/
+ * @type {Object}
+ * @memberof datasources
  */
 
 const hisCentral = {

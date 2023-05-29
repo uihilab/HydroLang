@@ -2,7 +2,7 @@ import HydroLang from "../hydro.js";
 
 /**
  * Provides the hydro instance from HydroLang.js and other variables for usage.
- * @namespace Hydro
+ * @namespace HydroBMI
  * @property {function} hydro -  HydroLang instance kept live under the namespace.
  */
 var Hydro =
