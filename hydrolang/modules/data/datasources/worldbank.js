@@ -10,6 +10,7 @@
  * For identification of basin ISO3 codes, refer to https://github.com/hrbrmstr/basins
  * Dates in format YYYY
  * @type {Object}
+ * @name Worldbank
  * @memberof datasources
  */
 

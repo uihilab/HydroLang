@@ -3,6 +3,7 @@
  * This API just returns all disaster declarations for US since 1953
  * -> E.g., they may limit the # of queries per unit time
  * @type {Object}
+ * @name FEMA
  * @memberof datasources
  */
 

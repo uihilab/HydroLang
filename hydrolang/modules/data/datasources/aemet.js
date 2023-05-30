@@ -8,6 +8,7 @@
  * The API KEY has format 'api_key'.
  * Dates in format YYYY-MM-DDThh:mm:ss
  * @type {Object}
+ * @name AEMET
  * @memberof datasources
  */
 

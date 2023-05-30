@@ -6,6 +6,8 @@ const hydro = Hydro.ins();
  * Class creator for BMI configuration file. Allows for specification or requirements
  * easily and without need for compromises on errors.
  * Arguments passed to the constructor depend on the type of requirements needed from HydroLang
+ * @class
+ * @name BMIConfig
  * @memberof HydroBMI
  * @member HydroBMI.BMIConfig
  */

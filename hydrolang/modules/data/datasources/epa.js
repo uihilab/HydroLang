@@ -6,6 +6,7 @@
  * https://qed.epa.gov/hms/meteorology/precipitation/#output_parameters
  *
  * @type {Object}
+ * @name EPA
  * @memberof datasources
  */
 

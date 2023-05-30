@@ -2,6 +2,7 @@
  * https://ifis.iowafloodcenter.org/ifis/ws/
  * This API returns data from the IFIS web service.
  * @type {Object}
+ * @name IFIS
  * @memberof datasources
  */
 

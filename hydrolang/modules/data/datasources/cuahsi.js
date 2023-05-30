@@ -2,6 +2,7 @@
  * CUAHSI available REST endpoints. This collection includes:
  * waterOneFlow, hisCentral and HydroShare
  * @type {Object}
+ * @namespace CUAHSI
  * @memberof datasources
  */
 
@@ -11,11 +12,27 @@
  * More information about the request can be found in the following links:
  * https://cuahsi.zendesk.com/hc/en-us/articles/205153157-HydroServer-and-the-WaterOneFlow-Web-Services-API
  * https://hydroportal.cuahsi.org/ipswich/
+ * 
+ * Includes the following methods
+ * @prop {string} sourceType - source that will be queried. Requires source, see list for more references.
+ * @prop {string} GetSiteInfo - returns site metadata, given a specific site number for multiple sites. Values passed as strings.
+ * @prop {string} GetSiteInfoMultpleObject - returns site metadata, given a specific site number. Pass value as string
+ * @prop {string} GetSiteInfoObject - returns site metadata, given a specific site number. Pass value as string
+ * @prop {string} GetSites - given an array of sites, returns the metadata for each site. Pass values as array of strings
+ * @prop {string} GetSitesByBoxObject - finds sites for a specific source on a bounding box having properties {west, south, east, north}
+ * @prop {string} GetSitesObject - returns site metadata, pass site as array of strings
+ * @prop {string} GetValues - returns timeseries for a specific location. Requires {location: string, variable: string, startDate: string, endDate: string}
+ * @prop {string} GetValuesForASiteObject - returns values as array of strings as {site: string, startDate: string , endDate: string}
+ * @prop {string} GetValuesObject - returns timeseries for a given location and timespan {location: string, variable: string, startDate: string, endDate: string}
+ * @prop {string} GetVariableInfo - returns variable name given information for a variable. Pass as string.
+ * @prop {string} GetVariableInfoObject - returns a variable's name, given specific information for the variable. Pass value as string
+ * @prop {string} GetVariables - get all avaibale variables from a specific source. No parameters required.
+ * @prop {string} GetVariablesObject - get all avaibale variables from a specific source. No parameters required.
  *
- * Main request site
- * https://hydroportal.cuahsi.org/
+ * @see https://hydroportal.cuahsi.org/
  * @type {Object}
- * @memberof datasources
+ * @name waterOneFlow
+ * @memberof datasources.CUAHSI
  *
  */
 const waterOneFlow = {
@@ -188,9 +205,8 @@ const waterOneFlow = {
       method: "POST",
     },
   },
+  //Multple is NOT a typo
   GetSiteInfoMultpleObject: {
-    //Returns site metadata, given a specific site number for multiple sites
-    //values passed as strings.
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSiteInfoMultpleObject
     body: (prop) => {
@@ -208,8 +224,6 @@ const waterOneFlow = {
     },
   },
   GetSiteInfoObject: {
-    //Returns site metadata, given a specific site number.
-    //pass value as string
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSiteInfoObject
     body: (prop) => {
@@ -226,8 +240,6 @@ const waterOneFlow = {
   },
 
   GetSites: {
-    //Given an array of sites, returns the metadata for each site.
-    //Pass values as array of strings
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSites
     body: (prop) => {
@@ -244,8 +256,6 @@ const waterOneFlow = {
   },
 
   GetSitesByBoxObject: {
-    //Given a site, returns metadata falling within a bounding box.
-    //Passed values must be specified within the request object (i.e. {west: somevalue, north, somevalue...})
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSitesByBoxObject
     body: (prop) => {
@@ -257,8 +267,6 @@ const waterOneFlow = {
     },
   },
   GetSitesObject: {
-    //Given multiple sites, returns site metadata.
-    //Pass values as array of strings
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSitesObject
     body: (prop) => {
@@ -274,9 +282,6 @@ const waterOneFlow = {
     },
   },
   GetValues: {
-    //Returns a timeseries with given a location and timespan.
-    //Pass values as array of strings in the following positions:
-    //{location: string, variable: string, startDate: string, endDate: string}
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetValues
     body: (prop) => {
@@ -288,8 +293,6 @@ const waterOneFlow = {
     },
   },
   GetValuesForASiteObject: {
-    //Pass values as array of strings in the following positions:
-    //{site: string, startDate: string , endDate: string}
     //Example found in
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetValuesForASiteObject
     body: (prop) => {
@@ -301,9 +304,6 @@ const waterOneFlow = {
     },
   },
   GetValuesObject: {
-    //Returns a timeseries with given a location and timespan.
-    //Pass values as array of strings in the following positions:
-    //{location: string, variable: string, startDate: string, endDate: string}
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetValuesObject
     body: (prop) => {
@@ -315,8 +315,6 @@ const waterOneFlow = {
     },
   },
   GetVariableInfo: {
-    //Returns a variable's name, given specific information for the variable.
-    //pass value as string
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetVariableInfo
     body: (prop) => {
@@ -334,8 +332,6 @@ const waterOneFlow = {
     },
   },
   GetVariableInfoObject: {
-    //Returns a variable's name, given specific information for the variable.
-    //pass value as string
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetVariableInfoObject
     body: (prop) => {
@@ -353,8 +349,6 @@ const waterOneFlow = {
     },
   },
   GetVariables: {
-    //Get all the available variables from the API.
-    //No parameters required
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetVariables
     body: () => {
@@ -366,8 +360,6 @@ const waterOneFlow = {
     },
   },
   GetVariablesObject: {
-    //Get all the available variables from the API.
-    //No parameters required
     //Example found in:
     //https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetVariableObject
     body: () => {
@@ -392,7 +384,8 @@ const waterOneFlow = {
  * the parameters passed within HydroLang functions. More information about HIS Central can be found in the following link:
  * https://his.cuahsi.org/
  * @type {Object}
- * @memberof datasources
+ * @name hisCentral
+ * @memberof datasources.CUAHSI
  */
 
 const hisCentral = {
@@ -564,7 +557,8 @@ const hisCentral = {
  * HydroShare API, enabling acccess to data resources, examples, models and more hosted within the HydroShare sphere.
  * Swagger example found in the following link:https://www.hydroshare.org/hsapi/
  * @type {Object}
- * @memberof datasources
+ * @name hydroShare
+ * @memberof datasources.CUAHSI
  */
 const hydroShare = {
   resource_list: {

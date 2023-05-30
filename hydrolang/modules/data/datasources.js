@@ -1,15 +1,6 @@
 /**
  * Extends the data sources on the framework to the data module.
- * @module datasources
- * @extends usgs
- * @extends fema
- * @extends noaa
- * @extends worldbank
- * @extends meteostat
- * @extends aemet
- * @extends eauk
- * @extends meteoit
- * @extends ifis
+ * @namespace datasources
  */
 
 import usgs from "./datasources/usgs.js";

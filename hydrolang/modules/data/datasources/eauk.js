@@ -12,6 +12,7 @@
  * Coordinates in WGS84.
  * Dates in format YYYY-MM-DDThh:mm:ss
  * @type {Object}
+ * @name EAUK
  * @memberof datasources
  */
 

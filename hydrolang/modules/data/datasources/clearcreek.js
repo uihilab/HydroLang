@@ -8,6 +8,7 @@
  * https://ifis.iowafloodcenter.org/ifis/sc/modelplus/
  * https://agu.confex.com/agu/fm21/meetingapp.cgi/Paper/897497
  * @type {Object}
+ * @name ClearCreek
  * @memberof datasources
  */
 

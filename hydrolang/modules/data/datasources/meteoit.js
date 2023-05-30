@@ -9,6 +9,7 @@
  * http://api.meteonetwork.it/docs/
  * Dates in format YYYY-MM-DDThh:mm:ss
  * @type {Object}
+ * @name MeteoIT
  * @memberof datasources
  */
 

@@ -10,6 +10,7 @@
  * Activation key format and name to is  "x-api-key"
  * More info, please visit https://dev.meteostat.net/
  * @type {Object}
+ * @name MeteoSTAT
  * @memberof datasources
  */
 

@@ -2,6 +2,7 @@
  * https://waterservices.usgs.gov/rest/IV-Service.html
  * This API returns stream stages for US
  * @type {Object}
+ * @name USGS
  * @memberof datasources
  */
 

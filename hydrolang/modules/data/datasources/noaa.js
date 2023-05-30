@@ -8,6 +8,7 @@
  * Dates in format YYYY-MM-DDThh:mm:ss
  * IMPORTANT: for retrieving more than 25 lines of data, include limit = required number.
  * @type {Object}
+ * @name NOAA
  * @memberof datasources
  */
 
