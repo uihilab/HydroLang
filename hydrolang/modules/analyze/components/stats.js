@@ -1201,6 +1201,223 @@ hydro.analyze.stats.normalDistributio
     return data;
   }
 
+  /**
+   * Generates a random simulated number when run with a dataset
+   * @method runSimulation
+   * @memberof stats
+   * @param {Object} data - passes data from an object
+   * @returns {Number} Returns a simulated number
+   * @example 
+   * const testData = [
+      [1, 2, 3, 4, 5],
+      [6, 7, 8, 9, 10],
+      [11, 12, 13, 14, 15],
+    ];
+    hydro.analyze.stats.simulate({data: testData})
+   * 
+   */
+  static runSimulation({params, args, data} = {}) {
+    const genRan = (min, max) => { return Math.random() * (max-min)+ min}
+    const mean = this.mean({data : data});
+    const std = this.stddev({data: data});
+    const simNum = genRan(mean - std, mean + std);
+    return simNum
+}
+
+/**
+   * Generates a random simulated number with a narrower range
+   * @method runSimulation2
+   * @memberof stats
+   * @param {Object} data - passes data from an object
+   * @returns {Number} Returns a simulated number
+   * @example
+   * const testData = [
+      [1, 2, 3, 4, 5],
+      [6, 7, 8, 9, 10],
+      [11, 12, 13, 14, 15],
+    ];
+    hydro.analyze.stats.simulate({data: testData})
+   * 
+   */
+static runSimulation2({params, args, data} = {}) {
+  const genRan = (min, max) => { return Math.random() * (max-min)+ min}
+  const mean = this.mean({data : data});
+  const std = this.stddev({data: data});
+  const simNum = genRan(mean - std/2, mean + std/2);
+  return simNum
+}
+
+/**
+   * Generates a random simulated number when run with a dataset
+   * @method runMonteCarlo
+   * @memberof stats
+   * @param {Object[]} data - passes data from multiple objects
+   * @returns {number[]} returns an array of the simulated results
+   * @example 
+   * const testData = [
+      [1, 2, 3, 4, 5],
+      [6, 7, 8, 9, 10],
+      [11, 12, 13, 14, 15],
+    ];
+    hydro.analyze.stats.runMonteCarlo({data: testData})
+   */
+static runMonteCarlo({params, args, data} = {}) {
+    const results = [];
+  
+    for (let value of data) {
+        const myValue = this.runSimulation({data : value})
+        results.push(myValue)
+    }
+
+    return results;
+ }
+  
+/**
+   * Generates a random simulated number when run with a dataset
+   * @method runVegas
+   * @memberof stats
+   * @param {Object[]} data - passes data from multiple objects
+   * @returns {number[]} returns an array of the simulated results
+   * @example
+   * const testData = [
+      [1, 2, 3, 4, 5],
+      [6, 7, 8, 9, 10],
+      [11, 12, 13, 14, 15],
+    ];
+    hydro.analyze.stats.runVegas({data: testData})
+   */
+static runVegas({params, args, data} = {}) {
+  const results = [];
+  for (let value of data) {
+      const myValue = this.runSimulation2({data : value})
+      results.push(myValue)
+  }
+  return results;
+}
+
+/**
+   * Generates a random simulated number when run with a dataset
+   * @method autocorrelation
+   * @memberof stats
+   * @param {Object} data Array with time series data
+   * @param {Object} params - number of lags and length for autocorrelation
+   * @returns {Object} autocorrelation value
+   * @example
+   * const testData = [1, 2, 3, 4, 5];
+   * hydro.analyze.stats.autocorrelation({params: { lag:2 }, data : testData});
+   */
+static autocorrelation({ params, args, data } = {}) {
+  const { lag } = params;
+  const length = data.length;
+  const mean = this.mean({ data });
+  const autocorrelation = [];
+
+  for (let l = 0; l <= lag; l++) {
+    let sum = 0;
+    for (let t = l; t < length; t++) {
+      sum += (data[t] - mean) * (data[t - l] - mean);
+    }
+    autocorrelation.push(sum / ((length - l) * this.variance({ data })));
+  }
+  return autocorrelation;
+}
+
+ /**
+  * **Still needs some testing**
+   * Compute the autocovariance matrix from the autocorrelation values
+   * @method autocovarianceMatrix
+   * @memberof stats
+   * @param {Object} data - array with autocorrelation values
+   * @param {number} params - number of lags
+   * @returns {Object} Autocovariance matrix
+   * @example 
+   * const acTestData = [1, 0.7, 0.5, 0.3];
+   * const lags = 2
+   * hydro.analyze.stats.autocovarianceMatrix({params: lag, data : actestData});
+   */
+ static autocovarianceMatrix({ params, args, data } = {}) {
+  const { lags } = params;
+  const autocorrelation = data;
+  const matrix = [];
+  for (let i = 0; i <= lags; i++) {
+    const row = [];
+    for (let j = 0; j <= lags; j++) {
+      const ac = autocorrelation[Math.abs(i - j)];
+      row.push(i === j ? 1 : ac);
+    }
+    matrix.push(row);
+  }
+  return matrix;
+}
+
+/**
+ * Computes the probability density function (PDF) of a Gaussian (normal) distribution
+ * @method gaussianDist
+ * @memberof stats
+ * @param {Object} params - x (value at which to compute the PDF), mean (mean of the distribution), 
+ * and stddev (standard deviation of the distribution)
+ * @returns {Number} Probability density function of the Gaussian distribution
+ * @example
+ * const testData = {
+    x: 2.5,
+    mean: 3,
+    stddev: 1.2
+  };
+  hydro.analyze.stats.gaussianDist({params: testData});
+ */
+static gaussianDist({ params, args, data }) {
+  const { x, mean, stddev } = params;
+  const exponent = -((x - mean) ** 2) / (2 * stddev ** 2);
+  const coefficient = 1 / (stddev * Math.sqrt(2 * Math.PI));
+
+  return coefficient * Math.exp(exponent);
+}
+
+/**
+ * Probability mass function (PMF) of a Bernoulli distribution
+ * @method bernoulliDist
+ * @memberof stats
+ * @param {Object} params - Contains: x (value at which to compute the PMF) and p (probability of success)
+ * @returns {Number} Probability mass function of the Bernoulli distribution
+ * f = failure, s = success
+ * @example
+ * 
+ */
+static bernoulliDist({ params }) {
+  const { f, s } = params;
+  if (f === 0) {
+    return 1 - s;
+  } else if (f === 1) {
+    return s;
+  } else {
+    return 0;
+  }
+}
+
+/**
+ * Computes the probability density function (PDF) of the Generalized Extreme Value (GEV) distribution.
+ * @method gevDistribution
+ * @memberof stats
+ * @param {Object} params - Contains: x (value at which to compute the PDF), mu (location parameter), sigma (scale parameter), xi (shape parameter).
+ * @returns {Number} Probability density function of the GEV distribution.
+ */
+static gevDistribution({ params }) {
+  const { x, mu, sigma, xi } = params;
+  const z = (x - mu) / sigma;
+  
+  if (xi === 0) {
+    // Calculate the PDF for the Gumbel distribution
+    const exponent = -z - Math.exp(-z);
+    return Math.exp(exponent) / sigma;
+  } else {
+    // Calculate the PDF for the Generalized Extreme Value (GEV) distribution
+    const term1 = Math.pow(1 + xi * z, -(1 / xi + 1));
+    const term2 = Math.exp((-(1 + xi * z)) ** (-1 / xi));
+    return term1 * term2 / sigma;
+  }
+}
+
+
   /**********************************/
   /*** End of Helper functions **/
   /**********************************/
