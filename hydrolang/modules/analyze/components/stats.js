@@ -1152,7 +1152,6 @@ hydro.analyze.stats.normalDistributio
    * @memberof stats
    * @param {Object} params - Contains: x (value at which to compute the PMF) and p (probability of success)
    * @returns {Number} Probability mass function of the Bernoulli distribution
-   * @example
    * 
    */
   static bernoulliDist({ params }) {
