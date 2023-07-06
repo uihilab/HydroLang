@@ -1192,6 +1192,166 @@ hydro.analyze.stats.normalDistributio
     }
   }
 
+  /**
+ * Calculates the probability mass function (PMF) of a Geometric Distribution
+ * @method geometricDist
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - Contains the probability of success "s" (where 0 <= s <= 1) as a parameter.
+ * @param {Number} args - Contains the number of trials until the first success trials (trials >= 1)
+ * @returns {Number} The probability of getting the first success on the n-th trial
+ * @example
+ * hydro.analyze.stats.geometricDist({ params: { s: 0.5 }, args: { trials: 3 }, data: [] });
+ * 0.125
+ */
+static geometricDist({ params, args, data }) {
+  const { s } = params || 1;
+  const { trials } = args;
+  if (trials < 1) {
+    return 0;
+  }
+  return (1 - s) ** (trials - 1) * s;
+}
+
+/**
+ * Calculates the probability mass function (PMF) of a Binomial Distribution.
+ * @method binomialDist
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - Contains the number of trials 'n' (n >= 0) and the probability of success 
+ * @param {Object} args - Contains the number of successes 's'
+ * @param {Array} data - Empty array as no data is needed for this calculation.
+ * @returns {Number} The probability of getting exactly 's' successes in trials.
+ * @example
+ * hydro.analyze.stats.binomialDist({ params: { trials: 10, probSuccess: 0.5 }, args: { s: 3 });
+ */
+static binomialDist({ params, args, data }) {
+  const { trials, probSuccess } = params;
+  const { s } = args;
+
+  if (s < 0 || s > trials) {
+    return 0;
+  }
+
+  const coefficient = this.binomialCoefficient(trials, s);
+  const probability = coefficient * (probSuccess ** s) * ((1 - probSuccess) ** (trials - s));
+  return probability;
+}
+
+/**
+   * @method LogSeriesDistribution Calculates the probability mass function (PMF) of the Log series Distribution.
+   * @author riya-patil
+   * @param {Object} params - Contains the parameter 'probSuccess' which represents the probability of success in a single trial.
+   * @param {Object} args - Contains the argument 'trials' (trials >= 1) which represents the number of trials.
+   * @returns {Number} Probability of achieving the first success in # of trials.
+   * @example
+   * hydro.analyze.stats.logSeriesDist({params: {probSuccess: 0.2, trials: 3}})
+   */
+static logSeriesDist({ params, args, data }) {
+  const { probSuccess, trials } = params;
+  
+  if (trials < 1) {
+    return 0;
+  }
+  
+  const probFailure = 1 - probSuccess;
+  const pmf = -Math.log(1 - Math.pow(probFailure, trials)) / Math.log(probFailure);
+  
+  return pmf;
+}
+
+ /**
+   * @method lognormalDist Calculates the probability density function (PDF) of the Lognormal Distribution.
+   * @author riya-patil
+   * @param {Object} params - Contains the parameters 'mu' and 'sigma' which represent the mean and standard deviation of the associated normal distribution.
+   * @param {Object} args - Contains the argument 'x' which represents the value at which to evaluate the PDF.
+   * @returns {Number} Probability density at 'x' in the Lognormal Distribution.
+   * @example 
+   * hydro.analyze.stats.lognormalDist({params: { mu: 0, sigma: 1 }, args: { x: 2 }})
+   */
+ static lognormalDist({ params, args, data }) {
+  const { mu, sigma } = params;
+  const { x } = args;
+
+  if (x <= 0) {
+    return 0;
+  }
+
+  const exponent = -((Math.log(x) - mu) ** 2) / (2 * sigma ** 2);
+  const pdf = (1 / (x * sigma * Math.sqrt(2 * Math.PI))) * Math.exp(exponent);
+
+  return pdf;
+}
+
+/**
+   * @method gumbelDist Calculates the probability density function (PDF) of the Gumbel Distribution.
+   * @author riya-patil
+   * @param {Object} params - Contains the parameters 'mu' (location parameter) and 'beta' (scale parameter).
+   * @returns {Number} Probability density at the given value 'x'.
+   * @example
+   * hydro.analyze.stats.gumbelDist({ params: { mu: 0, beta: 1, x: 2}})
+   */
+static gumbelDist({ params, args, data }) {
+  const { mu, beta, x } = params;
+  
+  const z = (x - mu) / beta;
+  const pdf = (1 / beta) * Math.exp(-(z + Math.exp(-z)));
+  
+  return pdf;
+}
+
+/**
+   * @method uniformDist Calculates the probability density function (PDF) of the Uniform Distribution.
+   * @author riya-patil
+   * @param {Object} params - Contains the parameters 'a' (lower bound) and 'b' (upper bound).
+   * @param {Object} args - Contains the argument 'x' at which to evaluate the PDF.
+   * @returns {Number} Probability density at the given value 'x'.
+   * @example
+   * hydro.analyze.stats.uniformDist({ params: { a: 0, b: 1 }, args: { x: 0.5 } })
+   */
+static uniformDist({ params, args }) {
+  const { a, b } = params;
+  const { x } = args;
+  
+  if (x >= a && x <= b) {
+    const pdf = 1 / (b - a);
+    return pdf;
+  } else {
+    return 0;
+  }
+}
+
+/**
+   * @method linearMovingAverage Calculates the Linear Moving Average of a given data set.
+   * @author riya-patil
+   * @param {Object} params - Contains the parameter 'windowSize' which specifies the size of the moving average window.
+   * @param {Object} args - Contains the argument 'data' which is the array of data points.
+   * @returns {Array} Array of moving average values.
+   * @example
+   * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+   * const windowSize = 3;
+   * const movingAverage = MovingAverage.linearMovingAverage({ params: { windowSize }, args: { data } });
+   */
+static linearMovingAverage({ params, args }) {
+  const { windowSize } = params;
+  const { data } = args;
+
+  if (windowSize <= 0 || windowSize > data.length) {
+    throw new Error("Invalid window size.");
+  }
+
+  const movingAverage = [];
+
+  for (let i = 0; i <= data.length - windowSize; i++) {
+    const window = data.slice(i, i + windowSize);
+    const sum = window.reduce((total, value) => total + value, 0);
+    const average = sum / windowSize;
+    movingAverage.push(average);
+  }
+
+  return movingAverage;
+}
+
   /***************************/
   /***** Helper functions ****/
   /***************************/
@@ -1409,6 +1569,30 @@ hydro.analyze.stats.normalDistributio
   }
 
   return { autocorrelation, matrix };
+}
+
+/**
+ * Calculates the binomial coefficient (n choose k format)
+ * @method binomialCoefficient - calculates the number of possible combinations of 's' successes in 'trials'
+ * @author riya-patil
+ * @memberof stats
+ * @param {Number} trials - The number of trials
+ * @param {Number} s - The number of successes
+ * @returns {Number} The binomial coefficient (trials choose s)
+ */
+static binomialCoefficient(trials, s) {
+  if (s === 0 || s === trials) {
+    return 1;
+  }
+  if (s > trials) {
+    return 0;
+  }
+  let coefficient = 1;
+  for (let i = 1; i <= s; i++) {
+    coefficient *= (trials - i + 1) / i;
+  }
+
+  return coefficient;
 }
 
   /**********************************/
