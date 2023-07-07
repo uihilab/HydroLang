@@ -1239,6 +1239,55 @@ static binomialDist({ params, args, data }) {
 }
 
 /**
+ * Multinomial Distribution - Generates random samples from a multinomial distribution.
+ * @method multinomialDistribution
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params probabilities: 1D array of probabilities for each category; n: Number of samples to generate
+ * @returns {Object} samples: 2D array of generated samples, where each row represents a sample and each column represents a category
+ * frequencies: 2D array of frequencies for each category in the generated samples
+ * @example
+ * const multinomialData = {
+ *   probabilities: [0.2, 0.3, 0.5],
+ *   n: 100
+ * };
+ * hydro.analyze.stats.multinomialDistribution({ params: multinomialData });
+ */
+static multinomialDistribution({ params, args, data }) {
+  const { probabilities, n } = params;
+
+  const numCategories = probabilities.length;
+  const samples = [];
+  const frequencies = [];
+
+  for (let i = 0; i < n; i++) {
+    const sample = [];
+    const frequency = Array(numCategories).fill(0);
+
+    let remainingProb = 1;
+
+    for (let j = 0; j < numCategories - 1; j++) {
+      const prob = probabilities[j];
+      const rand = Math.random() * remainingProb;
+      const count = Math.floor(rand / prob);
+      sample.push(count);
+      frequency[j] += count;
+      remainingProb -= count * prob;
+    }
+
+    const lastCategoryCount = Math.floor(remainingProb / probabilities[numCategories - 1]);
+    sample.push(lastCategoryCount);
+    frequency[numCategories - 1] += lastCategoryCount;
+
+    samples.push(sample);
+    frequencies.push(frequency);
+  }
+
+  return { samples, frequencies };
+}
+
+
+/**
    * @method LogSeriesDistribution Calculates the probability mass function (PMF) of the Log series Distribution.
    * @author riya-patil
    * @param {Object} params - Contains the parameter 'probSuccess' which represents the probability of success in a single trial.
@@ -1352,6 +1401,207 @@ static linearMovingAverage({ params, args }) {
   return movingAverage;
 }
 
+/**
+ * Exponential Moving Average (EMA)- Computes the Exponential Moving Average (EMA) for a given dataset.
+ * @method exponentialMovingAverage
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} args - Contains the dataset as 'data' (1D JavaScript array) and the 'alpha' value (smoothing factor between 0 and 1)
+ * @returns {number[]} The Exponential Moving Average (EMA) values for the dataset
+ * @example
+ * const dataset = [1, 2, 3, 4, 5];
+ * const alpha = 0.5;
+ * hydro.analyze.stats.exponentialMovingAverage({ args: { data: dataset, alpha: alpha } });
+ */
+
+static exponentialMovingAverage({ params, args, data }) {
+  const { data: dataset, alpha } = args;
+  const emaValues = [];
+  let ema = dataset[0];
+
+  for (let i = 1; i < dataset.length; i++) {
+    ema = alpha * dataset[i] + (1 - alpha) * ema;
+    emaValues.push(ema);
+  }
+
+  return emaValues;
+}
+
+/**
+   * Generates a sequence of events representing a Homogeneous Poisson Process
+   * @method homogeneousPoissonProcess
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the rate parameter lambda and the time period T
+   * @returns {Array} Array of event times
+   * @example
+   * hydro.analyze.stats.homogeneousPoissonProcess({params: { lambda: 2, T: 10 }})
+   */
+static homogeneousPoissonProcess({ params, args, data }) {
+  const { lambda, T } = params;
+  const events = [];
+  let t = 0;
+
+  while (t < T) {
+    const rand = Math.random();
+    const interTime = (-1 / lambda) * Math.log(1 - rand);
+    t += interTime;
+    if (t < T) {
+      events.push(t);
+    }
+  }
+
+  return events;
+}
+
+/**
+   * Generates a sequence of events representing a Non-Homogeneous Poisson Process.
+   * @method nonHomogeneousPoissonProcess
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the rate function 'rateFunc' and the time period 'T'.
+   * @returns {Array} Array of event times.
+   * @example
+   * hydro.analyze.stats.nonHomogeneousPoissonProcess({params: { rateFunc: (t) => Math.sin(t), T: 10 }})
+   */
+static nonHomogeneousPoissonProcess({ params }) {
+  const { rateFunc, T } = params;
+  const events = [];
+  let t = 0;
+
+  while (t < T) {
+    const rand1 = Math.random();
+    const rand2 = Math.random();
+    const interTime = (-1 / rateFunc(t)) * Math.log(1 - rand1);
+    t += interTime;
+    if (t < T && rand2 <= rateFunc(t) / rateFunc(T)) {
+      events.push(t);
+    }
+  }
+
+  return events;
+}
+
+/**
+   * Generates random numbers following a Log Pearson Type III distribution.
+   * @method logPearsonTypeIII
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the parameters 'mu' 'sigma' and 'gamma'.
+   * @param {Number} size - Number of random numbers to generate.
+   * @returns {Array} Array of random numbers following the Log Pearson Type III distribution.
+   * @example
+   * hydro.analyze.stats.logPearsonTypeIII({ params: { mu: 1, sigma: 2, gamma: 3 }, args: { size: 100 } })
+   */
+static logPearsonTypeIII({ params, args, data }) {
+  const { mu, sigma, gamma } = params;
+  const { size } = args || 10;
+  const randomNumbers = [];
+
+  for (let i = 0; i < size; i++) {
+    const rand1 = Math.random();
+    const rand2 = Math.random();
+    const x = Math.sqrt(-2 * Math.log(rand1)) * Math.cos(2 * Math.PI * rand2);
+    const y = mu + sigma * (x / Math.sqrt(gamma));
+    const z = Math.exp(y);
+
+    randomNumbers.push(z);
+  }
+
+  return randomNumbers;
+}
+
+ /**
+   * Generates random numbers from within a Box Plot distribution.
+   * @method boxPlotDistribution
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the parameters 'min', 'q1', 'median', 'q3', 'max'.
+   * @param {Object} args - Contains the argument 'size' for the number of random numbers to generate.
+   * @returns {Array} Array of random numbers following the Box Plot Distribution.
+   * @example
+   * hydro.analyze.stats.boxPlotDistribution({ params: { min: 1, q1: 2, median: 3, q3: 4, max: 5 }, args: { size: 100 }, data: [] })
+   */
+ static boxPlotDistribution({ params, args, data }) {
+  const { min, q1, median, q3, max } = params;
+  const { size } = args;
+  const randomNumbers = [];
+
+  for (let i = 0; i < size; i++) {
+    const randNum = Math.random();
+    let value;
+
+    if (randNum < 0.25) {
+      value = min - (q1 - min) * Math.random();
+    } else if (randNum < 0.5) {
+      value = q1 + (median - q1) * Math.random();
+    } else if (randNum < 0.75) {
+      value = median + (q3 - median) * Math.random();
+    } else {
+      value = q3 + (max - q3) * Math.random();
+    }
+
+    randomNumbers.push(value);
+  }
+
+  return randomNumbers;
+}
+
+/**
+ * Mean Squared Error (MSE) Estimation - Computes the Mean Squared Error (MSE) between two datasets
+ * @method meanSquaredError
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} args - Contains the two datasets as 'data1' and 'data2' (1D JavaScript arrays)
+ * @returns {number} The Mean Squared Error (MSE) between the two datasets
+ * @example
+ * const dataset1 = [1, 2, 3, 4, 5];
+ * const dataset2 = [1.5, 2.8, 3.6, 4.2, 4.9];
+ * hydro.analyze.stats.meanSquaredError({ args: { data1: dataset1, data2: dataset2 } });
+ */
+
+static meanSquaredError({ params, args, data }) {
+  const { data1, data2 } = args;
+
+  if (data1.length !== data2.length) {
+    throw new Error('Datasets need to have same length');
+  }
+
+  const n = data1.length;
+  let sum = 0;
+  for (let i = 0; i < n; i++) {
+    const diff = data1[i] - data2[i];
+    sum += diff * diff;
+  }
+
+  const mse = sum / n;
+  return mse;
+}
+
+/**
+ * Return Period - Calculates the return period for a given probability of occurrence.
+ * @method returnPeriod
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - probability: Probability of occurrence (between 0 and 1)
+ * @returns {Number} Return period corresponding to the given probability
+ * @example
+ * const returnPeriodData = {
+ *   probability: 0.1
+ * };
+ * hydro.analyze.stats.returnPeriod({ params: returnPeriodData });
+ */
+static returnPeriod({ params }) {
+  const { probability } = params;
+  if (probability <= 0 || probability >= 1) {
+    throw new Error("Probability must be between 0 and 1 (exclusive).");
+  }
+
+  return 1 / probability;
+}
+
+
+ 
   /***************************/
   /***** Helper functions ****/
   /***************************/
