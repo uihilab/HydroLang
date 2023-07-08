@@ -1287,8 +1287,8 @@ static multinomialDistribution({ params, args, data }) {
 }
 
 
-/**
-   * @method LogSeriesDistribution Calculates the probability mass function (PMF) of the Log series Distribution.
+/** Calculates the probability mass function (PMF) of the Log series Distribution
+   * @method LogSeriesDistribution 
    * @author riya-patil
    * @param {Object} params - Contains the parameter 'probSuccess' which represents the probability of success in a single trial.
    * @param {Object} args - Contains the argument 'trials' (trials >= 1) which represents the number of trials.
@@ -1303,14 +1303,12 @@ static logSeriesDist({ params, args, data }) {
     return 0;
   }
   
-  const probFailure = 1 - probSuccess;
-  const pmf = -Math.log(1 - Math.pow(probFailure, trials)) / Math.log(probFailure);
-  
+  const pmf = -Math.log(1 - probSuccess) * Math.pow(probSuccess, trials) / trials;
   return pmf;
 }
 
- /**
-   * @method lognormalDist Calculates the probability density function (PDF) of the Lognormal Distribution.
+ /** Calculates the probability density function (PDF) of the Lognormal Distribution
+   * @method lognormalDist 
    * @author riya-patil
    * @param {Object} params - Contains the parameters 'mu' and 'sigma' which represent the mean and standard deviation of the associated normal distribution.
    * @param {Object} args - Contains the argument 'x' which represents the value at which to evaluate the PDF.
@@ -1332,8 +1330,8 @@ static logSeriesDist({ params, args, data }) {
   return pdf;
 }
 
-/**
-   * @method gumbelDist Calculates the probability density function (PDF) of the Gumbel Distribution.
+/** Calculates the probability density function (PDF) of the Gumbel Distribution
+   * @method gumbelDist 
    * @author riya-patil
    * @param {Object} params - Contains the parameters 'mu' (location parameter) and 'beta' (scale parameter).
    * @returns {Number} Probability density at the given value 'x'.
@@ -1341,7 +1339,8 @@ static logSeriesDist({ params, args, data }) {
    * hydro.analyze.stats.gumbelDist({ params: { mu: 0, beta: 1, x: 2}})
    */
 static gumbelDist({ params, args, data }) {
-  const { mu, beta, x } = params;
+  const { mu, beta } = params;
+  const { x } = args;
   
   const z = (x - mu) / beta;
   const pdf = (1 / beta) * Math.exp(-(z + Math.exp(-z)));
@@ -1349,8 +1348,8 @@ static gumbelDist({ params, args, data }) {
   return pdf;
 }
 
-/**
-   * @method uniformDist Calculates the probability density function (PDF) of the Uniform Distribution.
+/** Calculates the probability density function (PDF) of the Uniform Distribution
+   * @method uniformDist 
    * @author riya-patil
    * @param {Object} params - Contains the parameters 'a' (lower bound) and 'b' (upper bound).
    * @param {Object} args - Contains the argument 'x' at which to evaluate the PDF.
@@ -1370,20 +1369,20 @@ static uniformDist({ params, args }) {
   }
 }
 
-/**
-   * @method linearMovingAverage Calculates the Linear Moving Average of a given data set.
+/** Calculates the Simple Moving Average of a given data set
+   * @method simpleMovingAverage 
    * @author riya-patil
    * @param {Object} params - Contains the parameter 'windowSize' which specifies the size of the moving average window.
-   * @param {Object} args - Contains the argument 'data' which is the array of data points.
+   * @param {Object} data - Contains the array of data points.
    * @returns {Array} Array of moving average values.
    * @example
    * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
    * const windowSize = 3;
-   * const movingAverage = MovingAverage.linearMovingAverage({ params: { windowSize }, args: { data } });
+   * hydro.analyze.stats.simpleMovingAverage({ params: { windowSize }, data });
    */
-static linearMovingAverage({ params, args }) {
+static simpleMovingAverage({ params, args, data }) {
   const { windowSize } = params;
-  const { data } = args;
+  const { data } = data;
 
   if (windowSize <= 0 || windowSize > data.length) {
     throw new Error("Invalid window size.");
@@ -1400,6 +1399,21 @@ static linearMovingAverage({ params, args }) {
 
   return movingAverage;
 }
+
+/**
+ * Calculates the Linear Moving Average (LMA) of a given dataset.
+ * @method linearMovingAverage
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - Contains the windowSize parameter.
+ * @param {Array} data - 1D array of numerical values.
+ * @returns {Array} Array of moving averages.
+ * @throws {Error} If the window size is invalid.
+ * @example
+ * const windowSize = 5;
+ * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+ * hydro.analyze.stats.linearMovingAverage({ windowSize, data });
+ */
 
 /**
  * Exponential Moving Average (EMA)- Computes the Exponential Moving Average (EMA) for a given dataset.
