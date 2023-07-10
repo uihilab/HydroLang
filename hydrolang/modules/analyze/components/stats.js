@@ -1191,6 +1191,430 @@ hydro.analyze.stats.normalDistributio
     }
   }
 
+  /**
+ * Calculates the probability mass function (PMF) of a Geometric Distribution
+ * @method geometricDist
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - Contains the probability of success "s" (where 0 <= s <= 1) as a parameter.
+ * @param {Number} args - Contains the number of trials until the first success trials (trials >= 1)
+ * @returns {Number} The probability of getting the first success on the n-th trial
+ * @example
+ * hydro.analyze.stats.geometricDist({ params: { s: 0.5 }, args: { trials: 3 }, data: [] });
+ * 0.125
+ */
+static geometricDist({ params, args, data }) {
+  const { s } = params || 1;
+  const { trials } = args;
+  if (trials < 1) {
+    return 0;
+  }
+  return (1 - s) ** (trials - 1) * s;
+}
+
+/**
+ * Calculates the probability mass function (PMF) of a Binomial Distribution.
+ * @method binomialDist
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - Contains the number of trials 'n' (n >= 0) and the probability of success 
+ * @param {Object} args - Contains the number of successes 's'
+ * @param {Array} data - Empty array as no data is needed for this calculation.
+ * @returns {Number} The probability of getting exactly 's' successes in trials.
+ * @example
+ * hydro.analyze.stats.binomialDist({ params: { trials: 10, probSuccess: 0.5 }, args: { s: 3 });
+ */
+static binomialDist({ params, args, data }) {
+  const { trials, probSuccess } = params;
+  const { s } = args;
+
+  if (s < 0 || s > trials) {
+    return 0;
+  }
+
+  const coefficient = this.binomialCoefficient(trials, s);
+  const probability = coefficient * (probSuccess ** s) * ((1 - probSuccess) ** (trials - s));
+  return probability;
+}
+
+/**
+ * Multinomial Distribution - Generates random samples from a multinomial distribution.
+ * @method multinomialDistribution
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params probabilities: 1D array of probabilities for each category; n: Number of samples to generate
+ * @returns {Object} samples: 2D array of generated samples, where each row represents a sample and each column represents a category
+ * frequencies: 2D array of frequencies for each category in the generated samples
+ * @example
+ * const multinomialData = {
+ *   probabilities: [0.2, 0.3, 0.5],
+ *   n: 100
+ * };
+ * hydro.analyze.stats.multinomialDistribution({ params: multinomialData });
+ */
+static multinomialDistribution({ params, args, data }) {
+  const { probabilities, n } = params;
+
+  const numCategories = probabilities.length;
+  const samples = [];
+  const frequencies = [];
+
+  for (let i = 0; i < n; i++) {
+    const sample = [];
+    const frequency = Array(numCategories).fill(0);
+
+    let remainingProb = 1;
+
+    for (let j = 0; j < numCategories - 1; j++) {
+      const prob = probabilities[j];
+      const rand = Math.random() * remainingProb;
+      const count = Math.floor(rand / prob);
+      sample.push(count);
+      frequency[j] += count;
+      remainingProb -= count * prob;
+    }
+
+    const lastCategoryCount = Math.floor(remainingProb / probabilities[numCategories - 1]);
+    sample.push(lastCategoryCount);
+    frequency[numCategories - 1] += lastCategoryCount;
+
+    samples.push(sample);
+    frequencies.push(frequency);
+  }
+
+  return { samples, frequencies };
+}
+
+
+/** Calculates the probability mass function (PMF) of the Log series Distribution
+   * @method LogSeriesDistribution 
+   * @author riya-patil
+   * @param {Object} params - Contains the parameter 'probSuccess' which represents the probability of success in a single trial.
+   * @param {Object} args - Contains the argument 'trials' (trials >= 1) which represents the number of trials.
+   * @returns {Number} Probability of achieving the first success in # of trials.
+   * @example
+   * hydro.analyze.stats.logSeriesDist({params: {probSuccess: 0.2, trials: 3}})
+   */
+static logSeriesDist({ params, args, data }) {
+  const { probSuccess, trials } = params;
+  
+  if (trials < 1) {
+    return 0;
+  }
+  
+  const pmf = -Math.log(1 - probSuccess) * Math.pow(probSuccess, trials) / trials;
+  return pmf;
+}
+
+ /** Calculates the probability density function (PDF) of the Lognormal Distribution
+   * @method lognormalDist 
+   * @author riya-patil
+   * @param {Object} params - Contains the parameters 'mu' and 'sigma' which represent the mean and standard deviation of the associated normal distribution.
+   * @param {Object} args - Contains the argument 'x' which represents the value at which to evaluate the PDF.
+   * @returns {Number} Probability density at 'x' in the Lognormal Distribution.
+   * @example 
+   * hydro.analyze.stats.lognormalDist({params: { mu: 0, sigma: 1 }, args: { x: 2 }})
+   */
+ static lognormalDist({ params, args, data }) {
+  const { mu, sigma } = params;
+  const { x } = args;
+
+  if (x <= 0) {
+    return 0;
+  }
+
+  const exponent = -((Math.log(x) - mu) ** 2) / (2 * sigma ** 2);
+  const pdf = (1 / (x * sigma * Math.sqrt(2 * Math.PI))) * Math.exp(exponent);
+
+  return pdf;
+}
+
+/** Calculates the probability density function (PDF) of the Gumbel Distribution
+   * @method gumbelDist 
+   * @author riya-patil
+   * @param {Object} params - Contains the parameters 'mu' (location parameter) and 'beta' (scale parameter).
+   * @returns {Number} Probability density at the given value 'x'.
+   * @example
+   * hydro.analyze.stats.gumbelDist({ params: { mu: 0, beta: 1, x: 2}})
+   */
+static gumbelDist({ params, args, data }) {
+  const { mu, beta } = params;
+  const { x } = args;
+  
+  const z = (x - mu) / beta;
+  const pdf = (1 / beta) * Math.exp(-(z + Math.exp(-z)));
+  
+  return pdf;
+}
+
+/** Calculates the probability density function (PDF) of the Uniform Distribution
+   * @method uniformDist 
+   * @author riya-patil
+   * @param {Object} params - Contains the parameters 'a' (lower bound) and 'b' (upper bound).
+   * @param {Object} args - Contains the argument 'x' at which to evaluate the PDF.
+   * @returns {Number} Probability density at the given value 'x'.
+   * @example
+   * hydro.analyze.stats.uniformDist({ params: { a: 0, b: 1 }, args: { x: 0.5 } })
+   */
+static uniformDist({ params, args }) {
+  const { a, b } = params;
+  const { x } = args;
+  
+  if (x >= a && x <= b) {
+    const pdf = 1 / (b - a);
+    return pdf;
+  } else {
+    return 0;
+  }
+}
+
+/** Calculates the Simple Moving Average of a given data set
+   * @method simpleMovingAverage 
+   * @author riya-patil
+   * @param {Object} params - Contains the parameter 'windowSize' which specifies the size of the moving average window.
+   * @param {Object} data - Contains the array of data points.
+   * @returns {Array} Array of moving average values.
+   * @example
+   * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+   * const windowSize = 3;
+   * hydro.analyze.stats.simpleMovingAverage({ params: { windowSize }, data });
+   */
+static simpleMovingAverage({ params, args, data }) {
+  const { windowSize } = params;
+  const { data } = data;
+
+  if (windowSize <= 0 || windowSize > data.length) {
+    throw new Error("Invalid window size.");
+  }
+
+  const movingAverage = [];
+
+  for (let i = 0; i <= data.length - windowSize; i++) {
+    const window = data.slice(i, i + windowSize);
+    const sum = window.reduce((total, value) => total + value, 0);
+    const average = sum / windowSize;
+    movingAverage.push(average);
+  }
+
+  return movingAverage;
+}
+
+/**
+ * Calculates the Linear Moving Average (LMA) of a given dataset.
+ * @method linearMovingAverage
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - Contains the windowSize parameter.
+ * @param {Array} data - 1D array of numerical values.
+ * @returns {Array} Array of moving averages.
+ * @throws {Error} If the window size is invalid.
+ * @example
+ * const windowSize = 5;
+ * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+ * hydro.analyze.stats.linearMovingAverage({ windowSize, data });
+ */
+
+/**
+ * Exponential Moving Average (EMA)- Computes the Exponential Moving Average (EMA) for a given dataset.
+ * @method exponentialMovingAverage
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} args - Contains the dataset as 'data' (1D JavaScript array) and the 'alpha' value (smoothing factor between 0 and 1)
+ * @returns {number[]} The Exponential Moving Average (EMA) values for the dataset
+ * @example
+ * const dataset = [1, 2, 3, 4, 5];
+ * const alpha = 0.5;
+ * hydro.analyze.stats.exponentialMovingAverage({ args: { data: dataset, alpha: alpha } });
+ */
+
+static exponentialMovingAverage({ params, args, data }) {
+  const { data: dataset, alpha } = args;
+  const emaValues = [];
+  let ema = dataset[0];
+
+  for (let i = 1; i < dataset.length; i++) {
+    ema = alpha * dataset[i] + (1 - alpha) * ema;
+    emaValues.push(ema);
+  }
+
+  return emaValues;
+}
+
+/**
+   * Generates a sequence of events representing a Homogeneous Poisson Process
+   * @method homogeneousPoissonProcess
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the rate parameter lambda and the time period T
+   * @returns {Array} Array of event times
+   * @example
+   * hydro.analyze.stats.homogeneousPoissonProcess({params: { lambda: 2, T: 10 }})
+   */
+static homogeneousPoissonProcess({ params, args, data }) {
+  const { lambda, T } = params;
+  const events = [];
+  let t = 0;
+
+  while (t < T) {
+    const rand = Math.random();
+    const interTime = (-1 / lambda) * Math.log(1 - rand);
+    t += interTime;
+    if (t < T) {
+      events.push(t);
+    }
+  }
+
+  return events;
+}
+
+/**
+   * Generates a sequence of events representing a Non-Homogeneous Poisson Process.
+   * @method nonHomogeneousPoissonProcess
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the rate function 'rateFunc' and the time period 'T'.
+   * @returns {Array} Array of event times.
+   * @example
+   * hydro.analyze.stats.nonHomogeneousPoissonProcess({params: { rateFunc: (t) => Math.sin(t), T: 10 }})
+   */
+static nonHomogeneousPoissonProcess({ params }) {
+  const { rateFunc, T } = params;
+  const events = [];
+  let t = 0;
+
+  while (t < T) {
+    const rand1 = Math.random();
+    const rand2 = Math.random();
+    const interTime = (-1 / rateFunc(t)) * Math.log(1 - rand1);
+    t += interTime;
+    if (t < T && rand2 <= rateFunc(t) / rateFunc(T)) {
+      events.push(t);
+    }
+  }
+
+  return events;
+}
+
+/**
+   * Generates random numbers following a Log Pearson Type III distribution.
+   * @method logPearsonTypeIII
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the parameters 'mu' 'sigma' and 'gamma'.
+   * @param {Number} size - Number of random numbers to generate.
+   * @returns {Array} Array of random numbers following the Log Pearson Type III distribution.
+   * @example
+   * hydro.analyze.stats.logPearsonTypeIII({ params: { mu: 1, sigma: 2, gamma: 3 }, args: { size: 100 } })
+   */
+static logPearsonTypeIII({ params, args, data }) {
+  const { mu, sigma, gamma } = params;
+  const { size } = args || 10;
+  const randomNumbers = [];
+
+  for (let i = 0; i < size; i++) {
+    const rand1 = Math.random();
+    const rand2 = Math.random();
+    const x = Math.sqrt(-2 * Math.log(rand1)) * Math.cos(2 * Math.PI * rand2);
+    const y = mu + sigma * (x / Math.sqrt(gamma));
+    const z = Math.exp(y);
+
+    randomNumbers.push(z);
+  }
+
+  return randomNumbers;
+}
+
+ /**
+   * Generates random numbers from within a Box Plot distribution.
+   * @method boxPlotDistribution
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the parameters 'min', 'q1', 'median', 'q3', 'max'.
+   * @param {Object} args - Contains the argument 'size' for the number of random numbers to generate.
+   * @returns {Array} Array of random numbers following the Box Plot Distribution.
+   * @example
+   * hydro.analyze.stats.boxPlotDistribution({ params: { min: 1, q1: 2, median: 3, q3: 4, max: 5 }, args: { size: 100 }, data: [] })
+   */
+ static boxPlotDistribution({ params, args, data }) {
+  const { min, q1, median, q3, max } = params;
+  const { size } = args;
+  const randomNumbers = [];
+
+  for (let i = 0; i < size; i++) {
+    const randNum = Math.random();
+    let value;
+
+    if (randNum < 0.25) {
+      value = min - (q1 - min) * Math.random();
+    } else if (randNum < 0.5) {
+      value = q1 + (median - q1) * Math.random();
+    } else if (randNum < 0.75) {
+      value = median + (q3 - median) * Math.random();
+    } else {
+      value = q3 + (max - q3) * Math.random();
+    }
+
+    randomNumbers.push(value);
+  }
+
+  return randomNumbers;
+}
+
+/**
+ * Mean Squared Error (MSE) Estimation - Computes the Mean Squared Error (MSE) between two datasets
+ * @method meanSquaredError
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} args - Contains the two datasets as 'data1' and 'data2' (1D JavaScript arrays)
+ * @returns {number} The Mean Squared Error (MSE) between the two datasets
+ * @example
+ * const dataset1 = [1, 2, 3, 4, 5];
+ * const dataset2 = [1.5, 2.8, 3.6, 4.2, 4.9];
+ * hydro.analyze.stats.meanSquaredError({ args: { data1: dataset1, data2: dataset2 } });
+ */
+
+static meanSquaredError({ params, args, data }) {
+  const { data1, data2 } = args;
+
+  if (data1.length !== data2.length) {
+    throw new Error('Datasets need to have same length');
+  }
+
+  const n = data1.length;
+  let sum = 0;
+  for (let i = 0; i < n; i++) {
+    const diff = data1[i] - data2[i];
+    sum += diff * diff;
+  }
+
+  const mse = sum / n;
+  return mse;
+}
+
+/**
+ * Return Period - Calculates the return period for a given probability of occurrence.
+ * @method returnPeriod
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - probability: Probability of occurrence (between 0 and 1)
+ * @returns {Number} Return period corresponding to the given probability
+ * @example
+ * const returnPeriodData = {
+ *   probability: 0.1
+ * };
+ * hydro.analyze.stats.returnPeriod({ params: returnPeriodData });
+ */
+static returnPeriod({ params }) {
+  const { probability } = params;
+  if (probability <= 0 || probability >= 1) {
+    throw new Error("Probability must be between 0 and 1 (exclusive).");
+  }
+
+  return 1 / probability;
+}
+
+
+ 
   /***************************/
   /***** Helper functions ****/
   /***************************/
@@ -1408,6 +1832,30 @@ hydro.analyze.stats.normalDistributio
   }
 
   return { autocorrelation, matrix };
+}
+
+/**
+ * Calculates the binomial coefficient (n choose k format)
+ * @method binomialCoefficient - calculates the number of possible combinations of 's' successes in 'trials'
+ * @author riya-patil
+ * @memberof stats
+ * @param {Number} trials - The number of trials
+ * @param {Number} s - The number of successes
+ * @returns {Number} The binomial coefficient (trials choose s)
+ */
+static binomialCoefficient(trials, s) {
+  if (s === 0 || s === trials) {
+    return 1;
+  }
+  if (s > trials) {
+    return 0;
+  }
+  let coefficient = 1;
+  for (let i = 1; i <= s; i++) {
+    coefficient *= (trials - i + 1) / i;
+  }
+
+  return coefficient;
 }
 
   /**********************************/
