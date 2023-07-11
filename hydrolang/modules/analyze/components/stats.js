@@ -1262,8 +1262,6 @@ static multinomialDistribution({ params, args, data }) {
 
   for (let i = 0; i < n; i++) {
     const sample = [];
-    const frequency = Array(numCategories).fill(0);
-
     let remainingProb = 1;
 
     for (let j = 0; j < numCategories - 1; j++) {
@@ -1271,16 +1269,14 @@ static multinomialDistribution({ params, args, data }) {
       const rand = Math.random() * remainingProb;
       const count = Math.floor(rand / prob);
       sample.push(count);
-      frequency[j] += count;
       remainingProb -= count * prob;
     }
 
     const lastCategoryCount = Math.floor(remainingProb / probabilities[numCategories - 1]);
     sample.push(lastCategoryCount);
-    frequency[numCategories - 1] += lastCategoryCount;
 
     samples.push(sample);
-    frequencies.push(frequency);
+    frequencies.push(this.frequency({data : sample}));
   }
 
   return { samples, frequencies };
@@ -1435,20 +1431,21 @@ static linearMovingAverage({ params, args, data }) {
 }
 
 /**
- * Exponential Moving Average (EMA)- Computes the Exponential Moving Average (EMA) for a given dataset.
+ * Computes the Exponential Moving Average (EMA) for a given dataset.
  * @method exponentialMovingAverage
  * @author riya-patil
  * @memberof stats
  * @param {Object} args - Contains the dataset as 'data' (1D JavaScript array) and the 'alpha' value (smoothing factor between 0 and 1)
  * @returns {number[]} The Exponential Moving Average (EMA) values for the dataset
  * @example
- * const dataset = [1, 2, 3, 4, 5];
- * const alpha = 0.5;
- * hydro.analyze.stats.exponentialMovingAverage({ args: { data: dataset, alpha: alpha } });
- */
+ *const dataset= [1,2,3,4,5]
+ *const params={alpha: 0.5}
+ *hydro.analyze.stats.exponentialMovingAverage({params, data});
+*/
 
 static exponentialMovingAverage({ params, args, data }) {
-  const { data: dataset, alpha } = args;
+  const { alpha } = params;
+  const { dataset } = data;
   const emaValues = [];
   let ema = dataset[0];
 
@@ -1461,54 +1458,33 @@ static exponentialMovingAverage({ params, args, data }) {
 }
 
 /**
-   * Generates a sequence of events representing a Homogeneous Poisson Process
-   * @method homogeneousPoissonProcess
-   * @author riya-patil
-   * @memberof stats
-   * @param {Object} params - Contains the rate parameter lambda and the time period T
-   * @returns {Array} Array of event times
-   * @example
-   * hydro.analyze.stats.homogeneousPoissonProcess({params: { lambda: 2, T: 10 }})
-   */
-static homogeneousPoissonProcess({ params, args, data }) {
-  const { lambda, T } = params;
+ * Generates a sequence of events representing a Poisson Process
+ * @method poissonProcess
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params -  Contains the type of Poisson process ('homogeneous' or 'nonhomogeneous') and the time period 'T'.
+ * @param {Object} args - Additional arguments depending on the type of Poisson process.
+ * @returns {Array} Array of event times.
+ * @example
+ * hydro.analyze.stats.poissonProcess({ params: { type: 'homogeneous', T: 10 }, args: { lambda: 2 } });
+ * hydro.analyze.stats.poissonProcess({ params: { type: 'nonhomogeneous', T: 10 }, args: { rateFunction: (t) => Math.sin(t) } });
+ */
+static poissonProcess({ params, args, data }) {
+  const { type = 'homogeneous', T } = params;
+  const { lambda, rateFunction } = args;
+
   const events = [];
   let t = 0;
 
   while (t < T) {
     const rand = Math.random();
-    const interTime = (-1 / lambda) * Math.log(1 - rand);
+    const interTime = (type === 'homogeneous' ? -1 / lambda : -1 / rateFunction(t)) * Math.log(1 - rand);
     t += interTime;
+
     if (t < T) {
-      events.push(t);
-    }
-  }
-
-  return events;
-}
-
-/**
-   * Generates a sequence of events representing a Non-Homogeneous Poisson Process.
-   * @method nonHomogeneousPoissonProcess
-   * @author riya-patil
-   * @memberof stats
-   * @param {Object} params - Contains the rate function 'rateFunc' and the time period 'T'.
-   * @returns {Array} Array of event times.
-   * @example
-   * hydro.analyze.stats.nonHomogeneousPoissonProcess({params: { rateFunc: (t) => Math.sin(t), T: 10 }})
-   */
-static nonHomogeneousPoissonProcess({ params }) {
-  const { rateFunc, T } = params;
-  const events = [];
-  let t = 0;
-
-  while (t < T) {
-    const rand1 = Math.random();
-    const rand2 = Math.random();
-    const interTime = (-1 / rateFunc(t)) * Math.log(1 - rand1);
-    t += interTime;
-    if (t < T && rand2 <= rateFunc(t) / rateFunc(T)) {
-      events.push(t);
+      if (type === 'homogeneous' || Math.random() <= rateFunction(t) / rateFunction(T)) {
+        events.push(t);
+      }
     }
   }
 
@@ -1553,7 +1529,7 @@ static logPearsonTypeIII({ params, args, data }) {
    * @param {Object} args - Contains the argument 'size' for the number of random numbers to generate.
    * @returns {Array} Array of random numbers following the Box Plot Distribution.
    * @example
-   * hydro.analyze.stats.boxPlotDistribution({ params: { min: 1, q1: 2, median: 3, q3: 4, max: 5 }, args: { size: 100 }, data: [] })
+   * hydro.analyze.stats.boxPlotDistribution({ params: { min: 1, q1: 2, median: 3, q3: 4, max: 5 }, args: { size: 100 }})
    */
  static boxPlotDistribution({ params, args, data }) {
   const { min, q1, median, q3, max } = params;
@@ -1590,11 +1566,11 @@ static logPearsonTypeIII({ params, args, data }) {
  * @example
  * const dataset1 = [1, 2, 3, 4, 5];
  * const dataset2 = [1.5, 2.8, 3.6, 4.2, 4.9];
- * hydro.analyze.stats.meanSquaredError({ args: { data1: dataset1, data2: dataset2 } });
+ * hydro.analyze.stats.meanSquaredError({ data: { data1: dataset1, data2: dataset2 } });
  */
 
 static meanSquaredError({ params, args, data }) {
-  const { data1, data2 } = args;
+  const { data1, data2 } = data;
 
   if (data1.length !== data2.length) {
     throw new Error('Datasets need to have same length');
