@@ -1382,7 +1382,6 @@ static uniformDist({ params, args }) {
    */
 static simpleMovingAverage({ params, args, data }) {
   const { windowSize } = params;
-  const { data } = data;
 
   if (windowSize <= 0 || windowSize > data.length) {
     throw new Error("Invalid window size.");
@@ -1414,6 +1413,26 @@ static simpleMovingAverage({ params, args, data }) {
  * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
  * hydro.analyze.stats.linearMovingAverage({ windowSize, data });
  */
+static linearMovingAverage({ params, args, data }) {
+  const { windowSize } = params;
+
+  if (windowSize <= 0 || windowSize > data.length) {
+    throw new Error("Invalid window size.");
+  }
+
+  const movingAverage = [];
+
+  for (let i = 0; i <= data.length - windowSize; i++) {
+    const window = data.slice(i, i + windowSize);
+    const weights = Array.from({ length: windowSize }, (_, index) => index + 1);
+    const weightedSum = window.reduce((total, value, index) => total + value * weights[index], 0);
+    const sumOfWeights = weights.reduce((total, weight) => total + weight, 0);
+    const average = weightedSum / sumOfWeights;
+    movingAverage.push(average);
+  }
+
+  return movingAverage;
+}
 
 /**
  * Exponential Moving Average (EMA)- Computes the Exponential Moving Average (EMA) for a given dataset.
@@ -1605,7 +1624,7 @@ static meanSquaredError({ params, args, data }) {
  * };
  * hydro.analyze.stats.returnPeriod({ params: returnPeriodData });
  */
-static returnPeriod({ params }) {
+static returnPeriod({ params, args, data }) {
   const { probability } = params;
   if (probability <= 0 || probability >= 1) {
     throw new Error("Probability must be between 0 and 1 (exclusive).");
@@ -1614,6 +1633,111 @@ static returnPeriod({ params }) {
   return 1 / probability;
 }
 
+/**
+ * Performs differencing on a given time series.
+ * @method differencing
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - Contains the order parameter
+ * @param {Array} data - 1D array of numerical values representing a time series
+ * @returns {Array} Differenced time series
+ * @throws {Error} If the order is invalid
+ * @example
+ * const order = 1;
+ * const timeSeries = [1, 3, 6, 10, 15];
+ * const differencedSeries = stats.differencing({ order, data: timeSeries });
+ */
+static differencing({ params, args, data }) {
+  const order = params.order;
+  const timeSeries = data;
+
+  if (order >= timeSeries.length) {
+    throw new Error('Invalid order for differencing.');
+  }
+
+  const differencedSeries = [];
+  for (let i = order; i < timeSeries.length; i++) {
+    const difference = timeSeries[i] - timeSeries[i - order];
+    differencedSeries.push(difference);
+  }
+
+  return differencedSeries;
+}
+
+/**
+ * Computes the variance of residuals to detect heteroskedasticity.
+ * @method heteroskedasticity
+ * @author riya-patil
+ * @memberof stats
+ * @param {Array} data - 1D array of numerical values representing the residuals.
+ * @returns {number} Variance of residuals
+ * @example
+ * const residuals = [1.5, -2.1, 0.8, -1.2, 2.5];
+ * const variance = stats.heteroskedasticity({ data: residuals });
+ */
+static heteroskedasticity({ params, args, data }) {
+  const residuals = data;
+
+  const squaredResiduals = residuals.map((residual) => residual * residual);
+  const variance = squaredResiduals.reduce((sum, value) => sum + value, 0) / squaredResiduals.length;
+
+  return variance;
+}
+
+/**
+ * Computes the coefficients of a linear regression model.
+ * @method regression
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} data - Object containing predictor variables (X) and target variable (y).
+ * @returns {Array} Coefficients of the linear regression model.
+ * @example
+ * const X = [[1, 2], [3, 4], [5, 6]];
+ * const y = [3, 5, 7];
+ * hydro.analyze.stats.regression({ data: { X, y } });
+ */
+static regression({ params, args, data }) {
+  const X = data.X; // Matrix of predictor variables
+  const y = data.y; // Array of target variable
+
+  const XWithIntercept = X.map((row) => [1, ...row]);
+
+  const Xint = multiplyMatrix(transposeMatrix(XWithIntercept), XWithIntercept);
+  const Yint = multiplyMatrix(transposeMatrix(XWithIntercept), y);
+
+  const inverseXtX = matrixInverse(Xint);
+
+  const coefficients = multiplyMatrix(inverseXtX, Yint);
+
+  return coefficients;
+}
+
+/**
+ * Performs multivariate regression analysis
+ * @method multiregression
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} data - Data for the multivariate regression
+ * @returns {Array} Coefficients of the linear regression model.
+ * @example
+ * const X = [[1, 2], [3, 4], [5, 6]];
+ * const y = [3, 5, 7];
+ * hydro.analyze.stats.multiregression({ data: { X, y } });
+ */
+static multiregression({ params, args, data }) {
+  const X = data.X; // Matrix of predictor variables
+  const Y = data.Y; // Array of target variables
+
+  const coefficients = [];
+  for (let i = 0; i < Y.length; i++) {
+    const y = Y[i];
+    const regressionData = { X, y };
+    const coefficient = this.regression({ data: regressionData });
+    coefficients.push(coefficient);
+  }
+
+  return coefficients;
+}
 
  
   /***************************/
@@ -1857,6 +1981,114 @@ static binomialCoefficient(trials, s) {
   }
 
   return coefficient;
+}
+
+/**
+ * Multiplies two matrices
+ * @method multipleMatrix
+ * @author riya-patil
+ * @memberof stats
+ * @param {Array} matrix1 - First matrix
+ * @param {Array} matrix2 - Second matrix
+ * @returns {Array} Result of matrix multiplication
+ * @example
+ * const matrix1 = [[1, 2], [3, 4]];
+ * const matrix2 = [[5, 6], [7, 8]];
+ * hydro.analyze.stats.multiplyMatrix(matrix1, matrix2)
+ */
+static multiplyMatrix(matrix1, matrix2) {
+  const m1Rows = matrix1.length;
+  const m1Cols = matrix1[0].length;
+  const m2Cols = matrix2[0].length;
+  const result = [];
+
+  for (let i = 0; i < m1Rows; i++) {
+    result[i] = [];
+    for (let j = 0; j < m2Cols; j++) {
+      let sum = 0;
+      for (let k = 0; k < m1Cols; k++) {
+        sum += matrix1[i][k] * matrix2[k][j];
+      }
+      result[i][j] = sum;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Transposes a matrix
+ * @method transposeMatrix
+ * @author riya-patil
+ * @memberof stats
+ * @param {Array} matrix - Matrix to transpose
+ * @returns {Array} Transposed matrix
+ * @example
+ * const matrix = [[1, 2, 3], [4, 5, 6]];
+ * hydro.analyze.stats.transposeMatrix(matrix)
+ */
+static transposeMatrix(matrix) {
+  const rows = matrix.length;
+  const cols = matrix[0].length;
+  const transposed = [];
+
+  for (let j = 0; j < cols; j++) {
+    transposed[j] = [];
+    for (let i = 0; i < rows; i++) {
+      transposed[j][i] = matrix[i][j];
+    }
+  }
+
+  return transposed;
+}
+
+/**
+ * Computes the inverse of a matrix
+ * @method matrixInverse
+ * @author riya-patil
+ * @memberof stats
+ * @param {Array} matrix - Matrix to compute inverse of
+ * @returns {Array} Inverse of the matrix
+ * @example
+ * const matrix = [[1, 2, 3], [4, 5, 6]];
+ * hydro.analyze.stats.matrixInverse(matrix)
+ */
+
+static matrixInverse(matrix) {
+  const n = matrix.length;
+  const inv = [];
+  const inversed = [];
+
+  for (let i = 0; i < n; i++) {
+    inversed[i] = [];
+    inv[i] = [];
+    for (let j = 0; j < n; j++) {
+      inversed[i][j] = i === j ? 1 : 0;
+      inv[i][j] = matrix[i][j];
+    }
+  }
+
+  for (let k = 0; k < n; k++) {
+    const pivot = inv[k][k]; //elimatination to obtain inversed matrix
+
+    for (let j = 0; j < n; j++) {
+      inv[k][j] /= pivot;
+      inversed[k][j] /= pivot;
+    }
+    //row operations to eliminate other elements
+    for (let i = 0; i < n; i++) {
+      if (i !== k) {
+        const factor = inv[i][k];
+
+        for (let j = 0; j < n; j++) {
+          inv[i][j] -= factor * inv[k][j];
+          inversed[i][j] -= factor * inversed[k][j];
+        }
+      }
+    }
+  }
+
+  return inversed;
 }
 
   /**********************************/
