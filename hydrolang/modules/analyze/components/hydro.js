@@ -937,6 +937,189 @@ export default class hydro {
     }
   }
 
+  /**
+ * Calculates evapotranspiration using the Penman-Monteith equation.
+ * @method penmanMonteith
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params netRadiation (net radiation in MJ/m^2/day), temperature (air temperature in °C),
+ * windSpeed (wind speed at 2m height in m/s), saturationVaporPressure (saturation vapor pressure in kPa),
+ * actualVaporPressure (actual vapor pressure in kPa)
+ * @returns {Number} Evapotranspiration in mm/day
+ * @example
+ * hydro.analyze.hydro.penmanMonteith({params: {netRadiation: 10, temperature: 25, windSpeed: 2, saturationVaporPressure: 2,
+ *                                               actualVaporPressure: 1, airPressure: 101.3, psychrometricConstant: 0.065}})
+ */
+static penmanMonteith({ params, args, data }) {
+  const { netRadiation, temperature, windSpeed, saturationVaporPressure, actualVaporPressure, airPressure, psychrometricConstant } = params;
+
+  const lambda = 2.45; // heat of vaporization (MJ/kg)
+  const rho = 0.065; // Psychrometric constant (kPa/°C)
+
+  const numerator = (0.408 * netRadiation + 0.063 * 900 * (temperature + 273) * windSpeed * (saturationVaporPressure - actualVaporPressure));
+  const denominator = lambda * (0.408 * (netRadiation - 0) + rho * (900 / (temperature + 273)) * windSpeed * (saturationVaporPressure - actualVaporPressure));
+  const evapotranspiration = (numerator / denominator) * 1000; // Convert from m/day to mm/day
+
+  return evapotranspiration;
+}
+
+/**
+ * Calculates evapotranspiration using the Hargreaves method.
+ * @method hargreaves
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params - Contains: temperature (mean daily air temperature in °C), temperatureMax (maximum daily air temperature in °C),
+ * temperatureMin (minimum daily air temperature in °C), latitude (latitude in decimal degrees)
+ * @returns {Number} Evapotranspiration in mm/day.
+ * @example
+ * hydro.analyze.hydro.hargreaves({params: {temperature: 25, temperatureMax: 30, temperatureMin: 20, latitude: 40}})
+ */
+static hargreaves({ params, args, data }) {
+  const { temperature, temperatureMax, temperatureMin, latitude } = params;
+
+  const Ra = 4.903 * Math.pow(10, -9); // Extraterrestrial radiation constant (MJ/(m^2 * min * °C))
+  const dr = 1 + 0.033 * Math.cos((2 * Math.PI / 365) * julianDay); // Inverse relative distance Earth-Sun
+  const delta = 0.409 * Math.sin((2 * Math.PI / 365) * julianDay - 1.39); // Solar declination angle
+
+  const TmaxK = temperatureMax + 273; // Convert to Kelvin
+  const TminK = temperatureMin + 273;
+  const RaTmax = (24 * 60 / Math.PI) * Ra * dr * (TmaxK + TminK) * (Math.sin((latitude * Math.PI) / 180) * Math.sin(delta) + Math.cos((latitude * Math.PI) / 180) * Math.cos(delta) * Math.sin(0)); // MJ/m^2/day
+  const Rs = 0.16 * RaTmax; // Convert to MJ/m^2/day
+
+  const evapotranspiration = 0.0023 * (temperature + 17.8) * Math.sqrt(temperatureMax - temperatureMin) * Rs;
+
+  return evapotranspiration;
+}
+
+/**
+ * Calculates evapotranspiration using the Thornthwaite method
+ * @method thornthwaite
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params - Contains: temperature (mean monthly air temperature in °C), 
+ * latitude (latitude in decimal degrees), monthDays (number of days in each month)
+ * @returns {Number[]} Evapotranspiration in mm/day for each month
+ * @example
+ * hydro.analyze.hydro.thornthwaite({params: {temperature: [10, 15, 20, ...], latitude: 40, monthDays: [31, 28, 31, ...]}})
+ */
+static thornthwaite({ params, args, data }) {
+  const { temperature, latitude, monthDays } = params;
+
+  // Calculate heat index (HI) for each month
+  const hiValues = temperature.map((t) => {
+    const hi = (t / 5) ** 1.514;
+    return hi > 0 ? hi : 0;
+  });
+
+  const petValues = hiValues.map((hi, i) => {
+    const monthDaysValue = monthDays[i];
+    const pet = (0.6 * (latitude / 5) * Math.pow(10, (0.514 * hi))) * monthDaysValue;
+    return pet;
+  });
+
+  return petValues;
+}
+
+/**
+ * Calculates evapotranspiration using the Blaney-Criddle method.
+ * @method blaneyCriddle
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params - Contains: temperature (mean monthly air temperature in °C),
+ * @returns {Number[]} Evapotranspiration in mm/day for each month.
+ * @example
+ * hydro.analyze.hydro.blaneyCriddle({params: {temperature: [10, 15, 20, ...], monthDays: [31, 28, 31, ...]}})
+ */
+static blaneyCriddle({ params, args, data }) {
+  const { temperature, monthDays } = params;
+
+  // Calculate monthly potential evapotranspiration (PET) using Blaney-Criddle equation
+  const petValues = temperature.map((t, i) => {
+    const monthDaysValue = monthDays[i];
+    const pet = (0.02 * (t + 17.8)) * monthDaysValue;
+    return pet;
+  });
+
+  return petValues;
+}
+
+/**
+ * Calculates evapotranspiration using the Priestley-Taylor method
+ * @method priestleyTaylor
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params - Contains the required parameters
+ * @returns {Number} Evapotranspiration in mm/day
+ * @example
+ * hydro.analyze.hydro.evapotranspirationPriestleyTaylor({params: {netRadiation: someNum, latentHeatFlux: someNum}})
+ */
+static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
+  const { netRadiation, latentHeatFlux } = params;
+
+  // Calculate potential evapotranspiration using Priestley-Taylor method
+  const evapotranspiration = 1.26 * (netRadiation / latentHeatFlux);
+
+  return evapotranspiration;
+}
+
+/**
+   * Calculates infiltration using the Green-Ampt model
+   * @method greenAmpt
+   * @author riya-patil
+   * @memberof hydro
+   * @param {Object} params - Contains: Ks (saturated hydraulic conductivity [L/T]), psi (soil suction head [L]), theta_i (initial soil moisture content [L^3/L^3]), theta_s (saturated soil moisture content [L^3/L^3]), t (time [T])
+   * @returns {Number} Infiltration rate [L/T]
+   * @example
+   * hydro.analyze.hydro.greenAmpt({params: {Ks: someNum, psi: someNum, theta_i: someNum, theta_s: someNum, t: someNum}})
+   */
+  static greenAmpt({ params, args, data }) {
+    var Ks = params.Ks,
+      psi = params.psi,
+      theta_i = params.theta_i,
+      theta_s = params.theta_s,
+      t = params.t;
+
+    var theta = theta_s - (theta_s - theta_i) * Math.exp((-Ks * t) / (psi * theta_s));
+
+    return (theta_s - theta) / t;
+  }
+
+  /**
+   * Calculates infiltration using the Horton model.
+   * @method horton
+   * @author riya-patil
+   * @memberof hydro
+   * @param {Object} params - Contains: Ks (saturated hydraulic conductivity [L/T]), fc (field capacity [L^3/L^3]), t (time [T])
+   * @returns {Number} Infiltration rate [L/T]
+   * @example
+   * hydro.analyze.infiltration.horton({params: {Ks: someNum, fc: someNum, t: someNum}})
+   */
+  static horton ({ params }) {
+    var Ks = params.Ks,
+      fc = params.fc,
+      t = params.t;
+
+    return Ks * Math.pow((1 - (fc / Ks)), t);
+  }
+
+  /**
+   * Calculates infiltration using the Philip model.
+   * @method philip
+   * @author riya-patil
+   * @memberof hydro
+   * @param {Object} params - Contains: K (hydraulic conductivity [L/T]), S (suction head [L]), t (time [T])
+   * @returns {Number} Infiltration rate [L/T]
+   * @example
+   * hydro.analyze.infiltration.philip({params: {K: someNum, S: someNum, t: someNum}})
+   */
+  static philip ({ params }) {
+    var K = params.K,
+      S = params.S,
+      t = params.t;
+
+    return (K * t) / (S + Math.sqrt(S * t));
+  }
+
   /***************************/
   /***** Helper functions ****/
   /***************************/
