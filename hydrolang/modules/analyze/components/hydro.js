@@ -1051,7 +1051,7 @@ static blaneyCriddle({ params, args, data }) {
  * @param {Object} params - Contains the required parameters
  * @returns {Number} Evapotranspiration in mm/day
  * @example
- * hydro.analyze.hydro.evapotranspirationPriestleyTaylor({params: {netRadiation: someNum, latentHeatFlux: someNum}})
+ * hydro.analyze.hydro.evapotranspirationPriestleyTaylor({params: {netRadiation: 3, latentHeatFlux: 3}})
  */
 static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
   const { netRadiation, latentHeatFlux } = params;
@@ -1119,6 +1119,250 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
 
     return (K * t) / (S + Math.sqrt(S * t));
   }
+
+  /**
+   * Muskingum-Cunge method for flood routing
+   * @method muskingumCunge
+   * @author riya-patil
+   * @memberof hydro
+   * @param {Object} params - Parameters for the Muskingum-Cunge method
+   * @param {Object[]} data - Array of input hydrograph data
+   * @returns {Object[]} Array of routed hydrograph data
+   * @example
+   * const inflowData = [100, 200, 300, 400, 500];
+   * const initialStorage = 0;
+   * const params = {K: 0.4, X: 0.2, Dt: 1};
+   * hydro.analyze.hydro.muskingumCungemuskingumCunge({ params, data: { inflow: inflowData, initialStorage } });
+   */
+  static muskingumCunge({ params, args, data } = {}) {
+    const { K, X, Dt } = params;
+    const { inflow, initialStorage } = data;
+  
+    const outflow = [];
+    let storage = initialStorage;
+  
+    for (let i = 0; i < inflow.length; i++) {
+      const prevStorage = storage;
+      const inflowComponent = K * inflow[i];
+      const outflowComponent = K * (inflow[i] + X * (inflowComponent - inflow[i]) + X * (prevStorage - inflowComponent));
+  
+      storage = prevStorage + (inflowComponent - outflowComponent) * Dt;
+      outflow.push(outflowComponent);
+    }
+  
+    return outflow;
+  }
+
+  /**
+ * Lag and Route method for flood routing introducing a time delay
+ * @method lagAndRoute
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params - Parameters for the Lag and Route method
+ * @param {Object} data - Input data for the Lag and Route method
+ * @returns {number[]} Outflow data after routing using the Lag and Route method.
+ * @example
+ * const inflowData = [100, 200, 300, 400, 500];
+ * const lagTime = 2;
+ * const routingCoefficients = [0.2, 0.3, 0.5];
+ * hydro.analyze.hydro.lagAndRoute({ params: {lagTime, routingCoefficients} }, data: { inflow: inflowData }});
+ */
+  static lagAndRoute({ params, args, data } = {}) {
+    const { lagTime, routingCoefficients } = params;
+    const { inflow } = data;
+  
+    const outflow = [];
+    const storage = new Array(routingCoefficients.length).fill(0);
+  
+    for (let i = 0; i < inflow.length; i++) {
+      let sum = 0;
+  
+      for (let j = 0; j < routingCoefficients.length; j++) {
+        const index = i - j;
+  
+        if (index >= 0) {
+          sum += routingCoefficients[j] * inflow[index];
+        }
+      }
+  
+      const outflowComponent = sum / (1 + lagTime);
+      outflow.push(outflowComponent);
+  
+      for (let j = storage.length - 1; j >= 1; j--) {
+        storage[j] = storage[j - 1];
+      }
+  
+      storage[0] = inflow[i] - outflowComponent;
+    }
+  
+    return outflow;
+  }
+  
+  /**
+ * Calculates the outflow using the Time-Area method for routing.
+ * @method timeAreaMethod
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params - Parameters for the Time-Area method.
+ * @param {Object} data - Data required for the Time-Area method.
+ * @returns {number[]} Array of outflow values
+ * @throws {Error} If the inflow and areas arrays have different lengths
+ * @example
+ * const inflowData = [100, 200, 300, 400];
+ * const areaData = [1000, 1500, 2000, 2500];
+ * const params = {
+ *   intervals: [1, 2, 3, 4]
+ * };
+ * hydro.analyze.hydro.timeAreaMethod({ params, data: { inflow: inflowData, areas: areaData } });
+ */
+static timeAreaMethod({ params, args, data } = {}) {
+  const { intervals } = params;
+  const { inflow, areas } = data;
+
+  if (inflow.length !== areas.length) {
+    throw new Error('Inflow and areas arrays must have the same length');
+  }
+
+  const outflow = [];
+  let previousOutflow = 0;
+
+  for (let i = 0; i < inflow.length; i++) {
+    const timeIncrement = intervals[i];
+    const incrementArea = areas[i];
+
+    const incrementOutflow = inflow[i] * timeIncrement * incrementArea;
+    const totalOutflow = previousOutflow + incrementOutflow;
+
+    outflow.push(totalOutflow);
+    previousOutflow = totalOutflow;
+  }
+
+  return outflow;
+}
+
+/**
+ * Performs routing of a hydrological process using the Kinematic Wave Routing method
+ * @method kinematicWaveRouting
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params - Parameters for the Kinematic Wave Routing method: travel time coefficient, 
+ * Length of the reach, Time step
+ * @param {Object} data - Input data for the routing
+ * @returns {number[]} - Array of outflow values at each time step.
+ * @example
+const params = {
+    C: 0.6,
+    L: 1000,
+    dt: 1
+  };
+const data = {
+  inflow: [10, 15, 20, 18, 12],
+  initialDepth: 0
+};
+hydro.analyze.hydro.kinematicWaveRouting({ params, data });
+ */
+static kinematicWaveRouting({ params, args, data }= {}) {
+  const { C, L, dt } = params;
+  const { inflow, initialDepth } = data;
+
+  const outflow = [];
+  let depth = initialDepth;
+
+  for (let i = 0; i < inflow.length; i++) {
+    const inflowRate = inflow[i] / dt;
+    const outflowRate = Math.min(inflowRate, C * Math.sqrt(depth / L));
+    const outflow = outflowRate * dt;
+
+    depth = depth + (inflowRate - outflowRate) * dt;
+    outflow.push(outflow);
+  }
+
+  return outflow;
+}
+
+/**
+   * Calculate groundwater flow using Darcy's law for unconfined aquifers
+   * @method darcysLawUnconfined
+   * @author riya-patil
+   * @memberof hydro
+   * @param {Object} params - Contains: hydraulicConductivity, hydraulicGradient, aquiferThickness
+   * @returns {number} Groundwater flow rate in unconfined aquifers
+   * @example
+   * const unconfinedParams = {
+      hydraulicConductivity: 10,     
+      hydraulicGradient: 0.05,
+     aquiferThickness: 20 
+    };
+    hydro.analyze.hydro.darceysLawUnconfined({params: unconfinedParams})
+   */
+static darcysLawUnconfined({ params, args, data }) {
+  const { hydraulicConductivity, hydraulicGradient, aquiferThickness } = params;
+
+  const groundwaterFlow = hydraulicConductivity * hydraulicGradient * aquiferThickness;
+  return groundwaterFlow;
+}
+
+/**
+   * Calculate groundwater flow using Darcy's law for confined aquifers
+   * @method darcysLawConfined
+   * @author riya-patil
+   * @memberof hydro
+   * @param {Object} params - Contains: transmissivity, hydraulicGradient
+   * @returns {number} Groundwater flow rate in confined aquifers
+   * @example
+   * const confinedParams = {transmissivity: 200, hydraulicGradient: 0.03};
+   * hydro.analyze.hydro.darceysLawConfined({params: confinedParams})
+   */
+static darcysLawConfined({ params, args, data }) {
+  const { transmissivity, hydraulicGradient } = params;
+
+  const groundwaterFlow = transmissivity * hydraulicGradient;
+  return groundwaterFlow;
+}
+
+/**
+ * Calculate groundwater flow using Darcy's law for dynamic systems
+ * @method darcysLawDynamic
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params - Contains: hydraulicConductivity, hydraulicGradient, aquiferThickness,
+ * storageCoefficient, changeInAquiferThickness
+ * @returns {number} Groundwater flow rate in dynamic systems
+ * @example
+ * const dynamicParams = {hydraulicConductivity: 8, hydraulicGradient: 0.02, aquiferThickness: 15, 
+ storageCoefficient: 0.2,changeInAquiferThickness: -1};
+hydro.analyze.hydro.darceysLawDynamic({params: dynamicParams})
+ */
+static darcysLawDynamic({ params, args, data }) {
+  const { hydraulicConductivity, hydraulicGradient, aquiferThickness, storageCoefficient, changeInAquiferThickness } = params;
+
+  const groundwaterFlow = hydraulicConductivity * hydraulicGradient * aquiferThickness + storageCoefficient * changeInAquiferThickness;
+  return groundwaterFlow;
+}
+
+/**
+ * Calculates the dissolved oxygen demand based on the given parameters and data.
+ * @method dissolvedOxygenDemand
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params - The parameters required for the calculation
+ * @param {Object} data - The relevant data for the calculation
+ * @returns {number} The dissolved oxygen demand
+ * @example
+ * const params = {temperature: 20, biochemicalOxygenDemand: 5 };
+ * const data = {salinity: 0.5, organicMatter: 10 };
+ * hydro.analyze.hydro.dissolvedOxygenDemand({params, data})
+ */
+static dissolvedOxygenDemand({ params, args, data } = {}) {
+  const { temperature, biochemicalOxygenDemand } = params;
+  const { salinity, organicMatter } = data;
+
+  // Calculate dissolved oxygen demand
+  const oxygenDemand = 1.5 * biochemicalOxygenDemand * (1 + (0.02 * temperature) - (0.03 * salinity)) * organicMatter;
+
+  return oxygenDemand;
+}
+
 
   /***************************/
   /***** Helper functions ****/
@@ -1253,6 +1497,22 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
       vec_left[k] = vec_left[k] / matrix[k][k];
     }
   }
+
+  /**
+ * Calculate the pH value based on the concentration of hydrogen ions (H+)
+ * @method calculatepH
+ * @author riya-patil
+ * @param {Object} params - The parameters for pH calculation
+ * @returns {number} The pH value
+ * @example
+ * const params = { hConcentration: 1e-7 };
+ * hydro.analyze.hydro.calculatepH({params})
+ */
+static calculatepH({ params, args, data }) {
+  const { hConcentration } = params;
+  const pH = -Math.log10(hConcentration);
+  return pH;
+}
 
   /**********************************/
   /*** End of Helper functions **/
