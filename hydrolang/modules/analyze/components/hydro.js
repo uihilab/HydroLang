@@ -938,7 +938,8 @@ export default class hydro {
   }
 
   /**
- * Calculates evapotranspiration using the Penman-Monteith equation.
+ * Calculates evapotranspiration using the Penman-Monteith equation
+ * Reference: https://www.fao.org/3/X0490E/x0490e06.htm
  * @method penmanMonteith
  * @author riya-patil
  * @memberof hydro
@@ -964,7 +965,9 @@ static penmanMonteith({ params, args, data }) {
 }
 
 /**
- * Calculates evapotranspiration using the Hargreaves method.
+ * Calculates evapotranspiration using the Hargreaves method
+ * Reference: https://globalchange.mit.edu/publication/15554#:~:text=The%20Hargreaves
+ * %20and%20Modified%20Hargeaves,the%20Modified%20Penman%2DMonteith%20approach.
  * @method hargreaves
  * @author riya-patil
  * @memberof hydro
@@ -993,6 +996,8 @@ static hargreaves({ params, args, data }) {
 
 /**
  * Calculates evapotranspiration using the Thornthwaite method
+ * Reference: https://wikifire.wsl.ch/tiki-indexf125.html?page=Potential+evapotranspiration#:~:text=
+ * The%20Thornthwaite%20equation%20is%20a,Thornthwaite%20%26%20Mather%20(1957).
  * @method thornthwaite
  * @author riya-patil
  * @memberof hydro
@@ -1021,7 +1026,8 @@ static thornthwaite({ params, args, data }) {
 }
 
 /**
- * Calculates evapotranspiration using the Blaney-Criddle method.
+ * Calculates evapotranspiration using the Blaney-Criddle method
+ * Reference: https://legacy.azdeq.gov/environ/water/permits/download/blaney.pdf
  * @method blaneyCriddle
  * @author riya-patil
  * @memberof hydro
@@ -1045,6 +1051,7 @@ static blaneyCriddle({ params, args, data }) {
 
 /**
  * Calculates evapotranspiration using the Priestley-Taylor method
+ * Reference: https://wetlandscapes.github.io/blog/blog/penman-monteith-and-priestley-taylor/
  * @method priestleyTaylor
  * @author riya-patil
  * @memberof hydro
@@ -1064,6 +1071,8 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
 
 /**
    * Calculates infiltration using the Green-Ampt model
+   * Reference: https://www.hec.usace.army.mil/confluence/rasdocs/ras1dtechref/6.1/
+   * overview-of-optional-capabilities/modeling-precipitation-and-infiltration/green-ampt
    * @method greenAmpt
    * @author riya-patil
    * @memberof hydro
@@ -1085,7 +1094,8 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
   }
 
   /**
-   * Calculates infiltration using the Horton model.
+   * Calculates infiltration using the Horton model
+   * Reference: https://www.egr.msu.edu/classes/ce421/lishug/text%20book.pdf
    * @method horton
    * @author riya-patil
    * @memberof hydro
@@ -1103,7 +1113,8 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
   }
 
   /**
-   * Calculates infiltration using the Philip model.
+   * Calculates infiltration using the Philip model
+   * Reference: https://www.iuss.org/19th%20WCSS/Symposium/pdf/2266.pdf
    * @method philip
    * @author riya-patil
    * @memberof hydro
@@ -1122,6 +1133,7 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
 
   /**
    * Muskingum-Cunge method for flood routing
+   * Reference: https://ponce.sdsu.edu/muskingum_cunge_method_explained.html
    * @method muskingumCunge
    * @author riya-patil
    * @memberof hydro
@@ -1155,6 +1167,8 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
 
   /**
  * Lag and Route method for flood routing introducing a time delay
+ * Reference: https://download.comet.ucar.edu/memory-stick/hydro/
+ * basic_int/routing/navmenu.php_tab_1_page_7.2.0.htm
  * @method lagAndRoute
  * @author riya-patil
  * @memberof hydro
@@ -1199,7 +1213,9 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
   }
   
   /**
- * Calculates the outflow using the Time-Area method for routing.
+ * Calculates the outflow using the Time-Area method for routing
+ * Reference: https://ton.sdsu.edu/protected29/cive445_ponce_chapter10b_lecture.html
+ * #:~:text=The%20time%2Darea%20method%20leads,effective%20rainfall%20duration%20tr
  * @method timeAreaMethod
  * @author riya-patil
  * @memberof hydro
@@ -1242,6 +1258,7 @@ static timeAreaMethod({ params, args, data } = {}) {
 
 /**
  * Performs routing of a hydrological process using the Kinematic Wave Routing method
+ * Reference: https://www.engr.colostate.edu/~ramirez/ce_old/classes/cive322-Ramirez/CE322_Web/ExampleKinematicWave.pdf
  * @method kinematicWaveRouting
  * @author riya-patil
  * @memberof hydro
@@ -1282,6 +1299,8 @@ static kinematicWaveRouting({ params, args, data }= {}) {
 
 /**
    * Calculate groundwater flow using Darcy's law for unconfined aquifers
+   * Reference: https://books.gw-project.org/hydrogeologic-properties-of-
+   * earth-materials-and-principles-of-groundwater-flow/chapter/darcys-law/
    * @method darcysLawUnconfined
    * @author riya-patil
    * @memberof hydro
@@ -1304,6 +1323,8 @@ static darcysLawUnconfined({ params, args, data }) {
 
 /**
    * Calculate groundwater flow using Darcy's law for confined aquifers
+   * Reference: https://books.gw-project.org/hydrogeologic-properties-of-earth-materials
+   * -and-principles-of-groundwater-flow/chapter/darcys-law/
    * @method darcysLawConfined
    * @author riya-patil
    * @memberof hydro
@@ -1341,7 +1362,8 @@ static darcysLawDynamic({ params, args, data }) {
 }
 
 /**
- * Calculates the dissolved oxygen demand based on the given parameters and data.
+ * Calculates the dissolved oxygen demand based on the given parameters and data
+ * Reference: https://archive.epa.gov/water/archive/web/html/vms52.html
  * @method dissolvedOxygenDemand
  * @author riya-patil
  * @memberof hydro
@@ -1361,6 +1383,217 @@ static dissolvedOxygenDemand({ params, args, data } = {}) {
   const oxygenDemand = 1.5 * biochemicalOxygenDemand * (1 + (0.02 * temperature) - (0.03 * salinity)) * organicMatter;
 
   return oxygenDemand;
+}
+
+/**
+   * Disaggregation: Distributes the total rainfall of a larger area to smaller sub-areas based on their relative proportions or weights.
+   * Reference: https://journals.ametsoc.org/view/journals/hydr/19/12/jhm-d-18-0132_1.xml
+   * @method proportionalDistribution
+   * @author riya-patil
+   * @memberof hydro
+   * @param {Object} params totalRainfall (total rainfall of the larger area), weights (array of relative weights/proportions of smaller sub-areas)
+   * @returns {Object[]} Array of rainfall values for each smaller sub-area.
+   * @example
+   * hydro.analyze.hydro.proportionalDistribution({params: {totalRainfall: 100, weights: [0.3, 0.4, 0.3]}})
+   */
+static proportionalDistribution({ params, args, data } = {}) {
+  const { totalRainfall, weights } = params;
+  const numSubAreas = weights.length;
+
+  const rainfallPerSubArea = totalRainfall / numSubAreas;
+  const rainfallDistribution = weights.map((weight) => weight * rainfallPerSubArea);
+
+  return rainfallDistribution;
+}
+
+ /**
+   * Generates synthetic rainfall data based on statistical characteristics of observed rainfall
+   * Reference: https://cran.r-project.org/web/packages/RGENERATEPREC/vignettes/precipitation_stochastic_generation_v8.html
+   * @method stochasticRainfallGeneration
+   * @author riya-patil
+   * @memberof hydro
+   * @param {Object} params observedRainfall (array of observed rainfall data), statisticalCharacteristics (mean, standard deviation, etc.)
+   * @returns {Object[]} Array of synthetic rainfall values generated based on the statistical characteristics.
+   * @example
+   * hydro.analyze.hydro.stochasticRainfallGeneration({params: {observedRainfall: [10, 15, 20], statisticalCharacteristics: {mean: 12, stdDev: 3}}})
+   */
+ static stochasticRainfallGeneration({ params, args, data } = {}) {
+  const { observedRainfall, statisticalCharacteristics } = params;
+  const { mean, stdDev } = statisticalCharacteristics;
+  const numDataPoints = observedRainfall.length;
+
+  const syntheticRainfall = [];
+  for (let i = 0; i < numDataPoints; i++) {
+    // Generate synthetic rainfall values based on the statistical characteristics using a random number generator
+    const syntheticValue = generateSyntheticValue(mean, stdDev);
+    syntheticRainfall.push(syntheticValue);
+  }
+
+  return syntheticRainfall;
+}
+
+  /**
+   * Calibrates the pH sensor reading using calibration values
+   * Reference: 
+   * @method calibratePH
+   * @author riya-patil
+   * @memberof hydro
+   * @param {Object} params sensor_reading (pH reading from the sensor), calibration_values (object with calibration values for slope and intercept).
+   * @returns {number} The calibrated pH value
+   * @example
+   * hydro.analyze.hydro.calibratePH({ params: { sensor_reading: 4.8, calibration_values: { slope: 0.98, intercept: -0.1 } } });
+   */
+  static calibratePH({ params, args, data }) {
+    const { sensor_reading, calibration_values } = params;
+    const { slope, intercept } = calibration_values;
+
+    const calibrated_ph = (sensor_reading * slope) + intercept;
+    return calibrated_ph;
+  }
+
+  /**
+   * Calculates dissolved oxygen (DO) saturation using Henry's Law
+   * Reference: https://www.waterboards.ca.gov/water_issues/programs/swamp/docs/cwt/guidance/3110en.pdf
+   * @method calculateDOSaturation
+   * @author riya-patil
+   * @memberof hydro
+   * @param {Object} params sensor_reading (dissolved oxygen reading from the sensor), temperature (temperature in Celsius).
+   * @returns {number} The dissolved oxygen saturation value.
+   * @example
+   * hydro.analyze.hydro.calculateDOSaturation({ params: { sensor_reading: 6.2, temperature: 25 } });
+   */
+  static calculateDOSaturation({ params, args, data }) {
+    const { sensor_reading, temperature } = params;
+  
+    const HenryConstant = 0.023; // Henry's constant for oxygen in water
+    const atmosphericPressure = 1.0; 
+
+    const dosaturation = sensor_reading / (HenryConstant * Math.exp(-HenryConstant * atmosphericPressure * temperature));
+  
+    return dosaturation;
+  }
+
+  /**
+   * Compensates the electric conductivity (EC) reading based on the temperature and compensation factor
+   * Reference: https://agupubs.onlinelibrary.wiley.com/doi/full/10.1002/2016jb013555#:~:text=The%20electrical%20conductivity%20of%20all,with%20pressure%20above%2010%20GPa
+   * @method compensate_ec
+   * @author riya-patil
+   * @memberof Hydro
+   * @param {Object} params sensor_reading (EC reading from the sensor), temperature (temperature in Celsius), compensation_factor (compensation factor).
+   * @returns {number} The compensated electric conductivity value.
+   * @example
+   * hydro.analyze.hydro.compensate_ec({ params: { sensor_reading: 2.5, temperature: 25, compensation_factor: 0.02 } });
+   */
+  static compensate_ec({ params, args, data }) {
+    const { sensor_reading, temperature, compensation_factor } = params;
+
+    // Calculate compensated electric conductivity
+    const compensated_ec = sensor_reading / (1 + compensation_factor * (temperature - 25));
+
+    return compensated_ec;
+  }
+
+/**
+ * Converts turbidity values from one unit to another
+ * Reference: https://www.usgs.gov/special-topics/water-science-school/science/turbidity-and-water
+ * @method convertTurbidity
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params sensor_reading (turbidity reading from the sensor), 
+ * from_unit (current unit of turbidity), to_unit (desired unit of turbidity)
+ * @throws {Error} if turbidity unit conversion doesnt exist
+ * @returns {number} The converted turbidity value
+ * @example
+ * hydro.analyze.hydro.convertTurbidity({ params: { sensor_reading: 50, from_unit: 'NTU', to_unit: 'FTU' } });
+ */
+static convertTurbidity({ params, args, data }) {
+  const { sensor_reading, from_unit, to_unit } = params;
+
+  // Conversion factors for turbidity units
+  const conversionFactors = {
+    NTU: { //NTU stands for Nephelometric Turbidity Unit
+      FTU: 0.98,
+      FNU: 1.0,
+    },
+    FTU: { //FTU stands for Formazin Turbidity Unit
+      NTU: 1.02,
+      FNU: 1.04,
+    },
+    FNU: { //FNU stands for Formazin Nephelometric Unit
+      NTU: 1.0,
+      FTU: 0.96,
+    },
+  };
+
+  // Check if conversion factors exist for the specified units, throws error if not
+  if (!conversionFactors[from_unit] || !conversionFactors[from_unit][to_unit]) {
+    throw new Error('Invalid turbidity unit conversion');
+  }
+
+  const conversionFactor = conversionFactors[from_unit][to_unit];
+  const convertedTurbidity = sensor_reading * conversionFactor;
+
+  return convertedTurbidity;
+}
+
+/**
+ * Calculates the total dissolved solids (TDS) based on the sensor reading, temperature, and conductivity factor
+ * Reference: https://www.safewater.org/fact-sheets-1/2017/1/23/tds-and-ph
+ * @method calculate_tds
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params sensor_reading (sensor reading of dissolved solids), 
+ * temperature (temperature in Celsius), conductivity_factor (factor for converting conductivity to TDS)
+ * @returns {number} The calculated total dissolved solids (TDS) value.
+ * @example
+ * hydro.analyze.hydro.calculate_tds({ params: { sensor_reading: 15, temperature: 25, conductivity_factor: 0.8 } });
+ */
+
+static calculate_tds({ params, args, data }) {
+  const { sensor_reading, temperature, conductivity_factor } = params;
+
+  const tds = sensor_reading * conductivity_factor * temperature;
+
+  return tds;
+}
+
+/**
+ * Calculates the total suspended solids (TSS) based on the sensor reading
+ * Reference: https://fyi.extension.wisc.edu/foxdemofarms/the-basics/total-suspended-solids/
+ * @method calculate_tss
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params sensor_reading (measurement from the sensor)
+ * @returns {number} The total suspended solids concentration
+ * @example
+ * hydro.analyze.hydro.calculate_tss({ params: { sensor_reading: 15 } });
+ */
+static calculate_tss({ params, args, data } = {}) {
+  const { sensor_reading } = params;
+  
+  const tss = sensor_reading * someConversionFactor; //conversion factor must be changed
+
+  return tss;
+}
+
+/**
+ * Compensates the oxidation reduction potential (ORP) sensor reading for temperature variations
+ * Reference: https://www.gov.nt.ca/ecc/sites/ecc/files/oxidation-reduction_potential.pdf
+ * @method compensateORP
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params sensor_reading (ORP sensor reading), temperature (temperature in Celsius).
+ * @returns {number} The compensated ORP value.
+ * @example
+ * hydro.analyze.hydro.compensateORP({ params: { sensor_reading: 250, temperature: 25 } });
+ */
+static compensateORP({ params, args, data }) {
+  const { sensor_reading, temperature } = params;
+
+  // Compensation equation or function specific to the ORP sensor
+  const compensated_reading = sensor_reading + (0.02 * (temperature - 25)); //example
+
+  return compensated_reading;
 }
 
 
@@ -1502,6 +1735,7 @@ static dissolvedOxygenDemand({ params, args, data } = {}) {
  * Calculate the pH value based on the concentration of hydrogen ions (H+)
  * @method calculatepH
  * @author riya-patil
+ * @memberof hydro
  * @param {Object} params - The parameters for pH calculation
  * @returns {number} The pH value
  * @example
@@ -1514,6 +1748,58 @@ static calculatepH({ params, args, data }) {
   return pH;
 }
 
+/**
+ * Calculate the pH value based on the concentration of hydrogen ions (H+)
+ * @method generateSyntheticValue
+ * @author riya-patil
+ * @memberof hydro
+ * @param {number} params - mean and standard deviation values
+ * @returns {number} The random generated synthetic value
+ * @example
+ * hydro.analyze.hydro.generateSyntheticValue(10, 10)
+ */
+static generateSyntheticValue(mean, stdDev) {
+  // Generate a random number with a normal distribution
+  const rand = Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random());
+  // Scale and shift the random number to match the desired mean and standard deviation
+  const syntheticValue = mean + stdDev * rand;
+
+  return syntheticValue;
+}
+
+/**
+   * Converts temperature from one unit to another
+   * @method convertTemperature
+   * @author riya-patil
+   * @memberof hydro
+   * @param {Object} params sensor_reading (temperature reading from the sensor), from_unit (unit of the input temperature), to_unit (desired unit for conversion).
+   * @returns {number} The converted temperature value.
+   * @example
+   * hydro.analyze.hydro.convertTemperature({ params: { sensor_reading: 25, from_unit: 'Celsius', to_unit: 'Fahrenheit' } });
+   */
+static convertTemperature({ params, args, data }) {
+  const { sensor_reading, from_unit, to_unit } = params;
+  let converted_temperature = 0;
+
+  if (from_unit === 'Celsius' && to_unit === 'Fahrenheit') {
+    converted_temperature = (sensor_reading * 9 / 5) + 32;
+  } else if (from_unit === 'Fahrenheit' && to_unit === 'Celsius') {
+    converted_temperature = (sensor_reading - 32) * 5 / 9;
+  } else if (from_unit === 'Celsius' && to_unit === 'Kelvin') {
+    converted_temperature = sensor_reading + 273.15;
+  } else if (from_unit === 'Kelvin' && to_unit === 'Celsius') {
+    converted_temperature = sensor_reading - 273.15;
+  } else if (from_unit === 'Fahrenheit' && to_unit === 'Kelvin') {
+    converted_temperature = (sensor_reading + 459.67) * 5 / 9;
+  } else if (from_unit === 'Kelvin' && to_unit === 'Fahrenheit') {
+    converted_temperature = (sensor_reading * 9 / 5) - 459.67;
+  } else {
+    // Handle unsupported unit conversions
+    console.log('Unsupported unit conversion');
+  }
+
+  return converted_temperature;
+}
   /**********************************/
   /*** End of Helper functions **/
   /**********************************/
