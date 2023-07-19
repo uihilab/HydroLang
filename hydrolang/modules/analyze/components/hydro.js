@@ -940,76 +940,112 @@ export default class hydro {
   /**
  * Calculates evapotranspiration using the Penman-Monteith equation
  * Reference: https://www.fao.org/3/X0490E/x0490e06.htm
- * @method penmanMonteith
+ * @method ETPenmanMontheith
  * @author riya-patil
  * @memberof hydro
  * @param {Object} params netRadiation (net radiation in MJ/m^2/day), temperature (air temperature in °C),
  * windSpeed (wind speed at 2m height in m/s), saturationVaporPressure (saturation vapor pressure in kPa),
  * actualVaporPressure (actual vapor pressure in kPa)
  * @returns {Number} Evapotranspiration in mm/day
+ * @throws {Error} if missing parameters required for the function
  * @example
- * hydro.analyze.hydro.penmanMonteith({params: {netRadiation: 10, temperature: 25, windSpeed: 2, saturationVaporPressure: 2,
+ * hydro.analyze.hydro.ETPenmanMontheith({params: {netRadiation: 10, temperature: 25, windSpeed: 2, saturationVaporPressure: 2,
  *                                               actualVaporPressure: 1, airPressure: 101.3, psychrometricConstant: 0.065}})
  */
-static penmanMonteith({ params, args, data }) {
-  const { netRadiation, temperature, windSpeed, saturationVaporPressure, actualVaporPressure, airPressure, psychrometricConstant } = params;
-
-  const lambda = 2.45; // heat of vaporization (MJ/kg)
-  const rho = 0.065; // Psychrometric constant (kPa/°C)
-
-  const numerator = (0.408 * netRadiation + 0.063 * 900 * (temperature + 273) * windSpeed * (saturationVaporPressure - actualVaporPressure));
-  const denominator = lambda * (0.408 * (netRadiation - 0) + rho * (900 / (temperature + 273)) * windSpeed * (saturationVaporPressure - actualVaporPressure));
-  const evapotranspiration = (numerator / denominator) * 1000; // Convert from m/day to mm/day
-
-  return evapotranspiration;
-}
+  static ETPenmanMontheith({ params, args, data } = {}) {
+    const { netRadiation, temperature, windSpeed, saturationVaporPressure, actualVaporPressure, airPressure, psychrometricConstant } = params;
+  
+    // Validate required parameters
+    if (!temperature || !netRadiation || !windSpeed || !saturationVaporPressure || !actualVaporPressure || !airPressure || !psychrometricConstant) {
+      throw new Error('Missing required parameters: temperature, netRadiation, windSpeed, saturationVaporPressure, actualVaporPressure, airPressure, psychrometricConstant.');
+    }
+  
+    const evapotranspiration = [];
+    for (let i = 0; i < temperature.length; i++) {
+      const numerator = (0.408 * netRadiation[i] + 0.063 * 900 * (temperature[i] + 273) * windSpeed[i] * (saturationVaporPressure[i] - actualVaporPressure[i]));
+      const denominator = lambda * (0.408 * (netRadiation[i] - 0) + rho * (900 / (temperature[i] + 273)) * windSpeed[i] * (saturationVaporPressure[i] - actualVaporPressure[i]));
+      const et = (numerator / denominator) * 1000; // Convert from m/day to mm/day
+      evapotranspiration.push(et);
+    }
+  
+    return evapotranspiration;
+  }
+  
 
 /**
  * Calculates evapotranspiration using the Hargreaves method
  * Reference: https://globalchange.mit.edu/publication/15554#:~:text=The%20Hargreaves
  * %20and%20Modified%20Hargeaves,the%20Modified%20Penman%2DMonteith%20approach.
- * @method hargreaves
+ * @method ETHargreaves
  * @author riya-patil
  * @memberof hydro
- * @param {Object} params - Contains: temperature (mean daily air temperature in °C), temperatureMax (maximum daily air temperature in °C),
+ * @param {Object} params temperature (mean daily air temperature in °C), temperatureMax (maximum daily air temperature in °C),
  * temperatureMin (minimum daily air temperature in °C), latitude (latitude in decimal degrees)
  * @returns {Number} Evapotranspiration in mm/day.
  * @example
- * hydro.analyze.hydro.hargreaves({params: {temperature: 25, temperatureMax: 30, temperatureMin: 20, latitude: 40}})
+ * hydro.analyze.hydro.ETHargreaves({params: {temperature: 25, temperatureMax: 30, temperatureMin: 20, latitude: 40}})
  */
-static hargreaves({ params, args, data }) {
-  const { temperature, temperatureMax, temperatureMin, latitude } = params;
+static ETHargreaves({ params, args, data } = {}) {
+  const { latitude } = params;
+  const { temperature, temperatureMax, temperatureMin, date } = data;
 
-  const Ra = 4.903 * Math.pow(10, -9); // Extraterrestrial radiation constant (MJ/(m^2 * min * °C))
-  const dr = 1 + 0.033 * Math.cos((2 * Math.PI / 365) * julianDay); // Inverse relative distance Earth-Sun
-  const delta = 0.409 * Math.sin((2 * Math.PI / 365) * julianDay - 1.39); // Solar declination angle
+  // Validate required parameters
+  if (!temperature || !temperatureMax || !temperatureMin || !date) {
+    throw new Error('Missing required parameters: temperature, temperatureMax, temperatureMin, date.');
+  }
 
-  const TmaxK = temperatureMax + 273; // Convert to Kelvin
-  const TminK = temperatureMin + 273;
-  const RaTmax = (24 * 60 / Math.PI) * Ra * dr * (TmaxK + TminK) * (Math.sin((latitude * Math.PI) / 180) * Math.sin(delta) + Math.cos((latitude * Math.PI) / 180) * Math.cos(delta) * Math.sin(0)); // MJ/m^2/day
-  const Rs = 0.16 * RaTmax; // Convert to MJ/m^2/day
+  // Calculate evapotranspiration for each time step
+  const evapotranspiration = [];
+  for (let i = 0; i < temperature.length; i++) {
+    const julianDay = getJulianDay(date[i]);
 
-  const evapotranspiration = 0.0023 * (temperature + 17.8) * Math.sqrt(temperatureMax - temperatureMin) * Rs;
+    const Ra = 4.903 * Math.pow(10, -9); // Extraterrestrial radiation constant (MJ/(m^2 * min * °C))
+    const dr = 1 + 0.033 * Math.cos((2 * Math.PI / 365) * julianDay); // Inverse relative distance Earth-Sun
+    const delta = 0.409 * Math.sin((2 * Math.PI / 365) * julianDay - 1.39); // Solar declination angle
+
+    const TmaxK = temperatureMax[i] + 273; // Convert to Kelvin
+    const TminK = temperatureMin[i] + 273;
+    const RaTmax = (24 * 60 / Math.PI) * Ra * dr * (TmaxK + TminK) * (Math.sin((latitude * Math.PI) / 180) * Math.sin(delta) + Math.cos((latitude * Math.PI) / 180) * Math.cos(delta) * Math.sin(0)); // MJ/m^2/day
+    const Rs = 0.16 * RaTmax; // Convert to MJ/m^2/day
+
+    const et = 0.0023 * (temperature[i] + 17.8) * Math.sqrt(temperatureMax[i] - temperatureMin[i]) * Rs;
+    evapotranspiration.push(et);
+  }
 
   return evapotranspiration;
 }
+
 
 /**
  * Calculates evapotranspiration using the Thornthwaite method
  * Reference: https://wikifire.wsl.ch/tiki-indexf125.html?page=Potential+evapotranspiration#:~:text=
  * The%20Thornthwaite%20equation%20is%20a,Thornthwaite%20%26%20Mather%20(1957).
- * @method thornthwaite
+ * @method ETThornthwaite
  * @author riya-patil
  * @memberof hydro
  * @param {Object} params - Contains: temperature (mean monthly air temperature in °C), 
  * latitude (latitude in decimal degrees), monthDays (number of days in each month)
  * @returns {Number[]} Evapotranspiration in mm/day for each month
+ * @throws {Error} if missing required data, invalid data format (not in array), or unequal array length 
  * @example
- * hydro.analyze.hydro.thornthwaite({params: {temperature: [10, 15, 20, ...], latitude: 40, monthDays: [31, 28, 31, ...]}})
+ * hydro.analyze.hydro.ETThornthwaite({params: {temperature: [10, 15, 20, ...], latitude: 40, monthDays: [31, 28, 31, ...]}})
  */
-static thornthwaite({ params, args, data }) {
-  const { temperature, latitude, monthDays } = params;
+static ETThornthwaite({params, args, data} = {}) {
+  const { latitude } = params;
+  const { temperature, monthDays } = data;
 
+  if (!temperature || !monthDays) {
+    throw new Error('Missing required data: temperature, monthDays.');
+  }
+
+  // Validate temperature and monthDays arrays
+  if (!Array.isArray(temperature) || !Array.isArray(monthDays)) {
+    throw new Error('Invalid data format. Expected temperature and monthDays to be arrays.');
+  }
+
+  if (temperature.length !== monthDays.length) {
+    throw new Error('Temperature and monthDays arrays must have the same length.');
+  }
   // Calculate heat index (HI) for each month
   const hiValues = temperature.map((t) => {
     const hi = (t / 5) ** 1.514;
@@ -1028,17 +1064,30 @@ static thornthwaite({ params, args, data }) {
 /**
  * Calculates evapotranspiration using the Blaney-Criddle method
  * Reference: https://legacy.azdeq.gov/environ/water/permits/download/blaney.pdf
- * @method blaneyCriddle
+ * @method ETBlaneyCriddle
  * @author riya-patil
  * @memberof hydro
  * @param {Object} params - Contains: temperature (mean monthly air temperature in °C),
  * @returns {Number[]} Evapotranspiration in mm/day for each month.
+ * @throws {Error} if missing data, data not in array format, unequal length of arrays
  * @example
- * hydro.analyze.hydro.blaneyCriddle({params: {temperature: [10, 15, 20, ...], monthDays: [31, 28, 31, ...]}})
+ * hydro.analyze.hydro.ETBlaneyCriddle({params: {temperature: [10, 15, 20, ...], monthDays: [31, 28, 31, ...]}})
  */
-static blaneyCriddle({ params, args, data }) {
-  const { temperature, monthDays } = params;
+static ETBlaneyCriddle({params, args, data} = {}) {
+  const { temperature, monthDays } = data;
 
+  if (!temperature || !monthDays) {
+    throw new Error('Missing required data: temperature, monthDays.');
+  }
+    
+    // Validate temperature and monthDays arrays
+  if (!Array.isArray(temperature) || !Array.isArray(monthDays)) {
+    throw new Error('Invalid data format. Expected temperature and monthDays to be arrays.');
+  }
+    
+  if (temperature.length !== monthDays.length) {
+    throw new Error('Temperature and monthDays arrays must have the same length.');
+  }
   // Calculate monthly potential evapotranspiration (PET) using Blaney-Criddle equation
   const petValues = temperature.map((t, i) => {
     const monthDaysValue = monthDays[i];
@@ -1052,15 +1101,15 @@ static blaneyCriddle({ params, args, data }) {
 /**
  * Calculates evapotranspiration using the Priestley-Taylor method
  * Reference: https://wetlandscapes.github.io/blog/blog/penman-monteith-and-priestley-taylor/
- * @method priestleyTaylor
+ * @method ETPriestelyTaylor
  * @author riya-patil
  * @memberof hydro
- * @param {Object} params - Contains the required parameters
+ * @param {Object} params - Contains the required parameters of netRadiation and latentHeatFlux in in Watts per square meter (W/m^2) 
  * @returns {Number} Evapotranspiration in mm/day
  * @example
- * hydro.analyze.hydro.evapotranspirationPriestleyTaylor({params: {netRadiation: 3, latentHeatFlux: 3}})
+ * hydro.analyze.hydro.ETPriestelyTaylor({params: {netRadiation: 3, latentHeatFlux: 3}})
  */
-static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
+static ETPriestelyTaylor({ params, args, data } = {}) {
   const { netRadiation, latentHeatFlux } = params;
 
   // Calculate potential evapotranspiration using Priestley-Taylor method
@@ -1073,62 +1122,92 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
    * Calculates infiltration using the Green-Ampt model
    * Reference: https://www.hec.usace.army.mil/confluence/rasdocs/ras1dtechref/6.1/
    * overview-of-optional-capabilities/modeling-precipitation-and-infiltration/green-ampt
-   * @method greenAmpt
+   * @method InfGreenAmpt
    * @author riya-patil
    * @memberof hydro
    * @param {Object} params - Contains: Ks (saturated hydraulic conductivity [L/T]), psi (soil suction head [L]), theta_i (initial soil moisture content [L^3/L^3]), theta_s (saturated soil moisture content [L^3/L^3]), t (time [T])
    * @returns {Number} Infiltration rate [L/T]
+   * @throws {Error} invalid data type is inputted
    * @example
-   * hydro.analyze.hydro.greenAmpt({params: {Ks: someNum, psi: someNum, theta_i: someNum, theta_s: someNum, t: someNum}})
+   * hydro.analyze.hydro.InfGreenAmpt({params: {Ks: someNum, psi: someNum, theta_i: someNum, theta_s: someNum, t: someNum}})
    */
-  static greenAmpt({ params, args, data }) {
-    var Ks = params.Ks,
-      psi = params.psi,
-      theta_i = params.theta_i,
-      theta_s = params.theta_s,
-      t = params.t;
+  static InfGreenAmpt({params, args, data} = {}) {
+    const { Ks, psi, theta_i, theta_s, t } = params;
+  // Validate data inputs
+    if (
+      typeof Ks !== 'number' ||
+      typeof psi !== 'number' ||
+      typeof theta_i !== 'number' ||
+      typeof theta_s !== 'number' ||
+      typeof t !== 'number'
+    ) {
+      throw new Error('Invalid data inputs. Expected numbers for Ks, psi, theta_i, theta_s, and t.');
+    }
 
-    var theta = theta_s - (theta_s - theta_i) * Math.exp((-Ks * t) / (psi * theta_s));
+  // Calculate infiltration using the Green-Ampt method
+  const theta = theta_s - (theta_s - theta_i) * Math.exp((-Ks * t) / (psi * theta_s));
+  const infiltrationRate = (theta_s - theta) / t;
 
-    return (theta_s - theta) / t;
+  return infiltrationRate;
   }
 
   /**
    * Calculates infiltration using the Horton model
    * Reference: https://www.egr.msu.edu/classes/ce421/lishug/text%20book.pdf
-   * @method horton
+   * @method InfHorton
    * @author riya-patil
    * @memberof hydro
    * @param {Object} params - Contains: Ks (saturated hydraulic conductivity [L/T]), fc (field capacity [L^3/L^3]), t (time [T])
    * @returns {Number} Infiltration rate [L/T]
+   * @throws {Error} invalid data type is inputted
    * @example
-   * hydro.analyze.infiltration.horton({params: {Ks: someNum, fc: someNum, t: someNum}})
+   * hydro.analyze.hydro.InfHorton({params: {Ks: someNum, fc: someNum, t: someNum}})
    */
-  static horton ({ params }) {
-    var Ks = params.Ks,
-      fc = params.fc,
-      t = params.t;
+  static InfHorton ({params, args, data} = {}) {
+    const { Ks, fc, t } = params;
+  // Validate data inputs
+    if (
+      typeof Ks !== 'number' ||
+      typeof fc !== 'number' ||
+      typeof t !== 'number'
+    ) {
+      throw new Error('Invalid data inputs. Expected numbers for Ks, fc, and t.');
+    }
 
-    return Ks * Math.pow((1 - (fc / Ks)), t);
+  // Calculate infiltration using the Horton method
+    const infiltrationRate = Ks * Math.pow((1 - (fc / Ks)), t);
+
+    return infiltrationRate;
   }
 
   /**
    * Calculates infiltration using the Philip model
    * Reference: https://www.iuss.org/19th%20WCSS/Symposium/pdf/2266.pdf
-   * @method philip
+   * @method InfPhilip
    * @author riya-patil
    * @memberof hydro
    * @param {Object} params - Contains: K (hydraulic conductivity [L/T]), S (suction head [L]), t (time [T])
    * @returns {Number} Infiltration rate [L/T]
+   * @throws {Error} invalid data type is inputted
    * @example
-   * hydro.analyze.infiltration.philip({params: {K: someNum, S: someNum, t: someNum}})
+   * hydro.analyze.hydro.InfPhilip({params: {K: someNum, S: someNum, t: someNum}})
    */
-  static philip ({ params }) {
-    var K = params.K,
-      S = params.S,
-      t = params.t;
+  static phInfPhilipilip ({params, args, data} = {}) {
+    const { K, S, t } = params;
 
-    return (K * t) / (S + Math.sqrt(S * t));
+    // Validate data inputs
+    if (
+      typeof K !== 'number' ||
+      typeof S !== 'number' ||
+      typeof t !== 'number'
+    ) {
+      throw new Error('Invalid data inputs. Expected numbers for K, S, and t.');
+    }
+  
+    // Calculate infiltration using the Philip method
+    const infiltrationRate = (K * t) / (S + Math.sqrt(S * t));
+  
+    return infiltrationRate;
   }
 
   /**
@@ -1137,7 +1216,8 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
    * @method muskingumCunge
    * @author riya-patil
    * @memberof hydro
-   * @param {Object} params - Parameters for the Muskingum-Cunge method
+   * @param {Object} params - Parameters for the Muskingum-Cunge method, K (routing coefficient - determines weight given to previous storage)
+   *  and X (X coefficient - difference between inflow and outflow rates)
    * @param {Object[]} data - Array of input hydrograph data
    * @returns {Object[]} Array of routed hydrograph data
    * @example
@@ -1153,10 +1233,32 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
     const outflow = [];
     let storage = initialStorage;
   
+    const getMemoInflow = (K, inflow, index, cache) => {
+      if (cache[index]) {
+        return cache[index];
+      }
+  
+      const inflowComponent = K * inflow[index];
+      cache[index] = inflowComponent;
+      return inflowComponent;
+    };
+  
+    const getMemoOutflow = (K, X, inflow, prevStorage, inflowComponent, index, cache) => {
+      if (cache[index]) {
+        return cache[index];
+      }
+  
+      const outflowComponent = K * (inflow[index] + X * (inflowComponent - inflow[index]) + X * (prevStorage - inflowComponent));
+      cache[index] = outflowComponent;
+      return outflowComponent;
+    };
+  
+    const cache = {};
+  
     for (let i = 0; i < inflow.length; i++) {
       const prevStorage = storage;
-      const inflowComponent = K * inflow[i];
-      const outflowComponent = K * (inflow[i] + X * (inflowComponent - inflow[i]) + X * (prevStorage - inflowComponent));
+      const inflowComponent = getMemoInflow(K, inflow, i, cache);
+      const outflowComponent = getMemoOutflow(K, X, inflow, prevStorage, inflowComponent, i, cache);
   
       storage = prevStorage + (inflowComponent - outflowComponent) * Dt;
       outflow.push(outflowComponent);
@@ -1164,6 +1266,7 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
   
     return outflow;
   }
+  
 
   /**
  * Lag and Route method for flood routing introducing a time delay
@@ -1172,8 +1275,9 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
  * @method lagAndRoute
  * @author riya-patil
  * @memberof hydro
- * @param {Object} params - Parameters for the Lag and Route method
- * @param {Object} data - Input data for the Lag and Route method
+ * @param {Object} params - 
+ * @param {Object} data - lagTime (lag in the system, representing the time it takes for the water to travel through the channel or reservoir)
+ * routingCoefficients(control the contribution of inflow at different time intervals)
  * @returns {number[]} Outflow data after routing using the Lag and Route method.
  * @example
  * const inflowData = [100, 200, 300, 400, 500];
@@ -1208,6 +1312,10 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
   
       storage[0] = inflow[i] - outflowComponent;
     }
+
+    for (let j = routingCoefficients.length - 1; j >= 1; j--) {
+      storage[j] = storage[j - 1] + routingCoefficients[j - 1] * inflow[i - j];
+    }
   
     return outflow;
   }
@@ -1219,7 +1327,8 @@ static evapotranspirationPriestleyTaylor({ params, args, data } = {}) {
  * @method timeAreaMethod
  * @author riya-patil
  * @memberof hydro
- * @param {Object} params - Parameters for the Time-Area method.
+ * @param {Object} params - inflow (rate of water inflow, can be any consistent flow rate unit such as ft^3/s)
+ * and areas (cross-sectional areas of corresponding time intervals in square meters or other area measures)
  * @param {Object} data - Data required for the Time-Area method.
  * @returns {number[]} Array of outflow values
  * @throws {Error} If the inflow and areas arrays have different lengths
@@ -1257,13 +1366,13 @@ static timeAreaMethod({ params, args, data } = {}) {
 }
 
 /**
- * Performs routing of a hydrological process using the Kinematic Wave Routing method
- * Reference: https://www.engr.colostate.edu/~ramirez/ce_old/classes/cive322-Ramirez/CE322_Web/ExampleKinematicWave.pdf
+ * Performs single channel routing of a hydrological process using the Kinematic Wave Routing method 
+ *  * Reference: https://www.engr.colostate.edu/~ramirez/ce_old/classes/cive322-Ramirez/CE322_Web/ExampleKinematicWave.pdf
  * @method kinematicWaveRouting
  * @author riya-patil
  * @memberof hydro
- * @param {Object} params - Parameters for the Kinematic Wave Routing method: travel time coefficient, 
- * Length of the reach, Time step
+ * @param {Object} params - travel time coefficient (C) represents time for water to travel a unit length of channel, 
+ * Length of the reach (L) represents distance water travels within the channel, Time step (dt) is duration of each time interval
  * @param {Object} data - Input data for the routing
  * @returns {number[]} - Array of outflow values at each time step.
  * @example
@@ -1271,16 +1380,16 @@ const params = {
     C: 0.6,
     L: 1000,
     dt: 1
+    initialDepth: 0
   };
 const data = {
   inflow: [10, 15, 20, 18, 12],
-  initialDepth: 0
 };
 hydro.analyze.hydro.kinematicWaveRouting({ params, data });
  */
 static kinematicWaveRouting({ params, args, data }= {}) {
-  const { C, L, dt } = params;
-  const { inflow, initialDepth } = data;
+  const { C, L, dt, initialDepth } = params;
+  const { inflow } = data;
 
   const outflow = [];
   let depth = initialDepth;
@@ -1297,15 +1406,22 @@ static kinematicWaveRouting({ params, args, data }= {}) {
   return outflow;
 }
 
+
+
 /**
    * Calculate groundwater flow using Darcy's law for unconfined aquifers
    * Reference: https://books.gw-project.org/hydrogeologic-properties-of-
    * earth-materials-and-principles-of-groundwater-flow/chapter/darcys-law/
-   * @method darcysLawUnconfined
+   * @method darcysLaw
    * @author riya-patil
    * @memberof hydro
-   * @param {Object} params - Contains: hydraulicConductivity, hydraulicGradient, aquiferThickness
+   * @param {Object} params - aquifer type (confined, unconfined, dynamic)
+   * @param {Object} args - hydraulicConductivity (ability to transmit water in m/s or cm/s), 
+   * and porosity (fraction of total volume filled with pores, dimensionless/percentage)
+   * @param {Object} data - hydraulicGradient (change in hydraulic head per unit distance, dimensionless), 
+   * aquiferThickness (thickness at a specific location, typically in meters/cm)
    * @returns {number} Groundwater flow rate in unconfined aquifers
+   * @throws {Error} if the type of aquifer inputted is not a valid choice
    * @example
    * const unconfinedParams = {
       hydraulicConductivity: 10,     
@@ -1314,52 +1430,36 @@ static kinematicWaveRouting({ params, args, data }= {}) {
     };
     hydro.analyze.hydro.darceysLawUnconfined({params: unconfinedParams})
    */
-static darcysLawUnconfined({ params, args, data }) {
-  const { hydraulicConductivity, hydraulicGradient, aquiferThickness } = params;
-
-  const groundwaterFlow = hydraulicConductivity * hydraulicGradient * aquiferThickness;
-  return groundwaterFlow;
-}
-
-/**
-   * Calculate groundwater flow using Darcy's law for confined aquifers
-   * Reference: https://books.gw-project.org/hydrogeologic-properties-of-earth-materials
-   * -and-principles-of-groundwater-flow/chapter/darcys-law/
-   * @method darcysLawConfined
-   * @author riya-patil
-   * @memberof hydro
-   * @param {Object} params - Contains: transmissivity, hydraulicGradient
-   * @returns {number} Groundwater flow rate in confined aquifers
-   * @example
-   * const confinedParams = {transmissivity: 200, hydraulicGradient: 0.03};
-   * hydro.analyze.hydro.darceysLawConfined({params: confinedParams})
-   */
-static darcysLawConfined({ params, args, data }) {
-  const { transmissivity, hydraulicGradient } = params;
-
-  const groundwaterFlow = transmissivity * hydraulicGradient;
-  return groundwaterFlow;
-}
-
-/**
- * Calculate groundwater flow using Darcy's law for dynamic systems
- * @method darcysLawDynamic
- * @author riya-patil
- * @memberof hydro
- * @param {Object} params - Contains: hydraulicConductivity, hydraulicGradient, aquiferThickness,
- * storageCoefficient, changeInAquiferThickness
- * @returns {number} Groundwater flow rate in dynamic systems
- * @example
- * const dynamicParams = {hydraulicConductivity: 8, hydraulicGradient: 0.02, aquiferThickness: 15, 
- storageCoefficient: 0.2,changeInAquiferThickness: -1};
-hydro.analyze.hydro.darceysLawDynamic({params: dynamicParams})
- */
-static darcysLawDynamic({ params, args, data }) {
-  const { hydraulicConductivity, hydraulicGradient, aquiferThickness, storageCoefficient, changeInAquiferThickness } = params;
-
-  const groundwaterFlow = hydraulicConductivity * hydraulicGradient * aquiferThickness + storageCoefficient * changeInAquiferThickness;
-  return groundwaterFlow;
-}
+    static darcysLaw({ params, args, data } = {}) {
+      const { aquiferType } = params;
+      const { hydraulicConductivity, porosity = 0 } = args;
+      const { hydraulicGradients = [], aquiferThickness } = data;
+    
+      const groundwaterFlows = [];
+    
+      for (let i = 0; i < hydraulicGradients.length; i++) {
+        let groundwaterFlow;
+    
+        if (aquiferType === 'confined') {
+          const transmissivity = hydraulicConductivity * aquiferThickness[i];
+          groundwaterFlow = transmissivity * hydraulicGradients[i];
+        } else if (aquiferType === 'unconfined') {
+          groundwaterFlow = hydraulicConductivity * hydraulicGradients[i] * aquiferThickness[i] * porosity;
+        } else if (aquiferType === 'dynamic') {
+          const { storageCoefficient, changeInAquiferThickness } = params;
+          groundwaterFlow =
+            hydraulicConductivity * hydraulicGradients[i] * aquiferThickness[i] +
+            storageCoefficient * changeInAquiferThickness[i];
+        } else {
+          throw new Error('Invalid aquifer type.');
+        }
+    
+        groundwaterFlows.push(groundwaterFlow);
+      }
+    
+      return groundwaterFlows;
+    }
+    
 
 /**
  * Calculates the dissolved oxygen demand based on the given parameters and data
@@ -1443,7 +1543,7 @@ static proportionalDistribution({ params, args, data } = {}) {
    * @example
    * hydro.analyze.hydro.calibratePH({ params: { sensor_reading: 4.8, calibration_values: { slope: 0.98, intercept: -0.1 } } });
    */
-  static calibratePH({ params, args, data }) {
+  static calibratePH({params, args, data} = {}) {
     const { sensor_reading, calibration_values } = params;
     const { slope, intercept } = calibration_values;
 
@@ -1462,7 +1562,7 @@ static proportionalDistribution({ params, args, data } = {}) {
    * @example
    * hydro.analyze.hydro.calculateDOSaturation({ params: { sensor_reading: 6.2, temperature: 25 } });
    */
-  static calculateDOSaturation({ params, args, data }) {
+  static calculateDOSaturation({params, args, data} = {}) {
     const { sensor_reading, temperature } = params;
   
     const HenryConstant = 0.023; // Henry's constant for oxygen in water
@@ -1484,7 +1584,7 @@ static proportionalDistribution({ params, args, data } = {}) {
    * @example
    * hydro.analyze.hydro.compensate_ec({ params: { sensor_reading: 2.5, temperature: 25, compensation_factor: 0.02 } });
    */
-  static compensate_ec({ params, args, data }) {
+  static compensate_ec({params, args, data} = {}) {
     const { sensor_reading, temperature, compensation_factor } = params;
 
     // Calculate compensated electric conductivity
@@ -1506,7 +1606,7 @@ static proportionalDistribution({ params, args, data } = {}) {
  * @example
  * hydro.analyze.hydro.convertTurbidity({ params: { sensor_reading: 50, from_unit: 'NTU', to_unit: 'FTU' } });
  */
-static convertTurbidity({ params, args, data }) {
+static convertTurbidity({params, args, data} = {}) {
   const { sensor_reading, from_unit, to_unit } = params;
 
   // Conversion factors for turbidity units
@@ -1549,7 +1649,7 @@ static convertTurbidity({ params, args, data }) {
  * hydro.analyze.hydro.calculate_tds({ params: { sensor_reading: 15, temperature: 25, conductivity_factor: 0.8 } });
  */
 
-static calculate_tds({ params, args, data }) {
+static calculate_tds({params, args, data} = {}) {
   const { sensor_reading, temperature, conductivity_factor } = params;
 
   const tds = sensor_reading * conductivity_factor * temperature;
@@ -1587,7 +1687,7 @@ static calculate_tss({ params, args, data } = {}) {
  * @example
  * hydro.analyze.hydro.compensateORP({ params: { sensor_reading: 250, temperature: 25 } });
  */
-static compensateORP({ params, args, data }) {
+static compensateORP({params, args, data} = {}) {
   const { sensor_reading, temperature } = params;
 
   // Compensation equation or function specific to the ORP sensor
@@ -1742,7 +1842,7 @@ static compensateORP({ params, args, data }) {
  * const params = { hConcentration: 1e-7 };
  * hydro.analyze.hydro.calculatepH({params})
  */
-static calculatepH({ params, args, data }) {
+static calculatepH({params, args, data} = {}) {
   const { hConcentration } = params;
   const pH = -Math.log10(hConcentration);
   return pH;
@@ -1777,7 +1877,7 @@ static generateSyntheticValue(mean, stdDev) {
    * @example
    * hydro.analyze.hydro.convertTemperature({ params: { sensor_reading: 25, from_unit: 'Celsius', to_unit: 'Fahrenheit' } });
    */
-static convertTemperature({ params, args, data }) {
+static convertTemperature({params, args, data} = {}) {
   const { sensor_reading, from_unit, to_unit } = params;
   let converted_temperature = 0;
 
@@ -1799,6 +1899,39 @@ static convertTemperature({ params, args, data }) {
   }
 
   return converted_temperature;
+}
+
+/**
+   * Calculates Julian day from a given date
+   * @method getJulianDay
+   * @author riya-patil
+   * @memberof hydro
+   * @param {string|Date} date The input date as a string in a recognized date format or a Date object
+   * @returns {number} calculated Julian date
+   * @throws {Error} If the input date format is invalid
+   * @example 
+   * hydro.analyze.hydro.getJulianDay('2022-01-01')
+   */
+static getJulianDay(date) {
+  let inputDate;
+  if (typeof date === 'string') {
+    inputDate = new Date(date);
+  } else if (date instanceof Date) {
+    inputDate = date;
+  } else {
+    throw new Error('Invalid date format. Expected a string or a Date object.');
+  }
+
+  const year = inputDate.getFullYear();
+  const month = inputDate.getMonth() + 1;
+  const day = inputDate.getDate();
+
+  // Julian Day Calculation
+  const a = Math.floor((14 - month) / 12);
+  const y = year + 4800 - a;
+  const m = month + 12 * a - 3;
+
+  return day + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
 }
   /**********************************/
   /*** End of Helper functions **/
