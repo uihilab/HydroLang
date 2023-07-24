@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en" style="font-size:16px"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Source: modules/analyze/components/stats.js</title><!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="";baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body class="light" data-theme="light"><div class="sidebar-container"><div class="sidebar" id="sidebar"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="j5JuhZqN1KaYfsK09lU3y"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="GWGJjjkdZpWVjahJgT6ui"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro.html">hydro</a></div><div class="sidebar-section-children"><a href="HydroBMI.BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="e7xgiVz6Gc6R7ilgIkkpd"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="WdT8cDz_VdjxD0juuLZUA"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="datasources.CUAHSI.html">CUAHSI</a></div><div class="sidebar-section-children"><a href="HydroBMI.html">HydroBMI</a></div><div class="sidebar-section-children"><a href="HydroBMI.Hydro.html">Hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">modules_analyze_components_stats.js</h1></header><article><pre class="prettyprint source lang-js"><code>/**
+    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="";baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body class="light" data-theme="light"><div class="sidebar-container"><div class="sidebar" id="sidebar"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="M1McG9ibjkAvUZi9DSSbt"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="ozS2GTlwUL44fZM5Nahrl"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro.html">hydro</a></div><div class="sidebar-section-children"><a href="HydroBMI.BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="w_B6-SeoXqyWionRoW7JN"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="5eNo78muhB96APjNy03bU"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="datasources.CUAHSI.html">CUAHSI</a></div><div class="sidebar-section-children"><a href="HydroBMI.html">HydroBMI</a></div><div class="sidebar-section-children"><a href="HydroBMI.Hydro.html">Hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="ZEsOBr7zwe5ipJ7uUg8OI"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#gumbelDist">gumbelDist</a></div><div class="sidebar-section-children"><a href="global.html#lognormalDist">lognormalDist</a></div><div class="sidebar-section-children"><a href="global.html#LogSeriesDistribution">LogSeriesDistribution</a></div><div class="sidebar-section-children"><a href="global.html#simpleMovingAverage">simpleMovingAverage</a></div><div class="sidebar-section-children"><a href="global.html#uniformDist">uniformDist</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">modules_analyze_components_stats.js</h1></header><article><pre class="prettyprint source lang-js"><code>/**
  * Main class used for statistical analyses and data cleaning.
  * @class
  * @name stats
@@ -1193,6 +1193,530 @@ hydro.analyze.stats.normalDistributio
     }
   }
 
+  /**
+ * Calculates the probability mass function (PMF) of a Geometric Distribution
+ * @method geometricDist
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - Contains the probability of success "s" (where 0 &lt;= s &lt;= 1) as a parameter.
+ * @param {Number} args - Contains the number of trials until the first success trials (trials >= 1)
+ * @returns {Number} The probability of getting the first success on the n-th trial
+ * @example
+ * hydro.analyze.stats.geometricDist({ params: { s: 0.5 }, args: { trials: 3 }, data: [] });
+ * 0.125
+ */
+static geometricDist({ params, args, data }) {
+  const { s } = params || 1;
+  const { trials } = args;
+  if (trials &lt; 1) {
+    return 0;
+  }
+  return (1 - s) ** (trials - 1) * s;
+}
+
+/**
+ * Calculates the probability mass function (PMF) of a Binomial Distribution.
+ * @method binomialDist
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - Contains the number of trials 'n' (n >= 0) and the probability of success 
+ * @param {Object} args - Contains the number of successes 's'
+ * @param {Array} data - Empty array as no data is needed for this calculation.
+ * @returns {Number} The probability of getting exactly 's' successes in trials.
+ * @example
+ * hydro.analyze.stats.binomialDist({ params: { trials: 10, probSuccess: 0.5 }, args: { s: 3 });
+ */
+static binomialDist({ params, args, data }) {
+  const { trials, probSuccess } = params;
+  const { s } = args;
+
+  if (s &lt; 0 || s > trials) {
+    return 0;
+  }
+
+  const coefficient = this.binomialCoefficient(trials, s);
+  const probability = coefficient * (probSuccess ** s) * ((1 - probSuccess) ** (trials - s));
+  return probability;
+}
+
+/**
+ * Multinomial Distribution - Generates random samples from a multinomial distribution.
+ * @method multinomialDistribution
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params probabilities: 1D array of probabilities for each category; n: Number of samples to generate
+ * @returns {Object} samples: 2D array of generated samples, where each row represents a sample and each column represents a category
+ * frequencies: 2D array of frequencies for each category in the generated samples
+ * @example
+ * const multinomialData = {
+ *   probabilities: [0.2, 0.3, 0.5],
+ *   n: 100
+ * };
+ * hydro.analyze.stats.multinomialDistribution({ params: multinomialData });
+ */
+static multinomialDistribution({ params, args, data }) {
+  const { probabilities, n } = params;
+
+  const numCategories = probabilities.length;
+  const samples = [];
+  const frequencies = [];
+
+  for (let i = 0; i &lt; n; i++) {
+    const sample = [];
+    let remainingProb = 1;
+
+    for (let j = 0; j &lt; numCategories - 1; j++) {
+      const prob = probabilities[j];
+      const rand = Math.random() * remainingProb;
+      const count = Math.floor(rand / prob);
+      sample.push(count);
+      remainingProb -= count * prob;
+    }
+
+    const lastCategoryCount = Math.floor(remainingProb / probabilities[numCategories - 1]);
+    sample.push(lastCategoryCount);
+
+    samples.push(sample);
+    frequencies.push(this.frequency({data : sample}));
+  }
+
+  return { samples, frequencies };
+}
+
+
+/** Calculates the probability mass function (PMF) of the Log series Distribution
+   * @method LogSeriesDistribution 
+   * @author riya-patil
+   * @param {Object} params - Contains the parameter 'probSuccess' which represents the probability of success in a single trial.
+   * @param {Object} args - Contains the argument 'trials' (trials >= 1) which represents the number of trials.
+   * @returns {Number} Probability of achieving the first success in # of trials.
+   * @example
+   * hydro.analyze.stats.logSeriesDist({params: {probSuccess: 0.2, trials: 3}})
+   */
+static logSeriesDist({ params, args, data }) {
+  const { probSuccess, trials } = params;
+  
+  if (trials &lt; 1) {
+    return 0;
+  }
+  
+  const pmf = -Math.log(1 - probSuccess) * Math.pow(probSuccess, trials) / trials;
+  return pmf;
+}
+
+ /** Calculates the probability density function (PDF) of the Lognormal Distribution
+   * @method lognormalDist 
+   * @author riya-patil
+   * @param {Object} params - Contains the parameters 'mu' and 'sigma' which represent the mean and standard deviation of the associated normal distribution.
+   * @param {Object} args - Contains the argument 'x' which represents the value at which to evaluate the PDF.
+   * @returns {Number} Probability density at 'x' in the Lognormal Distribution.
+   * @example 
+   * hydro.analyze.stats.lognormalDist({params: { mu: 0, sigma: 1 }, args: { x: 2 }})
+   */
+ static lognormalDist({ params, args, data }) {
+  const { mu, sigma } = params;
+  const { x } = args;
+
+  if (x &lt;= 0) {
+    return 0;
+  }
+
+  const exponent = -((Math.log(x) - mu) ** 2) / (2 * sigma ** 2);
+  const pdf = (1 / (x * sigma * Math.sqrt(2 * Math.PI))) * Math.exp(exponent);
+
+  return pdf;
+}
+
+/** Calculates the probability density function (PDF) of the Gumbel Distribution
+   * @method gumbelDist 
+   * @author riya-patil
+   * @param {Object} params - Contains the parameters 'mu' (location parameter) and 'beta' (scale parameter).
+   * @returns {Number} Probability density at the given value 'x'.
+   * @example
+   * hydro.analyze.stats.gumbelDist({ params: { mu: 0, beta: 1, x: 2}})
+   */
+static gumbelDist({ params, args, data }) {
+  const { mu, beta } = params;
+  const { x } = args;
+  
+  const z = (x - mu) / beta;
+  const pdf = (1 / beta) * Math.exp(-(z + Math.exp(-z)));
+  
+  return pdf;
+}
+
+/** Calculates the probability density function (PDF) of the Uniform Distribution
+   * @method uniformDist 
+   * @author riya-patil
+   * @param {Object} params - Contains the parameters 'a' (lower bound) and 'b' (upper bound).
+   * @param {Object} args - Contains the argument 'x' at which to evaluate the PDF.
+   * @returns {Number} Probability density at the given value 'x'.
+   * @example
+   * hydro.analyze.stats.uniformDist({ params: { a: 0, b: 1 }, args: { x: 0.5 } })
+   */
+static uniformDist({ params, args }) {
+  const { a, b } = params;
+  const { x } = args;
+  
+  if (x >= a &amp;&amp; x &lt;= b) {
+    const pdf = 1 / (b - a);
+    return pdf;
+  } else {
+    return 0;
+  }
+}
+
+/** Calculates the Simple Moving Average of a given data set
+   * @method simpleMovingAverage 
+   * @author riya-patil
+   * @param {Object} params - Contains the parameter 'windowSize' which specifies the size of the moving average window.
+   * @param {Object} data - Contains the array of data points.
+   * @returns {Array} Array of moving average values.
+   * @example
+   * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+   * const windowSize = 3;
+   * hydro.analyze.stats.simpleMovingAverage({ params: { windowSize }, data });
+   */
+static simpleMovingAverage({ params, args, data }) {
+  const { windowSize } = params;
+
+  if (windowSize &lt;= 0 || windowSize > data.length) {
+    throw new Error("Invalid window size.");
+  }
+
+  const movingAverage = [];
+
+  for (let i = 0; i &lt;= data.length - windowSize; i++) {
+    const window = data.slice(i, i + windowSize);
+    const sum = window.reduce((total, value) => total + value, 0);
+    const average = sum / windowSize;
+    movingAverage.push(average);
+  }
+
+  return movingAverage;
+}
+
+/**
+ * Calculates the Linear Moving Average (LMA) of a given dataset.
+ * @method linearMovingAverage
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - Contains the windowSize parameter.
+ * @param {Array} data - 1D array of numerical values.
+ * @returns {Array} Array of moving averages.
+ * @throws {Error} If the window size is invalid.
+ * @example
+ * const windowSize = 5;
+ * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+ * hydro.analyze.stats.linearMovingAverage({ windowSize, data });
+ */
+static linearMovingAverage({ params, args, data }) {
+  const { windowSize } = params;
+
+  if (windowSize &lt;= 0 || windowSize > data.length) {
+    throw new Error("Invalid window size.");
+  }
+
+  const movingAverage = [];
+
+  for (let i = 0; i &lt;= data.length - windowSize; i++) {
+    const window = data.slice(i, i + windowSize);
+    const weights = Array.from({ length: windowSize }, (_, index) => index + 1);
+    const weightedSum = window.reduce((total, value, index) => total + value * weights[index], 0);
+    const sumOfWeights = weights.reduce((total, weight) => total + weight, 0);
+    const average = weightedSum / sumOfWeights;
+    movingAverage.push(average);
+  }
+
+  return movingAverage;
+}
+
+/**
+ * Computes the Exponential Moving Average (EMA) for a given dataset.
+ * @method exponentialMovingAverage
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} args - Contains the dataset as 'data' (1D JavaScript array) and the 'alpha' value (smoothing factor between 0 and 1)
+ * @returns {number[]} The Exponential Moving Average (EMA) values for the dataset
+ * @example
+ *const dataset= [1,2,3,4,5]
+ *const params={alpha: 0.5}
+ *hydro.analyze.stats.exponentialMovingAverage({params, data});
+*/
+
+static exponentialMovingAverage({ params, args, data }) {
+  const { alpha } = params;
+  const { dataset } = data;
+  const emaValues = [];
+  let ema = dataset[0];
+
+  for (let i = 1; i &lt; dataset.length; i++) {
+    ema = alpha * dataset[i] + (1 - alpha) * ema;
+    emaValues.push(ema);
+  }
+
+  return emaValues;
+}
+
+/**
+ * Generates a sequence of events representing a Poisson Process
+ * @method poissonProcess
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params -  Contains the type of Poisson process ('homogeneous' or 'nonhomogeneous') and the time period 'T'.
+ * @param {Object} args - Additional arguments depending on the type of Poisson process.
+ * @returns {Array} Array of event times.
+ * @example
+ * hydro.analyze.stats.poissonProcess({ params: { type: 'homogeneous', T: 10 }, args: { lambda: 2 } });
+ * hydro.analyze.stats.poissonProcess({ params: { type: 'nonhomogeneous', T: 10 }, args: { rateFunction: (t) => Math.sin(t) } });
+ */
+static poissonProcess({ params, args, data }) {
+  const { type = 'homogeneous', T } = params;
+  const { lambda, rateFunction } = args;
+
+  const events = [];
+  let t = 0;
+
+  while (t &lt; T) {
+    const rand = Math.random();
+    const interTime = (type === 'homogeneous' ? -1 / lambda : -1 / rateFunction(t)) * Math.log(1 - rand);
+    t += interTime;
+
+    if (t &lt; T) {
+      if (type === 'homogeneous' || Math.random() &lt;= rateFunction(t) / rateFunction(T)) {
+        events.push(t);
+      }
+    }
+  }
+
+  return events;
+}
+
+/**
+   * Generates random numbers following a Log Pearson Type III distribution.
+   * @method logPearsonTypeIII
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the parameters 'mu' 'sigma' and 'gamma'.
+   * @param {Number} size - Number of random numbers to generate.
+   * @returns {Array} Array of random numbers following the Log Pearson Type III distribution.
+   * @example
+   * hydro.analyze.stats.logPearsonTypeIII({ params: { mu: 1, sigma: 2, gamma: 3 }, args: { size: 100 } })
+   */
+static logPearsonTypeIII({ params, args, data }) {
+  const { mu, sigma, gamma } = params;
+  const { size } = args || 10;
+  const randomNumbers = [];
+
+  for (let i = 0; i &lt; size; i++) {
+    const rand1 = Math.random();
+    const rand2 = Math.random();
+    const x = Math.sqrt(-2 * Math.log(rand1)) * Math.cos(2 * Math.PI * rand2);
+    const y = mu + sigma * (x / Math.sqrt(gamma));
+    const z = Math.exp(y);
+
+    randomNumbers.push(z);
+  }
+
+  return randomNumbers;
+}
+
+ /**
+   * Generates random numbers from within a Box Plot distribution.
+   * @method boxPlotDistribution
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the parameters 'min', 'q1', 'median', 'q3', 'max'.
+   * @param {Object} args - Contains the argument 'size' for the number of random numbers to generate.
+   * @returns {Array} Array of random numbers following the Box Plot Distribution.
+   * @example
+   * hydro.analyze.stats.boxPlotDistribution({ params: { min: 1, q1: 2, median: 3, q3: 4, max: 5 }, args: { size: 100 }})
+   */
+ static boxPlotDistribution({ params, args, data }) {
+  const { min, q1, median, q3, max } = params;
+  const { size } = args;
+  const randomNumbers = [];
+
+  for (let i = 0; i &lt; size; i++) {
+    const randNum = Math.random();
+    let value;
+
+    if (randNum &lt; 0.25) {
+      value = min - (q1 - min) * Math.random();
+    } else if (randNum &lt; 0.5) {
+      value = q1 + (median - q1) * Math.random();
+    } else if (randNum &lt; 0.75) {
+      value = median + (q3 - median) * Math.random();
+    } else {
+      value = q3 + (max - q3) * Math.random();
+    }
+
+    randomNumbers.push(value);
+  }
+
+  return randomNumbers;
+}
+
+/**
+ * Mean Squared Error (MSE) Estimation - Computes the Mean Squared Error (MSE) between two datasets
+ * @method meanSquaredError
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} args - Contains the two datasets as 'data1' and 'data2' (1D JavaScript arrays)
+ * @returns {number} The Mean Squared Error (MSE) between the two datasets
+ * @example
+ * const dataset1 = [1, 2, 3, 4, 5];
+ * const dataset2 = [1.5, 2.8, 3.6, 4.2, 4.9];
+ * hydro.analyze.stats.meanSquaredError({ data: { data1: dataset1, data2: dataset2 } });
+ */
+
+static meanSquaredError({ params, args, data }) {
+  const { data1, data2 } = data;
+
+  if (data1.length !== data2.length) {
+    throw new Error('Datasets need to have same length');
+  }
+
+  const n = data1.length;
+  let sum = 0;
+  for (let i = 0; i &lt; n; i++) {
+    const diff = data1[i] - data2[i];
+    sum += diff * diff;
+  }
+
+  const mse = sum / n;
+  return mse;
+}
+
+/**
+ * Return Period - Calculates the return period for a given probability of occurrence.
+ * @method returnPeriod
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - probability: Probability of occurrence (between 0 and 1)
+ * @returns {Number} Return period corresponding to the given probability
+ * @example
+ * const returnPeriodData = {
+ *   probability: 0.1
+ * };
+ * hydro.analyze.stats.returnPeriod({ params: returnPeriodData });
+ */
+static returnPeriod({ params, args, data }) {
+  const { probability } = params;
+  if (probability &lt;= 0 || probability >= 1) {
+    throw new Error("Probability must be between 0 and 1 (exclusive).");
+  }
+
+  return 1 / probability;
+}
+
+/**
+ * Performs differencing on a given time series.
+ * @method differencing
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params - Contains the order parameter
+ * @param {Array} data - 1D array of numerical values representing a time series
+ * @returns {Array} Differenced time series
+ * @throws {Error} If the order is invalid
+ * @example
+ * const order = 1;
+ * const timeSeries = [1, 3, 6, 10, 15];
+ * const differencedSeries = stats.differencing({ order, data: timeSeries });
+ */
+static differencing({ params, args, data }) {
+  const order = params.order;
+  const timeSeries = data;
+
+  if (order >= timeSeries.length) {
+    throw new Error('Invalid order for differencing.');
+  }
+
+  const differencedSeries = [];
+  for (let i = order; i &lt; timeSeries.length; i++) {
+    const difference = timeSeries[i] - timeSeries[i - order];
+    differencedSeries.push(difference);
+  }
+
+  return differencedSeries;
+}
+
+/**
+ * Computes the variance of residuals to detect heteroskedasticity.
+ * @method heteroskedasticity
+ * @author riya-patil
+ * @memberof stats
+ * @param {Array} data - 1D array of numerical values representing the residuals.
+ * @returns {number} Variance of residuals
+ * @example
+ * const residuals = [1.5, -2.1, 0.8, -1.2, 2.5];
+ * const variance = stats.heteroskedasticity({ data: residuals });
+ */
+static heteroskedasticity({ params, args, data }) {
+  const residuals = data;
+
+  const squaredResiduals = residuals.map((residual) => residual * residual);
+  const variance = squaredResiduals.reduce((sum, value) => sum + value, 0) / squaredResiduals.length;
+
+  return variance;
+}
+
+/**
+ * Computes the coefficients of a linear regression model.
+ * @method regression
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} data - Object containing predictor variables (X) and target variable (y).
+ * @returns {Array} Coefficients of the linear regression model.
+ * @example
+ * const X = [[1, 2], [3, 4], [5, 6]];
+ * const y = [3, 5, 7];
+ * hydro.analyze.stats.regression({ data: { X, y } });
+ */
+static regression({ params, args, data }) {
+  const X = data.X; // Matrix of predictor variables
+  const y = data.y; // Array of target variable
+
+  const XWithIntercept = X.map((row) => [1, ...row]);
+
+  const Xint = multiplyMatrix(transposeMatrix(XWithIntercept), XWithIntercept);
+  const Yint = multiplyMatrix(transposeMatrix(XWithIntercept), y);
+
+  const inverseXtX = matrixInverse(Xint);
+
+  const coefficients = multiplyMatrix(inverseXtX, Yint);
+
+  return coefficients;
+}
+
+/**
+ * Performs multivariate regression analysis
+ * @method multiregression
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} data - Data for the multivariate regression
+ * @returns {Array} Coefficients of the linear regression model.
+ * @example
+ * const X = [[1, 2], [3, 4], [5, 6]];
+ * const y = [3, 5, 7];
+ * hydro.analyze.stats.multiregression({ data: { X, y } });
+ */
+static multiregression({ params, args, data }) {
+  const X = data.X; // Matrix of predictor variables
+  const Y = data.Y; // Array of target variables
+
+  const coefficients = [];
+  for (let i = 0; i &lt; Y.length; i++) {
+    const y = Y[i];
+    const regressionData = { X, y };
+    const coefficient = this.regression({ data: regressionData });
+    coefficients.push(coefficient);
+  }
+
+  return coefficients;
+}
+
+ 
   /***************************/
   /***** Helper functions ****/
   /***************************/
@@ -1412,8 +1936,140 @@ hydro.analyze.stats.normalDistributio
   return { autocorrelation, matrix };
 }
 
+/**
+ * Calculates the binomial coefficient (n choose k format)
+ * @method binomialCoefficient - calculates the number of possible combinations of 's' successes in 'trials'
+ * @author riya-patil
+ * @memberof stats
+ * @param {Number} trials - The number of trials
+ * @param {Number} s - The number of successes
+ * @returns {Number} The binomial coefficient (trials choose s)
+ */
+static binomialCoefficient(trials, s) {
+  if (s === 0 || s === trials) {
+    return 1;
+  }
+  if (s > trials) {
+    return 0;
+  }
+  let coefficient = 1;
+  for (let i = 1; i &lt;= s; i++) {
+    coefficient *= (trials - i + 1) / i;
+  }
+
+  return coefficient;
+}
+
+/**
+ * Multiplies two matrices
+ * @method multipleMatrix
+ * @author riya-patil
+ * @memberof stats
+ * @param {Array} matrix1 - First matrix
+ * @param {Array} matrix2 - Second matrix
+ * @returns {Array} Result of matrix multiplication
+ * @example
+ * const matrix1 = [[1, 2], [3, 4]];
+ * const matrix2 = [[5, 6], [7, 8]];
+ * hydro.analyze.stats.multiplyMatrix(matrix1, matrix2)
+ */
+static multiplyMatrix(matrix1, matrix2) {
+  const m1Rows = matrix1.length;
+  const m1Cols = matrix1[0].length;
+  const m2Cols = matrix2[0].length;
+  const result = [];
+
+  for (let i = 0; i &lt; m1Rows; i++) {
+    result[i] = [];
+    for (let j = 0; j &lt; m2Cols; j++) {
+      let sum = 0;
+      for (let k = 0; k &lt; m1Cols; k++) {
+        sum += matrix1[i][k] * matrix2[k][j];
+      }
+      result[i][j] = sum;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Transposes a matrix
+ * @method transposeMatrix
+ * @author riya-patil
+ * @memberof stats
+ * @param {Array} matrix - Matrix to transpose
+ * @returns {Array} Transposed matrix
+ * @example
+ * const matrix = [[1, 2, 3], [4, 5, 6]];
+ * hydro.analyze.stats.transposeMatrix(matrix)
+ */
+static transposeMatrix(matrix) {
+  const rows = matrix.length;
+  const cols = matrix[0].length;
+  const transposed = [];
+
+  for (let j = 0; j &lt; cols; j++) {
+    transposed[j] = [];
+    for (let i = 0; i &lt; rows; i++) {
+      transposed[j][i] = matrix[i][j];
+    }
+  }
+
+  return transposed;
+}
+
+/**
+ * Computes the inverse of a matrix
+ * @method matrixInverse
+ * @author riya-patil
+ * @memberof stats
+ * @param {Array} matrix - Matrix to compute inverse of
+ * @returns {Array} Inverse of the matrix
+ * @example
+ * const matrix = [[1, 2, 3], [4, 5, 6]];
+ * hydro.analyze.stats.matrixInverse(matrix)
+ */
+
+static matrixInverse(matrix) {
+  const n = matrix.length;
+  const inv = [];
+  const inversed = [];
+
+  for (let i = 0; i &lt; n; i++) {
+    inversed[i] = [];
+    inv[i] = [];
+    for (let j = 0; j &lt; n; j++) {
+      inversed[i][j] = i === j ? 1 : 0;
+      inv[i][j] = matrix[i][j];
+    }
+  }
+
+  for (let k = 0; k &lt; n; k++) {
+    const pivot = inv[k][k]; //elimatination to obtain inversed matrix
+
+    for (let j = 0; j &lt; n; j++) {
+      inv[k][j] /= pivot;
+      inversed[k][j] /= pivot;
+    }
+    //row operations to eliminate other elements
+    for (let i = 0; i &lt; n; i++) {
+      if (i !== k) {
+        const factor = inv[i][k];
+
+        for (let j = 0; j &lt; n; j++) {
+          inv[i][j] -= factor * inv[k][j];
+          inversed[i][j] -= factor * inversed[k][j];
+        }
+      }
+    }
+  }
+
+  return inversed;
+}
+
   /**********************************/
   /*** End of Helper functions **/
   /**********************************/
 }
-</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="mobile-nav-links"></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="j5JuhZqN1KaYfsK09lU3y"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="GWGJjjkdZpWVjahJgT6ui"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro.html">hydro</a></div><div class="sidebar-section-children"><a href="HydroBMI.BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="e7xgiVz6Gc6R7ilgIkkpd"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="WdT8cDz_VdjxD0juuLZUA"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="datasources.CUAHSI.html">CUAHSI</a></div><div class="sidebar-section-children"><a href="HydroBMI.html">HydroBMI</a></div><div class="sidebar-section-children"><a href="HydroBMI.Hydro.html">Hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>
+</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="mobile-nav-links"></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="M1McG9ibjkAvUZi9DSSbt"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-analyze.html">analyze</a></div><div class="sidebar-section-children"><a href="module-core.html">core</a></div><div class="sidebar-section-children"><a href="module-mapsources.html">mapsources</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="ozS2GTlwUL44fZM5Nahrl"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="data.html">data</a></div><div class="sidebar-section-children"><a href="divisors.html">divisors</a></div><div class="sidebar-section-children"><a href="HLclearCreek.html">HLclearCreek</a></div><div class="sidebar-section-children"><a href="hydro.html">hydro</a></div><div class="sidebar-section-children"><a href="HydroBMI.BMI.html">BMI</a></div><div class="sidebar-section-children"><a href="HydroLangBMI.html">HydroLangBMI</a></div><div class="sidebar-section-children"><a href="map.html">map</a></div><div class="sidebar-section-children"><a href="nn.html">nn</a></div><div class="sidebar-section-children"><a href="stats.html">stats</a></div><div class="sidebar-section-children"><a href="visualize.html">visualize</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="w_B6-SeoXqyWionRoW7JN"><div>Externals</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="external-D3.html">D3</a></div><div class="sidebar-section-children"><a href="external-GoogleCharts.html">GoogleCharts</a></div><div class="sidebar-section-children"><a href="external-googlemapsapi.html">googlemapsapi</a></div><div class="sidebar-section-children"><a href="external-JQuery.html">JQuery</a></div><div class="sidebar-section-children"><a href="external-leafletosmapi.html">leafletosmapi</a></div><div class="sidebar-section-children"><a href="external-tensorflow.html">tensorflow</a></div><div class="sidebar-section-children"><a href="external-tileprov.html">tileprov</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="5eNo78muhB96APjNy03bU"><div>Namespaces</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="datasources.html">datasources</a></div><div class="sidebar-section-children"><a href="datasources.CUAHSI.html">CUAHSI</a></div><div class="sidebar-section-children"><a href="HydroBMI.html">HydroBMI</a></div><div class="sidebar-section-children"><a href="HydroBMI.Hydro.html">Hydro</a></div><div class="sidebar-section-children"><a href="Hydrolang.html">Hydrolang</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="ZEsOBr7zwe5ipJ7uUg8OI"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#gumbelDist">gumbelDist</a></div><div class="sidebar-section-children"><a href="global.html#lognormalDist">lognormalDist</a></div><div class="sidebar-section-children"><a href="global.html#LogSeriesDistribution">LogSeriesDistribution</a></div><div class="sidebar-section-children"><a href="global.html#simpleMovingAverage">simpleMovingAverage</a></div><div class="sidebar-section-children"><a href="global.html#uniformDist">uniformDist</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#dark-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>
