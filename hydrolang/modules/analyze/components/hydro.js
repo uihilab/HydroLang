@@ -1192,7 +1192,7 @@ static ETPriestelyTaylor({ params, args, data } = {}) {
    * @example
    * hydro.analyze.hydro.InfPhilip({params: {K: someNum, S: someNum, t: someNum}})
    */
-  static phInfPhilipilip ({params, args, data} = {}) {
+  static InfPhilip ({params, args, data} = {}) {
     const { K, S, t } = params;
 
     // Validate data inputs
@@ -1322,7 +1322,7 @@ static ETPriestelyTaylor({ params, args, data } = {}) {
   
   /**
  * Calculates the outflow using the Time-Area method for routing
- * Reference: https://ton.sdsu.edu/protected29/cive445_ponce_chapter10b_lecture.html
+ * Reference: https://www.nohrsc.noaa.gov/technology/gis/uhg_manual.html.
  * #:~:text=The%20time%2Darea%20method%20leads,effective%20rainfall%20duration%20tr
  * @method timeAreaMethod
  * @author riya-patil
@@ -1364,7 +1364,7 @@ static timeAreaMethod({ params, args, data } = {}) {
 
   return outflow;
 }
-
+  
 /**
  * Performs single channel routing of a hydrological process using the Kinematic Wave Routing method 
  *  * Reference: https://www.engr.colostate.edu/~ramirez/ce_old/classes/cive322-Ramirez/CE322_Web/ExampleKinematicWave.pdf
@@ -1488,20 +1488,41 @@ static dissolvedOxygenDemand({ params, args, data } = {}) {
 /**
    * Disaggregation: Distributes the total rainfall of a larger area to smaller sub-areas based on their relative proportions or weights.
    * Reference: https://journals.ametsoc.org/view/journals/hydr/19/12/jhm-d-18-0132_1.xml
-   * @method proportionalDistribution
+   * @method inverseDistanceWeighting
    * @author riya-patil
    * @memberof hydro
    * @param {Object} params totalRainfall (total rainfall of the larger area), weights (array of relative weights/proportions of smaller sub-areas)
-   * @returns {Object[]} Array of rainfall values for each smaller sub-area.
+   * @throws {Error} If totalRainfall, basinAreas, or distances are not numbers or arrays
+   * @returns {Object[]} Array of rainfall values for each smaller sub-area
    * @example
-   * hydro.analyze.hydro.proportionalDistribution({params: {totalRainfall: 100, weights: [0.3, 0.4, 0.3]}})
-   */
-static proportionalDistribution({ params, args, data } = {}) {
-  const { totalRainfall, weights } = params;
-  const numSubAreas = weights.length;
+   * hydro.analyze.hydro.inverseDistanceWeighting({
+ *   params: {
+ *     totalRainfall: 200,
+ *     basinAreas: [10, 20, 15],
+ *     distances: [5, 8, 10],
+ *   }
+ * });
+ */
+static inverseDistanceWeighting({ params, args, data } = {}) {
+  const { totalRainfall, basinAreas, distances } = params;
 
-  const rainfallPerSubArea = totalRainfall / numSubAreas;
-  const rainfallDistribution = weights.map((weight) => weight * rainfallPerSubArea);
+  if (typeof totalRainfall !== 'number') {
+    throw new Error('Invalid data input. Expected totalRainfall to be a number.');
+  }
+
+  if (!Array.isArray(basinAreas) || !Array.isArray(distances)) {
+    throw new Error('Invalid data input. Expected basinAreas and distances to be arrays.');
+  }
+
+  const numSubAreas = basinAreas.length;
+
+  if (!distances || !Array.isArray(distances) || distances.length !== numSubAreas) {
+    distances = new Array(numSubAreas).fill(1); // Default all distances to 1 (even distribution)
+  }
+
+  const sumInverseDistances = distances.reduce((acc, distance) => acc + 1 / distance, 0);
+  const weights = distances.map((distance) => (1 / distance) / sumInverseDistances);
+  const rainfallDistribution = basinAreas.map((area, index) => weights[index] * totalRainfall);
 
   return rainfallDistribution;
 }
@@ -1509,23 +1530,33 @@ static proportionalDistribution({ params, args, data } = {}) {
  /**
    * Generates synthetic rainfall data based on statistical characteristics of observed rainfall
    * Reference: https://cran.r-project.org/web/packages/RGENERATEPREC/vignettes/precipitation_stochastic_generation_v8.html
-   * @method stochasticRainfallGeneration
-   * @author riya-patil
-   * @memberof hydro
-   * @param {Object} params observedRainfall (array of observed rainfall data), statisticalCharacteristics (mean, standard deviation, etc.)
-   * @returns {Object[]} Array of synthetic rainfall values generated based on the statistical characteristics.
-   * @example
-   * hydro.analyze.hydro.stochasticRainfallGeneration({params: {observedRainfall: [10, 15, 20], statisticalCharacteristics: {mean: 12, stdDev: 3}}})
-   */
+   @method stochasticRainfallGeneration
+   @author riya-patil
+ * @memberof hydro
+ * @param {Object} params - Contains observedRainfall (array of observed rainfall data).
+ * @returns {number[]} Array of synthetic rainfall values generated based on the statistical characteristics.
+ * @throws {Error} If observedRainfall is not provided or not in the correct format.
+ * @example
+ * hydro.analyze.hydro.stochasticRainfallGeneration({
+ *   params: {
+ *     observedRainfall: [observed_value_1, observed_value_2, observed_value_3]
+ *   }
+ * });
+ */
  static stochasticRainfallGeneration({ params, args, data } = {}) {
-  const { observedRainfall, statisticalCharacteristics } = params;
-  const { mean, stdDev } = statisticalCharacteristics;
+  if (!params.observedRainfall || !Array.isArray(params.observedRainfall)) {
+    throw new Error('Invalid data input. observedRainfall must be provided as an array.');
+  }
+
+  const observedRainfall = params.observedRainfall;
   const numDataPoints = observedRainfall.length;
+
+  const meanRainfall = mean(observedRainfall);
+  const stdDevRainfall = stdDev(observedRainfall);
 
   const syntheticRainfall = [];
   for (let i = 0; i < numDataPoints; i++) {
-    // Generate synthetic rainfall values based on the statistical characteristics using a random number generator
-    const syntheticValue = generateSyntheticValue(mean, stdDev);
+    const syntheticValue = generateSyntheticValue(meanRainfall, stdDevRainfall);
     syntheticRainfall.push(syntheticValue);
   }
 
@@ -1541,15 +1572,36 @@ static proportionalDistribution({ params, args, data } = {}) {
    * @param {Object} params sensor_reading (pH reading from the sensor), calibration_values (object with calibration values for slope and intercept).
    * @returns {number} The calibrated pH value
    * @example
-   * hydro.analyze.hydro.calibratePH({ params: { sensor_reading: 4.8, calibration_values: { slope: 0.98, intercept: -0.1 } } });
-   */
-  static calibratePH({params, args, data} = {}) {
-    const { sensor_reading, calibration_values } = params;
-    const { slope, intercept } = calibration_values;
-
-    const calibrated_ph = (sensor_reading * slope) + intercept;
-    return calibrated_ph;
+   * hydro.analyze.hydro.calibratePH({
+ *   params: {
+ *     calibration_values: { slope: 0.9, intercept: 0.2 },
+ *   },
+ *   data: [sensor_reading_1, sensor_reading_2, sensor_reading_3]
+ * });
+ */
+static calibratePH({ params, args, data } = {}) {
+  if (!params.calibration_values || typeof params.calibration_values !== 'object') {
+    throw new Error('Invalid data input. Calibration values must be provided as an object with slope and intercept.');
   }
+
+  if (!Array.isArray(data)) {
+    throw new Error('Invalid data input. Sensor readings must be provided as an array.');
+  }
+
+  const { slope, intercept } = params.calibration_values;
+  const calibrated_pH_values = [];
+
+  for (const sensor_reading of data) {
+    if (typeof sensor_reading !== 'number') {
+      throw new Error('Invalid data input. Sensor readings must be numbers.');
+    }
+
+    const calibrated_pH = (sensor_reading * slope) + intercept;
+    calibrated_pH_values.push(calibrated_pH);
+  }
+
+  return calibrated_pH_values;
+}
 
   /**
    * Calculates dissolved oxygen (DO) saturation using Henry's Law
@@ -1560,19 +1612,34 @@ static proportionalDistribution({ params, args, data } = {}) {
    * @param {Object} params sensor_reading (dissolved oxygen reading from the sensor), temperature (temperature in Celsius).
    * @returns {number} The dissolved oxygen saturation value.
    * @example
-   * hydro.analyze.hydro.calculateDOSaturation({ params: { sensor_reading: 6.2, temperature: 25 } });
+   * const data = {
+   *    sensor_reading = [5.2, 4.8, 6.1];
+   *    temperature = [25, 26, 24];
+   * }
+   * const params = {
+      HenryConstant: 0.023,
+      atmosphericPressure: 1.0,
+    };
+   * hydro.analyze.hydro.calculateDOSaturation({ params, data });
    */
-  static calculateDOSaturation({params, args, data} = {}) {
-    const { sensor_reading, temperature } = params;
+  static calculateDOSaturation({ params, args, data } = {}) {
+    const { HenryConstant, atmosphericPressure } = params; // You can pass these constants as parameters if needed
+    const dosaturationValues = [];
+    const { sensor_reading, temperature } = data;
   
-    const HenryConstant = 0.023; // Henry's constant for oxygen in water
-    const atmosphericPressure = 1.0; 
-
-    const dosaturation = sensor_reading / (HenryConstant * Math.exp(-HenryConstant * atmosphericPressure * temperature));
+    // Check if sensor_reading and temperature are arrays of the same length
+    if (!Array.isArray(sensor_reading) || !Array.isArray(temperature) || sensor_reading.length !== temperature.length) {
+      throw new Error('sensor_reading and temperature should be arrays of the same length.');
+    }
   
-    return dosaturation;
+    for (let i = 0; i < sensor_reading.length; i++) {
+      const dosaturation = sensor_reading[i] / (HenryConstant * Math.exp(-HenryConstant * atmosphericPressure * temperature[i]));
+      dosaturationValues.push(dosaturation);
+    }
+  
+    return dosaturationValues;
   }
-
+  
   /**
    * Compensates the electric conductivity (EC) reading based on the temperature and compensation factor
    * Reference: https://agupubs.onlinelibrary.wiley.com/doi/full/10.1002/2016jb013555#:~:text=The%20electrical%20conductivity%20of%20all,with%20pressure%20above%2010%20GPa
@@ -1582,15 +1649,30 @@ static proportionalDistribution({ params, args, data } = {}) {
    * @param {Object} params sensor_reading (EC reading from the sensor), temperature (temperature in Celsius), compensation_factor (compensation factor).
    * @returns {number} The compensated electric conductivity value.
    * @example
-   * hydro.analyze.hydro.compensate_ec({ params: { sensor_reading: 2.5, temperature: 25, compensation_factor: 0.02 } });
+   * const params = {
+      compensation_factor: 0.02,
+    };
+    const data = {
+      sensor_reading: [100, 120, 90],
+      temperature: [28. 26, 25],
+    };
+   * hydro.analyze.hydro.compensate_ec({ params, data });
    */
-  static compensate_ec({params, args, data} = {}) {
-    const { sensor_reading, temperature, compensation_factor } = params;
-
-    // Calculate compensated electric conductivity
-    const compensated_ec = sensor_reading / (1 + compensation_factor * (temperature - 25));
-
-    return compensated_ec;
+  static compensate_ec({ params, args, data } = {}) {
+    const { compensation_factor } = params; 
+    const compensated_ecValues = [];
+    const { sensor_reading, temperature } = data;
+  
+    if (!Array.isArray(sensor_reading) || !Array.isArray(temperature) || sensor_reading.length !== temperature.length) {
+      throw new Error('sensor_reading and temperature should be arrays of the same length.');
+    }
+  
+    for (let i = 0; i < sensor_reading.length; i++) {
+      const compensated_ec = sensor_reading[i] / (1 + compensation_factor * (temperature[i] - 25));
+      compensated_ecValues.push(compensated_ec);
+    }
+  
+    return compensated_ecValues;
   }
 
 /**
@@ -1646,15 +1728,31 @@ static convertTurbidity({params, args, data} = {}) {
  * temperature (temperature in Celsius), conductivity_factor (factor for converting conductivity to TDS)
  * @returns {number} The calculated total dissolved solids (TDS) value.
  * @example
- * hydro.analyze.hydro.calculate_tds({ params: { sensor_reading: 15, temperature: 25, conductivity_factor: 0.8 } });
+ * const params = {
+    conductivity_factor: 0.02,
+  }
+  const data = {
+    sensor_reading = [100, 120, 90];
+    temperature = [28, 26, 25];
+  }
+ * hydro.analyze.hydro.calculate_tds({ params, data });
  */
 
-static calculate_tds({params, args, data} = {}) {
-  const { sensor_reading, temperature, conductivity_factor } = params;
+static calculate_tds({ params, args, data } = {}) {
+  const { conductivity_factor } = params; 
+  const tdsValues = [];
+  const { sensor_reading, temperature } = data;
 
-  const tds = sensor_reading * conductivity_factor * temperature;
+  if (!Array.isArray(sensor_reading) || !Array.isArray(temperature) || sensor_reading.length !== temperature.length) {
+    throw new Error('sensor_reading and temperature should be arrays of the same length.');
+  }
 
-  return tds;
+  for (let i = 0; i < sensor_reading.length; i++) {
+    const tds = sensor_reading[i] * conductivity_factor * temperature[i];
+    tdsValues.push(tds);
+  }
+
+  return tdsValues;
 }
 
 /**
@@ -1685,15 +1783,28 @@ static calculate_tss({ params, args, data } = {}) {
  * @param {Object} params sensor_reading (ORP sensor reading), temperature (temperature in Celsius).
  * @returns {number} The compensated ORP value.
  * @example
- * hydro.analyze.hydro.compensateORP({ params: { sensor_reading: 250, temperature: 25 } });
+ * const sensor_reading = [100, 120, 90];
+ * const temperature = [28, 26, 25];
+ * hydro.analyze.hydro.compensateORP({ params: sensor_reading, data: temperature });
  */
-static compensateORP({params, args, data} = {}) {
-  const { sensor_reading, temperature } = params;
+static compensateORP({ params, args, data } = {}) {
+  const { sensor_reading } = params; 
+  const compensatedReadings = [];
+  const { temperature } = data;
 
-  // Compensation equation or function specific to the ORP sensor
-  const compensated_reading = sensor_reading + (0.02 * (temperature - 25)); //example
+  // Check if sensor_reading and temperature are arrays of the same length
+  if (!Array.isArray(sensor_reading) || !Array.isArray(temperature) || sensor_reading.length !== temperature.length) {
+    throw new Error('sensor_reading and temperature should be arrays of the same length.');
+  }
 
-  return compensated_reading;
+  for (let i = 0; i < sensor_reading.length; i++) {
+    // Compensation equation or function specific to the ORP sensor
+    const compensated_reading = sensor_reading[i] + (0.02 * (temperature[i] - 25)); // Example compensation equation
+
+    compensatedReadings.push(compensated_reading);
+  }
+
+  return compensatedReadings;
 }
 
 
@@ -1849,20 +1960,33 @@ static calculatepH({params, args, data} = {}) {
 }
 
 /**
- * Calculate the pH value based on the concentration of hydrogen ions (H+)
+ * Generates a random synthetic value based on the type of distribution given
  * @method generateSyntheticValue
  * @author riya-patil
  * @memberof hydro
  * @param {number} params - mean and standard deviation values
  * @returns {number} The random generated synthetic value
  * @example
- * hydro.analyze.hydro.generateSyntheticValue(10, 10)
+ * hydro.analyze.hydro.generateSyntheticValue(10, 10, 'normal')
  */
-static generateSyntheticValue(mean, stdDev) {
-  // Generate a random number with a normal distribution
-  const rand = Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random());
-  // Scale and shift the random number to match the desired mean and standard deviation
-  const syntheticValue = mean + stdDev * rand;
+static generateSyntheticValue(mean, stdDev, distributionType = 'normal', params, args, data) {
+  let syntheticValue;
+
+  switch (distributionType) {
+    case 'normal':
+      const rand = Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random());
+      syntheticValue = mean + stdDev * rand;
+      break;
+    case 'binomial':
+      syntheticValue = this.binomialDist({ params, args, data });
+      break;
+    case 'multinomial':
+      const multinomialResult = this.multinomialDistribution({ params, args, data });
+      syntheticValue = multinomialResult.samples;
+      break;
+    default:
+      throw new Error('Invalid distribution type. Supported types: normal, binomial, multinomial');
+  }
 
   return syntheticValue;
 }
