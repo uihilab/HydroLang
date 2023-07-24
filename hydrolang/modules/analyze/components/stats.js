@@ -1285,6 +1285,7 @@ static multinomialDistribution({ params, args, data }) {
 /** Calculates the probability mass function (PMF) of the Log series Distribution
    * @method LogSeriesDistribution 
    * @author riya-patil
+   * @memberof stats
    * @param {Object} params - Contains the parameter 'probSuccess' which represents the probability of success in a single trial.
    * @param {Object} args - Contains the argument 'trials' (trials >= 1) which represents the number of trials.
    * @returns {Number} Probability of achieving the first success in # of trials.
@@ -1305,6 +1306,7 @@ static logSeriesDist({ params, args, data }) {
  /** Calculates the probability density function (PDF) of the Lognormal Distribution
    * @method lognormalDist 
    * @author riya-patil
+   * @memberof stats
    * @param {Object} params - Contains the parameters 'mu' and 'sigma' which represent the mean and standard deviation of the associated normal distribution.
    * @param {Object} args - Contains the argument 'x' which represents the value at which to evaluate the PDF.
    * @returns {Number} Probability density at 'x' in the Lognormal Distribution.
@@ -1328,6 +1330,7 @@ static logSeriesDist({ params, args, data }) {
 /** Calculates the probability density function (PDF) of the Gumbel Distribution
    * @method gumbelDist 
    * @author riya-patil
+   * @memberof stats
    * @param {Object} params - Contains the parameters 'mu' (location parameter) and 'beta' (scale parameter).
    * @returns {Number} Probability density at the given value 'x'.
    * @example
@@ -1346,6 +1349,7 @@ static gumbelDist({ params, args, data }) {
 /** Calculates the probability density function (PDF) of the Uniform Distribution
    * @method uniformDist 
    * @author riya-patil
+   * @memberof stats
    * @param {Object} params - Contains the parameters 'a' (lower bound) and 'b' (upper bound).
    * @param {Object} args - Contains the argument 'x' at which to evaluate the PDF.
    * @returns {Number} Probability density at the given value 'x'.
@@ -1367,6 +1371,7 @@ static uniformDist({ params, args }) {
 /** Calculates the Simple Moving Average of a given data set
    * @method simpleMovingAverage 
    * @author riya-patil
+   * @memberof stats
    * @param {Object} params - Contains the parameter 'windowSize' which specifies the size of the moving average window.
    * @param {Object} data - Contains the array of data points.
    * @returns {Array} Array of moving average values.
@@ -1896,7 +1901,7 @@ static multiregression({ params, args, data }) {
  /**
   * **Still needs some testing**
    * Compute the autocovariance matrix from the autocorrelation values
-   * @method autocovarianceMatrix uses the autocorrelation function inside
+   * @method autocovarianceMatrix
    * @author riya-patil
    * @memberof stats
    * @param {Object} data - array with autocorrelation values
@@ -1936,7 +1941,7 @@ static multiregression({ params, args, data }) {
 
 /**
  * Calculates the binomial coefficient (n choose k format)
- * @method binomialCoefficient - calculates the number of possible combinations of 's' successes in 'trials'
+ * @method binomialCoefficient
  * @author riya-patil
  * @memberof stats
  * @param {Number} trials - The number of trials

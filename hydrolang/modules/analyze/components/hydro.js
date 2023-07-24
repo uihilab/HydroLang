@@ -1,9 +1,15 @@
+import stats from "./stats.js";
+
 /**
  * Main class used for hydrological analyses.
  * @class
  * @name hydro
  */
 export default class hydro {
+  constructor(){
+    //Defining stats variable to be used throughout the component
+    this.stats = new stats()
+  }
   /**
    * Computation of aereal mean precipitation for a river basin given it has 2 or more different stations.
    * @method arithmetic
@@ -1544,19 +1550,20 @@ static inverseDistanceWeighting({ params, args, data } = {}) {
  * });
  */
  static stochasticRainfallGeneration({ params, args, data } = {}) {
-  if (!params.observedRainfall || !Array.isArray(params.observedRainfall)) {
+  if (!data || !Array.isArray(data)) {
     throw new Error('Invalid data input. observedRainfall must be provided as an array.');
   }
 
-  const observedRainfall = params.observedRainfall;
+  const observedRainfall = data;
   const numDataPoints = observedRainfall.length;
+  const distType = typeof params !== 'undefined' ? params.distributionType :  'normal'
 
-  const meanRainfall = mean(observedRainfall);
-  const stdDevRainfall = stdDev(observedRainfall);
+  const meanRainfall = stats.mean({data: observedRainfall});
+  const stdDevRainfall = stats.stddev({data: observedRainfall});
 
   const syntheticRainfall = [];
   for (let i = 0; i < numDataPoints; i++) {
-    const syntheticValue = generateSyntheticValue(meanRainfall, stdDevRainfall);
+    const syntheticValue = this.generateSyntheticValue(meanRainfall, stdDevRainfall, distType);
     syntheticRainfall.push(syntheticValue);
   }
 
@@ -1969,19 +1976,20 @@ static calculatepH({params, args, data} = {}) {
  * @example
  * hydro.analyze.hydro.generateSyntheticValue(10, 10, 'normal')
  */
-static generateSyntheticValue(mean, stdDev, distributionType = 'normal', params, args, data) {
+static generateSyntheticValue(mean, stdDev, distributionType) {
   let syntheticValue;
 
+  //More distributions to be added in next iterations
   switch (distributionType) {
     case 'normal':
       const rand = Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random());
       syntheticValue = mean + stdDev * rand;
       break;
     case 'binomial':
-      syntheticValue = this.binomialDist({ params, args, data });
+      syntheticValue = stats.binomialDist({ params, args, data });
       break;
     case 'multinomial':
-      const multinomialResult = this.multinomialDistribution({ params, args, data });
+      const multinomialResult = stats.multinomialDistribution({ params, args, data });
       syntheticValue = multinomialResult.samples;
       break;
     default:

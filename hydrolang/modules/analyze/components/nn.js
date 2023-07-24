@@ -88,8 +88,8 @@ export default class nn {
    */
 
   static convertToTensor({ params, args, data } = {}) {
-    var arr1 = data[0],
-      arr2 = data[1];
+    var arr1 = data.inputSet,
+      arr2 = data.outputSet;
     return tf.tidy(() => {
       //Convert the data to tensors.
       /*const inputs = arr1.map((d) => d);
@@ -140,12 +140,12 @@ export default class nn {
   static async trainModel({ params, args, data } = {}) {
     //Grabbing data from the parameters
     var model = params.model,
-      inputs = data[0],
-      outputs = data[1],
+      inputs = data.inputs,
+      outputs = data.outputs,
       //Grabbing data from the arguments
-      epochs = args.epochs,
-      learningrate = args.lr,
-      batch = args.batch;
+      epochs = args && args.epochs !== undefined ? args.epochs : 50,
+      learningrate = args && args.lr !== undefined ? args.lr : 0.001,
+      batch = args && args.batch !== undefined ? args.batch : 32;
 
     //temporary solution for the split method to be fixed on the tf.js backend.
     tf.env().set("WEBGL_CPU_FORWARD", false);
@@ -195,7 +195,7 @@ export default class nn {
   static prediction({ params, args, data } = {}) {
     //Grab the data from the arguments.
     var model = params.model,
-      inputs = data,
+      inputs = tf.tensor1d(data).reshape([1, data.length]),
       outputMin = args.outputMin,
       outputMax = args.outputMax;
     //Create prediction from model and inputs.
