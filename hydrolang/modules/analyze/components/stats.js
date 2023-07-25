@@ -1155,7 +1155,7 @@ hydro.analyze.stats.normalDistributio
    * @example
    * 
    */
-  static bernoulliDist({ params }) {
+  static bernoulliDist({params, args, data} = {}) {
     const { f, s } = params; //f = failure, s = success
     if (f === 0) {
       return 1 - s;
@@ -1176,7 +1176,7 @@ hydro.analyze.stats.normalDistributio
    * sigma (scale parameter), xi (shape parameter).
    * @returns {Number} Probability density function of the GEV distribution.
    */
-  static gevDistribution({ params }) {
+  static gevDistribution({params, args, data} = {}) {
     const { x, mu, sigma, xi } = params;
     const z = (x - mu) / sigma;
     
@@ -1204,7 +1204,7 @@ hydro.analyze.stats.normalDistributio
  * hydro.analyze.stats.geometricDist({ params: { s: 0.5 }, args: { trials: 3 }, data: [] });
  * 0.125
  */
-static geometricDist({ params, args, data }) {
+static geometricDist({params, args, data} = {}) {
   const { s } = params || 1;
   const { trials } = args;
   if (trials < 1) {
@@ -1225,7 +1225,7 @@ static geometricDist({ params, args, data }) {
  * @example
  * hydro.analyze.stats.binomialDist({ params: { trials: 10, probSuccess: 0.5 }, args: { s: 3 });
  */
-static binomialDist({ params, args, data }) {
+static binomialDist({params, args, data} = {}) {
   const { trials, probSuccess } = params;
   const { s } = args;
 
@@ -1253,7 +1253,7 @@ static binomialDist({ params, args, data }) {
  * };
  * hydro.analyze.stats.multinomialDistribution({ params: multinomialData });
  */
-static multinomialDistribution({ params, args, data }) {
+static multinomialDistribution({params, args, data} = {}) {
   const { probabilities, n } = params;
 
   const numCategories = probabilities.length;
@@ -1292,7 +1292,7 @@ static multinomialDistribution({ params, args, data }) {
    * @example
    * hydro.analyze.stats.logSeriesDist({params: {probSuccess: 0.2, trials: 3}})
    */
-static logSeriesDist({ params, args, data }) {
+static logSeriesDist({params, args, data} = {}) {
   const { probSuccess, trials } = params;
   
   if (trials < 1) {
@@ -1312,7 +1312,7 @@ static logSeriesDist({ params, args, data }) {
    * @example 
    * hydro.analyze.stats.lognormalDist({params: { mu: 0, sigma: 1 }, args: { x: 2 }})
    */
- static lognormalDist({ params, args, data }) {
+ static lognormalDist({params, args, data} = {}) {
   const { mu, sigma } = params;
   const { x } = args;
 
@@ -1334,7 +1334,7 @@ static logSeriesDist({ params, args, data }) {
    * @example
    * hydro.analyze.stats.gumbelDist({ params: { mu: 0, beta: 1, x: 2}})
    */
-static gumbelDist({ params, args, data }) {
+static gumbelDist({params, args, data} = {}) {
   const { mu, beta } = params;
   const { x } = args;
   
@@ -1353,7 +1353,7 @@ static gumbelDist({ params, args, data }) {
    * @example
    * hydro.analyze.stats.uniformDist({ params: { a: 0, b: 1 }, args: { x: 0.5 } })
    */
-static uniformDist({ params, args }) {
+static uniformDist({params, args, data} = {}) {
   const { a, b } = params;
   const { x } = args;
   
@@ -1376,7 +1376,7 @@ static uniformDist({ params, args }) {
    * const windowSize = 3;
    * hydro.analyze.stats.simpleMovingAverage({ params: { windowSize }, data });
    */
-static simpleMovingAverage({ params, args, data }) {
+static simpleMovingAverage({params, args, data} = {}) {
   const { windowSize } = params;
 
   if (windowSize <= 0 || windowSize > data.length) {
@@ -1400,7 +1400,7 @@ static simpleMovingAverage({ params, args, data }) {
  * @method linearMovingAverage
  * @author riya-patil
  * @memberof stats
- * @param {Object} params - Contains the windowSize parameter.
+ * @param {Number} params - Contains the windowSize parameter.
  * @param {Array} data - 1D array of numerical values.
  * @returns {Array} Array of moving averages.
  * @throws {Error} If the window size is invalid.
@@ -1409,7 +1409,7 @@ static simpleMovingAverage({ params, args, data }) {
  * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
  * hydro.analyze.stats.linearMovingAverage({ windowSize, data });
  */
-static linearMovingAverage({ params, args, data }) {
+static linearMovingAverage({params, args, data} = {}) {
   const { windowSize } = params;
 
   if (windowSize <= 0 || windowSize > data.length) {
@@ -1417,16 +1417,19 @@ static linearMovingAverage({ params, args, data }) {
   }
 
   const movingAverage = [];
-
-  for (let i = 0; i <= data.length - windowSize; i++) {
-    const window = data.slice(i, i + windowSize);
-    const weights = Array.from({ length: windowSize }, (_, index) => index + 1);
-    const weightedSum = window.reduce((total, value, index) => total + value * weights[index], 0);
-    const sumOfWeights = weights.reduce((total, weight) => total + weight, 0);
-    const average = weightedSum / sumOfWeights;
-    movingAverage.push(average);
+  let sum = 0;
+ 
+  for (let i = 0; i < windowSize; i++) {
+	sum += data[i];
   }
-
+ 
+  movingAverage.push(sum / windowSize);
+ 
+  for (let i = windowSize; i < data.length; i++) {
+	sum += data[i] - data[i - windowSize];
+    movingAverage.push(sum / windowSize);
+  }
+ 
   return movingAverage;
 }
 
@@ -1443,7 +1446,7 @@ static linearMovingAverage({ params, args, data }) {
  *hydro.analyze.stats.exponentialMovingAverage({params, data});
 */
 
-static exponentialMovingAverage({ params, args, data }) {
+static exponentialMovingAverage({params, args, data} = {}) {
   const { alpha } = params;
   const { dataset } = data;
   const emaValues = [];
@@ -1469,7 +1472,7 @@ static exponentialMovingAverage({ params, args, data }) {
  * hydro.analyze.stats.poissonProcess({ params: { type: 'homogeneous', T: 10 }, args: { lambda: 2 } });
  * hydro.analyze.stats.poissonProcess({ params: { type: 'nonhomogeneous', T: 10 }, args: { rateFunction: (t) => Math.sin(t) } });
  */
-static poissonProcess({ params, args, data }) {
+static poissonProcess({params, args, data} = {}) {
   const { type = 'homogeneous', T } = params;
   const { lambda, rateFunction } = args;
 
@@ -1502,7 +1505,7 @@ static poissonProcess({ params, args, data }) {
    * @example
    * hydro.analyze.stats.logPearsonTypeIII({ params: { mu: 1, sigma: 2, gamma: 3 }, args: { size: 100 } })
    */
-static logPearsonTypeIII({ params, args, data }) {
+static logPearsonTypeIII({params, args, data} = {}) {
   const { mu, sigma, gamma } = params;
   const { size } = args || 10;
   const randomNumbers = [];
@@ -1531,7 +1534,7 @@ static logPearsonTypeIII({ params, args, data }) {
    * @example
    * hydro.analyze.stats.boxPlotDistribution({ params: { min: 1, q1: 2, median: 3, q3: 4, max: 5 }, args: { size: 100 }})
    */
- static boxPlotDistribution({ params, args, data }) {
+ static boxPlotDistribution({params, args, data} = {}) {
   const { min, q1, median, q3, max } = params;
   const { size } = args;
   const randomNumbers = [];
@@ -1569,7 +1572,7 @@ static logPearsonTypeIII({ params, args, data }) {
  * hydro.analyze.stats.meanSquaredError({ data: { data1: dataset1, data2: dataset2 } });
  */
 
-static meanSquaredError({ params, args, data }) {
+static meanSquaredError({params, args, data} = {}) {
   const { data1, data2 } = data;
 
   if (data1.length !== data2.length) {
@@ -1600,7 +1603,7 @@ static meanSquaredError({ params, args, data }) {
  * };
  * hydro.analyze.stats.returnPeriod({ params: returnPeriodData });
  */
-static returnPeriod({ params, args, data }) {
+static returnPeriod({params, args, data} = {}) {
   const { probability } = params;
   if (probability <= 0 || probability >= 1) {
     throw new Error("Probability must be between 0 and 1 (exclusive).");
@@ -1610,7 +1613,7 @@ static returnPeriod({ params, args, data }) {
 }
 
 /**
- * Performs differencing on a given time series.
+ * Performs differencing on a time series dataset to remove trend or seasonality from the data
  * @method differencing
  * @author riya-patil
  * @memberof stats
@@ -1623,7 +1626,7 @@ static returnPeriod({ params, args, data }) {
  * const timeSeries = [1, 3, 6, 10, 15];
  * const differencedSeries = stats.differencing({ order, data: timeSeries });
  */
-static differencing({ params, args, data }) {
+static differencing({params, args, data} = {}) {
   const order = params.order;
   const timeSeries = data;
 
@@ -1631,28 +1634,32 @@ static differencing({ params, args, data }) {
     throw new Error('Invalid order for differencing.');
   }
 
-  const differencedSeries = [];
-  for (let i = order; i < timeSeries.length; i++) {
-    const difference = timeSeries[i] - timeSeries[i - order];
-    differencedSeries.push(difference);
-  }
-
-  return differencedSeries;
+  const differencedSeries = timeSeries.slice(order).map((value, i) => value - timeSeries[i]);
+  return differencedSeries
 }
 
 /**
- * Computes the variance of residuals to detect heteroskedasticity.
- * @method heteroskedasticity
+ * Computes the variance of residuals in a regression model to detect heteroskedasticity
+ * @method residualVariance
  * @author riya-patil
  * @memberof stats
  * @param {Array} data - 1D array of numerical values representing the residuals.
  * @returns {number} Variance of residuals
+ * @returns {Error} if not given valid array of residuals or not given correct number of arrays
  * @example
  * const residuals = [1.5, -2.1, 0.8, -1.2, 2.5];
- * const variance = stats.heteroskedasticity({ data: residuals });
+ * const variance = stats.residualVariance({ data: residuals });
  */
-static heteroskedasticity({ params, args, data }) {
+static residualVariance({params, args, data} = {}) {
   const residuals = data;
+
+  if (!Array.isArray(residuals)) {
+    throw new Error('Invalid data. Expecting an array of residuals.');
+  }
+   
+  if (residuals.length < 2) {
+    throw new Error('Insufficient data. Expecting an array of at least 2 residuals.');
+  }
 
   const squaredResiduals = residuals.map((residual) => residual * residual);
   const variance = squaredResiduals.reduce((sum, value) => sum + value, 0) / squaredResiduals.length;
@@ -1672,7 +1679,7 @@ static heteroskedasticity({ params, args, data }) {
  * const y = [3, 5, 7];
  * hydro.analyze.stats.regression({ data: { X, y } });
  */
-static regression({ params, args, data }) {
+static regression({params, args, data} = {}) {
   const X = data.X; // Matrix of predictor variables
   const y = data.y; // Array of target variable
 
@@ -1700,7 +1707,7 @@ static regression({ params, args, data }) {
  * const y = [3, 5, 7];
  * hydro.analyze.stats.multiregression({ data: { X, y } });
  */
-static multiregression({ params, args, data }) {
+static multiregression({params, args, data} = {}) {
   const X = data.X; // Matrix of predictor variables
   const Y = data.Y; // Array of target variables
 
@@ -1715,6 +1722,178 @@ static multiregression({ params, args, data }) {
   return coefficients;
 }
 
+/**
+ * Performs White's test for heteroscedasticity
+ * @method whitesTest
+ * @author riya-patil
+ * @param {Object} params - Parameters for the test, errors is array of residuals while regressors is array of regressor vars
+ * @returns {Object} Object containing test statistic and p-value
+ * @throws {Error} If the input arrays have different lengths
+ * @example
+ * const params = {
+ *   errors: [1, 2, 3, 4, 5],
+ *   regressors: [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]
+ * };
+ * hydro.analyze.stats.whitesTest({ params });
+ */
+static whitesTest({ params, args, data }) {
+  const { errors, regressors } = params;
+
+  if (errors.length !== regressors.length) {
+    throw new Error("Input arrays must have the same length.");
+  }
+
+  const n = errors.length;
+  const k = regressors[0].length;
+
+  let XX = 0;
+  let XE = 0;
+  let EE = 0;
+
+  for (let i = 0; i < n; i++) {
+    const error = errors[i];
+    const regressor = regressors[i];
+
+    XX += dotProduct(regressor, regressor);
+    XE += dotProduct(regressor, error);
+    EE += error ** 2;
+  }
+
+  const testStatistic = n * (XE ** 2) / (XX * EE);
+  const pValue = 1 - chisqCDF(testStatistic, k);
+
+  return { testStatistic, pValue };
+}
+
+/**
+ * Performs the Breusch-Pagan test for heteroscedasticity.
+ * @method breuschPaganTest
+ * @author riya-patil
+ * @memberof stats
+ * @param {Object} params errors: Array of residuals, regressors: Array of regressor variables
+ * @returns {Object} Object containing test statistic and p-value.
+ * @throws {Error} If the input arrays have different lengths.
+ * @example
+ * const params = {
+ *   errors: [1, 2, 3, 4, 5],
+ *   regressors: [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]
+ * };
+ * hydro.analyze.stats.breuschPaganTest({ params });
+ */
+static breuschPaganTest({ params }) {
+  const { errors, regressors } = params;
+
+  if (errors.length !== regressors.length) {
+    throw new Error("Input arrays must have the same length.");
+  }
+
+  const n = errors.length;
+  const k = regressors[0].length;
+
+  let residualsSquared = [];
+
+  for (let i = 0; i < n; i++) {
+    const error = errors[i];
+    residualsSquared.push(error ** 2);
+  }
+
+  let XX = 0;
+  let XR = 0;
+  let RR = 0;
+
+  for (let i = 0; i < n; i++) {
+    const regressor = regressors[i];
+    const residualSquared = residualsSquared[i];
+
+    const dotProduct = dotProduct(regressor, regressor);
+    XX += dotProduct;
+    XR += dotProduct * residualSquared;
+    RR += residualSquared ** 2;
+  }
+
+  const testStatistic = (n / 2) * (Math.log(XR) - (1 / n) * Math.log(XX));
+  const pValue = 1 - chisqCDF(testStatistic, k);
+
+  return { testStatistic, pValue };
+}
+
+/**
+ * Performs Goldfeld-Quandt test for heteroscedasticity
+ * @method goldfeldQuandtTest
+ * @author riya-patil
+ * @param {Object} params - residuals (Array of residuals from a regression model), independentVar (Array of values of the independent variable)
+ * @returns {Object} Object containing test statistic and p-value
+ * @throws {Error} If the input arrays have different lengths
+ * @example
+ * const residuals = [1.2, 2.3, 0.8, 1.9, 1.5, 2.6];
+ * const independentVar = [3, 4, 5, 6, 7, 8];
+ * const result = stats.goldfeldQuandtTest({ params: { residuals, independentVar } });
+ * console.log(result);
+ */
+static goldfeldQuandtTest({ params, args, data }) {
+  const { residuals, independentVar } = params;
+
+  if (residuals.length !== independentVar.length) {
+    throw new Error("Input arrays must have the same length.");
+  }
+
+  const n = residuals.length;
+  const k = Math.floor(n * 0.4); // 40% of the data in each subset
+
+  const sortedIndices = independentVar.map((_, index) => index).sort((a, b) => independentVar[a] - independentVar[b]);
+
+  const lowSubsetIndices = sortedIndices.slice(0, k);
+  const highSubsetIndices = sortedIndices.slice(-k);
+
+  const lowResiduals = lowSubsetIndices.map((index) => residuals[index]);
+  const highResiduals = highSubsetIndices.map((index) => residuals[index]);
+
+  const testStatistic = (Math.max(...highResiduals) ** 2) / (Math.min(...lowResiduals) ** 2);
+
+  const pValue = 1 - chisqCDF(testStatistic, k - 1);
+
+  return { testStatistic, pValue };
+}
+
+
+
+/**
+   * Generates a random simulated number when run with a dataset
+   * @method runMarkovChainMonteCarlo
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object[]} data - passes data from multiple objects
+   * @returns {number[]} returns an array of the simulated results
+   * @example 
+   * const options = {
+      params: {
+      iterations: 100,
+    },
+    data: {
+      initialState,
+      transitionMatrix,
+      },
+    };
+    hydro.analyze.stats.runMarkovChainMonteCarlo(options);
+   */
+static runMarkovChainMonteCarlo({ params, args, data } = {}) {
+  const { iterations = 100, callback } = params || {};
+  const results = [];
+  let currentState = data.initialState;
+
+  for (let i = 0; i < iterations; i++) {
+    let nextState;
+    if (callback) {
+      nextState = callback({ params, args, data, currentState });
+    } else {
+      nextState = getNextState(data.transitionMatrix, currentState);
+    }
+    results.push(nextState);
+    currentState = nextState;
+  }
+
+  return results;
+}
  
   /***************************/
   /***** Helper functions ****/
@@ -2065,6 +2244,88 @@ static matrixInverse(matrix) {
   }
 
   return inversed;
+}
+
+/**
+ * Calculates the cumulative distribution function (CDF) of the chi-square distribution
+ * @method chisqCDF
+ * @author riya-patil
+ * @memberof stats
+ * @param {number} x The value at which to evaluate the CDF
+ * @param {number} k The degrees of freedom
+ * @returns {number} The cumulative probability
+ * @example
+ * const x = 10
+ * const df = 20
+ * hydro.analyze.stats.chisCDF(10, 20)
+ */
+static chisqCDF(x, k) {
+  const term = Math.exp(-x / 2);
+  let sum = term;
+  for (let i = 1; i < k; i++) {
+    const prevTerm = term;
+    term *= x / (2 * (i + 1));
+    sum += term;
+    if (term === prevTerm) break;
+  }
+  return 1 - sum;
+}
+
+/**
+ * Calculates the dot product of two vectors
+ * @method dotProduct
+ * @author riya-patil
+ * @param {Array} a - The first vector
+ * @param {Array} b - The second vector
+ * @returns {number} The dot product
+ * @throws {Error} If the input vectors have different lengths
+ * @example
+ * const a = [1, 2, 3, 4, 5]
+ * const b = [10, 20, 30, 40, 50]
+ * hydro.analyze.stats.dotProduct(a,b)
+ */
+static dotProduct(a, b) {
+  if (a.length !== b.length) {
+    throw new Error("Input vectors must have the same length.");
+  }
+
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result += a[i] * b[i];
+  }
+
+  return result;
+}
+
+/**
+ * Gets the next state based on the transition probabilities defined in the transition matrix.
+ * @method getNextState
+ * @author riya-patil
+ * @memberof stats
+ * @param {number[][]} transitionMatrix transition matrix representing the probabilities of transitioning between states.
+ * @param {number} currentState current state of the function
+ * @returns {number} Next state selected based on the transition probabilities.
+ * @example
+ * const transitionMatrix = [
+  [0.2, 0.8], 
+  [0.5, 0.5],
+    ];
+  const initialState = 0;
+ */
+static getNextState(transitionMatrix, currentState) {
+  const randomValue = Math.random();
+  let cumulativeProbability = 0;
+
+  for (let i = 0; i < transitionMatrix[currentState].length; i++) {
+    cumulativeProbability += transitionMatrix[currentState][i];
+
+    if (randomValue <= cumulativeProbability) {
+      return i;
+    }
+  }
+
+  // If no state is selected, return the current state as a fallback
+  return currentState;
 }
 
   /**********************************/
