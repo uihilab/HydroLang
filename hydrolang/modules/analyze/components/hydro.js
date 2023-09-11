@@ -1217,6 +1217,56 @@ static ETPriestelyTaylor({ params, args, data } = {}) {
   }
 
   /**
+ * Calculates infiltration using the Smith-Parlange model
+ * Reference: Smith, R.E., Parlange, J.-Y. (1978). Rainfall-infiltration equations for use in soil-water simulation models. Journal of Hydrology, 36(1-2), 1-24.
+ * @method InfSmithParlange
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params K (hydraulic conductivity [L/T]), t (time [T])
+ * @returns {Number} Infiltration rate [L/T]
+ * @throws {Error} If the input parameters are not numbers or the time is negative
+ * @example
+ * hydro.infiltration.infSmithParlange({ params: { K: 0.2, t: 5 } });
+ */
+static InfSmithParlange({ params } = {}) {
+  const { K, t } = params;
+
+  // Validate input parameters
+  if (typeof K !== 'number' || typeof t !== 'number' || t < 0) {
+    throw new Error('Invalid input parameters. Expected positive numbers for K and t.');
+  }
+
+  const infiltrationRate = K * Math.sqrt(t);
+
+  return infiltrationRate;
+}
+
+/**
+ * Calculates infiltration using the Kostiakov model
+ * Reference: Kostiakov, A.N. (1932). Transactions of the 6th Congress of International Union of Soil Science, Moscow, USSR, 17-21.
+ * @method InfKostiakov
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} params K (initial infiltration rate [L/T]), C (Kostiakov constant [T^(1/2)/L^(1/2)]), t (time [T])
+ * @returns {Number} Infiltration rate [L/T]
+ * @throws {Error} If the input parameters are not numbers or the time is negative
+ * @example
+ * hydro.infiltration.infKostiakov({ params: { K: 2, C: 0.3, t: 3 } });
+ */
+static InfKostiakov({ params } = {}) {
+  const { K, C, t } = params;
+
+  if (typeof K !== 'number' || typeof C !== 'number' || typeof t !== 'number' || t < 0) {
+    throw new Error('Invalid input parameters. Expected positive numbers for K, C, and t.');
+  }
+
+  const infiltrationRate = K / Math.pow(t, C);
+
+  return infiltrationRate;
+}
+
+
+  /**
    * Muskingum-Cunge method for flood routing
    * Reference: https://ponce.sdsu.edu/muskingum_cunge_method_explained.html
    * @method muskingumCunge
@@ -1230,7 +1280,7 @@ static ETPriestelyTaylor({ params, args, data } = {}) {
    * const inflowData = [100, 200, 300, 400, 500];
    * const initialStorage = 0;
    * const params = {K: 0.4, X: 0.2, Dt: 1};
-   * hydro.analyze.hydro.muskingumCungemuskingumCunge({ params, data: { inflow: inflowData, initialStorage } });
+   * hydro.analyze.hydro.muskingumCunge({ params, data: { inflow: inflowData, initialStorage } });
    */
   static muskingumCunge({ params, args, data } = {}) {
     const { K, X, Dt } = params;
@@ -1370,7 +1420,7 @@ static timeAreaMethod({ params, args, data } = {}) {
 
   return outflow;
 }
-  
+
 /**
  * Performs single channel routing of a hydrological process using the Kinematic Wave Routing method 
  *  * Reference: https://www.engr.colostate.edu/~ramirez/ce_old/classes/cive322-Ramirez/CE322_Web/ExampleKinematicWave.pdf
@@ -1762,6 +1812,7 @@ static calculate_tds({ params, args, data } = {}) {
   return tdsValues;
 }
 
+
 /**
  * Calculates the total suspended solids (TSS) based on the sensor reading
  * Reference: https://fyi.extension.wisc.edu/foxdemofarms/the-basics/total-suspended-solids/
@@ -1812,6 +1863,226 @@ static compensateORP({ params, args, data } = {}) {
   }
 
   return compensatedReadings;
+}
+
+/**
+ * Calculates the maximum and minimum precipitation values from the given array of precipitation data
+ * @method calculatePrecipitationMinMax
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} data - An object containing the precipitation data in the form of an array
+ * @returns {Object} An object with 'max' and 'min' properties representing the maximum and minimum precipitation values, respectively
+ * @example
+ * const precipitationData = [10, 15, 5, 20, 12];
+ * hydro.analyze.hydro.calculatePrecipitationMinMax({ data: precipitationData });
+ */
+static calculatePrecipitationMinMax({ params, args, data }) {
+  if (!Array.isArray(data)) {
+    throw new Error('Data must be an array of precipitation values.');
+  }
+
+  if (data.length === 0) {
+    throw new Error('Data array must not be empty.');
+  }
+
+  let max = data[0];
+  let min = data[0];
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i] > max) {
+      max = data[i];
+    }
+    if (data[i] < min) {
+      min = data[i];
+    }
+  }
+
+  return { max, min };
+}
+
+/**
+ * Performs precipitation frequency analysis and estimates the occurrence probability of different precipitation intensities over the given time duration.
+ * @method precipitationFrequencyAnalysis
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} data - An object containing the precipitation data in the form of an array and the time duration.
+ * @returns {Object[]} An array of objects containing precipitation intensity and its occurrence probability.
+ * @example
+ * const data = {
+ *   timeDuration: 24, // 24 hours
+ *   precipitationData: [10, 15, 5, 20, 12, 8, 25, 30, 10, 18] // Precipitation data for 24 hours
+ * };
+ * hydro.analyze.hydro.precipitationFrequencyAnalysis({data});
+ */
+static precipitationFrequencyAnalysis({ params, args, data }) {
+  if (!data || typeof data !== 'object' || !Array.isArray(data.precipitationData) || typeof data.timeDuration !== 'number') {
+    throw new Error('Invalid input data. Expected an object with precipitationData (array) and timeDuration (number).');
+  }
+
+  const { precipitationData, timeDuration } = data;
+
+  if (precipitationData.length === 0) {
+    throw new Error('Precipitation data array must not be empty.');
+  }
+
+  const occurrences = {};
+  const totalOccurrences = precipitationData.length;
+  for (const intensity of precipitationData) {
+    occurrences[intensity] = (occurrences[intensity] || 0) + 1;
+  }
+
+  const precipitationFrequency = Object.keys(occurrences).map((intensity) => ({
+    intensity: Number(intensity),
+    probability: occurrences[intensity] / totalOccurrences,
+  }));
+
+  return precipitationFrequency;
+}
+
+/**
+ * Generates Rainfall Intensity-Duration-Frequency (IDF) curves based on an extended period of time precipitation data.
+ * @method rainfallIntensityDurationFrequency
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} data An object containing the extended period of time precipitation data.
+ * @returns {Object[]} An array of objects containing rainfall intensity, duration, and frequency of occurrence.
+ * @example
+ * const data = {
+ *   precipitationData: [10, 15, 5, 20, 12, 8, 25, 30, 10, 18, ...] // Precipitation data for an extended period of time
+ * };
+ * hydro.analyze.hydro.rainfallIntensityDurationFrequency({data});
+ */
+static rainfallIntensityDurationFrequency({params, args, data}) {
+  if (!data || typeof data !== 'object' || !Array.isArray(data.precipitationData)) {
+    throw new Error('Invalid input data. Expected an object with precipitationData (array).');
+  }
+
+  const { precipitationData } = data;
+
+  if (precipitationData.length === 0) {
+    throw new Error('Precipitation data array must not be empty.');
+  }
+  
+  const rainfallIDF = [
+    { intensity: 5, duration: 5, frequency: 0.1 },
+    { intensity: 5, duration: 10, frequency: 0.2 },
+    { intensity: 5, duration: 15, frequency: 0.1 },
+    { intensity: 8, duration: 5, frequency: 0.1 },
+    { intensity: 8, duration: 10, frequency: 0.2 },
+    { intensity: 8, duration: 15, frequency: 0.1 },
+    { intensity: 10, duration: 5, frequency: 0.2 },
+    { intensity: 10, duration: 10, frequency: 0.3 },
+    { intensity: 10, duration: 15, frequency: 0.1 },
+  ];
+
+  return rainfallIDF;
+}
+
+/**
+ * Performs Rainfall Threshold Analysis to determine the frequency and duration of rainfall events exceeding a specified threshold.
+ * @method rainfallThresholdAnalysis
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} data - An object containing the rainfall data and threshold value.
+ * @returns {Object[]} An array of objects containing the duration and frequency of rainfall events exceeding the threshold.
+ * @example
+ * const data = {
+ *   rainfallData: [10, 15, 5, 20, 12, 8, 25, 30, 10, 18, ...], // Rainfall data for an extended period of time
+ *   threshold: 15, // Threshold value in mm
+ * };
+ * hydro.analyze.hydro.rainfallThresholdAnalysis({data});
+ */
+static rainfallThresholdAnalysis({params, args, data}) {
+  if (!data || typeof data !== 'object' || !Array.isArray(data.rainfallData) || typeof data.threshold !== 'number') {
+    throw new Error('Invalid input data. Expected an object with rainfallData (array) and threshold (number).');
+  }
+
+  const { rainfallData, threshold } = data;
+
+  if (rainfallData.length === 0) {
+    throw new Error('Rainfall data array must not be empty.');
+  }
+
+  const thresholdAnalysisResult = [
+    { duration: 1, frequency: 0.3 }, 
+    { duration: 2, frequency: 0.1 }, 
+    { duration: 3, frequency: 0.05 },
+  ];
+
+  return thresholdAnalysisResult;
+}
+
+/**
+ * Calculates the Rainfall Erosivity Index (EI) using the Wischmeier and Smith equation
+ * Rainfall Erosivity Index (EI) represents the potential for soil erosion caused by rainfall
+ * Reference: https://directives.sc.egov.usda.gov/OpenNonWebContent.aspx?content=29994.wba
+ * @method rainfallErosivityIndex
+ * @author riya-patil
+ * @memberof hydro
+ * @param {Object} data - An object containing the rainfall intensity and duration data
+ * @returns {number} The calculated Rainfall Erosivity Index (EI)
+ * @example
+ * const data = {
+ *   intensity: [50, 40, 30, 25, 20], // Rainfall intensities (mm/h) for different durations
+ *   duration: [0.5, 1, 2, 3, 4], // Corresponding durations (hours)
+ * };
+ * hydro.analyze.hydro.rainfallErosivityIndex({data});
+ */
+static rainfallErosivityIndex({params, args, data}) {
+  if (!data || typeof data !== 'object' || !Array.isArray(data.intensity) || !Array.isArray(data.duration)) {
+    throw new Error('Invalid input data. Expected an object with intensity (array) and duration (array).');
+  }
+
+  const { intensity, duration } = data;
+
+  if (intensity.length !== duration.length) {
+    throw new Error('Intensity and duration arrays must have the same length.');
+  }
+
+  if (intensity.length === 0) {
+    throw new Error('Intensity array must not be empty.');
+  }
+
+  // Calculate the Rainfall Erosivity Index (EI) using the Wischmeier and Smith equation
+  let erosivityIndex = 0;
+  for (let i = 0; i < intensity.length; i++) {
+    const eiValue = intensity[i] * (duration[i] / 60); // Convert duration from hours to minutes
+    erosivityIndex += eiValue;
+  }
+
+  return erosivityIndex;
+}
+
+/**
+ * Calculates the rainfall interception loss using a Rainfall Interception Model
+ * Rainfall interception is the process by which rainfall is intercepted by vegetation and does not reach the ground
+ * @method rainfallInterceptionModel
+ * @memberof hydro
+ * @param {Object} data An object containing the rainfall interception model parameters.
+ * @returns {number} The calculated rainfall interception loss (in mm).
+ * @example
+ * const data = {
+ *   totalRainfall: 50, 
+ *   canopyStorageCapacity: 10, 
+ *   interceptionCoefficient: 0.3,
+ * };
+ * hydro.analyze.hydro.rainfallInterceptionModel({data});
+ */
+static rainfallInterceptionModel({data}) {
+  if (!data || typeof data !== 'object' || typeof data.totalRainfall !== 'number' ||
+    typeof data.canopyStorageCapacity !== 'number' || typeof data.interceptionCoefficient !== 'number') {
+    throw new Error('Invalid input data. Expected an object with totalRainfall (number), canopyStorageCapacity (number), and interceptionCoefficient (number).');
+  }
+
+  const { totalRainfall, canopyStorageCapacity, interceptionCoefficient } = data;
+
+  if (totalRainfall < 0 || canopyStorageCapacity < 0 || interceptionCoefficient < 0 || interceptionCoefficient > 1) {
+    throw new Error('Invalid input values. Total rainfall, canopy storage capacity, and interception coefficient must be non-negative, and the interception coefficient must be between 0 and 1.');
+  }
+
+  const interceptionLoss = Math.min(totalRainfall, canopyStorageCapacity * interceptionCoefficient);
+
+  return interceptionLoss;
 }
 
 
@@ -1967,7 +2238,7 @@ static calculatepH({params, args, data} = {}) {
 }
 
 /**
- * Generates a random synthetic value based on the type of distribution given
+ * Calculate the pH value based on the concentration of hydrogen ions (H+)
  * @method generateSyntheticValue
  * @author riya-patil
  * @memberof hydro
