@@ -1,3 +1,5 @@
 .dist
 config_jsdoc.json
 jsdocs
+.vscode
+settings.json

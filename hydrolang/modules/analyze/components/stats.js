@@ -716,7 +716,7 @@ export default class stats {
 
   /**
    * Calculates the skewness of a dataset
-   * @method skewnes
+   * @method skewness
    * @memberof stat
    * @param {Object} params - Contains: none
    * @param {Array} data - Array of numeric values
@@ -736,7 +736,7 @@ export default class stats {
 
   /**
    * Calculates the kurtosis of a dataset
-   * @method kurtosi
+   * @method kurtosis
    * @memberof stat
    * @param {Object} params - Contains: none
    * @param {Array} data - Array of numeri
@@ -762,7 +762,7 @@ export default class stats {
    * Performs forward fill to replace missin
    * values in an array with the last
    * non-null value
-   * @method forwardFil
+   * @method forwardFill
    * @memberof stat
    * @param {Object} params - Contains: none
    * @param {Array} data - Array of value
@@ -1740,7 +1740,7 @@ static multiregression({params, args, data} = {}) {
  * };
  * hydro.analyze.stats.whitesTest({ params });
  */
-static whitesTest({ params, args, data }) {
+static whitesTest({ params }) {
   const { errors, regressors } = params;
 
   if (errors.length !== regressors.length) {
@@ -1748,7 +1748,7 @@ static whitesTest({ params, args, data }) {
   }
 
   const n = errors.length;
-  const k = regressors[0].length;
+  const k = regressors[0].length; // Number of regressors (variables)
 
   let XX = 0;
   let XE = 0;
@@ -1758,13 +1758,13 @@ static whitesTest({ params, args, data }) {
     const error = errors[i];
     const regressor = regressors[i];
 
-    XX += dotProduct(regressor, regressor);
-    XE += dotProduct(regressor, error);
+    XX += this.dotProduct(regressor, regressor);
+    XE += this.dotProduct(regressor, error); // Adjust for the size of the regressors
     EE += error ** 2;
   }
 
   const testStatistic = n * (XE ** 2) / (XX * EE);
-  const pValue = 1 - chisqCDF(testStatistic, k);
+  const pValue = 1 - this.chisqCDF(testStatistic, k);
 
   return { testStatistic, pValue };
 }
@@ -2091,7 +2091,7 @@ static runMarkovChainMonteCarlo({ params, args, data } = {}) {
    * const lags = 2
    * hydro.analyze.stats.autocovarianceMatrix({params: lag, data : actestData});
    */
- static autocorrelationAndCovarianceMatrix({ params, args, data } = {}) {
+ static autocovarianceMatrix({ params, args, data } = {}) {
   const { lag, lags } = params || { lag: 2, lags: 2 };
   const length = data.length;
   const mean = this.mean({ data });
@@ -2252,6 +2252,7 @@ static matrixInverse(matrix) {
 
 /**
  * Calculates the cumulative distribution function (CDF) of the chi-square distribution
+ * NOTE: This will require revision in the future, readjusting considering lookups or fitting to a gamma distribution instead
  * @method chisqCDF
  * @author riya-patil
  * @memberof stats
@@ -2264,10 +2265,10 @@ static matrixInverse(matrix) {
  * hydro.analyze.stats.chisCDF(10, 20)
  */
 static chisqCDF(x, k) {
-  const term = Math.exp(-x / 2);
+  let term = Math.exp(-x / 2);
   let sum = term;
   for (let i = 1; i < k; i++) {
-    const prevTerm = term;
+    let prevTerm = term;
     term *= x / (2 * (i + 1));
     sum += term;
     if (term === prevTerm) break;
@@ -2276,7 +2277,7 @@ static chisqCDF(x, k) {
 }
 
 /**
- * Calculates the dot product of two vectors
+ * Calculates the dot product of two vectors. Both vectors should be represented as 1D JS arrays with the same length
  * @method dotProduct
  * @author riya-patil
  * @param {Array} a - The first vector
@@ -2289,7 +2290,7 @@ static chisqCDF(x, k) {
  * hydro.analyze.stats.dotProduct(a,b)
  */
 static dotProduct(a, b) {
-  if (a.length !== b.length) {
+  if (a.length != b.length) {
     throw new Error("Input vectors must have the same length.");
   }
 

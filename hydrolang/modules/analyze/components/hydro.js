@@ -1,4 +1,4 @@
-import stats from "./stats.js";
+import * as stats from "./stats.js";
 
 /**
  * Main class used for hydrological analyses.
@@ -6,10 +6,10 @@ import stats from "./stats.js";
  * @name hydro
  */
 export default class hydro {
-  constructor(){
-    //Defining stats variable to be used throughout the component
-    this.stats = new stats()
-  }
+  // constructor(){
+  //   //Defining stats variable to be used throughout the component
+  //   this.stats = new stats()
+  // }
   /**
    * Computation of aereal mean precipitation for a river basin given it has 2 or more different stations.
    * @method arithmetic
@@ -1822,12 +1822,12 @@ static calculate_tds({ params, args, data } = {}) {
  * @param {Object} params sensor_reading (measurement from the sensor)
  * @returns {number} The total suspended solids concentration
  * @example
- * hydro.analyze.hydro.calculate_tss({ params: { sensor_reading: 15 } });
+ * hydro.analyze.hydro.calculate_tss({ params: {conversionFact: 0.2}, data: data });
  */
 static calculate_tss({ params, args, data } = {}) {
-  const { sensor_reading } = params;
+  const { conversionFactor } = params;
   
-  const tss = sensor_reading * someConversionFactor; //conversion factor must be changed
+  const tss = data * conversionFactor; //conversion factor must be changed
 
   return tss;
 }
@@ -2332,7 +2332,7 @@ static getJulianDay(date) {
   // Julian Day Calculation
   const a = Math.floor((14 - month) / 12);
   const y = year + 4800 - a;
-  const m = month + 12 * a - 3;
+  const m = month + 12 * a - 1;
 
   return day + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
 }

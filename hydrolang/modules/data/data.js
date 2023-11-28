@@ -113,6 +113,7 @@ function retrieve({ params, args, data } = {}) {
         resolve(JSON.stringify(data));
       else { 
         if (trans){
+          //More source will be added here later, for generic values that can be retrieved 
           if (source === "usgs") {
             let transformed_value = transform({ 
               params: { save: 'value'}, 
@@ -121,10 +122,9 @@ function retrieve({ params, args, data } = {}) {
               })
             resolve(transformed_value)
           }
-          else {
-            resolve(lowercasing(data))
-          }
-        } 
+        } else {
+          resolve(lowercasing(data))
+        }
         }
     },
     (err) => {
@@ -359,7 +359,6 @@ async function upload({ params, args, data } = {}) {
 }
 
 
-
 /**
  * Download files on different formats, depending on the formatted object. It extends the
  * the transform function to automatically transform the data. The default format
@@ -403,10 +402,10 @@ async function download({ params, args, data } = {}) {
 
   //if XML file is required for loading. Needs improvement.
   /*else if (type === 'XML') {
-		const xs = this.transform(data, config);
-		blob = new Blob([xs], {type: 'text/xml'});
-		exportfilename = 'export.xml';
-	};*/
+    const xs = this.transform(data, config);
+    blob = new Blob([xs], {type: 'text/xml'});
+    exportfilename = 'export.xml';
+  };*/
 
   //after the data has been transformed, create a new download file and link. No name is given but "export".
   if (navigator.msSaveOrOpenBlob) {
@@ -419,7 +418,6 @@ async function download({ params, args, data } = {}) {
     a.remove();
   }
 }
-
 
 /***************************/
 /***** Helper functions ****/

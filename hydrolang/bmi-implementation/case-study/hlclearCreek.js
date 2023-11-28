@@ -294,7 +294,7 @@ class HLclearCreek extends HydroLangBMI {
       stgRes = {};
     //Manipulating the results coming from the Clear Creek API
     if (this._params.source === "clearcreek") {
-      (() => (this.results = this.results[0][0]))();
+      (() => (this.results = this.results[0]))();
       //Just using the first element to get the dates in unix epoch
       this.links.slice(0, 1).forEach((link) => {
         this.results[link]["dates"].forEach((date) => {
@@ -372,15 +372,15 @@ class HLclearCreek extends HydroLangBMI {
       stgDate = [];
       //Manipulating the results coming from the EPA API's
     } else {
-      stgDate = Object.keys(this.results[0][0].data).map((date) => {
+      stgDate = Object.keys(this.results[0].data).map((date) => {
         var stg = new Date(date);
         return stg.getTime() / 1000;
       });
       for (var i = 0; i < this.results.length; i++) {
         var stgVal = [];
-        this.results[i] = this.results[i][0].data;
+        this.results[i] = this.results[i].data;
 
-        stgVal = Object.values(this.results[i]).map((val) => {
+        stgVal = Object.values(this.results[i].data).map((val) => {
           return JSON.parse(val);
         });
 
@@ -424,7 +424,7 @@ class HLclearCreek extends HydroLangBMI {
       r1 = h[this._moduleName]["transform"]({
         params: { save: "value" },
         args: { type: "ARR", keep: '["value"]' },
-        data: this.stgGauge[0][0]["value"]["timeseries"][1],
+        data: this.stgGauge[0]["value"]["timeseries"][1],
       });
 
     //Having all the data into a single array
