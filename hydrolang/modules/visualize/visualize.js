@@ -28,14 +28,18 @@ function chart({ params, args, data } = {}) {
     data = [Array.from(Array(data.length).keys()), data];
   }
 
-  const id = params.id || "visualize";
+  let { returnEle } = params
 
-  if (!divisors.isdivAdded({ params: { id } })) {
-    divisors.createDiv({ params: { id: id, class: "visualize" } });
+  if (!returnEle) {
+    const id = params.id || "visualize";
+
+    if (!divisors.isdivAdded({ params: { id } })) {
+      divisors.createDiv({ params: { id: id, class: "visualize" } });
+    }
   }
-  //Create a new div for the visualize options.
-  //Google CDN stable library caller.
-  // var g = googleCdn();
+
+  //Used to resize whenever window is smaller/bigger
+  var resizer;
 
   const drawChart = () => {
     //Creating a container to append the chart to.
@@ -53,8 +57,11 @@ function chart({ params, args, data } = {}) {
       //rearrange data into nxm from mxn
       dataMatrix = stats.arrchange({ data });
 
-    if (divisors.isdivAdded({ params: { id: params.id } })) {
-      container = document.getElementById(params.id);
+    if (!returnEle) 
+    {
+      if (divisors.isdivAdded({ params: { id: params.id } })) {
+        container = document.getElementById(params.id);
+      }
     }
 
     //Change the way of creating charts depending on the type of chart required.
@@ -100,45 +107,41 @@ function chart({ params, args, data } = {}) {
 
     const dataTableObject = google.visualization.arrayToDataTable(dataMatrix);
 
-    //Create figure in container.
-    var chartObject = new ch(container);
     //Draw the chart.
-    const drawFunction = () => {
+    const drawFunction = (chartObject) => {
       options
         ? chartObject.draw(dataTableObject, options)
         : chartObject.draw(dataTableObject);
     };
 
-    drawFunction();
 
-    var resizer;
-
-    window.addEventListener("resize", () => {
-      clearTimeout(resizer);
-      resizer = setTimeout(() => {
-        drawFunction();
-        //Listener to add button for the chart to be downloaded once is ready.
-        // google.visualization.events.addListener(fig, "ready", () => {
-
-        //   if (divisors.isdivAdded({ params: { id: `${params.id}_png`} }) === false) {
-        //     divisors.createDiv({ params: { id: `${params.id}_png`, maindiv: params.id } });
-        //   } else {
-        //     var parent = document.getElementById(`${params.id}_png`);
-        //     parent.innerHTML = '';
-
-        //     parent.innerHTML = `<a download="${
-        //     params.id
-        //   }" href="${fig.getImageURI()}"><button>${
-        //     params.id
-        //   }</button></a>`;
-        // }
-        // });
-      }, 100);
-    });
-    //});
-    return console.log(`Chart ${params.id} is drawn based on given parameters`);
+    if (!returnEle) {
+      var chartObject = new ch(container);
+      drawFunction(chartObject);
+      window.addEventListener("resize", () => {
+        clearTimeout(resizer);
+        resizer = setTimeout(() => {
+          drawFunction(chartObject);
+        }, 100);
+      });
+      return console.log(`Chart ${params.id} is drawn based on given parameters`);
+    }
+    else {
+      const cont = (container) => {
+        let localContainer = new ch(container);
+        drawFunction(localContainer)
+        window.addEventListener("resize", () => {
+          clearTimeout(resizer);
+          resizer = setTimeout(() => {
+            drawFunction(localContainer);
+          }, 100);
+        });
+        return
+      }
+      return cont
+    }
   };
-  drawChart();
+  return drawChart();
 }
 
 /**
@@ -236,6 +239,7 @@ function draw({ params = {}, args = {}, data = [] } = {}) {
     type,
     id = `chart-${Math.floor(Math.random() * 100)}-gen`,
     name,
+    returnEle = false
   } = params;
   name === undefined ? (name = id) : name;
 
@@ -253,7 +257,7 @@ function draw({ params = {}, args = {}, data = [] } = {}) {
   }
 
   //defaults in case the user wants to generate a chart
-  let { charttype = "line", names } = args;
+  let { charttype = "line", names} = args;
 
   //Chart drawing options.
   if (type === "chart") {
@@ -265,6 +269,7 @@ function draw({ params = {}, args = {}, data = [] } = {}) {
         fontName: "monospace",
       },
       names: names,
+      returnEle
     };
 
     switch (charttype) {
@@ -328,8 +333,12 @@ function draw({ params = {}, args = {}, data = [] } = {}) {
         break;
     }
 
-    setTimeout(() => chart({ params: pm, data: dat }), 200);
-    return;
+    if (!returnEle) {
+      setTimeout(() => chart({ params: pm, data: dat }), 200);
+      return;
+    } else {
+      return chart({ params: pm, data: dat })
+    }
   }
 
   //Table options

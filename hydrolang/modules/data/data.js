@@ -23,6 +23,7 @@ function retrieve({ params, args, data } = {}) {
   //obtain data from parameters set by user.
   var source = params["source"],
     dataType = params["datatype"],
+    placeHolder = params["placeHolder"] || false,
     trans = params["transform"] || false,
     args = args,
     result = [],
@@ -97,12 +98,14 @@ function retrieve({ params, args, data } = {}) {
       return env;
     })();
 
+  endpoint = placeHolder ? endpoint.replace(/{(\w+)}/g, (match, key) => args[key]) : endpoint
+
   return new Promise((resolve, reject) => {
 
   //retrieve the data and feed the data into callback.
   $.ajax({
     url: proxy + endpoint,
-    data: args,
+    data: placeHolder ? '' : args,
     dataType: type,
     method: met,
     headers: head,
