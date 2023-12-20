@@ -18,6 +18,7 @@ import { waterOneFlow, hydroShare, hisCentral } from "./datasources/cuahsi.js";
 import proxies from "./datasources/proxy.js";
 import envelope from "./datasources/soapEnv.js";
 import nws from "./datasources/nws.js"
+import wqp from "./datasources/wqp.js"
 
 export {
   usgs,
@@ -36,5 +37,6 @@ export {
   hisCentral,
   proxies,
   envelope,
-  nws
+  nws,
+  wqp
 };

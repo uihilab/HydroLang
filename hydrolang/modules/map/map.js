@@ -288,7 +288,7 @@ async function recenter ({ params, args, data } = {}) {
   if (data.type === "FeatureCollection") {
     geoType = data.features[0].geometry.type;
   } else if (data.type === "Feature") {
-    geoType = data.geometry.type;
+    geoType = data.geometry.type; 
   }
 
   if (params.maptype === "google") {
