@@ -66,7 +66,7 @@ export default {
   },
 
   //List of stations within a certain area. Add parameter = rainfall.
-  "list-stations": {
+  "list-floodstations": {
     endpoint: "http://environment.data.gov.uk/flood-monitoring/id/stations",
     params: {
       parameter: null,
@@ -84,7 +84,7 @@ export default {
   },
 
   //find historic of rainfall information for a given rainfall station, using id parameter.
-  "data-stations": {
+  "data-floodstations": {
     endpoint: "http://environment.data.gov.uk/flood-monitoring/data/readings",
     params: {
       parameter: null,
@@ -101,6 +101,37 @@ export default {
       method: "GET",
     },
   },
+
+    //list of sampling points for a given region or area
+    "list-wq-sampling": {
+      endpoint: "http://environment.data.gov.uk/water-quality/id/sampling-point",
+      params: {
+        lat: null,
+        lon: null,
+        easting: null,
+        northing: null,
+        dist: null,
+      },
+      methods: {
+        type: "json",
+        method: "GET",
+      },
+    },
+
+        //returns the data for a particular site a specified date range
+        "data-wqsite": {
+          endpoint: "http://environment.data.gov.uk/water-quality/id/sampling-point/{id}/measurements",
+          params: {
+            startDate: null,
+            endDate: null,
+            year: null,
+            purpose: null,
+          },
+          methods: {
+            type: "json",
+            method: "GET",
+          },
+        },
 
   //set of requirements from the source. If different methods for dat retrieval can be used, then "GET" is default.
   requirements: {

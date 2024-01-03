@@ -18,6 +18,7 @@ drawControl;
 //Global variables for library usages.
 window.baselayers = {};
 window.overlayers = {};
+window.usedColors = new Set()
 
 /**
  * Calls the map type according to the user input. The renderMap function is required
@@ -256,10 +257,8 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
 }
 
 /**
- * Recenters a map at zoom of 500 m to a specific latlon.
- * @method recenter
- * @memberof map
- * @param {Object} args - lat and lon for recentering a map.
+ * 
+ * @param {*} param0 
  */
 async function recenter ({ params, args, data } = {}) {
   let latLon = L.latLng(args.lat, args.lon);
@@ -268,7 +267,7 @@ async function recenter ({ params, args, data } = {}) {
 }
 
 /***************************/
-/*** Supporting functions **/
+/*** Supporting functionargs.lat, args.lon, 40s **/
 /***************************/
 
 /**
@@ -285,15 +284,20 @@ async function recenter ({ params, args, data } = {}) {
 
  function geoJSON({ params, args, data } = {}) {
   let geoType;
+
   if (data.type === "FeatureCollection") {
+    //Get the type of feature to be drawn
     geoType = data.features[0].geometry.type;
+
+
   } else if (data.type === "Feature") {
-    geoType = data.geometry.type; 
+    geoType = data.geometry.type;
   }
 
   if (params.maptype === "google") {
     return osmap.data.addGeoJson(data);
   } else if (params.maptype === "leaflet") {
+    
     const onEachFeature = (feature, layer) => {
       if (feature.properties && feature.properties.Name && feature.properties.Lat && feature.properties.Lon) {
         layer.bindPopup(`${feature.properties.Name} (${feature.properties.Lat}, ${feature.properties.Lon})`);
@@ -603,6 +607,19 @@ function draw({ params, args, data } = {}) {
       drawings.addLayer(layer);
     });
   }
+}
+
+/**
+ * Returns a hex color for rendering
+ * @returns 
+ */
+function generateColors () {
+  const letters = "0123456789ABCDEF";
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
 }
 
 /**********************************/

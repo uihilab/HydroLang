@@ -98,14 +98,27 @@ function retrieve({ params, args, data } = {}) {
       return env;
     })();
 
-  endpoint = placeHolder ? endpoint.replace(/{(\w+)}/g, (match, key) => args[key]) : endpoint
+  //Correction in case the endpoint requires change for placeholders
+  // endpoint = placeHolder ? endpoint.replace(/{(\w+)}/g, (match, key) => args[key]) : endpoint
+
+  endpoint = endpoint.replace(/{(\w+)}/g, (match, key) => {
+    const value = args[key];
+    delete args[key];
+    return value;
+  });
+
+  if (Object.keys(args).length === 0) {
+    args = '';
+  }
+
 
   return new Promise((resolve, reject) => {
 
   //retrieve the data and feed the data into callback.
   $.ajax({
     url: proxy + endpoint,
-    data: placeHolder ? '' : args,
+    data: args,
+    // data: placeHolder ? '' : args,
     dataType: type,
     method: met,
     headers: head,
