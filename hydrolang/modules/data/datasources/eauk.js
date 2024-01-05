@@ -135,7 +135,7 @@ export default {
 
   //set of requirements from the source. If different methods for dat retrieval can be used, then "GET" is default.
   requirements: {
-    needProxy: false,
+    needProxy: true,
     requireskey: false,
   },
 };
