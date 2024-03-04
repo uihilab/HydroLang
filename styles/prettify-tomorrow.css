@@ -1,0 +1,132 @@
+/* Tomorrow Theme */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+/* Pretty printing styles. Used with prettify.js. */
+/* SPAN elements with the classes below are added by prettyprint. */
+/* plain text */
+.pln {
+  color: #1c1c1b; }
+
+@media screen {
+  /* string content */
+  .str {
+    color: #489963; }
+
+  /* a keyword */
+  .kwd {
+    color: #06a9b9; }
+
+  /* a comment */
+  .com {
+    color: #78877d; }
+
+  /* a type name */
+  .typ {
+    color: #20bdaf; }
+
+  /* a literal value */
+  .lit {
+    color: #55859b; }
+
+  /* punctuation */
+  .pun {
+    color: #1c1c1b; }
+
+  /* lisp open bracket */
+  .opn {
+    color: #1c1c1b; }
+
+  /* lisp close bracket */
+  .clo {
+    color: #1c1c1b; }
+
+  /* a markup tag name */
+  .tag {
+    color: #b16139; }
+
+  /* a markup attribute name */
+  .atn {
+    color: #55859b; }
+
+  /* a markup attribute value */
+  .atv {
+    color: #1c9aa0; }
+
+  /* a declaration */
+  .dec {
+    color: #f5871f; }
+
+  /* a variable name */
+  .var {
+    color: #c82829; }
+
+  /* a function name */
+  .fun {
+    color: #4271ae; } }
+/* Use higher contrast and text-weight for printable form. */
+@media print, projection {
+  .str {
+    color: #060; }
+
+  .kwd {
+    color: #006;
+    font-weight: bold; }
+
+  .com {
+    color: #600;
+    font-style: italic; }
+
+  .typ {
+    color: #404;
+    font-weight: bold; }
+
+  .lit {
+    color: #044; }
+
+  .pun, .opn, .clo {
+    color: #440; }
+
+  .tag {
+    color: #006;
+    font-weight: bold; }
+
+  .atn {
+    color: #404; }
+
+  .atv {
+    color: #060; } }
+/* Style */
+/*
+pre.prettyprint {
+  background: white;
+  font-family: Consolas, Monaco, 'Andale Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  border: 1px solid #ccc;
+  padding: 10px; }
+*/
+
+/* Specify class=linenums on a pre to get line numbering */
+ol.linenums {
+  margin-top: 0;
+  margin-bottom: 0; }
+
+/* IE indents via margin-left */
+li.L0,
+li.L1,
+li.L2,
+li.L3,
+li.L4,
+li.L5,
+li.L6,
+li.L7,
+li.L8,
+li.L9 {
+  /* */ }
+
+/* Alternate shading for lines */
+li.L1,
+li.L3,
+li.L5,
+li.L7,
+li.L9 {
+  /* */ }
