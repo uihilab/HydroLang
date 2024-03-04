@@ -267,7 +267,7 @@ async function recenter ({ params, args, data } = {}) {
 }
 
 /***************************/
-/*** Supporting functionargs.lat, args.lon, 40s **/
+/*** Supporting functions **/
 /***************************/
 
 /**
@@ -611,7 +611,9 @@ function draw({ params, args, data } = {}) {
 
 /**
  * Returns a hex color for rendering
- * @returns 
+ * @function generateColors
+ * @memberof map
+ * @returns {String} - Random color to be rendered.
  */
 function generateColors () {
   const letters = "0123456789ABCDEF";

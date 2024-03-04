@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runxs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -18,7 +18,7 @@ jobs:
           source_dir: ./hydrolang/
           output_dir: ./docs/
           config_file: ./.github/workflows/config_doc.json
-          template: clean-jsdoc-theme
+          template: toast-jsdoc
           front_page: README.md
 
       - name: Deploy
