@@ -552,9 +552,9 @@ async function recenter ({ params, args, data } = {}) {
  * @function geoJSON
  * @memberof map
  * @param {Object} params - Contains: maptype (google, osm)
- * @args.styleFunction {Function} args.markerOptionsCallback - Callback function to set the geojsonMarkerOptions based on geoJson properties
- * @args.popUpFunction {Function} args.markerPopupCallback - Callback function to set the bindPopup based on geoJson properties
- * @args.onClickFunction {Function} args.onClickFunction - Callback function for an onClick event for the geoJson properties
+ * @param {Function} args.markerOptionsCallback - Callback function to set the geojsonMarkerOptions based on geoJson properties
+ * @param {Function} args.markerPopupCallback - Callback function to set the bindPopup based on geoJson properties
+ * @param {Function} args.onClickFunction - Callback function for an onClick event for the geoJson properties
  * @param {Object} data - Data as geoJSON format compliant to OGM standards. See: https://docs.ogc.org/is/17-003r2/17-003r2.html
  * @returns {Element} geoJSON layer added into a rendered map.
  * @example
