@@ -43,8 +43,8 @@ function retrieve({ params, args, data } = {}) {
   }
 
   //Change the type of endpoint based on the request. In the future for SOAP requests, new sources will be added to the if statement.
-  source === "waterOneFlow" || source === "hisCentral"
-    ? (endpoint = datasources[source]["sourceType"](args["sourceType"]))
+  source === "waterOneFlow" || source === "hisCentral" || source === "mitigation_dt" || source === "flooddamage_dt"
+    ? (endpoint = datasources[source]["sourceType"](args["sourceType"], dataType))
     : (endpoint = dataSource["endpoint"]);
   //Grab the default parameter specified within the datasource type
   (() =>
@@ -100,7 +100,7 @@ function retrieve({ params, args, data } = {}) {
 
   //Correction in case the endpoint requires change for placeholders
   // endpoint = placeHolder ? endpoint.replace(/{(\w+)}/g, (match, key) => args[key]) : endpoint
-
+    console.log('endpoint',endpoint)
   endpoint = endpoint.replace(/{(\w+)}/g, (match, key) => {
     const value = args[key];
     delete args[key];
@@ -137,6 +137,13 @@ function retrieve({ params, args, data } = {}) {
               data: lowercasing(data)
               })
             resolve(transformed_value)
+          } 
+
+          //If text needs to be converted to js code before returning
+          // Needs refactoring
+          if(trans === "eval") {
+            data = (1,eval)(data)
+            resolve(data)
           }
         } else {
           resolve(lowercasing(data))
@@ -144,6 +151,7 @@ function retrieve({ params, args, data } = {}) {
         }
     },
     (err) => {
+
       if (type === "soap" || type === "xml") {
         var xmlDoc = $.parseXML(err["responseText"]),
           j = xml2json(xmlDoc);
@@ -156,6 +164,7 @@ function retrieve({ params, args, data } = {}) {
           `There was an error with the request. Please revise requirements.`
         );
         reject(err)
+        
     }
   )
   //return result;
@@ -269,7 +278,7 @@ function transform({ params, args, data } = {}) {
   //convert data from array to XML
   else if (type === "ARR2XML") {
     var xml = "";
-    for (var prop in arr) {
+    for (var prop in arr) {evalif = datasources[source]["requirements"]["needEval"];
       xml += arr[prop] instanceof Array ? "" : "<" + prop + ">";
       if (arr[prop] instanceof Array) {
         for (var array in arr[prop]) {
@@ -458,7 +467,7 @@ function recursiveSearch({ obj, searchkey, results = [] } = {}) {
   Object.keys(obj).forEach((key) => {
     const value = obj[key];
     if (key === searchkey && Array.isArray(value)) {
-      r.push(value);
+      r.push(value);evalif = datasources[source]["requirements"]["needEval"];
       return;
     } else if (typeof value === "object" && value !== null) {
       recursiveSearch({ obj: value, searchkey: searchkey, results: r });

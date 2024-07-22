@@ -71,6 +71,11 @@ const waterOneFlow = {
         //https://hiscentral.cuahsi.org/pub_network.aspx?n=5649
         val = "CALVIN_HHS";
         break;
+      case "Crowd Hydrology":
+          //Additional info:
+          //https://hiscentral.cuahsi.org/pub_network.aspx?n=5649
+          val = "MobileCrowdHydrology";
+          break;
       case "Corpus Christi Bay":
         //Additional info:
         //https://hiscentral.cuahsi.org/pub_network.aspx?n=5647

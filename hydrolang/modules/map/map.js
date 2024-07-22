@@ -15,6 +15,9 @@ drawings,
 isDrawToolAdded = false,
 drawControl;
 
+// Google Maps specific variables
+var mapId, mapType;
+
 //Global variables for library usages.
 window.baselayers = {};
 window.overlayers = {};
@@ -31,7 +34,6 @@ window.usedColors = new Set()
  * @example
  * hydro.map.loader({params: {maptype: 'osm'}, args: {key: 'somekey'}})
  */
-
 async function loader({ params = {maptype: "leaflet"}, args = {}, data = {}} = {}) {
   //For google maps API.
   if (params.maptype == "google") {
@@ -64,32 +66,174 @@ async function loader({ params = {maptype: "leaflet"}, args = {}, data = {}} = {
  */
 
 async function Layers({ params, args, data } = {}) {
-  var layertype,
+  var layertype, mapconfig = {};
   //The mapconfig is set to be as OSM.
-  mapconfig = { maptype: "leaflet" },
+  if(mapType === "google") {
+    mapconfig.maptype= "google" 
+  } else if(mapType === "leaflet"){
+    mapconfig.maptype= "leaflet" }
+  
   //Creating configuration object for rendering layers.
   //If a property is not found, is simply set to null.
   //Setting it up as default behavior.
-  layertype = {
+  var layertype = {
     type: args.type,
-    markertype: args.type,
+    markertype: args.markertype,
     geotype: args.geo,
     data: data,
     name: args.name,
     coord: data,
-    popUpContent:  args.popUp|| null
+    popUpContent:  args.popUp|| null,
+    styleFunction: args.styleFunction || null,
+    popUpFunction: args.popUpFunction || null,
+    onClickFunction: args.onClickFunction || null
   };
 
+
   try {
+    //in case the map required is google.
     if (mapconfig.maptype === "google") {
+      var layer,
+      type = layertype.type,
+      layername = layertype.name;
+
+      // Create layer controller if undefined
+      if (typeof layercontroller === "undefined") {
+
+        // Creating layers div for Google Maps
+        !divisors.isdivAdded({ params: { id: "gmap-control-div" } })
+          ? divisors.createDiv({
+              params: {
+                id: "gmap-control-div",
+                style: `
+                #gmap-control-div {
+                  position: relative;
+                  width: 200px;
+                  font-family: Arial, sans-serif;
+                }
+
+                #select-box {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  padding: 11px 23px;
+                  border: 1px solid #ccc;
+                  cursor: pointer;
+                  text-align: left;
+                  color: rgb(0, 0, 0);
+                  font-family: Roboto, Arial, sans-serif;
+                  font-size: 18px;
+                  border-radius: 2px;
+                  box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px;
+                  background: none padding-box rgb(255, 255, 255);
+                  font-weight: bold;
+                  margin: 10px 10px 0px 0px;
+                }
+
+                #options-container {
+                  display: none;
+                  position: absolute;
+                  top: 100%;
+                  left: 0;
+                  right: 0;
+                  border: 1px solid #ccc;
+                  border-top: none;
+                  max-height: 200px;
+                  overflow-y: auto;
+                  background-color: white;
+                  margin: 0px 10px 0px 0px;
+
+                }
+
+                #options-container label {
+                  display: block;
+                  padding: 8px 10px;
+                }
+
+                #options-container label:hover {
+                  background-color: #f0f0f0;
+                }
+                  `
+              },
+            })
+          : null;
+
+        let controlDiv = document.getElementById("gmap-control-div");
+        layercontroller = controlDiv;
+
+        // Create select list for Layers
+        controlDiv.innerHTML = `
+            <div id="select-box">
+              <span class="selected-options">Layers</span>
+              <span class="arrow">&#9662;</span>
+            </div>
+            <div id="options-container">
+            </div>
+          `;
+
+        // Add Layer button to top right of the map
+        osmap.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
+
+        const selectBox = document.querySelector('#select-box');
+        const optionsContainer = document.querySelector('#options-container');
+
+        // Toggle the controller list if the Layer button is clicked
+        selectBox.addEventListener('click', function(event) {
+          optionsContainer.style.display = optionsContainer.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Toggle the layer if checkbox is toggles on or off
+        optionsContainer.addEventListener('change', function(event) {
+          if (event.target.type === 'checkbox') {
+              console.log(event.target.value)
+              if(event.target.checked) {
+                baselayers[event.target.value].setMap(osmap);
+              } else {
+                baselayers[event.target.value].setMap(null);
+              }
+          }
+        });
+      }
+      
+      //Caller for the marker data renderer.
+      if (type === "marker") {
+        // Load AdvancedMarkerElement for Markers
+        if(!window.AdvancedMarkerElement) {
+          var { AdvancedMarkerElement } = await google.maps.importLibrary(
+            "marker",
+          );
+          window.AdvancedMarkerElement = AdvancedMarkerElement
+        };
+        layer = addMarker({ params: mapconfig, args: layertype });
+        layer.setMap(osmap);
+        baselayers[layername] = layer;
+        addLayerToGMapController(layer, layername)
+      //Caller for the geoJSON data renderer.
+      } else if (type === "geojson") {
+        layer = geoJSON({ params: mapconfig, args: layertype, data: layertype.data });
+        osmap.addLayer(layer)
+        layer.setMap(osmap);
+        baselayers[layername] = layer;
+        addLayerToGMapController(layer, layername)
+      // Caller for removing layers using layer name
+      } else if (type === "removelayers") {
+        if (baselayers.hasOwnProperty(layername)) {
+          baselayers[layername].setMap(null);
+          delete baselayers[layername];
+          removeLayerFromGMapController(layer, layername)
+        } else {
+          console.log("there is no layer with that name!");
+        }
+      }
     }
+
     //in case the map required is osm.
     else if (mapconfig.maptype === "leaflet") {
       var layer,
       type = layertype.type,
       layername = layertype.name;
     
-    await osmap.whenReady(function () {
+    await osmap.whenReady(async function () {
       if (typeof layercontroller === "undefined") {
         //Defining the controller for the layers.
         layercontroller = new L.control.layers().addTo(osmap);
@@ -111,8 +255,13 @@ async function Layers({ params, args, data } = {}) {
 
       if (type === "geojson") {
         //Caller for the geoJSON data renderer.
-        layer = geoJSON({ params: mapconfig, data: data });
+        layer = await geoJSON({ 
+          params: mapconfig, 
+          args: layertype, 
+          data: data 
+        });
         Object.assign(overlayers, { [layername]: layer });
+        osmap.addLayer(layer)
         layercontroller.addOverlay(layer, layername);
         //osmap.fitBounds(layer.getBounds());
       } else if (type === "marker") {
@@ -163,6 +312,26 @@ async function Layers({ params, args, data } = {}) {
   }
 }
 
+// Add layer to Google Map Controller
+function addLayerToGMapController(layer, layername) {
+  let optionsContainer = document.getElementById("options-container");
+  optionsContainer.innerHTML+= `
+      <label><input type="checkbox" value="${layername}" checked="true">${layername}</label>
+    `
+}
+
+// Remove layer to Google Map Controller
+function removeLayerFromGMapController(layer, layername) {
+  let optionsContainer = document.getElementById("options-container");
+  for (const child of optionsContainer.children) {
+    if(child.firstChild.value === layername) {
+      child.remove()
+    }
+  }
+
+}
+
+
 /**
  * Rendering function according to the map selected by the user.
  * Currently loads everything with the Leaflet render and OSM tile. The funciton loads the library to the header.
@@ -176,9 +345,8 @@ async function Layers({ params, args, data } = {}) {
  * @example
  * hydro.map.renderMap({params: {}, args: {{maptype: "leaflet", lat: "40", lon: "-100"}})
  */
-
 async function renderMap({ params = {}, args = {}, data } = {}) {
-  await Promise.resolve(loader({params}));
+  await Promise.resolve(loader({params, args}));
   //Reading layer types and map configurations from the user's parameters inputs.
   var layertype,
   { maptype = "leaflet", lat = 41.6572, lon = -91.5414 } = params;
@@ -192,7 +360,7 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
 
   //Allocating a container object where the map should be set.
   var container;
-  !divisors.isdivAdded({params:{id: "map"}}) ? 
+  !divisors.isdivAdded({params:{id: "map"}}) ?  
     divisors.createDiv({
       params: {
         id: "map",
@@ -202,16 +370,57 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
           width: 800px;
           margin-left: auto;
           margin-right: auto;
+          position: ${maptype === 'leaflet'?'fixed':'absolute'};
+          min-width: 200px;
+          min-height: 200px;
         }
       
         .content {
           max-width: 900px;
           margin: auto
         }
-      `
+        `
       }
     }) : null;
   container = document.getElementById("map");
+
+  // Creating an icon in the bottom right corner of the map that allows the map to be resized
+  !divisors.isdivAdded({params:{id: "resize-icon"}}) ?  
+    divisors.createDiv({
+      params: {
+        id: "resize-icon",
+        style: `
+        #resize-icon {
+          position: absolute;
+          top: 380px;
+          left: 780px;
+          width: 20px;
+          height: 20px;
+          background-color: gray;
+          border-radius: 50%;
+          opacity: 50%;
+          color: transparent;
+        }
+
+        #resize-icon:hover  {
+          background-color: transparent;
+          font-size: 24px;
+          color: black;
+          opacity: 100%;
+        }
+
+        #resize-icon::before {
+          content: '\\2921';
+        }
+      `
+      }
+    }) : null;
+  const resizeIcon = document.getElementById('resize-icon');
+
+  // Setup map resizing icon
+  setupMapResizing(container, resizeIcon);
+
+  mapId = 'MAP_ID'
 
   //From here onwards, the the library caller renders either Google Maps or Leaflet Maps.
   if (mapconfig.maptype === "google") {
@@ -222,16 +431,20 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
         lat: mapconfig.lat,
         lng: mapconfig.lon,
       },
+      mapId: mapId
     };
+    
+    mapType = 'google';
     //append a new map to the map variable.
     osmap = new google.maps.Map(container, options);
+    
   } else if (mapconfig.maptype === "leaflet") {
     let {type = "tile", name = "OpenStreetMap"} = args
     layertype = {
       type,
       name
     };
-
+    mapType = "leaflet"
     osmap = new L.map(container.id);
     //assign the tile type to the data object for rendering.
     const tiletype = layertype.name;
@@ -256,6 +469,69 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
   }
 }
 
+// Helper function to implement drag and drop map resizing functionality
+function setupMapResizing(map, resizeIcon) {
+  // State variables for tracking drag operation
+  let isDragging = false;
+  let startX, startY;
+
+  // Add event listeners for drag operations
+  resizeIcon.addEventListener('mousedown', startDrag);
+
+  // Function to initiate dragging
+  function startDrag(e) {
+    isDragging = true;
+    // Calculate the offset of the mouse position from the icon's top-left corner
+    startX = e.clientX - resizeIcon.offsetLeft;
+    startY = e.clientY - resizeIcon.offsetTop;
+
+    // Add listeners only when dragging starts
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', endDrag);
+  }
+
+  // Function to handle dragging
+  function drag(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    // Calculate new position of the resize icon
+    let left = e.clientX - startX;
+    let top = e.clientY - startY;
+    // Update the position of the resize icon
+    resizeIcon.style.left = `${left}px`;
+    resizeIcon.style.top = `${top}px`;
+  }
+
+  // Function to end dragging and resize the map
+  function endDrag() {
+    if (!isDragging) return;
+    isDragging = false;
+    
+    // Calculate new dimensions, ensuring they're at least 200px
+    const newWidth = Math.max(resizeIcon.offsetLeft, 200);
+    const newHeight = Math.max(resizeIcon.offsetTop, 200);
+
+    // Resize the map and reposition the resize icon
+    resizeMap(map, newWidth, newHeight);
+    repositionResizeIcon(resizeIcon, newWidth, newHeight);
+
+    // Remove listeners when dragging ends
+    document.removeEventListener('mousemove', drag);
+    document.removeEventListener('mouseup', endDrag);
+  }
+
+  // Helper function to resize the map
+  function resizeMap(map, width, height) {
+    map.style.width = `${width}px`;
+    map.style.height = `${height}px`;
+  }
+
+  // Helper function to reposition the resize icon to the bottom-right corner
+  function repositionResizeIcon(icon, mapWidth, mapHeight) {
+    icon.style.left = `${mapWidth - icon.offsetWidth}px`;
+    icon.style.top = `${mapHeight - icon.offsetHeight}px`;
+  }
+}
 /**
  * 
  * @param {*} param0 
@@ -276,14 +552,21 @@ async function recenter ({ params, args, data } = {}) {
  * @function geoJSON
  * @memberof map
  * @param {Object} params - Contains: maptype (google, osm)
+ * @args.styleFunction {Function} args.markerOptionsCallback - Callback function to set the geojsonMarkerOptions based on geoJson properties
+ * @args.popUpFunction {Function} args.markerPopupCallback - Callback function to set the bindPopup based on geoJson properties
+ * @args.onClickFunction {Function} args.onClickFunction - Callback function for an onClick event for the geoJson properties
  * @param {Object} data - Data as geoJSON format compliant to OGM standards. See: https://docs.ogc.org/is/17-003r2/17-003r2.html
  * @returns {Element} geoJSON layer added into a rendered map.
  * @example
  * hydro.map.geoJSON({params: {maptype: 'someMapType'}, data: {somegeoJSON}})
  */
 
- function geoJSON({ params, args, data } = {}) {
+ async function geoJSON({ params, args, data } = {}) {
   let geoType;
+
+  let {styleFunction, popUpFunction, onClickFunction} = args;
+
+  console.log('data',data);
 
   if (data.type === "FeatureCollection") {
     //Get the type of feature to be drawn
@@ -294,44 +577,151 @@ async function recenter ({ params, args, data } = {}) {
     geoType = data.geometry.type;
   }
 
+  
+
   if (params.maptype === "google") {
-    return osmap.data.addGeoJson(data);
-  } else if (params.maptype === "leaflet") {
-    
-    const onEachFeature = (feature, layer) => {
-      if (feature.properties && feature.properties.Name && feature.properties.Lat && feature.properties.Lon) {
-        layer.bindPopup(`${feature.properties.Name} (${feature.properties.Lat}, ${feature.properties.Lon})`);
-      }
-    };
+    const layer = new google.maps.Data();
+    const infoWindow = new google.maps.InfoWindow();
+    let contentString;
+
     const geoPoint = {
-      radius: 10,
+      scale: 5,
+      fillColor: "red",
+      color: "#0dc1d3",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.6,
+      strokeWeight: 0.7
+    };
+
+    const geoPolygon = {
       fillColor: "#2ce4f3",
       color: "#0dc1d3",
       weight: 1,
       opacity: 1,
-      fillOpacity: 0.7,
+      fillOpacity: 0.6,
     };
+
+    if (geoType === "Point") {
+      layer.addGeoJson(data);
+      layer.setStyle(function (feature) { return {
+        map: osmap,
+        center: feature.getGeometry().get(),
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          ...styleFunction ? styleFunction(feature) : geoPoint,
+        }
+      }});
+
+      layer.addListener("click", function (event) {
+        if(popUpFunction) {
+          contentString = popUpFunction(event.feature)
+        } else {
+          contentString = `<div>Coordinates: ${event.latLng}</div>`;
+        }
+        infoWindow.setContent(contentString);
+        infoWindow.setPosition(event.feature.getGeometry().get());
+        infoWindow.open(osmap);
+
+        if(onClickFunction) {
+          onClickFunction(event)
+        }
+      });
+
+      //layer.setMap(osmap);
+      return layer
+
+    } else if (geoType === "Polygon" || geoType === "MultiPolygon") {
+      layer.addGeoJson(data);
+
+      layer.setStyle(function (feature) { return {
+        map: osmap,
+        ...styleFunction ? styleFunction(feature) : geoPolygon,
+      }});
+      
+      layer.addListener("click", function (event) {
+        if(popUpFunction) {
+          contentString = popUpFunction(event.feature)
+        }
+        console.log(event.feature.getGeometry())
+
+        
+        infoWindow.setContent(contentString);
+        infoWindow.setPosition(event.latLng);
+        infoWindow.open(osmap);
+
+
+        if(onClickFunction) {
+          onClickFunction(event.feature.Gg)
+        }
+      });
+
+      //layer.setMap(osmap);
+      return layer;
+
+    }
+
+
+    //return layer;
+  } else if (params.maptype === "leaflet") {
+    
+    // Bind Popup values and onClick function values
+    const onEachFeature = (feature, layer) => {
+      
+      if(popUpFunction) {
+          layer.bindPopup(popUpFunction(feature))
+        } else if (feature.properties && feature.properties.Name && feature.properties.Lat && feature.properties.Lon) {
+          layer.bindPopup(`${feature.properties.Name} (${feature.properties.Lat}, ${feature.properties.Lon})`);
+        }
+
+        if(onClickFunction) {
+          layer.on(
+            "click", onClickFunction
+        )};
+      };
+
+      const geoPoint = {
+        radius: 10,
+        fillColor: "#2ce4f3",
+        color: "#0dc1d3",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.7,
+      };
+      
     const geoPolygon = {
       weight: 2,
       color: "#432",
     };
 
     if (geoType === "Point") {
+      
       return L.geoJSON(data, {
         pointToLayer: function (feature, latlng) {
-          return L.circleMarker(latlng, geoPoint);
+          return L.circleMarker(latlng, function (feature) {
+            if(styleFunction!== null) return styleFunction(feature);
+            return geoPoint;
+          });
         },
         onEachFeature: onEachFeature,
-        style: geoPoint,
+        
+        style:  function (feature) {
+          if(styleFunction!== null) return styleFunction(feature);
+          return geoPoint;
+        },
       });
-    } else if (geoType === "Polygon") {
+    } else if (geoType === "Polygon" || geoType === "MultiPolygon") {
       return L.geoJSON(data, {
-        style: geoPolygon,
+        style: function (feature) {
+          if(styleFunction!== null) return styleFunction(feature);
+          return geoPolygon;
+        },
         onEachFeature: onEachFeature,
       });
     }
   }
 }
+
 
 
 /**
@@ -345,7 +735,6 @@ async function recenter ({ params, args, data } = {}) {
  * @example
  * hydro.map.kml({params: {maptype: 'someMapType'}, data: {someKMLdata}})
  */
-
 function kml({ params, args, data } = {}) {
   if (params.maptype == "google") {
     var kmlLayer = new google.maps.KmlLayer(data, {
@@ -377,14 +766,63 @@ function kml({ params, args, data } = {}) {
  * hydro.map.addMarker({params: {maptype: 'someMap'}, args: {markertype: 'someMarker', coord: [markerLat, markerLon]}})
  */
 function addMarker({ params, args, data } = {}) {
-  var layer;
+  var type = args.markertype,
+    coord = args.coord, layer, ltlngCoordinate,
+    title = args.name;
+
   if (params.maptype === "google") {
+
+    switch(type) {
+      case "marker":
+        layer = new AdvancedMarkerElement({
+          position: {lat:coord[0], lng:coord[1]},
+          title : title
+        });
+        // Bind popup to marker layer
+        var infowindow = new google.maps.InfoWindow();
+        makeInfoWindowEvent(
+          osmap, 
+          infowindow, 
+          args.popUpContent || `Coordinates: lat: ${coord[0]}, lon: ${coord[1]}`, 
+          layer
+        );
+        break;
+      case "rectangle":
+        layer = new google.maps.Rectangle({
+          ...markerStyles({ params: { map: "google", fig: "rectangle" } }),
+          bounds: {
+            north: coord[0] + 0.01,
+            south: coord[0] - 0.01,
+            east: coord[1] + 0.01,
+            west: coord[1] - 0.01,
+          },
+        });
+        break;
+      case "circle":
+        layer = new google.maps.Circle({
+          ...markerStyles({ params: { map: "google", fig: "circle" } }),
+          center: {lat:coord[0],lng:coord[1]},
+        });
+        break;
+      case "polyline":
+        ltlngCoordinate = coord.map(([x, y]) => {return {lat:x, lng:y}})
+        layer = new google.maps.Polyline({
+          path: ltlngCoordinate,
+          geodesic: true,
+          ...markerStyles({ params: { map: "google", fig: "polyline" } }),
+        });
+      case "polygon":
+        ltlngCoordinate = coord.map(([x, y]) => {return {lat:x, lng:y}})
+        layer = new google.maps.Polygon({
+          path: ltlngCoordinate,
+          geodesic: true,
+          ...markerStyles({ params: { map: "google", fig: "polygon" } })
+        });
+    }
   }
 
   if (params.maptype === "leaflet") {
-    var type = args.markertype,
-    coord = args.coord;
-
+    
     //the markerstyle function renders different types of preset styles. If other style types are needed
     //change the code accordingly.
     switch (type) {
@@ -431,6 +869,91 @@ function addMarker({ params, args, data } = {}) {
   return layer;
 }
 
+// Helper function for google maps based visualization to bind popup value on layers
+function makeInfoWindowEvent(map, infowindow, contentString, marker) {
+  google.maps.event.addListener(marker, 'click', function() {
+    infowindow.setContent(contentString);
+    infowindow.open(map, marker);
+  });
+}
+
+/**
+ * Adds a custom legend to the map based on the map type and position specified.
+ * @param {Object} param0 - Object containing the map type and position for the legend.
+ * @param {string} param0.position - The position for the legend (top, top left, left, bottom left, bottom, bottom right, right, top right).
+ */
+async function addCustomLegend({ params, args, data } = {}) {
+  const { position } = params;
+  const { div } = args;
+
+  // If no div is provided, return an error message
+  if (!div) {
+    return "Pass in a div for overlay";
+  }
+
+  let type = mapType;
+
+  console.log('mapType', type);
+
+  // Handle the case when the map type is 'google'
+  if (type === "google") {
+    switch (position) {
+      case 'top':
+        osmap.controls[google.maps.ControlPosition.TOP_CENTER].push(div);
+        break;
+      case 'top left':
+        osmap.controls[google.maps.ControlPosition.TOP_LEFT].push(div);
+        break;
+      case 'left':
+        osmap.controls[google.maps.ControlPosition.LEFT_CENTER].push(div);
+        break;
+      case 'bottom left':
+        osmap.controls[google.maps.ControlPosition.BOTTOM_LEFT].push(div);
+        break;
+      case 'bottom':
+        osmap.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(div);
+        break;
+      case 'bottom right':
+        osmap.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(div);
+        break;
+      case 'right':
+        osmap.controls[google.maps.ControlPosition.RIGHT_CENTER].push(div);
+        break;
+      case 'top right':
+        osmap.controls[google.maps.ControlPosition.TOP_RIGHT].push(div);
+        break;
+      default:
+        console.log("Possible values for position are 'top', 'left', 'bottom', 'right', 'top left', 'top right', 'bottom left', 'bottom right'");
+        break;
+    }
+  }
+  // Handle the case when the map type is 'leaflet'
+  else if (type === "leaflet") {
+    let { position } = params;
+    position = position.replace(" ","")
+
+    if (position === 'topleft' || position === 'topright' || position === 'bottomleft' || position === 'bottomright') {
+      const legend = L.control({ position: position });
+      legend.onAdd = function (map) {
+        // Add the legend to the map
+        let legendDiv = L.DomUtil.create('div', 'legend-container')
+        console.log(div)        
+        legendDiv.innerHTML = args.div.innerHTML;
+
+        return legendDiv
+      };
+      legend.addTo(osmap);
+    } else {
+      console.log("Possible values for position are 'top left', 'top right', 'bottom left' or 'bottom right'");
+    }
+  }
+  // If no map type is specified, log an error message
+  else {
+    console.log("Error: map not found");
+  }
+}
+
+
 /**
  * Creaes different styles for depending on the marker that has been selected for drawing.
  * @function markerStyles
@@ -448,6 +971,40 @@ function markerStyles({ params, args, data } = {}) {
 
   //Implementation for google markers still ongoing.
   if (map === "google") {
+    switch (fig) {
+      case "rectangle":
+        return {
+          strokeColor: "#FF0000",
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillOpacity: 0.5,
+          fillColor:"#800080", 
+          strokeColor:"#800080",
+        };
+      case "circle":
+        return {
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillOpacity: 0.5,
+          fillColor:"#3CB043",
+          strokeColor:"#3CB043",
+          radius: 1000,
+        };
+      case "polyline":
+        return {
+          strokeColor: "#FF0000",
+          strokeOpacity: 1.0,
+          strokeWeight: 2,
+        };
+      case "polygon":
+        return {
+          strokeColor: "#FF0000",
+          strokeOpacity: 1.0,
+          strokeWeight: 2,
+          fillColor: "#FF0000",
+          fillOpacity: 0.35,
+        };
+    }
   }
 
   //Full implementation of the OpenStreetMap ready for usage.
@@ -515,7 +1072,6 @@ function markerStyles({ params, args, data } = {}) {
  * @example
  * hydro.map.draw({params:{maptype: 'someMap'}})
  */
-
 function draw({ params, args, data } = {}) {
   //Implementation of Google Maps API still ongoing.
   if (params.maptype == "google") {
@@ -628,4 +1184,4 @@ function generateColors () {
 /*** End of Supporting functions **/
 /**********************************/
 
-export { loader, Layers, renderMap, recenter };
+export { loader, Layers, renderMap, recenter, addCustomLegend };

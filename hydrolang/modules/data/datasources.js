@@ -19,6 +19,8 @@ import proxies from "./datasources/proxy.js";
 import envelope from "./datasources/soapEnv.js";
 import nws from "./datasources/nws.js"
 import wqp from "./datasources/wqp.js"
+import mitigation_dt from "./datasources/mitigation_dt.js"
+import flooddamage_dt from "./datasources/flooddamage_dt.js"
 
 export {
   usgs,
@@ -38,5 +40,7 @@ export {
   proxies,
   envelope,
   nws,
-  wqp
+  wqp,
+  mitigation_dt,
+  flooddamage_dt
 };

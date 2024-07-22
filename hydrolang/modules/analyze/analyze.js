@@ -5,9 +5,11 @@
  * @extends stats
  * @extends hydro
  * @extends nn
+ * @extends floodDM
  */
 import stats from "./components/stats.js";
 import hydro from "./components/hydro.js";
 import nn from "./components/nn.js";
+import floodDM from "./components/floodDM.js"
 
-export { stats, hydro, nn };
+export { stats, hydro, nn, floodDM };
