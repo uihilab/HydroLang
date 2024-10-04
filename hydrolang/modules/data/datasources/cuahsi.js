@@ -183,6 +183,18 @@ const waterOneFlow = {
         //http://hiscentral.cuahsi.org/pub_network.aspx?n=3534
         val = "GlobalRiversObservatory";
         break;
+      
+      case "NLDAS Hourly Forcings":
+        //Additional info:
+        //http://hiscentral.cuahsi.org/pub_network.aspx?n=267
+        val = "NLDAS_FORA";
+        break;
+
+      case "NLDAS Hourly NOAH Data":
+          //Additional info:
+          //http://hiscentral.cuahsi.org/pub_network.aspx?n=274
+          val = "NLDAS_NOAH";
+          break;
 
       default:
         //Default value left to the most accessible Google Search for
