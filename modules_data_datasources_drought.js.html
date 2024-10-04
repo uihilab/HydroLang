@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>external/maps/mapsources.js - Documentation</title>
+    <title>modules/data/datasources/drought.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -28,7 +28,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">external/maps/mapsources.js</h1>
+    <h1 class="page-title">modules/data/datasources/drought.js</h1>
     
     
 
@@ -38,16 +38,96 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * Extends the map engines to be used on the map module.
- * @module mapsources
- * @extends googlemapsapi
- * @extends leafletosmapi
+ * https://waterservices.usgs.gov/rest/IV-Service.html
+ * This API returns stream stages for US
+ * @type {Object}
+ * @name USGS
+ * @memberof datasources
  */
-import googlemapsapi from "./googlemaps.js";
-import leafletosmapi from "./leaflet.js";
 
-export { googlemapsapi, leafletosmapi };
-</code></pre>
+export default {
+    "instant-values": {
+      endpoint: "http://waterservices.usgs.gov/nwis/iv/",
+      params: {
+        // These are only written to aid users to know
+        // what parameters are available
+        format: null,
+        site: null,
+        stateCd: null,
+        huc: null,
+        countyCd: null,
+        startDT: null,
+        endDT: null,
+        // and more...
+      },
+      "data-fields": {
+        // "output-data-field-1": null,
+        // enter data field here
+      },
+      methods:{
+        type: "json",
+        method: "GET"
+      }
+    },
+  
+    "daily-values": {
+      endpoint: "http://waterservices.usgs.gov/nwis/dv/",
+      params: {
+        // These are only written to aid users to know
+        // what parameters are available
+        format: null,
+        site: null,
+        stateCd: null,
+        huc: null,
+        countyCd: null,
+        startDT: null,
+        endDT: null,
+        // and more...
+      },
+      "data-fields": {
+        // "output-data-field-1": null,
+        // enter data field here
+      },
+      methods:{
+        type: "json",
+        method: "GET"
+      }
+    },
+  
+    "groundwater": {
+      endpoint: "http://waterservices.usgs.gov/nwis/gwlevels/",
+      params: {
+        // These are only written to aid users to know
+        // what parameters are available
+        format: null,
+        site: null,
+        stateCd: null,
+        huc: null,
+        countyCd: null,
+        startDT: null,
+        endDT: null,
+        // and more...
+      },
+      "data-fields": {
+        // "output-data-field-1": null,
+        // enter data field here
+      },
+      methods:{
+        type: "json",
+        method: "GET"
+      }
+    },
+  
+    requirements: {
+      needProxy: true,
+      requireskey: false,
+    },
+  
+    /* DATA SOURCE 2 */
+  
+    /* DATA SOURCE ... */
+  };
+  </code></pre>
         </article>
     </section>
 
