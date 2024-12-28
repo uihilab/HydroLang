@@ -272,6 +272,8 @@ function draw({ params = {}, args = {}, data = [] } = {}) {
       returnEle
     };
 
+    Object.assign(pm.options, args.options)
+
     switch (charttype) {
       case "column":
         Object.assign(pm.options, {

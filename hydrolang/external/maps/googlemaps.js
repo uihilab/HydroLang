@@ -7,10 +7,10 @@ import $ from "../jquery/jquery.js";
 
 class googlemapsapi {
   constructor(gApiKey) {
-    this.apikey = gApiKey;
+    this.apiKey = gApiKey;
 
     if (!window._googlemapsapi) {
-      this.callbackname = "_googlemapsapi.mapLoaded";
+      this.callbackName = "_googlemapsapi.mapLoaded";
       window._googlemapsapi = this;
       window._googlemapsapi.mapLoaded = this.mapLoaded.bind(this);
     }
@@ -19,7 +19,7 @@ class googlemapsapi {
   async load() {
     await $.when(
       $.getScript(
-        "http://maps.googleapis.com/maps/api/js?key=${this.apiKey}&callback=${this.callbackName}"
+        `http://maps.googleapis.com/maps/api/js?key=${this.apiKey}&callback=${this.callbackName}`
       ),
       $.Deferred(function (deferred) {
         $(deferred.resolve);
