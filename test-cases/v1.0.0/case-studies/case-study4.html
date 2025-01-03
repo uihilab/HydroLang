@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" />
+    <title>Hydrolang</title>
+    <script type="module" onload="initHydrolang()" src="../../../hydrolang/hydro.js"></script>
+</head>
+<style>
+    #map {
+        height: 400px;
+        width: 2000px;
+        margin-left: 20px !important;
+    }
+
+    .content {
+        max-width: 900px;
+        margin: auto
+    }
+
+    h3 {
+        font-family: "Roboto", "Arial", sans-serif;
+        font-size: 12px;
+        color: black;
+        font-weight: 500;
+        padding: 0px;
+        margin: 5px 5px 20px 20px;
+    }
+
+    p,
+    ul {
+        font-family: "Roboto", "Arial", sans-serif;
+        font-size: 12px;
+        color: rgb(86, 86, 86);
+        margin: 2px 2px 20px 20px;
+        text-align: justify;
+        padding: 0px;
+    }
+
+    h1 {
+        font-family: "Roboto", "Arial", sans-serif;
+        font-size: 18px;
+        color: black;
+        font-weight: 500;
+        margin: 20px;
+        padding: 0px;
+    }
+
+    h2 {
+        font-family: "Roboto", "Arial", sans-serif;
+        font-size: 18px;
+        color: rgb(86, 86, 86);
+        margin: 5px 5px 20px 20px;
+    }
+
+    #flood-damage-scenario-total {
+        position: fixed !important;
+    }
+</style>
+
+<body>
+    <button id="uploadButton">Upload JSON File</button>
+
+    <script>
+        async function initHydrolang() {
+            // Initialize libraries
+            let hydrolang = new Hydrolang()
+            const { stats, floodDM } = hydrolang.analyze;
+            const { retrieve, download } = hydrolang.data;
+            const { buildPropertyDMScenario } = hydrolang.analyze.floodDM;
+            const { draw } = hydrolang.visualize;
+
+            let iowaProps = []
+            for (let comm of ["Waterloo", "Bettendorf", "Cedar Rapids", "Cedar Falls", "Davenport", "Iowa City", "Waverly"]) {
+                let params = {
+                    source: "flooddamage_dt",
+                    datatype: "buildings", // or x500_year or utilities or vehicles or buildings
+                    transform: "eval" // optional to convert text response to javascript variable
+                }
+                let args = { sourceType: comm } // Or Bettendorf, or Cedar Rapids Or Cedar Falls or Davenport or Iowa City or Waverly
+                let prop = (await retrieve({ params, args })).features
+                prop.map(row => { row["properties"]["community"] = comm })
+                iowaProps.push(...(prop))
+            }
+
+            const reduceArray = (data) => {
+                return data.map(item => {
+                    const { occupancy, val_struct, val_cont, depth100, depth500, sqfoot, community } = item.properties;
+                    return {
+                        occupancy,
+                        val_struct,
+                        val_cont,
+                        depth100,
+                        depth500,
+                        sqfoot,
+                        community
+                    };
+                });
+            };
+            // Reduced data array
+            let reducedData = reduceArray(iowaProps);
+
+            reducedData = reducedData.map(data => {
+                data.occupancy = data.occupancy.slice(0, 4);
+                return data;
+            });
+
+            // Initialize variables
+            let occupancy = ['IND1', 'RES1', 'COM1', 'GOV1', 'AGR1', 'EDU1'];
+            let predictors = [];
+            let responses = [];
+            let result = {};
+
+            console.log('Starting mitigation calc')
+            // Initialize the resulting array
+            let mergedArray = [];
+
+            /*
+            // mitigation depth from 2 to 8
+            for (let mitigationDepth = 2; mitigationDepth <= 8; mitigationDepth++) {
+                // each property
+                for (const [index, occ] of reducedData.entries()) {
+                    if(index % 1000 === 0) console.log('Loading data for mitigation depth ', mitigationDepth-1, ' out of 7');
+
+                    if (occ.depth500 > 0) {
+                        result = await buildPropertyDMScenario({ params: { occupancy: occ.occupancy, structuralValue: occ.val_struct, contentValue: occ.val_cont, buildingArea: occ.sqfoot }, args: { floodDepth: occ.depth500, mitigationMeasure: "Elevate Structure", mitigationDepth: mitigationDepth, foundationType: "Basement" }, data: undefined });
+
+                        // create array of predictor values
+                        //predictors.push([occ.occupancy, mitigationDepth, result.floodDepth, convertCurrencyToNumber(result.structuralValue) + convertCurrencyToNumber(result.contentValue), occ.sqfoot, "Elevate Structure - Basement",  ])
+
+                        // create array of response values which are benefit by cost values
+                        //responses.push([convertCurrencyToNumber(result.mitigationOptions.benefit)/  convertCurrencyToNumber(result.mitigationOptions.cost), convertCurrencyToNumber(result.mitigationOptions.benefit), convertCurrencyToNumber(result.mitigationOptions.cost)])
+
+                        mergedArray.push([occ.occupancy, mitigationDepth, result.floodDepth, convertCurrencyToNumber(result.structuralValue) + convertCurrencyToNumber(result.contentValue), occ.sqfoot, "Elevate Structure - Basement", convertCurrencyToNumber(result.mitigationOptions.benefit) / convertCurrencyToNumber(result.mitigationOptions.cost), convertCurrencyToNumber(result.mitigationOptions.benefit), convertCurrencyToNumber(result.mitigationOptions.cost), occ.community])
+
+                    }
+                }
+            }
+            */
+            // START
+            // Function to handle file input
+            function openFileInput() {
+                return new Promise((resolve, reject) => {
+                    var input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.json';
+
+                    // On file select
+                    input.onchange = function (event) {
+                        var file = event.target.files[0];
+                        var reader = new FileReader();
+
+                        // File read success
+                        reader.onload = function (e) {
+                            try {
+                                let jsonData = JSON.parse(e.target.result);
+                                console.log('Parsed JSON Data:', jsonData);
+                                resolve(jsonData); // Resolve the promise with parsed data
+                            } catch (error) {
+                                console.error('Error parsing JSON:', error);
+                                reject(error); // Reject if there's an error
+                            }
+                        };
+
+                        // Read the file
+                        reader.readAsText(file);
+                    };
+
+                    // Trigger file input
+                    input.click();
+                });
+            }
+
+            // Add event listener to the upload button
+            document.getElementById("uploadButton").addEventListener("click", async function () {
+                try {
+                    // Await for the JSON data after file selection
+                    let jsonData = await openFileInput();
+                    mergedArray = jsonData;  // Assign jsonData to mergedArray
+                    console.log('Merged Array:', mergedArray);
+
+                    // START 2
+
+                    console.log('reached merged data')
+                    console.log(mergedArray.length);
+
+                    document.getElementById("uploadButton").style.display = 'none';
+
+                    // -----------------------------------------  Work Done ----------------------------------------------------------
+                    communities = [
+                        { "name": "Waterloo", "latitude": 42.499504, "longitude": -92.358665 },
+                        { "name": "Bettendorf", "latitude": 41.560490, "longitude": -90.478592 },
+                        { "name": "Cedar Rapids", "latitude": 41.977879, "longitude": -91.665627 },
+                        { "name": "Davenport", "latitude": 41.543056, "longitude": -90.590836 },
+                        { "name": "Iowa City", "latitude": 41.661129, "longitude": -91.530167 },
+                        { "name": "Waverly", "latitude": 42.727947, "longitude": -92.469452 },
+                        { "name": "Cedar Falls", "latitude": 42.523520, "longitude": -92.446402 },
+                    ];
+
+
+
+                    await hydrolang.map.renderMap({ params: { maptype: "google", lat: 42.499504, lon: -92.358665, }, args: { key: "AIzaSyCTgW3oBOGjjlybf5J8KX2NQAPduyRNB1U" } });
+                    floodDM.addFontStyle();
+
+                    for (let comm of communities) {
+
+                        // comm = { "name": "Cedar Falls", "latitude": 42.523520, "longitude": -92.446402 }
+
+                        name = comm['name'], city_chart = '', city_basicstats = '', popUpDiv = ''
+
+                        city_chart = mergedArray.filter(row => row[9] === name)
+                        city_chart = getSubsetOfColumns(city_chart, [1, 6, 2]);
+
+                        // City Table
+                        city_basicstats = await stats.basicstats({ data: stats.transposeMatrix(city_chart.map(row => row.slice(1, 2)))[0] })
+                        draw({
+                            params: { type: "table", id: name + ' City Table' },
+                            args: { charttype: "table" },
+                            data: city_basicstats,
+                        });
+
+                        setTimeout(() => {
+                            // City Chart
+                            console.log(city_chart[0]);
+                            city_chart.unshift(['Mitigation Depth', 'BCR', 'Inundation Depth'])
+                            chart_data = widenArray(city_chart, 2, 1);
+
+                            draw({
+                                params: { type: "chart", id: name + ' City Chart' },
+                                args: {
+                                    charttype: "scatter",
+                                    names: chart_data[0],
+                                    options: {
+                                        //chartArea: { width: '25%', height: '75%' },
+                                        title: 'Mitigation Depth vs. Benefit-Cost Ratio comparison',
+                                        hAxis: { title: 'Benefit-To_Cost Ratio'/*, minValue: -100, maxValue: 100*/ },
+                                        vAxis: { title: 'Mitigation Depth(ft)',/*, minValue: -100, maxValue: 100*/ },
+                                    }
+                                },
+                                //data: stats.transposeMatrix(city_chart.map(row => row.slice(0, 2))),
+                                data: stats.transposeMatrix(chart_data),
+
+                            });
+                        }, "2000");
+
+
+                        // Set timeout
+                        setTimeout(() => {
+                            console.log("Delayed for 5 second.");
+                            header = document.createElement('div')
+                            header.innerHTML = '<p class="style_text_small_bold">Benefit to Cost Ratio Summary</p>'
+
+                            popUpDiv = document.createElement('div')
+                            popUpDiv.style.width = "400px"
+                            popUpDiv.setAttribute("id", name + " popup");
+
+                            popUpDiv.appendChild(header)
+                            chart = document.getElementById(name + ' City Chart')
+                            chart.style.width = "300px"
+                            popUpDiv.appendChild(chart)
+                            popUpDiv.appendChild(document.getElementById(name + ' City Table'))
+
+                            // Map Layers
+                            hydrolang.map.Layers({
+                                args: {
+                                    type: "marker",
+                                    markertype: 'marker',
+                                    name: name + " Marker",
+                                    popUp: popUpDiv
+                                }, data: [comm.latitude, comm.longitude]
+                            });
+                        }, "4000");
+                        await sleep(6000);
+                    }
+
+                    // -----------------------------------------------------------------Helper Functions
+
+                    // Helper function to convert strings to numbers ex: "$40,000.00" to 40000
+                    function convertCurrencyToNumber(currencyStr) { return parseFloat(currencyStr.replace(/[$,]/g, '')); }
+
+                    function getSubsetOfColumns(array2D, columnIndices) {
+                        // Create a new array to hold the subset of columns
+                        const subset = array2D.map(row =>
+                            columnIndices.map(index => row[index])
+                        );
+                        return subset;
+                    }
+                    function selectTwoColumns(data, colIndex1, colIndex2) { return data.map(row => [row[colIndex1], row[colIndex2]]); }
+
+
+                    function sleep(ms) {
+                        return new Promise(resolve => setTimeout(resolve, ms));
+                    }
+
+
+
+                    function widenArray(array2D, baseColumnIndex, widenColumnIndex) {
+                        // Get the header and data separately
+                        const headers = array2D[0];
+                        const data = array2D.slice(1);
+
+                        // Get unique values from the base column (column we are widening by)
+                        const uniqueBaseValues = [...new Set(data.map(row => row[baseColumnIndex]))];
+
+                        // Create new headers based on the unique values from the base column
+                        const newHeaders = [headers[0], ...uniqueBaseValues.map(val => `${headers[baseColumnIndex]}-${val}`)];
+
+                        // Initialize an object to hold the widened rows
+                        const widenedRows = data.map(row => {
+                            // Initialize each row with the first column value and nulls for new widened columns
+                            const widenedRow = [row[0], ...Array(uniqueBaseValues.length).fill(null)];
+
+                            // Find the index of the current base value and set the corresponding widened column
+                            const baseValueIndex = uniqueBaseValues.indexOf(row[baseColumnIndex]);
+                            widenedRow[baseValueIndex + 1] = row[widenColumnIndex];
+
+                            return widenedRow;
+                        });
+
+                        // Return the new headers and widened data
+                        return [newHeaders, ...widenedRows];
+                    }
+
+                    // END 2
+                } catch (error) {
+                    console.error("Error loading JSON file", error);
+                }
+            });
+            // END
+
+
+
+        }
+    </script>
+    <h1>Case study 4: Structural Elevation Cost-Benefit Evaluation</h1>
+    <p style="max-width:800px;">To mitigate the effects of floods on specific flood plains, physical non-structural mitigation measures can be effective. Due to the cost and time associated with putting mitigation measures in place, measure feasibility should be considered before implementation. An effective metric for estimation of measure benefit is doing a cost-benefit analysis. A benefit to cost ratio equal to one means that the mitigation measure will return the cost in benefit in a single flood event (Alabbad, et. al. 2021). Values lower than 0 indicate the measure under the specific conditions is not suitable and will cause a higher damage amount.
+    </p>
+    <p style="max-width:800px;">
+        We will be presenting a use case in which we can evaluate structural elevation as a mitigation measure for Iowa properties. Structural elevation, which involves the elevation of a building to a specific height to reduce flood damage (USACE. (2024)). We will analyze the effectiveness of structural elevation as a mitigation measure for various flood depths and property types. 
+    </p>
+    <h2>Methodology</h2>
+    <p style="max-width:800px;">
+        We will be calculating the Benefit to Cost ratio for various elevation heights for different cities. We will be assuming a flood inundation level at the inundation in a 500 year flood scenario. Then we will plot the BCR values against elevation heights and will also display descriptive statistics for the BCR.
+    </p>
+
+
+</body>
+</html>

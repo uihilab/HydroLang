@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" />
+  <title>Hydrolang</title>
+  <script type="module" onload="initHydrolang()" src="../../../hydrolang/hydro.js"></script>
+</head>
+<style>
+  #map {
+    height: 400px;
+    width: 2000px;
+    margin-left: 20px !important;
+  }
+
+  .content {
+    max-width: 900px;
+    margin: auto
+  }
+
+  h3 {
+    font-family: "Roboto", "Arial", sans-serif;
+    font-size: 12px;
+    color: black;
+    font-weight: 500;
+    padding: 20px;
+    margin: 5px 5px 20px 20px;
+  }
+
+  p,ul {
+    font-family: "Roboto", "Arial", sans-serif;
+    font-size: 12px;
+    color: rgb(86, 86, 86);
+    margin: 2px 2px 40px 20px;
+    text-align: justify;
+  }
+
+  h1 {
+    font-family: "Roboto", "Arial", sans-serif;
+    font-size: 18px;
+    color: black;
+    font-weight: 500;
+    margin: 20px;
+    padding: 0px;
+  }
+
+  h2 {
+    font-family: "Roboto", "Arial", sans-serif;
+    font-size: 18px;
+    color: rgb(86, 86, 86);
+    padding: 20px;
+    margin: 5px 5px 20px 20px;
+  }
+
+  #flood-damage-scenario-total {
+    position: fixed !important;
+  }
+</style>
+
+<body>
+
+
+  <script>
+    // Initialize HydroLang and analyze components
+    function initHydrolang() {
+      let hydrolang = new Hydrolang()
+      const { floodDM } = hydrolang.analyze;
+
+      // Initialize floodDM and instantiate the FloodDM class
+      scenario = new floodDM()
+
+      // Initialize the damage scenario
+      scenario.initDamageScenario({
+        params: {
+          maptype: "google",
+          key: "AIzaSyCTgW3oBOGjjlybf5J8KX2NQAPduyRNB1U"
+        }, args: {
+          city: "Cedar Falls",
+          scenario: "500-year"
+        }
+      });
+
+
+    }
+  </script>
+  <h1>Case study 3: Cedar Falls Damage Estimation</h1>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+  <p style="max-width:800px;">
+    Floods are high risk natural disasters which cause billions of dollars in damage each year. Flooding in urban areas effect infrastructure and loss of human life. To build resilient communities and mitigation measures, it is imperative to plan and predict the most vulnerable areas to allocate resources effectively. Flood plain modelling and damage estimation is an important step in this progression.
+  </p>
+  <p style="max-width:800px;">
+    We create a damage estimation scenario for a 500-year or a 0.2% flood event in Cedar Falls to below. We display the following features on the map. 
+  <ul>
+    <li>Damage to Properties: structural and content damage, wage, income and rental costs</li>
+    <li>Loss of Life</li>
+    <li>Debris Accumulation</li>
+    <li>Vehicle Damage</li>
+    <li>Bridges & Utilities Damage</li>
+  </ul>
+  </p>
+  <p style="max-width:800px;">
+    Each marker represents a property, utility or bridge and the gray heatmaps reresent lossed in vehicle census blocks, and each can be clicked to view further metrics. The total damage for this scenario is displayed below.
+  </p>
+  <p style="max-width:800px;"><i>This visualization was created using an open source hydrological analysis library - Hydrolang. Further information is available on: <a href="https://hydroinformatics.uiowa.edu/tutorials/hydrolang/">https://hydroinformatics.uiowa.edu/tutorials/hydrolang/</a></i></p>
+
+</body>
+
+</html>

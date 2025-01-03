@@ -1,5 +1,6 @@
 import proxies from "./../../data/datasources/proxy.js";
 import { retrieve } from "./../../data/data.js";
+import { createDiv } from "../../visualize/divisors.js";
 import {
   Layers,
   renderMap,
@@ -17,6 +18,10 @@ export default class floodDM {
   depth = 0;
   mapRendered = false;
   selectedfeature = null;
+
+  // Static variable to cache fetched data to improve page performance
+  static damageDataCache = {};
+  static mitigationDataCache = null;
 
   /**
    * Initialize the damage scenario for a particular city, 100 or 500 year flood scenario and render based on google or leaflet
@@ -40,6 +45,7 @@ export default class floodDM {
     let { city, depth, scenario } = args;
     this.city = city;
     this.depth = depth;
+    this.minimizedDivs = [];
 
     // Set default map type as leaflet
     if (params === undefined) {
@@ -63,7 +69,9 @@ export default class floodDM {
     if (scenario === "100-year") scenario = "x100_year";
     else if (scenario === "500-year") scenario = "x500_year";
     else {
-      console.log("Pass 100-year or 500-year flood scenario in the args.scenario");
+      console.log(
+        "Pass 100-year or 500-year flood scenario in the args.scenario"
+      );
       return;
     }
 
@@ -75,10 +83,12 @@ export default class floodDM {
       params: {
         source: "flooddamage_dt",
         datatype: scenario,
-        transform: "eval",
       },
       args: { sourceType: this.city },
     });
+    // Convert data from the format 'varname={\n"key1": "val1", ....' to a javascript object
+    flood_layer =JSON.parse(flood_layer.slice(flood_layer.indexOf('=') + 1));
+
 
     // Retrieve the utilities layer based on the selected scenario
     let utilities_layer;
@@ -88,10 +98,11 @@ export default class floodDM {
         params: {
           source: "flooddamage_dt",
           datatype: "utilities",
-          transform: "eval",
         },
         args: { sourceType: this.city },
       });
+      // Convert data from the format 'varname={\n"key1": "val1", ....' to a javascript object
+      utilities_layer =JSON.parse(utilities_layer.slice(utilities_layer.indexOf('=') + 1).replace(/,\s?(\w*)\s?:/g, ',"$1":'));
     }
 
     // Retrieve the vehicles layer based on the selected scenario
@@ -99,20 +110,22 @@ export default class floodDM {
       params: {
         source: "flooddamage_dt",
         datatype: "vehicles",
-        transform: "eval",
       },
       args: { sourceType: this.city },
     });
+    // Convert data from the format 'varname={\n"key1": "val1", ....' to a javascript object
+    vehicles_layer =JSON.parse(vehicles_layer.slice(vehicles_layer.indexOf('=') + 1));
 
     // Retrieve the buildings layer based on the selected scenario
     let buildings_layer = await retrieve({
       params: {
         source: "flooddamage_dt",
         datatype: "buildings",
-        transform: "eval",
       },
       args: { sourceType: this.city },
     });
+    // Convert data from the format 'varname={\n"key1": "val1", ....' to a javascript object
+    buildings_layer =JSON.parse(buildings_layer.slice(buildings_layer.indexOf('=') + 1));
 
     // Retrieve the bridge layer based on the selected scenario
     let bridges_layer;
@@ -127,10 +140,11 @@ export default class floodDM {
         params: {
           source: "flooddamage_dt",
           datatype: "bridges",
-          transform: "eval",
         },
         args: { sourceType: this.city },
       });
+      // Convert data from the format 'varname={\n"key1": "val1", ....' to a javascript object
+      bridges_layer =JSON.parse(bridges_layer.slice(bridges_layer.indexOf('=') + 1));
 
     // Calculate the centroid of the buildings layer so render map center
     let centroid = floodDM.featureCollectionCentroid(buildings_layer);
@@ -143,6 +157,9 @@ export default class floodDM {
       });
       this.mapRendered = true;
     }
+
+    // Add CSS Style classes for use in overlay divs and map legends
+    floodDM.addFontStyle();
 
     // Variable to store and render scenario rendering results
     let scenario_results = {
@@ -170,7 +187,9 @@ export default class floodDM {
     };
 
     /*
+     *
      * Begin Rendering Vehicles Layer
+     *
      */
 
     // Variable to store vehicle layer calculations
@@ -213,6 +232,7 @@ export default class floodDM {
             vehDamPrcntLight,
             vehDamPrcntHeavy;
 
+          // Get flood depth and inundation area for the scenario
           if (this.scenario === "x100_year") {
             inundationDepth = depth100yr;
             areaPrc = areaPrc100yr;
@@ -220,6 +240,8 @@ export default class floodDM {
             inundationDepth = depth500yr;
             areaPrc = areaPrc500yr;
           }
+
+          // Get Vehicle damage percentage using the depth-damage function and inundation depth
           for (let i in vehicleDamFun[car]) {
             if (vehicleDamFun[car][i]["floodDepth"] == inundationDepth) {
               vehDamPrcntCar = vehicleDamFun[car][i]["damage"];
@@ -236,7 +258,7 @@ export default class floodDM {
             }
           }
 
-          // Calculate vehicle damage for different vehicle types at day and night
+          // Calculate vehicle damage by vehicle type at day and night using area, damage percent and count
           let carDamageD = parseInt(
             (vehDamPrcntCar / 100) * areaPrc * properties.car_val_day
           ).toLocaleString();
@@ -308,6 +330,8 @@ export default class floodDM {
             color: "black",
             dashArray: "3",
             fillOpacity: 0.9,
+            strokeWeight: 1,
+            strokeColor: "black",
           };
         },
 
@@ -324,18 +348,52 @@ export default class floodDM {
             properties = feature.properties;
           }
 
-          // return popup values for this feature
-          return JSON.stringify(
-            vehicleFeatureCalculations[properties.CensusBloc]
-          ).replaceAll(",", "<br>").replaceAll(/|{|}/g,"");
+          let formattedAttributes = {};
+
+          for (let prop in vehicleFeatureCalculations[properties.CensusBloc]) {
+            if (
+              prop == "Block Information" ||
+              prop == "Flood Scenario:" ||
+              prop == "Avg. Flood Depth:"
+            )
+              formattedAttributes[prop] =
+                vehicleFeatureCalculations[properties.CensusBloc][prop];
+            else if (
+              prop == "Cars Damage (Day)" ||
+              prop == "Cars Damage (Night)" ||
+              prop == "Light Trucks (Day)" ||
+              prop == "Light Trucks (Night)" ||
+              prop == "Heavy Trucks (Day)" ||
+              prop == "Heavy Truck (Night)"
+            ) {
+              formattedAttributes[prop] = floodDM.formatNumber(
+                vehicleFeatureCalculations[properties.CensusBloc][prop],
+                true
+              );
+            } else {
+              formattedAttributes[prop] = floodDM.formatNumber(
+                vehicleFeatureCalculations[properties.CensusBloc][prop],
+                false
+              );
+            }
+          }
+
+          // Format and return popup values
+          return this.popUpFormatter(
+            "Vehicle Census Block",
+            formattedAttributes
+          );
         },
       },
       data: vehicles_layer,
     });
 
     /*
+     *
      * Begin Rendering Flood Inundation Layer
+     *
      */
+
     // Render flood inundation layer
     await Layers({
       args: {
@@ -351,6 +409,8 @@ export default class floodDM {
             opacity: 1,
             fillColor: "blue",
             fillOpacity: 0.5,
+            strokeWeight: 0.5,
+            strokeColor: "dark blue",
           };
         },
       },
@@ -358,7 +418,9 @@ export default class floodDM {
     });
 
     /*
-     * Begin Rendering Vehicles Layer
+     *
+     * Begin Rendering Buildings Layer
+     *
      */
 
     // Variable to store building layer calculations
@@ -388,17 +450,19 @@ export default class floodDM {
             properties = feature.properties;
           }
 
-          // Calculate metrics for property damage
+          // Get property inundation based on scenario
           let occupancy = properties.occupancy;
           let inundationDepth =
             scenario === "x100_year"
               ? properties.depth100
               : properties.depth500;
 
+          // Depth damage function for specific flood depth
           let propertyInputs = buildingDamage[occupancy].find(
             (item) => item.floodDepth === inundationDepth
           );
 
+          // Get GeoJSON properties
           let structureDamPercent = propertyInputs["structure"];
           let contentDamPercent = propertyInputs["content"];
           let incomeRecaptureFactor = propertyInputs["recapturFactor"];
@@ -410,8 +474,9 @@ export default class floodDM {
           let rentalCostPerSqftPerDay =
             propertyInputs["rentalCostPerSqftPerDay"];
           let disruptionCostPerSqft = propertyInputs["disruptionCostPerSqft"];
-          let relocation, rentalIncome;
 
+          // Calculate relocation cost and rental income per sqfoot
+          let relocation, rentalIncome;
           if (propertyInputs["structure"] > 10) {
             relocation = [
               (1 - percentOwnerOccupied / 100) * disruptionCostPerSqft +
@@ -429,9 +494,9 @@ export default class floodDM {
             rentalIncome = 0;
           }
 
+          // Calculate structural, content, income and wage, relocation, rental income and total loss
           let strDamage = (properties.val_struct * structureDamPercent) / 100;
           let contDamage = (properties.val_cont * contentDamPercent) / 100;
-
           let incomeLoss =
             (1 - incomeRecaptureFactor) *
             properties.sqfoot *
@@ -532,7 +597,7 @@ export default class floodDM {
             inundationDepth,
           });
 
-          // Hide building marker if it is not underwater under the current scenario
+          // Hide building marker if it is not inundated under the current scenario
           if (scenario === "x100_year") {
             if (properties.depth100 < 1)
               return { display: "none", color: "none", fillColor: "none" };
@@ -554,7 +619,7 @@ export default class floodDM {
             color: "black",
             fillOpacity: 1,
             radius: 4,
-            scale: 4,
+            scale: 3,
             strokeWeight: 0.7,
           };
         },
@@ -572,20 +637,56 @@ export default class floodDM {
             properties = feature.properties;
           }
 
-          // Return value to rendered in the popup of the building
-          let val = JSON.stringify(
-            buildingFeatureCalculations.find(
-              (item) => item.gid === properties.gid
-            )
+          let features = buildingFeatureCalculations.find(
+            (item) => item.gid === properties.gid
           );
-          return val.replaceAll(",", "<br>").replaceAll(/|{|}/g,"");
+
+          let formattedAttributes = {};
+
+          for (let prop in features) {
+            if (
+              prop == "gid" ||
+              prop == "inundationDepth" ||
+              prop == "occupancy"
+            )
+              formattedAttributes[prop] = features[prop];
+            else if (
+              prop == "totalDamageBuild" ||
+              prop == "strDamage" ||
+              prop == "contDamage" ||
+              prop == "incomeLoss" ||
+              prop == "wageLoss" ||
+              prop == "relocationExpenses" ||
+              prop == "rentalIncomeLoss"
+            ) {
+              formattedAttributes[prop] = floodDM.formatNumber(
+                features[prop],
+                true
+              );
+            } else {
+              formattedAttributes[prop] = floodDM.formatNumber(
+                features[prop],
+                false
+              );
+            }
+          }
+
+          // Return value to rendered in the popup of the building
+          let val = this.popUpFormatter(
+            "Building Information",
+            formattedAttributes
+          );
+
+          return val;
         },
       },
       data: buildings_layer,
     });
 
     /*
-     * Begin Rendering Vehicle Layer
+     *
+     * Begin Rendering Bridges Layer
+     *
      */
 
     // Bridges Layer only exists for Cedar Falls, Cedar Rapids, Davenport and Waverly
@@ -634,7 +735,7 @@ export default class floodDM {
 
             if (floodScenario === "100-yr" && depth100 === "yes") {
               inundationDepth = depth100yr;
-            } else if (floodScenario === "500-yr") {
+            } else if (floodScenario === "500-yr" && depth500 === "yes") {
               inundationDepth = depth500yr;
             } else {
               bridgDam = 0;
@@ -661,7 +762,7 @@ export default class floodDM {
               weight: 10,
               fillColor: "black",
               color: "black",
-              fillOpacity: 0.5,
+              fillOpacity: 1,
               strokeWeight: 0.7,
             };
           },
@@ -701,7 +802,7 @@ export default class floodDM {
 
             if (floodScenario === "100-yr" && depth100 === "yes") {
               inundationDepth = depth100yr;
-            } else if (floodScenario === "500-yr") {
+            } else if (floodScenario === "500-yr" && depth500 === "yes") {
               inundationDepth = depth500yr;
             } else {
               bridgDam = 0;
@@ -718,17 +819,40 @@ export default class floodDM {
             }
             bridgDam = bridgeDamPrcnt * bridgeCost * 1000;
 
-            let val = JSON.stringify({
+            let val = {
               Bridge_ID: properties.HighwayBri,
               Bridge_Type: bridgeT,
               Scour_Index: scour,
               Flood_Scenario: inundationDepth,
-              Damage: bridgeDamPrcnt * 100,
+              Damage_Percentage: bridgeDamPrcnt * 100,
               Damage: parseInt(bridgDam).toLocaleString(),
-              Functionality: parseInt(bridgeFunction * 100),
-            });
+              Functional_Percent: parseInt(bridgeFunction * 100),
+            };
 
-            return val.replaceAll(",", "<br>").replaceAll(/|{|}/g,"");
+            let formattedAttributes = {};
+
+            for (let prop in val) {
+              if (
+                prop == "Bridge_ID" ||
+                prop == "Bridge_Type" ||
+                prop == "Scour_Index" ||
+                prop == "Flood_Scenario"
+              )
+                formattedAttributes[prop] = val[prop];
+              else if (prop == "Damage") {
+                formattedAttributes[prop] = floodDM.formatNumber(val[prop], true);
+              } else {
+                formattedAttributes[prop] = floodDM.formatNumber(val[prop], false);
+              }
+            }
+
+            // Return value to rendered in the popup of the building
+            val = this.popUpFormatter(
+              "Bridge Information",
+              formattedAttributes
+            );
+
+            return val;
           },
         },
         data: bridges_layer,
@@ -792,7 +916,7 @@ export default class floodDM {
               scenario_results["Utilities"]["Damage"] += utilityDam;
 
             return {
-              scale: 2,
+              scale: 5,
               radius: 2,
               weight: 10,
               fillColor: "#F2B679",
@@ -841,13 +965,43 @@ export default class floodDM {
             }
             utilityDam = (utilityDamPrcnt / 100) * utilityCost * 1000;
 
-            // Set popup values
-            return JSON.stringify({
-              "Utiltiy ID": properties.WasteWater,
+            let utility = {
+              "Utility ID": properties.WasteWater,
               "Utility Type": utilityType,
               "Flood depth": inundationDepth,
               Damage: parseInt(utilityDam),
-            }).replaceAll(",", "<br>").replaceAll(/|{|}/g,"");
+            };
+
+            let formattedAttributes = {};
+
+            for (let prop in utility) {
+              if (
+                prop == "Utility ID" ||
+                prop == "Utility Type" ||
+                prop == "Flood depth"
+              )
+                formattedAttributes[prop] = utility[prop];
+              else if (prop == "Damage") {
+                formattedAttributes[prop] = floodDM.formatNumber(
+                  utility[prop],
+                  true
+                );
+              } else {
+                formattedAttributes[prop] = floodDM.formatNumber(
+                  utility[prop],
+                  false
+                );
+              }
+            }
+
+            // Return value to rendered in the popup of the building
+            let val = this.popUpFormatter(
+              "Utility Information",
+              formattedAttributes
+            );
+
+            // Set popup values
+            return val;
           },
         },
         data: utilities_layer,
@@ -859,31 +1013,31 @@ export default class floodDM {
      */
 
     // Create legend div for the map
-    const legendHTML = `<div id="legend" class="content" 
-    style="display: block; background: rgba(255, 255, 255, 1); padding: 2px 5px; border-style: solid !important;">
-    <b>Legend</b>
-    <br>
-    <span>&#9679;</span> Bridge
-    <br>
-    <span style="color: orange;">&#9679;</span> Utility
-    <br>
-    <span style="background-color: blue; color: blue;">&#9679;</span> Flood extent
-    <br>
-    <b>Building Damage ($)</b>
-    <br>
-    <span style="color: green;">&#9679;</span> 0 - 100k
-    <br>
-    <span style="color: yellow;">&#9679;</span> 100k - 1M
-    <br>
-    <span style="color: red;">&#9679;</span> 1M+
-    <br>
-    <b>Vehicle Damage ($)</b>
-    <br>
-    <span style="background-color: #BFBFBF; color: #BFBFBF;">&#9679;</span> 0 - 100k
-    <br>
-    <span style="background-color: #7E7E7E; color: #7E7E7E;">&#9679;</span> 100k - 1M
-    <br>
-    <span style="background-color: #323232; color: #323232;">&#9679;</span> 1M+
+    const legendHTML = `
+    <div id="legend" class="content" style="display: block; background: rgba(255, 255, 255, 1); padding: 5px; border-style: solid !important;">
+
+    <div style="margin: 0px 5px 5px 5px;" class="style_text_small_bold">Legend</div>
+    
+    <ul style="
+ list-style-type:none; padding-left: 5px; margin: 5px 5px 0px 0px">
+        <li><span class="style_text_small">&#9679;</span><span class="style_text_small"> Bridge</span></li>
+    	<li><span style="color: orange;">&#9679;</span><span  class="style_text_small"> Utility</span></li>
+        <li><span style="background-color: blue; color: blue;">&#9679;</span><span  class="style_text_small"> Flood extent</span></li>
+    </ul>
+    
+    <ul style="
+ list-style-type:none; padding-left: 5px;  margin: 5px 5px 0px 0px" class="style_text_small_bold"> Building Damage ($)
+        <li><span style="color: green;">&#9679;</span><span class="style_text_small"> 0 - 100k</span></li>
+        <li><span style="color: yellow;">&#9679;</span><span class="style_text_small"> 100k - 1M</span></li>
+        <li><span style="color: red;">&#9679;</span><span class="style_text_small"> 1M+</span></li>
+    </ul>
+    
+    <ul style="
+ list-style-type:none; padding-left: 5px;  margin: 5px 5px 0px 0px" class="style_text_small_bold">Vehicle Damage ($)
+        <li><span style="background-color: #BFBFBF; color: #BFBFBF;">&#9679;</span><span class="style_text_small"> 0 - 100k</span></li>
+        <li><span style="background-color: #7E7E7E; color: #7E7E7E;">&#9679;</span><span class="style_text_small"> 100k - 1M</span></li>
+        <li><span style="background-color: #323232; color: #323232;">&#9679;</span><span class="style_text_small"> 1M+</span></li>
+    </ul>
   </div>`;
 
     // Call the addCustomLegend function for Maps
@@ -891,7 +1045,7 @@ export default class floodDM {
     legendDiv.innerHTML = legendHTML;
     await addCustomLegend({
       params: {
-        position: "bottom left",
+        position: this.maptype === "google" ? "left bottom" : "bottom left",
       },
       args: {
         div: legendDiv,
@@ -899,64 +1053,93 @@ export default class floodDM {
     });
 
     /*
+     * 
      * Create and display a overlay to display scenario summary on the map
+     * 
      */
 
+    let cloned_scenario_results = JSON.parse(JSON.stringify(scenario_results));
+
     // Format results before printing
-    scenario_results["Vehicles"]["Day"] = floodDM.formatUSDollar(
-      scenario_results["Vehicles"]["Day"]
+    cloned_scenario_results["Vehicles"]["Day"] = floodDM.formatNumber(
+      cloned_scenario_results["Vehicles"]["Day"],
+      true
     );
-    scenario_results["Vehicles"]["Night"] = floodDM.formatUSDollar(
-      scenario_results["Vehicles"]["Night"]
+    cloned_scenario_results["Vehicles"]["Night"] = floodDM.formatNumber(
+      cloned_scenario_results["Vehicles"]["Night"],
+      true
     );
-    scenario_results["Buildings"]["Structure"] = floodDM.formatUSDollar(
-      scenario_results["Buildings"]["Structure"]
+    cloned_scenario_results["Buildings"]["Structure"] = floodDM.formatNumber(
+      cloned_scenario_results["Buildings"]["Structure"],
+      true
     );
-    scenario_results["Buildings"]["Content"] = floodDM.formatUSDollar(
-      scenario_results["Buildings"]["Content"]
+    cloned_scenario_results["Buildings"]["Content"] = floodDM.formatNumber(
+      cloned_scenario_results["Buildings"]["Content"],
+      true
     );
-    scenario_results["Buildings"]["Income"] = floodDM.formatUSDollar(
-      scenario_results["Buildings"]["Income"]
+    cloned_scenario_results["Buildings"]["Income"] = floodDM.formatNumber(
+      cloned_scenario_results["Buildings"]["Income"],
+      true
     );
-    scenario_results["Buildings"]["Wage"] = floodDM.formatUSDollar(
-      scenario_results["Buildings"]["Wage"]
+    cloned_scenario_results["Buildings"]["Wage"] = floodDM.formatNumber(
+      cloned_scenario_results["Buildings"]["Wage"],
+      true
     );
-    scenario_results["Buildings"]["Relocation Expenses"] =
-      floodDM.formatUSDollar(
-        scenario_results["Buildings"]["Relocation Expenses"]
+    cloned_scenario_results["Buildings"]["Relocation Expenses"] =
+      floodDM.formatNumber(
+        cloned_scenario_results["Buildings"]["Relocation Expenses"],
+        true
       );
-    scenario_results["Buildings"]["Rental Income"] = floodDM.formatUSDollar(
-      scenario_results["Buildings"]["Rental Income"]
+    cloned_scenario_results["Buildings"]["Rental Income"] = floodDM.formatNumber(
+      cloned_scenario_results["Buildings"]["Rental Income"],
+      true
     );
-    scenario_results["Utilities"]["Damage"] = floodDM.formatUSDollar(
-      scenario_results["Utilities"]["Damage"]
+    cloned_scenario_results["Utilities"]["Damage"] = floodDM.formatNumber(
+      cloned_scenario_results["Utilities"]["Damage"],
+      true
     );
-    scenario_results["Buildings"]["Loss of Life (Day)"] = Math.floor(
-      scenario_results["Buildings"]["Loss of Life (Day)"]
-    );
-    scenario_results["Buildings"]["Loss of Life (Night)"] = Math.floor(
-      scenario_results["Buildings"]["Loss of Life (Day)"]
+    cloned_scenario_results["Buildings"]["Loss of Life (Day)"] =
+      floodDM.formatNumber(
+        cloned_scenario_results["Buildings"]["Loss of Life (Day)"],
+        false
+      );
+    cloned_scenario_results["Buildings"]["Loss of Life (Night)"] =
+      floodDM.formatNumber(
+        cloned_scenario_results["Buildings"]["Loss of Life (Day)"],
+        false
+      );
+    cloned_scenario_results["Buildings"]["Debris"] = floodDM.formatNumber(
+      cloned_scenario_results["Buildings"]["Debris"],
+      false
     );
 
     // Create HTML table using the scenario summary
     let city_damage_table = floodDM.createTableFromObject({
-      args: { obj: scenario_results },
+      args: {
+        obj: cloned_scenario_results,
+        tableHeaderText: "Community Total Damage",
+      },
     });
 
     // Create enclosing div for the scenario summary
-    let city_damage_div = document.createElement("div");
-    city_damage_div.appendChild(city_damage_table);
-    city_damage_div.style.position = "absolute";
-    city_damage_div.style.float = "left";
-    city_damage_div.style.top = "50px";
-    city_damage_div.style.left = "50px";
-    city_damage_div.style.display = "block";
-    city_damage_div.style.backgroundColor = "white";
-    city_damage_div.style.fontSize = "x-small";
-    floodDM.appendCloseButton(city_damage_div);
+    createDiv({
+      params: {
+        id: "flood-damage-scenario-total",
+        style:
+          `position: fixed !important;  top: ${document.getElementById('map').offsetTop+150}px; left: ${document.getElementById('map').offsetLeft+400}px; display: block;`,
+        //maindiv: "map"
+      },
+    });
 
-    // Add the div to the HTML page
-    document.body.appendChild(city_damage_div);
+    // Add the table to the HTML page
+    let city_damage_div = document.getElementById(
+      "flood-damage-scenario-total"
+    );
+    city_damage_div.appendChild(city_damage_table);
+    city_damage_div.position = 'fixed';
+
+    floodDM.appendCloseButton(city_damage_div);
+    floodDM.dragElement(city_damage_div);
 
     // return scenario summary
     return scenario_results;
@@ -1019,6 +1202,59 @@ export default class floodDM {
     // Append the close button to the div
     div.appendChild(cross);
   }
+
+  // Helper function to drag div
+  static dragElement(elmnt) {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0, offsetX =0, offsetY = 0;
+    if (elmnt.querySelectorAll(".header_row")[0]) {
+      // if present, the header is where you move the DIV from:
+      elmnt.querySelectorAll(".header_row")[0].onmousedown = dragMouseDown;
+    } else {
+      // otherwise, move the DIV from anywhere inside the DIV:
+      elmnt.onmousedown = dragMouseDown;
+    }
+  
+    function dragMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      console.log("mouse drag start")
+      // get the mouse cursor position at startup:
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      // call a function whenever the cursor moves:
+      document.onmousemove = elementDrag;
+      console.log("mouse drag end")
+
+    }
+  
+    function elementDrag(e) {
+      e = e || window.event;
+      e.preventDefault();
+  
+      // Calculate the new cursor position
+      pos1 = e.clientX - pos3;
+      pos2 = e.clientY - pos4;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+  
+      // Set the element's new position
+      // TODO: Fix Bug in drag and drop code. Current code shifts cursor to corner
+      //elmnt.style.top = e.clientY + "px";
+      //elmnt.style.left = e.clientX + "px";
+      elmnt.style.top = e.clientY + "px";
+      elmnt.style.left = e.clientX + "px";
+  }
+  
+  
+  
+    function closeDragElement() {
+      // stop moving when mouse button is released:
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
+  }
+  
 
   // Helper function for initDamageScenario to get property loss data by depth and type
   static async getPropertyDamageFunction({ params, args, data } = {}) {
@@ -1187,6 +1423,7 @@ export default class floodDM {
       });
       this.mapRendered = true;
     }
+    floodDM.addFontStyle()
 
     // If any building features exist
     if (city_features.features.length > 0) {
@@ -1241,11 +1478,11 @@ export default class floodDM {
           properties = feature.properties;
         }
 
-        return `<h4><b>Damage and Mitigation</b><br></h4>
-          <b>Building Information</b><br>
+        return `<div class="style_text_small_bold">Building Damage Information</div>
+          <div class="style_text_small">
           Building ID: ${String(properties.gid)}<br>
           Occupancy Type: ${String(properties.occupancy2)}<br>
-          Flood Depth: ${properties[current_scenario]} ft<br>`;
+          Flood Depth: ${properties[current_scenario]} ft</div>`;
       };
 
       // Define click function for the features
@@ -1262,7 +1499,7 @@ export default class floodDM {
       await Layers({
         args: {
           type: "geojson",
-          name: "mygeoJSON",
+          name: "Buildings Layer",
           styleFunction,
           popUpFunction,
           onClickFunction,
@@ -1277,6 +1514,8 @@ export default class floodDM {
     });
 
     // Hard code emissions data for various cities as these values were hardcoded in original MiDAS system
+    city_damage["low_emission"] = {};
+    city_damage["high_emission"] = [];
     if (city === "Cedar Rapids") {
       city_damage["low_emission"] = "$ 295.3 M";
       city_damage["high_emission"] = "$ 635.8 M";
@@ -1293,33 +1532,35 @@ export default class floodDM {
       args: { obj: city_damage, tableHeaderText: this.city },
     });
 
-    // Create a wrapper div for table
-    let city_damage_div = document.createElement("div");
+    createDiv({
+      params: {
+        id: "community-mitigation-scenario-total",
+        style:
+          "position: absolute; float: left; top: 50px; left: 50px; display: block;",
+      },
+    });
+
+    // Add the table to the HTML page
+    let city_damage_div = document.getElementById(
+      "community-mitigation-scenario-total"
+    );
     city_damage_div.appendChild(city_damage_table);
-    city_damage_div.style.position = "absolute";
-    city_damage_div.style.float = "left";
-    city_damage_div.style.top = "50px";
-    city_damage_div.style.left = "50px";
-    city_damage_div.style.display = "block";
-    city_damage_div.style.backgroundColor = "white";
-    city_damage_div.style.fontSize = "x-small";
     floodDM.appendCloseButton(city_damage_div);
+    floodDM.dragElement(city_damage_div);
     document.body.appendChild(city_damage_div);
 
     // Create a HTML div
     const legendHTML = `
-  <div id="legend" class="content" 
-  style="display: block; background: rgba(255, 255, 255, 1); padding: 2px 5px; border-style: solid !important;">
-  ">
-    <b>LEGEND</b>
-    <br>
-    <b>Depth</b>
-    <br>
-    <span style="color: purple;">&#9632;</span> &gt; 5 - 10 ft</span>
-    <br>
-    <span style="color: red;">&#9632;</span> 2 - 5 ft</span>
-    <br>
-    <span style="color: yellow;">&#9632;</span> &lt; 2 ft</span>
+    <div id="legend" class="content" style="display: block; background: rgba(255, 255, 255, 1); padding: 5px; border-style: solid !important; margin:5px;">
+
+    <div style="margin: 0px 5px 5px 5px;" class="style_text_small_bold">Legend</div>
+
+    <ul style="
+ list-style-type:none; padding-left: 5px; margin: 5px 5px 0px 0px" class="style_text_small_bold">Depth
+        <li><span style="color: purple;">&#9632;</span><span class="style_text_small"> &gt; 5 - 10 ft</span></li>
+    	<li><span style="color: red;">&#9632;</span><span  class="style_text_small"> 2 - 5 ft</span></li>
+        <li><span style="color: yellow;">&#9632;</span><span  class="style_text_small"> &lt; 2 ft</span></li>
+    </ul>
   </div>
 `;
     const legendDiv = document.createElement("div");
@@ -1328,7 +1569,7 @@ export default class floodDM {
     // Call the addCustomLegend function for Maps
     await addCustomLegend({
       params: {
-        position: "bottom right",
+        position: this.maptype === "google" ? "right bottom" : "bottom right",
       },
       args: {
         div: legendDiv,
@@ -1417,28 +1658,32 @@ export default class floodDM {
       data,
     });
 
+    let mitigation_result_copy = JSON.parse(JSON.stringify(mitigationResult));
+
     // Create HTML table using the damage and mitigation metrics of the buildings
     let city_damage_table = floodDM.createTableFromObject({
       args: {
-        obj: mitigationResult,
+        obj: mitigation_result_copy,
         tableHeaderText: "Damage and Mitigation Summary",
       },
     });
 
-    // Create wrapper for HTML table
-    let city_damage_div = document.createElement("div");
-    city_damage_div.appendChild(city_damage_table);
-    city_damage_div.style.position = "absolute";
-    city_damage_div.style.float = "left";
-    city_damage_div.style.top = "200px";
-    city_damage_div.style.left = "50px";
-    city_damage_div.style.display = "block";
-    city_damage_div.style.backgroundColor = "white";
-    city_damage_div.style.fontSize = "x-small";
-    floodDM.appendCloseButton(city_damage_div)
+    // Add the table to the HTML page
+    createDiv({
+      params: {
+        id: "property-mitigation-scenario",
+        style:
+          "position: absolute; float: left; top: 200px; left: 50px; display: block;",
+      },
+    });
 
-    // Add div to page
-    document.body.appendChild(city_damage_div);
+    let city_damage_div2 = document.getElementById(
+      "property-mitigation-scenario"
+    );
+    city_damage_div2.appendChild(city_damage_table);
+    floodDM.appendCloseButton(city_damage_div2);
+    floodDM.dragElement(city_damage_div2);
+    document.body.appendChild(city_damage_div2);
 
     // Return summary
     return city_damage_table;
@@ -1494,7 +1739,7 @@ export default class floodDM {
   }
 
   /**
-   * 
+   *
    * Helper function to create an HTML table element from a JavaScript object.
    * @method createTableFromObject
    * @memberof floodDM
@@ -1512,18 +1757,26 @@ export default class floodDM {
     let { obj, depth = 0, showHeader = true, tableHeaderText = null } = args;
     // Create the table element
     const table = document.createElement("table");
-    table.style.borderCollapse = "collapse"; // Collapse borders for better lines
-    table.style.border = "1px solid #fff"; // Add border to the table
+
+    table.style.borderCollapse = "collapse";
+    table.style.backgroundColor = "white";
+    table.style.borderSpacing = "0px";
+    table.style.border = "1px solid #A9A9A9";
+    table.style.tableLayout = "fixed";
+    table.style.textAlign = "center";
+    table.classList.add("style_text_large_bold");
 
     // Add table header row if tableHeaderText is provided
     if (tableHeaderText !== null && depth === 0) {
-      const headerRow = table.insertRow();
-      const headerCell = headerRow.insertCell();
+      const headerCell = table.insertRow().insertCell();
       headerCell.textContent = tableHeaderText;
-      headerCell.style.fontWeight = "bold";
-      headerCell.style.fontFamily = "Arial";
       headerCell.colSpan = 2;
-      headerCell.style.borderRight = "1px solid #000";
+      headerCell.style.border = "1px solid #A9A9A9";
+      headerCell.style.cursor = "move";
+      headerCell.style.lineHeight = "40px";
+      headerCell.style.minWidth = "120px";
+      headerCell.classList.add("style_text_large_bold");
+      headerCell.classList.add("header-row");
     }
 
     // Loop through the object keys
@@ -1534,24 +1787,18 @@ export default class floodDM {
       // Insert a cell for the key
       const keyCell = row.insertCell();
       keyCell.textContent = key;
-      keyCell.style.padding = "0 10px 0 10px"; // Indent based on depth
-      keyCell.style.borderRight = "1px solid #fff"; // Add right border to key cell
-      keyCell.style.backgroundColor = "#337bcb";
-      keyCell.style.color = "white";
-      keyCell.style.fontFamily = "Arial";
-
-      // If showHeader is true, make the key bold
-      if (showHeader) {
-        keyCell.style.fontWeight = "bold";
-      }
+      keyCell.style.minWidth = "120px";
+      keyCell.style.borderLeft = "1px solid #A9A9A9";
+      keyCell.classList.add("style_text_small_bold");
 
       // Insert a cell for the value
       const valueCell = row.insertCell();
 
       // If the value is an object, create a nested table
       if (typeof obj[key] === "object" && obj[key] !== null) {
-        valueCell.style.borderBottom = "1px solid #fff"; // Add bottom border to value cell
-        valueCell.style.backgroundColor = "#fff";
+        //valueCell.style.borderBottom = "1px solid #fff"; // Add bottom border to value cell
+        //valueCell.style.backgroundColor = "#A9A9A9";
+        valueCell.style.padding = "0px";
         valueCell.appendChild(
           floodDM.createTableFromObject({
             args: { obj: obj[key], depth: depth + 1, showHeader: true },
@@ -1559,6 +1806,9 @@ export default class floodDM {
         );
       } else {
         valueCell.textContent = obj[key];
+        valueCell.style.borderLeft = "2px solid #A9A9A9";
+        valueCell.style.minWidth = "120px";
+        valueCell.classList.add("style_text_small");
       }
     }
 
@@ -1665,10 +1915,10 @@ export default class floodDM {
     // Check if floodDepth is a number
     if (typeof floodDepth === "number") {
       // Fetch the damage data based on occupancy and flood depth
-      const damageData = await this.fetchCurvesData(occupancy, floodDepth);
+      const damageData = await floodDM.fetchCurvesData(occupancy, floodDepth);
 
       // Calculate structural and content losses based on the damage data
-      const losses = this.calculateLosses(
+      const losses = floodDM.calculateLosses(
         structuralValue,
         contentValue,
         damageData
@@ -1683,7 +1933,7 @@ export default class floodDM {
       // Check if mitigation measure and depth are provided
       if (mitigationDepth && mitigationMeasure) {
         // Get mitigation options based on foundation type, mitigation measure, mitigation depth, and building area
-        const mitigationOptions = await this.getMitigationOptions(
+        const mitigationOptions = await floodDM.getMitigationOptions(
           foundationType,
           mitigationMeasure,
           mitigationDepth,
@@ -1696,10 +1946,11 @@ export default class floodDM {
       }
 
       // Formatting loss values as US Dollar values
-      result.structuralLoss = floodDM.formatUSDollar(result.structuralLoss);
-      result.contentLoss = floodDM.formatUSDollar(result.contentLoss);
-      result.structuralValue = floodDM.formatUSDollar(result.structuralValue);
-      result.contentValue = floodDM.formatUSDollar(result.contentValue);
+      result.structuralLoss = floodDM.formatNumber(result.structuralLoss, true);
+      result.contentLoss = floodDM.formatNumber(result.contentLoss, true);
+      result.structuralValue = floodDM.formatNumber(result.structuralValue, true);
+      result.buildingArea = floodDM.formatNumber(result.buildingArea);
+      result.contentValue = floodDM.formatNumber(result.contentValue, true);
     }
 
     // Return the result object
@@ -1752,7 +2003,25 @@ export default class floodDM {
     result
   ) {
     // Fetch mitigation data
-    const mitigationData = await this.fetchMitigationData();
+    let mitigationData;// = await this.fetchMitigationData();
+    // Check if mitigation data is already cached
+    if (floodDM.mitigationDataCache) {
+      // Use cached mitigation data
+      mitigationData = floodDM.mitigationDataCache;
+    } else {
+      // Fetch mitigation data and cache it
+      mitigationData = await retrieve({
+        params: {
+          source: "mitigation_dt",
+          datatype: 'property_mitigation_cost',
+        },
+        args: { sourceType: 'property_mitigation_cost' },
+      });
+
+      // Store the fetched data in the cache
+      floodDM.mitigationDataCache = mitigationData;
+    }
+
     let final_mitigation_cost, final_mitigation_benefit;
 
     // Check if mitigation data is available
@@ -1852,27 +2121,11 @@ export default class floodDM {
     let returnVal = {
       measure: mitigationMeasure,
       foundationType: foundationType,
-      cost: floodDM.formatUSDollar(final_mitigation_cost),
-      benefit: floodDM.formatUSDollar(final_mitigation_benefit),
+      cost: floodDM.formatNumber(final_mitigation_cost, true),
+      benefit: floodDM.formatNumber(final_mitigation_benefit, true),
     };
 
     return returnVal;
-  }
-
-  // Helper function to convert number values to US $ formatted strings
-  static formatUSDollar(value) {
-    // Check if the input is a valid number
-    if (isNaN(value) || typeof value !== "number") {
-      return "Invalid input";
-    }
-
-    // Format the number with two decimal places and commas for thousands separator
-    const formattedValue = value.toLocaleString("en-US", {
-      style: "currency",
-      currency: "USD",
-    });
-
-    return formattedValue;
   }
 
   //  Helper function for getPropertyDmMt
@@ -2196,7 +2449,7 @@ export default class floodDM {
 
   /**
    * Fetches vehicle damage information based on flood depth and vehicle type.
-   * 
+   *
    * @method getVehicleDamage
    * @memberof floodDM
    * @async
@@ -2250,5 +2503,134 @@ export default class floodDM {
       console.error("Error fetching vehicle damage data:", error);
       return null;
     }
+  }
+
+  // Helper function to add font style css classes to the page header
+  static addFontStyle() {
+    // Check if the style is already added
+    if (!document.querySelector("#fontStyles")) {
+      // Create a <style> element
+      let style = document.createElement("style");
+      style.id = "fontStyles"; // Assign an ID to identify the style element later
+
+      // Add CSS rules to the <style> element
+      let css = `
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+        .style_text_small_bold {
+          font-family: "Roboto", "Arial", sans-serif;
+          font-size: 12px;
+          color: black;
+          font-weight: 500;
+        }
+        .style_text_small {
+          font-family: "Roboto", "Arial", sans-serif;
+          font-size: 12px;
+          color: rgb(86,86,86);
+        }
+        .style_text_large_bold {
+          font-family: "Roboto", "Arial", sans-serif;
+          font-size: 18px;
+          color: black;
+          font-weight: 500;
+        }
+        .style_text_large {
+          font-family: "Roboto", "Arial", sans-serif;
+          font-size: 18px;
+          color: rgb(86,86,86);
+        }`;
+
+      style.appendChild(document.createTextNode(css));
+
+      // Append the <style> element to the <head> of the document
+      document.head.appendChild(style);
+    }
+  }
+
+  // Helper Function to be used in maps to format how the pop up looks like
+  popUpFormatter(objectName, objectData) {
+    // Start with the object name, wrapped in the bold class
+    let formattedOutput = `<span class="style_text_small_bold">${objectName}</span><br>`;
+
+    // Iterate over the object's keys and values
+    for (const [key, value] of Object.entries(objectData)) {
+      // Append each key-value pair to the output, wrapped in the appropriate classes
+      formattedOutput += `<span class="style_text_small">${key} :</span> <span class="style_text_small">${value}</span><br>`;
+    }
+
+    return formattedOutput;
+  }
+
+  // Helper function to format a number
+  static formatNumber(number, isCurrency = false) {
+    // If passed number is a string then convert it to a number type or to 0
+    if (typeof number === "string") {
+      number = parseFloat(number.replaceAll(",", ""));
+    }
+    if (isNaN(number)) {
+      number = 0;
+    }
+
+    let number_absolute = Math.abs(number) 
+
+    // Handle numbers less than 0.01
+    if (number_absolute < 0.01) {
+      number = 0;
+    }
+
+    // Define the suffixes for thousands and millions
+    const suffixes = ["", "K", "M"];
+
+    let suffixIndex = 0;
+    let formattedNumber;
+    // Handle numbers greater than or equal to 1,000,000 (use 'M' suffix)
+    if (number_absolute >= 1_000_000) {
+      suffixIndex = 2;
+      number /= 1_000_000;
+      formattedNumber = Number(number).toFixed(1);
+    }
+    // Handle numbers between 10,000 and 1,000,000 (use 'K' suffix)
+    else if (number_absolute >= 10_000) {
+      suffixIndex = 1;
+      number /= 1_000;
+      formattedNumber = Number(number).toFixed(1);
+    } else {
+      formattedNumber = Number(number).toPrecision(3);
+      formattedNumber =
+        Number(number) % 1 === 0
+          ? Number(number).toFixed(0)
+          : Number(number).toFixed(2);
+    }
+
+    // Format the number to two decimal places if needed
+    /*if (isCurrency) {
+      formattedNumber = Number(number).toFixed(2);
+    } else if (suffixIndex > 0) {
+      formattedNumber = Number(number).toPrecision(3);
+    } else {
+      formattedNumber =
+        Number(number) % 1 === 0
+          ? Number(number).toFixed(0)
+          : Number(number).toFixed(2);
+    }*/
+
+    if (isNaN(formattedNumber)) {
+      throw new Error("Assertion failed");
+    }
+
+    // Add comma as thousands separator if no suffix or isCurrency
+    if (suffixIndex === 0) {
+      formattedNumber = Number(formattedNumber).toLocaleString();
+    }
+
+    // Prepend the dollar sign for currency
+    if (isCurrency) {
+      formattedNumber = `$ ${formattedNumber}`;
+    }
+
+    // Append the appropriate suffix if needed
+    formattedNumber += suffixes[suffixIndex];
+
+    return formattedNumber;
   }
 }
