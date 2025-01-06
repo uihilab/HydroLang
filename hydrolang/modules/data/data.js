@@ -1,5 +1,4 @@
 import * as datasources from "./datasources.js";
-import $ from "../../external/jquery/jquery.js";
 import stats from "../analyze/components/stats.js";
 
 /**
@@ -19,157 +18,127 @@ import stats from "../analyze/components/stats.js";
  * hydro.data.retrieve({params: {source: 'someSource', dataType: 'someEndpoint', proxy: 'ifProxyReq'}, args: {'someEndpointArgs'}})
  */
 
-function retrieve({ params, args, data } = {}) {
-  //obtain data from parameters set by user.
-  var source = params["source"],
-    dataType = params["datatype"],
-    placeHolder = params["placeHolder"] || false,
-    trans = params["transform"] || false,
-    args = args,
-    result = [],
-    //if source exists, then obtain the object from sources.
-    dataSource = datasources[source][dataType],
-    endpoint,
-    met = dataSource["methods"]["method"],
-    type,
-    //define proxy if required by the source
-    proxy = "",
-    proxif = datasources[source]["requirements"]["needProxy"];
+async function retrieve({ params, args, data } = {}) {
+  let source = params.source;
+  let dataType = params.datatype;
+  let placeHolder = params.placeHolder || false;
+  let trans = params.transform || false;
+  let dataSource = datasources[source]?.[dataType];
 
-  //verify if the data is contained within the hydrolang databases.
-  if (!(datasources[source] && datasources[source].hasOwnProperty(dataType))) {
-    alert("No data has been found for given specifications.");
-    return;
+  console.log(params)
+
+  if (!dataSource) {
+    return Promise.reject(new Error("No data source found for the given specifications."));
   }
 
-  //Change the type of endpoint based on the request. In the future for SOAP requests, new sources will be added to the if statement.
-  source === "waterOneFlow" || source === "hisCentral" || source === "mitigation_dt" || source === "flooddamage_dt"
-    ? (endpoint = datasources[source]["sourceType"](args["sourceType"], dataType))
-    : (endpoint = dataSource["endpoint"]);
-  //Grab the default parameter specified within the datasource type
-  (() =>
-    params["type"] === undefined
-      ? (type = dataSource["methods"]["type"])
-      : (type = params["type"]))();
+  let endpoint =
+    source === "waterOneFlow" || source === "hisCentral" || source === "mitigation_dt" || source === "flooddamage_dt"
+      ? datasources[source].sourceType(args.sourceType, dataType)
+      : dataSource.endpoint;
 
-  //Allowing the proxy server that is continously working to be called and used whenever it is required.
-  if (proxif)
-  proxy = datasources.proxies["local-proxy"]["endpoint"]
+  let type = params.type || dataSource.methods.type;
 
-  //create headers if required depending on the type supported.
-  var head = {
+  // let proxy = datasources[source]?.requirements?.needProxy
+  //   ? datasources.proxies["local-proxy"].endpoint
+  //   : "";
+  
+    let proxy = datasources.proxies["local-proxy"].endpoint
+    ;
+
+  let headers = {
     "content-type": (() => {
       if (type === "json") {
         return "application/json";
       } else if (type === "xml" || type === "soap") {
         return "text/xml; charset=utf-8";
       } else if (type === "csv" || type === "tab") {
-        return "application/text";
+        return "application/text"; 
+      } else {
+        return "application/json"; // Default
       }
     })(),
   };
-  //Add an additonal header to the request in case the request is SOAP type
-  type === "soap"
-    ? (head["SOAPAction"] = datasources[source]["action"] + dataType)
-    : null;
 
-  //Additiona keyname in case it is required by the resource
-  var keyname = "";
-
-  //assign key or token to value in case it is required by the source.
-  if (datasources[source]["requirements"].hasOwnProperty("keyname")) {
-    keyname = datasources[source]["requirements"]["keyname"];
-    if (params.hasOwnProperty(keyname)) {
-      Object.assign(head, { [keyname]: params[keyname] });
-    } else {
-      alert("info: please verify the keyname of the source.");
-    }
+  if (type === "soap") {
+    headers["SOAPAction"] = datasources[source].action + dataType;
   }
 
-  //Change the data request type depending on the type of request (GET, POST)
-  if (met === "POST" && type === "json") args = JSON.stringify(args);
-  if (met === "POST" && (type === "soap" || type === "xml"))
-    args = (() => {
-      var val = Object.values(args),
-        env =
-          val.length != 0
-            ? datasources.envelope(dataSource["body"](args))
-            : datasources.envelope(dataSource["body"]());
-      return env;
-    })();
+  let keyname = datasources[source]?.requirements?.keyname;
+  if (keyname && params[keyname]) {
+    headers[keyname] = params[keyname];
+  } else if (keyname) {
+    console.warn("info: please verify the keyname of the source."); 
+  }
 
-  //Correction in case the endpoint requires change for placeholders
-  // endpoint = placeHolder ? endpoint.replace(/{(\w+)}/g, (match, key) => args[key]) : endpoint
-    console.log('endpoint',endpoint)
   endpoint = endpoint.replace(/{(\w+)}/g, (match, key) => {
     const value = args[key];
     delete args[key];
     return value;
   });
 
-  if (Object.keys(args).length === 0) {
-    args = '';
+
+  let fetchOptions = {
+    method: dataSource.methods.method,
+    headers: headers,
+  };
+
+  if (fetchOptions.method === 'POST') {
+    if (type === 'json') {
+      fetchOptions.body = JSON.stringify(args);
+    } else if (type === 'soap' || type === 'xml') {
+      fetchOptions.body = Object.keys(args).length
+        ? datasources.envelope(dataSource.body(args))
+        : datasources.envelope(dataSource.body());
+    }
+  } else if (fetchOptions.method === 'GET' && Object.keys(args).length > 0) {
+    const queryString = new URLSearchParams(args).toString();
+    endpoint += `?${queryString}`;
   }
 
 
-  return new Promise((resolve, reject) => {
+  return fetch(proxy + endpoint, fetchOptions)
+    .then(async (response) => {
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`HTTP error ${response.status} fetching ${endpoint}: ${errorData}`);
+      }
 
-  //retrieve the data and feed the data into callback.
-  $.ajax({
-    url: proxy + endpoint,
-    data: args,
-    // data: placeHolder ? '' : args,
-    dataType: type,
-    method: met,
-    headers: head,
-  }).then(
-    (data) => {
-      if (type === "soap") result.push(data.responseText);
-      else if (type === "xml" || type === "tab" || type === "CSV")
-        resolve(JSON.stringify(data));
-      else { 
-        if (trans){
-          //More source will be added here later, for generic values that can be retrieved 
-          if (source === "usgs") {
-            let transformed_value = transform({ 
-              params: { save: 'value'}, 
-              args: { keep: '["datetime", "value"]', type: 'ARR'}, 
-              data: lowercasing(data)
-              })
-            resolve(transformed_value)
-          } 
-
-          //If text needs to be converted to js code before returning
-          // Needs refactoring
-          if(trans === "eval") {
-            data = (1,eval)(data)
-            resolve(data)
-          }
-        } else {
-          resolve(lowercasing(data))
+      if (type === "json") {
+        return response.json();
+      } else if (type === "xml" || type === "soap" || type === "csv" || type === "tab") {
+        return response.text();
+      } else {
+        return response.json(); // Default to JSON
+      }
+    })
+    .then((responseData) => {
+      if (type === "soap") {
+        try {
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(responseData, "text/xml");
+          let j = xml2json(xmlDoc);
+          return j["soap:Envelope"]?.["soap:Body"] || j; // Handle cases where soap:Body might not exist
+        } catch (xmlError) {
+          throw new Error(`Error parsing SOAP response from ${endpoint}: ${xmlError.message}`);
         }
+      } else if (type === "xml" || type === "tab" || type === "CSV") {
+        return JSON.stringify(responseData);
+      } else if (trans) {
+        if (source === "usgs") {
+          return transform({
+            params: { save: 'value'}, 
+            args: { keep: '["datetime", "value"]', type: 'ARR'}, 
+            data: lowercasing(responseData)
+          });
+        } else if (trans === "eval") {
+          return eval(responseData); // Use eval cautiously
         }
-    },
-    (err) => {
-
-      if (type === "soap" || type === "xml") {
-        var xmlDoc = $.parseXML(err["responseText"]),
-          j = xml2json(xmlDoc);
-        type === "soap"
-          ? resolve(j["soap:Envelope"]["soap:Body"])
-          : resolve(j);
-        //return result;
-      } else
-        alert(
-          `There was an error with the request. Please revise requirements.`
-        );
-        reject(err)
-        
-    }
-  )
-  //return result;
-})
+      } else {
+        return lowercasing(responseData);
+      }
+    });
 }
+
 
 /**
  * Convert data types into others based on the premise of having JS objects as primary input.
@@ -184,6 +153,8 @@ function retrieve({ params, args, data } = {}) {
  */
 
 function transform({ params, args, data } = {}) {
+
+  console.log(data)
   //initial cleanup to remove metadata from object
   if (!params) {
     data = data;
@@ -467,7 +438,8 @@ function recursiveSearch({ obj, searchkey, results = [] } = {}) {
   Object.keys(obj).forEach((key) => {
     const value = obj[key];
     if (key === searchkey && Array.isArray(value)) {
-      r.push(value);evalif = datasources[source]["requirements"]["needEval"];
+      r.push(value);
+      //evalif = datasources[source]["requirements"]["needEval"];
       return;
     } else if (typeof value === "object" && value !== null) {
       recursiveSearch({ obj: value, searchkey: searchkey, results: r });
