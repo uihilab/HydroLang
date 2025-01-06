@@ -32,6 +32,8 @@ All data sources included in HydroLang can be considered as REST. Specifically, 
 * [USGS](https://www.usgs.gov/products/web-tools/apis): United States Geological Survey
 * [WorldBank](https://datahelpdesk.worldbank.org/knowledgebase/articles/889392-about-the-indicators-api-documentation): World Bank worldwide data sources
 * [HydroShare](https://help.hydroshare.org/introduction-to-hydroshare/getting-started/use-the-api/): Connection of HydroShare data services through HydroLang.
+* [Mitigation_dt](https://hydroinformatics.uiowa.edu/lab/midas/): Geospatial data for properties in Iowa and flood mitigation measures.
+* [Flooddamage_dt](https://hydroinformatics.uiowa.edu/lab/fidas/): Geopsatial and damage data for infrastructure in Iowa communities.
 
 Each API has distinct instructions on how to submit a request; to customize your requests specifically, please review the documentation of the API you are interested in.
 
