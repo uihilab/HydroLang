@@ -1,0 +1,298 @@
+{
+    "city": [
+        {
+            "flood_level": "31",
+            "num_bld": "5810",
+            "city_str_loss": "$82,506,000",
+            "city_cnt_loss": "$201,132,000"
+        },
+        {
+            "flood_level": "30.5",
+            "num_bld": "5521",
+            "city_str_loss": "$75,052,000",
+            "city_cnt_loss": "$182,212,000"
+        },
+        {
+            "flood_level": "30",
+            "num_bld": "4818",
+            "city_str_loss": "$63,724,000",
+            "city_cnt_loss": "$160,613,000"
+        },
+        {
+            "flood_level": "29.5",
+            "num_bld": "3964",
+            "city_str_loss": "$50,361,000",
+            "city_cnt_loss": "$130,766,000"
+        },
+        {
+            "flood_level": "29",
+            "num_bld": "3116",
+            "city_str_loss": "$39,683,000",
+            "city_cnt_loss": "$94,141,000"
+        },
+        {
+            "flood_level": "28.5",
+            "num_bld": "41",
+            "city_str_loss": "$695,000",
+            "city_cnt_loss": "$2,068,000"
+        },
+        {
+            "flood_level": "28",
+            "num_bld": "35",
+            "city_str_loss": "$543,000",
+            "city_cnt_loss": "$1,711,000"
+        },
+        {
+            "flood_level": "27.5",
+            "num_bld": "33",
+            "city_str_loss": "$460,000",
+            "city_cnt_loss": "$1,519,000"
+        },
+        {
+            "flood_level": "27",
+            "num_bld": "23",
+            "city_str_loss": "$326,000",
+            "city_cnt_loss": "$1,116,000"
+        },
+        {
+            "flood_level": "26.5",
+            "num_bld": "20",
+            "city_str_loss": "$296,000",
+            "city_cnt_loss": "$1,080,000"
+        },
+        {
+            "flood_level": "26",
+            "num_bld": "17",
+            "city_str_loss": "$256,000",
+            "city_cnt_loss": "$1,010,000"
+        },
+        {
+            "flood_level": "25.5",
+            "num_bld": "16",
+            "city_str_loss": "$235,000",
+            "city_cnt_loss": "$988,000"
+        },
+        {
+            "flood_level": "25",
+            "num_bld": "14",
+            "city_str_loss": "$211,000",
+            "city_cnt_loss": "$850,000"
+        },
+        {
+            "flood_level": "24.5",
+            "num_bld": "13",
+            "city_str_loss": "$191,000",
+            "city_cnt_loss": "$826,000"
+        },
+        {
+            "flood_level": "24",
+            "num_bld": "13",
+            "city_str_loss": "$167,000",
+            "city_cnt_loss": "$743,000"
+        },
+        {
+            "flood_level": "23.5",
+            "num_bld": "13",
+            "city_str_loss": "$166,000",
+            "city_cnt_loss": "$736,000"
+        },
+        {
+            "flood_level": "23",
+            "num_bld": "12",
+            "city_str_loss": "$159,000",
+            "city_cnt_loss": "$727,000"
+        },
+        {
+            "flood_level": "22.5",
+            "num_bld": "11",
+            "city_str_loss": "$141,000",
+            "city_cnt_loss": "$699,000"
+        },
+        {
+            "flood_level": "22",
+            "num_bld": "11",
+            "city_str_loss": "$141,000",
+            "city_cnt_loss": "$694,000"
+        },
+        {
+            "flood_level": "21.5",
+            "num_bld": "11",
+            "city_str_loss": "$141,000",
+            "city_cnt_loss": "$694,000"
+        },
+        {
+            "flood_level": "21",
+            "num_bld": "9",
+            "city_str_loss": "$118,000",
+            "city_cnt_loss": "$630,000"
+        },
+        {
+            "flood_level": "20.5",
+            "num_bld": "8",
+            "city_str_loss": "$92,000",
+            "city_cnt_loss": "$600,000"
+        },
+        {
+            "flood_level": "20",
+            "num_bld": "7",
+            "city_str_loss": "$67,000",
+            "city_cnt_loss": "$483,000"
+        },
+        {
+            "flood_level": "19.5",
+            "num_bld": "6",
+            "city_str_loss": "$66,000",
+            "city_cnt_loss": "$476,000"
+        },
+        {
+            "flood_level": "19",
+            "num_bld": "5",
+            "city_str_loss": "$56,000",
+            "city_cnt_loss": "$465,000"
+        },
+        {
+            "flood_level": "18.5",
+            "num_bld": "5",
+            "city_str_loss": "$65,000",
+            "city_cnt_loss": "$469,000"
+        },
+        {
+            "flood_level": "18",
+            "num_bld": "4",
+            "city_str_loss": "$55,000",
+            "city_cnt_loss": "$457,000"
+        },
+        {
+            "flood_level": "17.5",
+            "num_bld": "4",
+            "city_str_loss": "$55,000",
+            "city_cnt_loss": "$457,000"
+        },
+        {
+            "flood_level": "17",
+            "num_bld": "4",
+            "city_str_loss": "$54,000",
+            "city_cnt_loss": "$456,000"
+        },
+        {
+            "flood_level": "16.5",
+            "num_bld": "4",
+            "city_str_loss": "$39,000",
+            "city_cnt_loss": "$241,000"
+        },
+        {
+            "flood_level": "16",
+            "num_bld": "4",
+            "city_str_loss": "$35,000",
+            "city_cnt_loss": "$237,000"
+        },
+        {
+            "flood_level": "15.5",
+            "num_bld": "4",
+            "city_str_loss": "$35,000",
+            "city_cnt_loss": "$237,000"
+        },
+        {
+            "flood_level": "15",
+            "num_bld": "4",
+            "city_str_loss": "$35,000",
+            "city_cnt_loss": "$237,000"
+        },
+        {
+            "flood_level": "14.5",
+            "num_bld": "4",
+            "city_str_loss": "$35,000",
+            "city_cnt_loss": "$237,000"
+        },
+        {
+            "flood_level": "14",
+            "num_bld": "4",
+            "city_str_loss": "$35,000",
+            "city_cnt_loss": "$237,000"
+        },
+        {
+            "flood_level": "13.5",
+            "num_bld": "3",
+            "city_str_loss": "$34,000",
+            "city_cnt_loss": "$234,000"
+        },
+        {
+            "flood_level": "13",
+            "num_bld": "3",
+            "city_str_loss": "$34,000",
+            "city_cnt_loss": "$234,000"
+        },
+        {
+            "flood_level": "12.5",
+            "num_bld": "2",
+            "city_str_loss": "$32,000",
+            "city_cnt_loss": "$231,000"
+        },
+        {
+            "flood_level": "12",
+            "num_bld": "2",
+            "city_str_loss": "$32,000",
+            "city_cnt_loss": "$231,000"
+        },
+        {
+            "flood_level": "11.5",
+            "num_bld": "1",
+            "city_str_loss": "$24,000",
+            "city_cnt_loss": "$222,000"
+        },
+        {
+            "flood_level": "11",
+            "num_bld": "N/A",
+            "city_str_loss": "N/A",
+            "city_cnt_loss": "N/A"
+        },
+        {
+            "flood_level": "10.5",
+            "num_bld": "N/A",
+            "city_str_loss": "N/A",
+            "city_cnt_loss": "N/A"
+        },
+        {
+            "flood_level": "10",
+            "num_bld": "N/A",
+            "city_str_loss": "N/A",
+            "city_cnt_loss": "N/A"
+        },
+        {
+            "flood_level": "9.5",
+            "num_bld": "N/A",
+            "city_str_loss": "N/A",
+            "city_cnt_loss": "N/A"
+        },
+        {
+            "flood_level": "9",
+            "num_bld": "N/A",
+            "city_str_loss": "N/A",
+            "city_cnt_loss": "N/A"
+        },
+        {
+            "flood_level": "8.5",
+            "num_bld": "N/A",
+            "city_str_loss": "N/A",
+            "city_cnt_loss": "N/A"
+        },
+        {
+            "flood_level": "8",
+            "num_bld": "N/A",
+            "city_str_loss": "N/A",
+            "city_cnt_loss": "N/A"
+        },
+        {
+            "flood_level": "7.5",
+            "num_bld": "N/A",
+            "city_str_loss": "N/A",
+            "city_cnt_loss": "N/A"
+        },
+        {
+            "flood_level": "7",
+            "num_bld": "N/A",
+            "city_str_loss": "N/A",
+            "city_cnt_loss": "N/A"
+        }
+    ]
+}

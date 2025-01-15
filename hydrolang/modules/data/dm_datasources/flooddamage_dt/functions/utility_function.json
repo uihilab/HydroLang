@@ -1,0 +1,2314 @@
+{
+   "PDFLT": [
+      {
+         "utilitySystem": "potable water",
+         "description": "Default Potable Water Facility",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Default Potable Water Facility",
+         "floodDepth": 1,
+         "damage": 1
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Default Potable Water Facility",
+         "floodDepth": 2,
+         "damage": 2
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Default Potable Water Facility",
+         "floodDepth": 3,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Default Potable Water Facility",
+         "floodDepth": 4,
+         "damage": 15
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Default Potable Water Facility",
+         "floodDepth": 5,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Default Potable Water Facility",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Default Potable Water Facility",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Default Potable Water Facility",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Default Potable Water Facility",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Default Potable Water Facility",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "PPPL": [
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Pumping Plant Below Grade (>50 MGD)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Pumping Plant Below Grade (>50 MGD)",
+         "floodDepth": 1,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Pumping Plant Below Grade (>50 MGD)",
+         "floodDepth": 2,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Pumping Plant Below Grade (>50 MGD)",
+         "floodDepth": 3,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Pumping Plant Below Grade (>50 MGD)",
+         "floodDepth": 4,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Pumping Plant Below Grade (>50 MGD)",
+         "floodDepth": 5,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Pumping Plant Below Grade (>50 MGD)",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Pumping Plant Below Grade (>50 MGD)",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Pumping Plant Below Grade (>50 MGD)",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Pumping Plant Below Grade (>50 MGD)",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Pumping Plant Below Grade (>50 MGD)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "PPPM": [
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Pumping Plant Below Grade (10 - 50 MGD)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Pumping Plant Below Grade (10 - 50 MGD)",
+         "floodDepth": 1,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Pumping Plant Below Grade (10 - 50 MGD)",
+         "floodDepth": 2,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Pumping Plant Below Grade (10 - 50 MGD)",
+         "floodDepth": 3,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Pumping Plant Below Grade (10 - 50 MGD)",
+         "floodDepth": 4,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Pumping Plant Below Grade (10 - 50 MGD)",
+         "floodDepth": 5,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Pumping Plant Below Grade (10 - 50 MGD)",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Pumping Plant Below Grade (10 - 50 MGD)",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Pumping Plant Below Grade (10 - 50 MGD)",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Pumping Plant Below Grade (10 - 50 MGD)",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Pumping Plant Below Grade (10 - 50 MGD)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "PPPS": [
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Pumping Plant Below Grade (<10 MGD)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Pumping Plant Below Grade (<10 MGD)",
+         "floodDepth": 1,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Pumping Plant Below Grade (<10 MGD)",
+         "floodDepth": 2,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Pumping Plant Below Grade (<10 MGD)",
+         "floodDepth": 3,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Pumping Plant Below Grade (<10 MGD)",
+         "floodDepth": 4,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Pumping Plant Below Grade (<10 MGD)",
+         "floodDepth": 5,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Pumping Plant Below Grade (<10 MGD)",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Pumping Plant Below Grade (<10 MGD)",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Pumping Plant Below Grade (<10 MGD)",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Pumping Plant Below Grade (<10 MGD)",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Pumping Plant Below Grade (<10 MGD)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "PSTBC": [
+      {
+         "utilitySystem": "potable water",
+         "description": "Buried Concrete Tank",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Buried Concrete Tank",
+         "floodDepth": 1,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Buried Concrete Tank",
+         "floodDepth": 2,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Buried Concrete Tank",
+         "floodDepth": 3,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Buried Concrete Tank",
+         "floodDepth": 4,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Buried Concrete Tank",
+         "floodDepth": 5,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Buried Concrete Tank",
+         "floodDepth": 6,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Buried Concrete Tank",
+         "floodDepth": 7,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Buried Concrete Tank",
+         "floodDepth": 8,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Buried Concrete Tank",
+         "floodDepth": 9,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Buried Concrete Tank",
+         "floodDepth": 10,
+         "damage": 5
+      }
+   ],
+   "PWE": [
+      {
+         "utilitySystem": "potable water",
+         "description": "Wells",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Wells",
+         "floodDepth": 1,
+         "damage": 1
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Wells",
+         "floodDepth": 2,
+         "damage": 2
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Wells",
+         "floodDepth": 3,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Wells",
+         "floodDepth": 4,
+         "damage": 20
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Wells",
+         "floodDepth": 5,
+         "damage": 25
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Wells",
+         "floodDepth": 6,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Wells",
+         "floodDepth": 7,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Wells",
+         "floodDepth": 8,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Wells",
+         "floodDepth": 9,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Wells",
+         "floodDepth": 10,
+         "damage": 30
+      }
+   ],
+   "PWTL": [
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Gravity or Open Treatment Plant (> 200 MGD)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Gravity or Open Treatment Plant (> 200 MGD)",
+         "floodDepth": 1,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Gravity or Open Treatment Plant (> 200 MGD)",
+         "floodDepth": 2,
+         "damage": 8
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Gravity or Open Treatment Plant (> 200 MGD)",
+         "floodDepth": 3,
+         "damage": 10
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Gravity or Open Treatment Plant (> 200 MGD)",
+         "floodDepth": 4,
+         "damage": 17
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Gravity or Open Treatment Plant (> 200 MGD)",
+         "floodDepth": 5,
+         "damage": 24
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Gravity or Open Treatment Plant (> 200 MGD)",
+         "floodDepth": 6,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Gravity or Open Treatment Plant (> 200 MGD)",
+         "floodDepth": 7,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Gravity or Open Treatment Plant (> 200 MGD)",
+         "floodDepth": 8,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Gravity or Open Treatment Plant (> 200 MGD)",
+         "floodDepth": 9,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Large Gravity or Open Treatment Plant (> 200 MGD)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "PWTM": [
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Gravity or Open Treatment Plant (50-200 MGD)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Gravity or Open Treatment Plant (50-200 MGD)",
+         "floodDepth": 1,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Gravity or Open Treatment Plant (50-200 MGD)",
+         "floodDepth": 2,
+         "damage": 8
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Gravity or Open Treatment Plant (50-200 MGD)",
+         "floodDepth": 3,
+         "damage": 10
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Gravity or Open Treatment Plant (50-200 MGD)",
+         "floodDepth": 4,
+         "damage": 17
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Gravity or Open Treatment Plant (50-200 MGD)",
+         "floodDepth": 5,
+         "damage": 24
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Gravity or Open Treatment Plant (50-200 MGD)",
+         "floodDepth": 6,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Gravity or Open Treatment Plant (50-200 MGD)",
+         "floodDepth": 7,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Gravity or Open Treatment Plant (50-200 MGD)",
+         "floodDepth": 8,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Gravity or Open Treatment Plant (50-200 MGD)",
+         "floodDepth": 9,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Medium Gravity or Open Treatment Plant (50-200 MGD)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "PWTS": [
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Gravity or Open Treatment Plant (<50 MGD)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Gravity or Open Treatment Plant (<50 MGD)",
+         "floodDepth": 1,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Gravity or Open Treatment Plant (<50 MGD)",
+         "floodDepth": 2,
+         "damage": 8
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Gravity or Open Treatment Plant (<50 MGD)",
+         "floodDepth": 3,
+         "damage": 10
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Gravity or Open Treatment Plant (<50 MGD)",
+         "floodDepth": 4,
+         "damage": 17
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Gravity or Open Treatment Plant (<50 MGD)",
+         "floodDepth": 5,
+         "damage": 24
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Gravity or Open Treatment Plant (<50 MGD)",
+         "floodDepth": 6,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Gravity or Open Treatment Plant (<50 MGD)",
+         "floodDepth": 7,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Gravity or Open Treatment Plant (<50 MGD)",
+         "floodDepth": 8,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Gravity or Open Treatment Plant (<50 MGD)",
+         "floodDepth": 9,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Small Gravity or Open Treatment Plant (<50 MGD)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "PCVS": [
+      {
+         "utilitySystem": "potable water",
+         "description": "Control Vaults and Control Stations",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Control Vaults and Control Stations",
+         "floodDepth": 1,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Control Vaults and Control Stations",
+         "floodDepth": 2,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Control Vaults and Control Stations",
+         "floodDepth": 3,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Control Vaults and Control Stations",
+         "floodDepth": 4,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Control Vaults and Control Stations",
+         "floodDepth": 5,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Control Vaults and Control Stations",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Control Vaults and Control Stations",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Control Vaults and Control Stations",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Control Vaults and Control Stations",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "potable water",
+         "description": "Control Vaults and Control Stations",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "WDFLT": [
+      {
+         "utilitySystem": "wastewater",
+         "description": "Default Wastewater Facility",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Default Wastewater Facility",
+         "floodDepth": 1,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Default Wastewater Facility",
+         "floodDepth": 2,
+         "damage": 8
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Default Wastewater Facility",
+         "floodDepth": 3,
+         "damage": 10
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Default Wastewater Facility",
+         "floodDepth": 4,
+         "damage": 17
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Default Wastewater Facility",
+         "floodDepth": 5,
+         "damage": 24
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Default Wastewater Facility",
+         "floodDepth": 6,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Default Wastewater Facility",
+         "floodDepth": 7,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Default Wastewater Facility",
+         "floodDepth": 8,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Default Wastewater Facility",
+         "floodDepth": 9,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Default Wastewater Facility",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "WLSS": [
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Lift Station Dry Well (<10 MGD)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Lift Station Dry Well (<10 MGD)",
+         "floodDepth": 1,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Lift Station Dry Well (<10 MGD)",
+         "floodDepth": 2,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Lift Station Dry Well (<10 MGD)",
+         "floodDepth": 3,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Lift Station Dry Well (<10 MGD)",
+         "floodDepth": 4,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Lift Station Dry Well (<10 MGD)",
+         "floodDepth": 5,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Lift Station Dry Well (<10 MGD)",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Lift Station Dry Well (<10 MGD)",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Lift Station Dry Well (<10 MGD)",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Lift Station Dry Well (<10 MGD)",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Lift Station Dry Well (<10 MGD)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "WWTS": [
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Wastewater Treatment Plant (<50 MGD)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Wastewater Treatment Plant (<50 MGD)",
+         "floodDepth": 1,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Wastewater Treatment Plant (<50 MGD)",
+         "floodDepth": 2,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Wastewater Treatment Plant (<50 MGD)",
+         "floodDepth": 3,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Wastewater Treatment Plant (<50 MGD)",
+         "floodDepth": 4,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Wastewater Treatment Plant (<50 MGD)",
+         "floodDepth": 5,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Wastewater Treatment Plant (<50 MGD)",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Wastewater Treatment Plant (<50 MGD)",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Wastewater Treatment Plant (<50 MGD)",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Wastewater Treatment Plant (<50 MGD)",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Small Wastewater Treatment Plant (<50 MGD)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "WLSL": [
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Lift Station Dry Well (>50 MGD)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Lift Station Dry Well (>50 MGD)",
+         "floodDepth": 1,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Lift Station Dry Well (>50 MGD)",
+         "floodDepth": 2,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Lift Station Dry Well (>50 MGD)",
+         "floodDepth": 3,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Lift Station Dry Well (>50 MGD)",
+         "floodDepth": 4,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Lift Station Dry Well (>50 MGD)",
+         "floodDepth": 5,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Lift Station Dry Well (>50 MGD)",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Lift Station Dry Well (>50 MGD)",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Lift Station Dry Well (>50 MGD)",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Lift Station Dry Well (>50 MGD)",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Lift Station Dry Well (>50 MGD)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "WWTL": [
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Wastewater Treatment Plant (>200 MGD)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Wastewater Treatment Plant (>200 MGD)",
+         "floodDepth": 1,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Wastewater Treatment Plant (>200 MGD)",
+         "floodDepth": 2,
+         "damage": 8
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Wastewater Treatment Plant (>200 MGD)",
+         "floodDepth": 3,
+         "damage": 10
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Wastewater Treatment Plant (>200 MGD)",
+         "floodDepth": 4,
+         "damage": 17
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Wastewater Treatment Plant (>200 MGD)",
+         "floodDepth": 5,
+         "damage": 24
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Wastewater Treatment Plant (>200 MGD)",
+         "floodDepth": 6,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Wastewater Treatment Plant (>200 MGD)",
+         "floodDepth": 7,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Wastewater Treatment Plant (>200 MGD)",
+         "floodDepth": 8,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Wastewater Treatment Plant (>200 MGD)",
+         "floodDepth": 9,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Large Wastewater Treatment Plant (>200 MGD)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "WWCV": [
+      {
+         "utilitySystem": "wastewater",
+         "description": "Wastewater Control Vaults and Control Stations",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Wastewater Control Vaults and Control Stations",
+         "floodDepth": 1,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Wastewater Control Vaults and Control Stations",
+         "floodDepth": 2,
+         "damage": 8
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Wastewater Control Vaults and Control Stations",
+         "floodDepth": 3,
+         "damage": 10
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Wastewater Control Vaults and Control Stations",
+         "floodDepth": 4,
+         "damage": 17
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Wastewater Control Vaults and Control Stations",
+         "floodDepth": 5,
+         "damage": 24
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Wastewater Control Vaults and Control Stations",
+         "floodDepth": 6,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Wastewater Control Vaults and Control Stations",
+         "floodDepth": 7,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Wastewater Control Vaults and Control Stations",
+         "floodDepth": 8,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Wastewater Control Vaults and Control Stations",
+         "floodDepth": 9,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Wastewater Control Vaults and Control Stations",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "WLSM": [
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Lift Station Dry Well (10 - 50 MGD)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Lift Station Dry Well (10 - 50 MGD)",
+         "floodDepth": 1,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Lift Station Dry Well (10 - 50 MGD)",
+         "floodDepth": 2,
+         "damage": 8
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Lift Station Dry Well (10 - 50 MGD)",
+         "floodDepth": 3,
+         "damage": 10
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Lift Station Dry Well (10 - 50 MGD)",
+         "floodDepth": 4,
+         "damage": 17
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Lift Station Dry Well (10 - 50 MGD)",
+         "floodDepth": 5,
+         "damage": 24
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Lift Station Dry Well (10 - 50 MGD)",
+         "floodDepth": 6,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Lift Station Dry Well (10 - 50 MGD)",
+         "floodDepth": 7,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Lift Station Dry Well (10 - 50 MGD)",
+         "floodDepth": 8,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Lift Station Dry Well (10 - 50 MGD)",
+         "floodDepth": 9,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Lift Station Dry Well (10 - 50 MGD)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "WWTM": [
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Wastewater Treatment Plant (50 - 200 MGD)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Wastewater Treatment Plant (50 - 200 MGD)",
+         "floodDepth": 1,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Wastewater Treatment Plant (50 - 200 MGD)",
+         "floodDepth": 2,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Wastewater Treatment Plant (50 - 200 MGD)",
+         "floodDepth": 3,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Wastewater Treatment Plant (50 - 200 MGD)",
+         "floodDepth": 4,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Wastewater Treatment Plant (50 - 200 MGD)",
+         "floodDepth": 5,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Wastewater Treatment Plant (50 - 200 MGD)",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Wastewater Treatment Plant (50 - 200 MGD)",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Wastewater Treatment Plant (50 - 200 MGD)",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Wastewater Treatment Plant (50 - 200 MGD)",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "wastewater",
+         "description": "Medium Wastewater Treatment Plant (50 - 200 MGD)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "ODFLT": [
+      {
+         "utilitySystem": "oil",
+         "description": "Default Oil Facility",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Default Oil Facility",
+         "floodDepth": 1,
+         "damage": 1
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Default Oil Facility",
+         "floodDepth": 2,
+         "damage": 2
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Default Oil Facility",
+         "floodDepth": 3,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Default Oil Facility",
+         "floodDepth": 4,
+         "damage": 15
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Default Oil Facility",
+         "floodDepth": 5,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Default Oil Facility",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Default Oil Facility",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Default Oil Facility",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Default Oil Facility",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Default Oil Facility",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "ORFS": [
+      {
+         "utilitySystem": "oil",
+         "description": "Small Oil Refinery (< 100,000 lb/day)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Small Oil Refinery (< 100,000 lb/day)",
+         "floodDepth": 1,
+         "damage": 1
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Small Oil Refinery (< 100,000 lb/day)",
+         "floodDepth": 2,
+         "damage": 2
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Small Oil Refinery (< 100,000 lb/day)",
+         "floodDepth": 3,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Small Oil Refinery (< 100,000 lb/day)",
+         "floodDepth": 4,
+         "damage": 15
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Small Oil Refinery (< 100,000 lb/day)",
+         "floodDepth": 5,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Small Oil Refinery (< 100,000 lb/day)",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Small Oil Refinery (< 100,000 lb/day)",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Small Oil Refinery (< 100,000 lb/day)",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Small Oil Refinery (< 100,000 lb/day)",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Small Oil Refinery (< 100,000 lb/day)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "OPP": [
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Pumping Plant",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Pumping Plant",
+         "floodDepth": 1,
+         "damage": 1
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Pumping Plant",
+         "floodDepth": 2,
+         "damage": 2
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Pumping Plant",
+         "floodDepth": 3,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Pumping Plant",
+         "floodDepth": 4,
+         "damage": 15
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Pumping Plant",
+         "floodDepth": 5,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Pumping Plant",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Pumping Plant",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Pumping Plant",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Pumping Plant",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Pumping Plant",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "OTF": [
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Tank Farms",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Tank Farms",
+         "floodDepth": 1,
+         "damage": 1
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Tank Farms",
+         "floodDepth": 2,
+         "damage": 2
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Tank Farms",
+         "floodDepth": 3,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Tank Farms",
+         "floodDepth": 4,
+         "damage": 15
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Tank Farms",
+         "floodDepth": 5,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Tank Farms",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Tank Farms",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Tank Farms",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Tank Farms",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Oil Tank Farms",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "ORFL": [
+      {
+         "utilitySystem": "oil",
+         "description": "Large Oil Refinery (>500,000 lb/day)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Large Oil Refinery (>500,000 lb/day)",
+         "floodDepth": 1,
+         "damage": 1
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Large Oil Refinery (>500,000 lb/day)",
+         "floodDepth": 2,
+         "damage": 2
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Large Oil Refinery (>500,000 lb/day)",
+         "floodDepth": 3,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Large Oil Refinery (>500,000 lb/day)",
+         "floodDepth": 4,
+         "damage": 15
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Large Oil Refinery (>500,000 lb/day)",
+         "floodDepth": 5,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Large Oil Refinery (>500,000 lb/day)",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Large Oil Refinery (>500,000 lb/day)",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Large Oil Refinery (>500,000 lb/day)",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Large Oil Refinery (>500,000 lb/day)",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Large Oil Refinery (>500,000 lb/day)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "ORFM": [
+      {
+         "utilitySystem": "oil",
+         "description": "Medium Oil Refinery (100,000 - 500,000 lb/day)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Medium Oil Refinery (100,000 - 500,000 lb/day)",
+         "floodDepth": 1,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Medium Oil Refinery (100,000 - 500,000 lb/day)",
+         "floodDepth": 2,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Medium Oil Refinery (100,000 - 500,000 lb/day)",
+         "floodDepth": 3,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Medium Oil Refinery (100,000 - 500,000 lb/day)",
+         "floodDepth": 4,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Medium Oil Refinery (100,000 - 500,000 lb/day)",
+         "floodDepth": 5,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Medium Oil Refinery (100,000 - 500,000 lb/day)",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Medium Oil Refinery (100,000 - 500,000 lb/day)",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Medium Oil Refinery (100,000 - 500,000 lb/day)",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Medium Oil Refinery (100,000 - 500,000 lb/day)",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "oil",
+         "description": "Medium Oil Refinery (100,000 - 500,000 lb/day)",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "GDFLT": [
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Default",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Default",
+         "floodDepth": 1,
+         "damage": 1
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Default",
+         "floodDepth": 2,
+         "damage": 2
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Default",
+         "floodDepth": 3,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Default",
+         "floodDepth": 4,
+         "damage": 15
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Default",
+         "floodDepth": 5,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Default",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Default",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Default",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Default",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Default",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "NGCV": [
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Control Valves and Control Stations",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Control Valves and Control Stations",
+         "floodDepth": 1,
+         "damage": 1
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Control Valves and Control Stations",
+         "floodDepth": 2,
+         "damage": 2
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Control Valves and Control Stations",
+         "floodDepth": 3,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Control Valves and Control Stations",
+         "floodDepth": 4,
+         "damage": 15
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Control Valves and Control Stations",
+         "floodDepth": 5,
+         "damage": 30
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Control Valves and Control Stations",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Control Valves and Control Stations",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Control Valves and Control Stations",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Control Valves and Control Stations",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Control Valves and Control Stations",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "NGC": [
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Compressor Stations",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Compressor Stations",
+         "floodDepth": 1,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Compressor Stations",
+         "floodDepth": 2,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Compressor Stations",
+         "floodDepth": 3,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Compressor Stations",
+         "floodDepth": 4,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Compressor Stations",
+         "floodDepth": 5,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Compressor Stations",
+         "floodDepth": 6,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Compressor Stations",
+         "floodDepth": 7,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Compressor Stations",
+         "floodDepth": 8,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Compressor Stations",
+         "floodDepth": 9,
+         "damage": 40
+      },
+      {
+         "utilitySystem": "natural gas",
+         "description": "Natural Gas Compressor Stations",
+         "floodDepth": 10,
+         "damage": 40
+      }
+   ],
+   "EDFLT": [
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Default",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Default",
+         "floodDepth": 1,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Default",
+         "floodDepth": 2,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Default",
+         "floodDepth": 3,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Default",
+         "floodDepth": 4,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Default",
+         "floodDepth": 5,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Default",
+         "floodDepth": 6,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Default",
+         "floodDepth": 7,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Default",
+         "floodDepth": 8,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Default",
+         "floodDepth": 9,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Default",
+         "floodDepth": 10,
+         "damage": 0
+      }
+   ],
+   "ESSH": [
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - High Voltage (500 KV)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - High Voltage (500 KV)",
+         "floodDepth": 1,
+         "damage": 2.5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - High Voltage (500 KV)",
+         "floodDepth": 2,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - High Voltage (500 KV)",
+         "floodDepth": 3,
+         "damage": 7.5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - High Voltage (500 KV)",
+         "floodDepth": 4,
+         "damage": 10
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - High Voltage (500 KV)",
+         "floodDepth": 5,
+         "damage": 12.5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - High Voltage (500 KV)",
+         "floodDepth": 6,
+         "damage": 15
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - High Voltage (500 KV)",
+         "floodDepth": 7,
+         "damage": 17.5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - High Voltage (500 KV)",
+         "floodDepth": 8,
+         "damage": 20
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - High Voltage (500 KV)",
+         "floodDepth": 9,
+         "damage": 25
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - High Voltage (500 KV)",
+         "floodDepth": 10,
+         "damage": 30
+      }
+   ],
+   "EPPL": [
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (>500 MW)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (>500 MW)",
+         "floodDepth": 1,
+         "damage": 2.5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (>500 MW)",
+         "floodDepth": 2,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (>500 MW)",
+         "floodDepth": 3,
+         "damage": 7.5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (>500 MW)",
+         "floodDepth": 4,
+         "damage": 10
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (>500 MW)",
+         "floodDepth": 5,
+         "damage": 12.5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (>500 MW)",
+         "floodDepth": 6,
+         "damage": 15
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (>500 MW)",
+         "floodDepth": 7,
+         "damage": 17.5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (>500 MW)",
+         "floodDepth": 8,
+         "damage": 20
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (>500 MW)",
+         "floodDepth": 9,
+         "damage": 25
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (>500 MW)",
+         "floodDepth": 10,
+         "damage": 30
+      }
+   ],
+   "ESSM": [
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Medium Voltage (230 KV)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Medium Voltage (230 KV)",
+         "floodDepth": 1,
+         "damage": 2.5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Medium Voltage (230 KV)",
+         "floodDepth": 2,
+         "damage": 5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Medium Voltage (230 KV)",
+         "floodDepth": 3,
+         "damage": 7.5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Medium Voltage (230 KV)",
+         "floodDepth": 4,
+         "damage": 10
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Medium Voltage (230 KV)",
+         "floodDepth": 5,
+         "damage": 12.5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Medium Voltage (230 KV)",
+         "floodDepth": 6,
+         "damage": 15
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Medium Voltage (230 KV)",
+         "floodDepth": 7,
+         "damage": 17.5
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Medium Voltage (230 KV)",
+         "floodDepth": 8,
+         "damage": 20
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Medium Voltage (230 KV)",
+         "floodDepth": 9,
+         "damage": 25
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Medium Voltage (230 KV)",
+         "floodDepth": 10,
+         "damage": 30
+      }
+   ],
+   "EPPM": [
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (100-500 MW)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (100-500 MW)",
+         "floodDepth": 1,
+         "damage": 2
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (100-500 MW)",
+         "floodDepth": 2,
+         "damage": 4
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (100-500 MW)",
+         "floodDepth": 3,
+         "damage": 6
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (100-500 MW)",
+         "floodDepth": 4,
+         "damage": 7
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (100-500 MW)",
+         "floodDepth": 5,
+         "damage": 8
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (100-500 MW)",
+         "floodDepth": 6,
+         "damage": 9
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (100-500 MW)",
+         "floodDepth": 7,
+         "damage": 10
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (100-500 MW)",
+         "floodDepth": 8,
+         "damage": 12
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (100-500 MW)",
+         "floodDepth": 9,
+         "damage": 14
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Large (100-500 MW)",
+         "floodDepth": 10,
+         "damage": 15
+      }
+   ],
+   "ESSL": [
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Low Voltage (115 KV)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Low Voltage (115 KV)",
+         "floodDepth": 1,
+         "damage": 2
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Low Voltage (115 KV)",
+         "floodDepth": 2,
+         "damage": 4
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Low Voltage (115 KV)",
+         "floodDepth": 3,
+         "damage": 6
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Low Voltage (115 KV)",
+         "floodDepth": 4,
+         "damage": 7
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Low Voltage (115 KV)",
+         "floodDepth": 5,
+         "damage": 8
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Low Voltage (115 KV)",
+         "floodDepth": 6,
+         "damage": 9
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Low Voltage (115 KV)",
+         "floodDepth": 7,
+         "damage": 10
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Low Voltage (115 KV)",
+         "floodDepth": 8,
+         "damage": 12
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Low Voltage (115 KV)",
+         "floodDepth": 9,
+         "damage": 14
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Substation - Low Voltage (115 KV)",
+         "floodDepth": 10,
+         "damage": 15
+      }
+   ],
+   "EPPS": [
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Small (<100 MW)",
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Small (<100 MW)",
+         "floodDepth": 1,
+         "damage": 2
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Small (<100 MW)",
+         "floodDepth": 2,
+         "damage": 4
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Small (<100 MW)",
+         "floodDepth": 3,
+         "damage": 6
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Small (<100 MW)",
+         "floodDepth": 4,
+         "damage": 7
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Small (<100 MW)",
+         "floodDepth": 5,
+         "damage": 8
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Small (<100 MW)",
+         "floodDepth": 6,
+         "damage": 9
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Small (<100 MW)",
+         "floodDepth": 7,
+         "damage": 10
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Small (<100 MW)",
+         "floodDepth": 8,
+         "damage": 12
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Small (<100 MW)",
+         "floodDepth": 9,
+         "damage": 14
+      },
+      {
+         "utilitySystem": "electric power",
+         "description": "Electric Power Plant Small (<100 MW)",
+         "floodDepth": 10,
+         "damage": 15
+      }
+   ]
+}

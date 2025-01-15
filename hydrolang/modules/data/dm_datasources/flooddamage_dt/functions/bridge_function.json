@@ -1,0 +1,1926 @@
+{
+   "Continuous Span": [
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "25 yr",
+         "damage prcnt": 0.003,
+         "functional": 0.988
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "50 yr",
+         "damage prcnt": 0.006,
+         "functional": 0.976
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "75 yr",
+         "damage prcnt": 0.009,
+         "functional": 0.964
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "100 yr",
+         "damage prcnt": 0.013,
+         "functional": 0.948
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "125 yr",
+         "damage prcnt": 0.013,
+         "functional": 0.948
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "150 yr",
+         "damage prcnt": 0.014,
+         "functional": 0.944
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "175 yr",
+         "damage prcnt": 0.015,
+         "functional": 0.94
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "200 yr",
+         "damage prcnt": 0.016,
+         "functional": 0.936
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "225 yr",
+         "damage prcnt": 0.016,
+         "functional": 0.936
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "250 yr",
+         "damage prcnt": 0.017,
+         "functional": 0.932
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "275 yr",
+         "damage prcnt": 0.018,
+         "functional": 0.928
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "300 yr",
+         "damage prcnt": 0.019,
+         "functional": 0.924
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "325 yr",
+         "damage prcnt": 0.02,
+         "functional": 0.92
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "350 yr",
+         "damage prcnt": 0.02,
+         "functional": 0.92
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "375 yr",
+         "damage prcnt": 0.021,
+         "functional": 0.916
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "400 yr",
+         "damage prcnt": 0.022,
+         "functional": 0.912
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "425 yr",
+         "damage prcnt": 0.023,
+         "functional": 0.908
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "450 yr",
+         "damage prcnt": 0.023,
+         "functional": 0.908
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "475 yr",
+         "damage prcnt": 0.024,
+         "functional": 0.904
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "500 yr",
+         "damage prcnt": 0.025,
+         "functional": 0.9
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "525 yr",
+         "damage prcnt": 0.026,
+         "functional": 0.896
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "550 yr",
+         "damage prcnt": 0.026,
+         "functional": 0.896
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "575 yr",
+         "damage prcnt": 0.027,
+         "functional": 0.892
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "600 yr",
+         "damage prcnt": 0.028,
+         "functional": 0.888
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "625 yr",
+         "damage prcnt": 0.028,
+         "functional": 0.888
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "650 yr",
+         "damage prcnt": 0.029,
+         "functional": 0.884
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "675 yr",
+         "damage prcnt": 0.029,
+         "functional": 0.884
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "700 yr",
+         "damage prcnt": 0.03,
+         "functional": 0.88
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "725 yr",
+         "damage prcnt": 0.031,
+         "functional": 0.876
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "750 yr",
+         "damage prcnt": 0.031,
+         "functional": 0.876
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "775 yr",
+         "damage prcnt": 0.032,
+         "functional": 0.872
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "800 yr",
+         "damage prcnt": 0.033,
+         "functional": 0.868
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "825 yr",
+         "damage prcnt": 0.033,
+         "functional": 0.868
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "850 yr",
+         "damage prcnt": 0.034,
+         "functional": 0.864
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "875 yr",
+         "damage prcnt": 0.034,
+         "functional": 0.864
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "900 yr",
+         "damage prcnt": 0.035,
+         "functional": 0.86
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "925 yr",
+         "damage prcnt": 0.036,
+         "functional": 0.856
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "950 yr",
+         "damage prcnt": 0.036,
+         "functional": 0.856
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "975 yr",
+         "damage prcnt": 0.037,
+         "functional": 0.852
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "1000 yr",
+         "damage prcnt": 0.038,
+         "functional": 0.848
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "25 yr",
+         "damage prcnt": 0.003,
+         "functional": 0.988
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "50 yr",
+         "damage prcnt": 0.006,
+         "functional": 0.976
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "75 yr",
+         "damage prcnt": 0.009,
+         "functional": 0.964
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "100 yr",
+         "damage prcnt": 0.013,
+         "functional": 0.948
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "125 yr",
+         "damage prcnt": 0.013,
+         "functional": 0.948
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "150 yr",
+         "damage prcnt": 0.014,
+         "functional": 0.944
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "175 yr",
+         "damage prcnt": 0.015,
+         "functional": 0.94
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "200 yr",
+         "damage prcnt": 0.016,
+         "functional": 0.936
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "225 yr",
+         "damage prcnt": 0.016,
+         "functional": 0.936
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "250 yr",
+         "damage prcnt": 0.017,
+         "functional": 0.932
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "275 yr",
+         "damage prcnt": 0.018,
+         "functional": 0.928
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "300 yr",
+         "damage prcnt": 0.019,
+         "functional": 0.924
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "325 yr",
+         "damage prcnt": 0.02,
+         "functional": 0.92
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "350 yr",
+         "damage prcnt": 0.02,
+         "functional": 0.92
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "375 yr",
+         "damage prcnt": 0.021,
+         "functional": 0.916
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "400 yr",
+         "damage prcnt": 0.022,
+         "functional": 0.912
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "425 yr",
+         "damage prcnt": 0.023,
+         "functional": 0.908
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "450 yr",
+         "damage prcnt": 0.023,
+         "functional": 0.908
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "475 yr",
+         "damage prcnt": 0.024,
+         "functional": 0.904
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "500 yr",
+         "damage prcnt": 0.025,
+         "functional": 0.9
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "525 yr",
+         "damage prcnt": 0.026,
+         "functional": 0.896
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "550 yr",
+         "damage prcnt": 0.026,
+         "functional": 0.896
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "575 yr",
+         "damage prcnt": 0.027,
+         "functional": 0.892
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "600 yr",
+         "damage prcnt": 0.028,
+         "functional": 0.888
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "625 yr",
+         "damage prcnt": 0.028,
+         "functional": 0.888
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "650 yr",
+         "damage prcnt": 0.029,
+         "functional": 0.884
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "675 yr",
+         "damage prcnt": 0.029,
+         "functional": 0.884
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "700 yr",
+         "damage prcnt": 0.03,
+         "functional": 0.88
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "725 yr",
+         "damage prcnt": 0.031,
+         "functional": 0.876
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "750 yr",
+         "damage prcnt": 0.031,
+         "functional": 0.876
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "775 yr",
+         "damage prcnt": 0.032,
+         "functional": 0.872
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "800 yr",
+         "damage prcnt": 0.033,
+         "functional": 0.868
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "825 yr",
+         "damage prcnt": 0.033,
+         "functional": 0.868
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "850 yr",
+         "damage prcnt": 0.034,
+         "functional": 0.864
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "875 yr",
+         "damage prcnt": 0.034,
+         "functional": 0.864
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "900 yr",
+         "damage prcnt": 0.035,
+         "functional": 0.86
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "925 yr",
+         "damage prcnt": 0.036,
+         "functional": 0.856
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "950 yr",
+         "damage prcnt": 0.036,
+         "functional": 0.856
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "975 yr",
+         "damage prcnt": 0.037,
+         "functional": 0.852
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "1000 yr",
+         "damage prcnt": 0.038,
+         "functional": 0.848
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "25 yr",
+         "damage prcnt": 0.001,
+         "functional": 0.996
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "50 yr",
+         "damage prcnt": 0.003,
+         "functional": 0.988
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "75 yr",
+         "damage prcnt": 0.004,
+         "functional": 0.984
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "100 yr",
+         "damage prcnt": 0.005,
+         "functional": 0.98
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "125 yr",
+         "damage prcnt": 0.005,
+         "functional": 0.98
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "150 yr",
+         "damage prcnt": 0.006,
+         "functional": 0.976
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "175 yr",
+         "damage prcnt": 0.006,
+         "functional": 0.976
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "200 yr",
+         "damage prcnt": 0.006,
+         "functional": 0.976
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "225 yr",
+         "damage prcnt": 0.007,
+         "functional": 0.972
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "250 yr",
+         "damage prcnt": 0.007,
+         "functional": 0.972
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "275 yr",
+         "damage prcnt": 0.007,
+         "functional": 0.972
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "300 yr",
+         "damage prcnt": 0.008,
+         "functional": 0.968
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "325 yr",
+         "damage prcnt": 0.008,
+         "functional": 0.968
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "350 yr",
+         "damage prcnt": 0.008,
+         "functional": 0.968
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "375 yr",
+         "damage prcnt": 0.008,
+         "functional": 0.968
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "400 yr",
+         "damage prcnt": 0.009,
+         "functional": 0.964
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "425 yr",
+         "damage prcnt": 0.009,
+         "functional": 0.964
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "450 yr",
+         "damage prcnt": 0.009,
+         "functional": 0.964
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "475 yr",
+         "damage prcnt": 0.01,
+         "functional": 0.96
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "500 yr",
+         "damage prcnt": 0.01,
+         "functional": 0.96
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "525 yr",
+         "damage prcnt": 0.01,
+         "functional": 0.96
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "550 yr",
+         "damage prcnt": 0.011,
+         "functional": 0.956
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "575 yr",
+         "damage prcnt": 0.011,
+         "functional": 0.956
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "600 yr",
+         "damage prcnt": 0.011,
+         "functional": 0.956
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "625 yr",
+         "damage prcnt": 0.011,
+         "functional": 0.956
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "650 yr",
+         "damage prcnt": 0.012,
+         "functional": 0.952
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "675 yr",
+         "damage prcnt": 0.012,
+         "functional": 0.952
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "700 yr",
+         "damage prcnt": 0.012,
+         "functional": 0.952
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "725 yr",
+         "damage prcnt": 0.012,
+         "functional": 0.952
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "750 yr",
+         "damage prcnt": 0.013,
+         "functional": 0.948
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "775 yr",
+         "damage prcnt": 0.013,
+         "functional": 0.948
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "800 yr",
+         "damage prcnt": 0.013,
+         "functional": 0.948
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "825 yr",
+         "damage prcnt": 0.013,
+         "functional": 0.948
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "850 yr",
+         "damage prcnt": 0.014,
+         "functional": 0.944
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "875 yr",
+         "damage prcnt": 0.014,
+         "functional": 0.944
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "900 yr",
+         "damage prcnt": 0.014,
+         "functional": 0.944
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "925 yr",
+         "damage prcnt": 0.014,
+         "functional": 0.944
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "950 yr",
+         "damage prcnt": 0.015,
+         "functional": 0.94
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "975 yr",
+         "damage prcnt": 0.015,
+         "functional": 0.94
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "1000 yr",
+         "damage prcnt": 0.015,
+         "functional": 0.94
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "25 yr",
+         "damage prcnt": 0.001,
+         "functional": 0.996
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "50 yr",
+         "damage prcnt": 0.001,
+         "functional": 0.996
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "75 yr",
+         "damage prcnt": 0.002,
+         "functional": 0.992
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "100 yr",
+         "damage prcnt": 0.003,
+         "functional": 0.988
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "125 yr",
+         "damage prcnt": 0.003,
+         "functional": 0.988
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "150 yr",
+         "damage prcnt": 0.003,
+         "functional": 0.988
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "175 yr",
+         "damage prcnt": 0.003,
+         "functional": 0.988
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "200 yr",
+         "damage prcnt": 0.003,
+         "functional": 0.988
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "225 yr",
+         "damage prcnt": 0.003,
+         "functional": 0.988
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "250 yr",
+         "damage prcnt": 0.003,
+         "functional": 0.988
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "275 yr",
+         "damage prcnt": 0.004,
+         "functional": 0.984
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "300 yr",
+         "damage prcnt": 0.004,
+         "functional": 0.984
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "325 yr",
+         "damage prcnt": 0.004,
+         "functional": 0.984
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "350 yr",
+         "damage prcnt": 0.004,
+         "functional": 0.984
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "375 yr",
+         "damage prcnt": 0.004,
+         "functional": 0.984
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "400 yr",
+         "damage prcnt": 0.004,
+         "functional": 0.984
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "425 yr",
+         "damage prcnt": 0.005,
+         "functional": 0.98
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "450 yr",
+         "damage prcnt": 0.005,
+         "functional": 0.98
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "475 yr",
+         "damage prcnt": 0.005,
+         "functional": 0.98
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "500 yr",
+         "damage prcnt": 0.005,
+         "functional": 0.98
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "525 yr",
+         "damage prcnt": 0.005,
+         "functional": 0.98
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "550 yr",
+         "damage prcnt": 0.005,
+         "functional": 0.98
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "575 yr",
+         "damage prcnt": 0.005,
+         "functional": 0.98
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "600 yr",
+         "damage prcnt": 0.006,
+         "functional": 0.976
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "625 yr",
+         "damage prcnt": 0.006,
+         "functional": 0.976
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "650 yr",
+         "damage prcnt": 0.006,
+         "functional": 0.976
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "675 yr",
+         "damage prcnt": 0.006,
+         "functional": 0.976
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "700 yr",
+         "damage prcnt": 0.006,
+         "functional": 0.976
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "725 yr",
+         "damage prcnt": 0.006,
+         "functional": 0.976
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "750 yr",
+         "damage prcnt": 0.006,
+         "functional": 0.976
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "775 yr",
+         "damage prcnt": 0.006,
+         "functional": 0.976
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "800 yr",
+         "damage prcnt": 0.007,
+         "functional": 0.972
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "825 yr",
+         "damage prcnt": 0.007,
+         "functional": 0.972
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "850 yr",
+         "damage prcnt": 0.007,
+         "functional": 0.972
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "875 yr",
+         "damage prcnt": 0.007,
+         "functional": 0.972
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "900 yr",
+         "damage prcnt": 0.007,
+         "functional": 0.972
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "925 yr",
+         "damage prcnt": 0.007,
+         "functional": 0.972
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "950 yr",
+         "damage prcnt": 0.007,
+         "functional": 0.972
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "975 yr",
+         "damage prcnt": 0.007,
+         "functional": 0.972
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "1000 yr",
+         "damage prcnt": 0.008,
+         "functional": 0.968
+      }
+   ],
+   "Single Span": [
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "25 yr",
+         "damage prcnt": 0.013,
+         "functional": 0.948
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "50 yr",
+         "damage prcnt": 0.025,
+         "functional": 0.9
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "75 yr",
+         "damage prcnt": 0.038,
+         "functional": 0.848
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "100 yr",
+         "damage prcnt": 0.05,
+         "functional": 0.8
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "125 yr",
+         "damage prcnt": 0.053,
+         "functional": 0.788
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "150 yr",
+         "damage prcnt": 0.056,
+         "functional": 0.776
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "175 yr",
+         "damage prcnt": 0.059,
+         "functional": 0.764
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "200 yr",
+         "damage prcnt": 0.063,
+         "functional": 0.748
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "225 yr",
+         "damage prcnt": 0.066,
+         "functional": 0.736
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "250 yr",
+         "damage prcnt": 0.069,
+         "functional": 0.724
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "275 yr",
+         "damage prcnt": 0.072,
+         "functional": 0.712
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "300 yr",
+         "damage prcnt": 0.075,
+         "functional": 0.7
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "325 yr",
+         "damage prcnt": 0.078,
+         "functional": 0.688
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "350 yr",
+         "damage prcnt": 0.081,
+         "functional": 0.676
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "375 yr",
+         "damage prcnt": 0.084,
+         "functional": 0.664
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "400 yr",
+         "damage prcnt": 0.088,
+         "functional": 0.648
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "425 yr",
+         "damage prcnt": 0.091,
+         "functional": 0.636
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "450 yr",
+         "damage prcnt": 0.094,
+         "functional": 0.624
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "475 yr",
+         "damage prcnt": 0.097,
+         "functional": 0.612
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "500 yr",
+         "damage prcnt": 0.1,
+         "functional": 0.6
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "525 yr",
+         "damage prcnt": 0.103,
+         "functional": 0.588
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "550 yr",
+         "damage prcnt": 0.105,
+         "functional": 0.58
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "575 yr",
+         "damage prcnt": 0.108,
+         "functional": 0.568
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "600 yr",
+         "damage prcnt": 0.11,
+         "functional": 0.56
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "625 yr",
+         "damage prcnt": 0.113,
+         "functional": 0.548
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "650 yr",
+         "damage prcnt": 0.115,
+         "functional": 0.54
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "675 yr",
+         "damage prcnt": 0.118,
+         "functional": 0.528
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "700 yr",
+         "damage prcnt": 0.12,
+         "functional": 0.52
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "725 yr",
+         "damage prcnt": 0.123,
+         "functional": 0.508
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "750 yr",
+         "damage prcnt": 0.125,
+         "functional": 0.5
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "775 yr",
+         "damage prcnt": 0.128,
+         "functional": 0.488
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "800 yr",
+         "damage prcnt": 0.13,
+         "functional": 0.48
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "825 yr",
+         "damage prcnt": 0.133,
+         "functional": 0.468
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "850 yr",
+         "damage prcnt": 0.135,
+         "functional": 0.46
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "875 yr",
+         "damage prcnt": 0.138,
+         "functional": 0.448
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "900 yr",
+         "damage prcnt": 0.14,
+         "functional": 0.44
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "925 yr",
+         "damage prcnt": 0.143,
+         "functional": 0.428
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "950 yr",
+         "damage prcnt": 0.145,
+         "functional": 0.42
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "975 yr",
+         "damage prcnt": 0.148,
+         "functional": 0.408
+      },
+      {
+         "ScourPotential": "U",
+         "Flood Scenario": "1000 yr",
+         "damage prcnt": 0.15,
+         "functional": 0.4
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "25 yr",
+         "damage prcnt": 0.013,
+         "functional": 0.948
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "50 yr",
+         "damage prcnt": 0.025,
+         "functional": 0.9
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "75 yr",
+         "damage prcnt": 0.038,
+         "functional": 0.848
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "100 yr",
+         "damage prcnt": 0.05,
+         "functional": 0.8
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "125 yr",
+         "damage prcnt": 0.053,
+         "functional": 0.788
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "150 yr",
+         "damage prcnt": 0.056,
+         "functional": 0.776
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "175 yr",
+         "damage prcnt": 0.059,
+         "functional": 0.764
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "200 yr",
+         "damage prcnt": 0.063,
+         "functional": 0.748
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "225 yr",
+         "damage prcnt": 0.066,
+         "functional": 0.736
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "250 yr",
+         "damage prcnt": 0.069,
+         "functional": 0.724
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "275 yr",
+         "damage prcnt": 0.072,
+         "functional": 0.712
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "300 yr",
+         "damage prcnt": 0.075,
+         "functional": 0.7
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "325 yr",
+         "damage prcnt": 0.078,
+         "functional": 0.688
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "350 yr",
+         "damage prcnt": 0.081,
+         "functional": 0.676
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "375 yr",
+         "damage prcnt": 0.084,
+         "functional": 0.664
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "400 yr",
+         "damage prcnt": 0.088,
+         "functional": 0.648
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "425 yr",
+         "damage prcnt": 0.091,
+         "functional": 0.636
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "450 yr",
+         "damage prcnt": 0.094,
+         "functional": 0.624
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "475 yr",
+         "damage prcnt": 0.097,
+         "functional": 0.612
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "500 yr",
+         "damage prcnt": 0.1,
+         "functional": 0.6
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "525 yr",
+         "damage prcnt": 0.103,
+         "functional": 0.588
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "550 yr",
+         "damage prcnt": 0.105,
+         "functional": 0.58
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "575 yr",
+         "damage prcnt": 0.108,
+         "functional": 0.568
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "600 yr",
+         "damage prcnt": 0.11,
+         "functional": 0.56
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "625 yr",
+         "damage prcnt": 0.113,
+         "functional": 0.548
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "650 yr",
+         "damage prcnt": 0.115,
+         "functional": 0.54
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "675 yr",
+         "damage prcnt": 0.118,
+         "functional": 0.528
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "700 yr",
+         "damage prcnt": 0.12,
+         "functional": 0.52
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "725 yr",
+         "damage prcnt": 0.123,
+         "functional": 0.508
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "750 yr",
+         "damage prcnt": 0.125,
+         "functional": 0.5
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "775 yr",
+         "damage prcnt": 0.128,
+         "functional": 0.488
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "800 yr",
+         "damage prcnt": 0.13,
+         "functional": 0.48
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "825 yr",
+         "damage prcnt": 0.133,
+         "functional": 0.468
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "850 yr",
+         "damage prcnt": 0.135,
+         "functional": 0.46
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "875 yr",
+         "damage prcnt": 0.138,
+         "functional": 0.448
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "900 yr",
+         "damage prcnt": 0.14,
+         "functional": 0.44
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "925 yr",
+         "damage prcnt": 0.143,
+         "functional": 0.428
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "950 yr",
+         "damage prcnt": 0.145,
+         "functional": 0.42
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "975 yr",
+         "damage prcnt": 0.148,
+         "functional": 0.408
+      },
+      {
+         "ScourPotential": "1",
+         "Flood Scenario": "1000 yr",
+         "damage prcnt": 0.15,
+         "functional": 0.4
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "25 yr",
+         "damage prcnt": 0.005,
+         "functional": 0.98
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "50 yr",
+         "damage prcnt": 0.01,
+         "functional": 0.96
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "75 yr",
+         "damage prcnt": 0.015,
+         "functional": 0.94
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "100 yr",
+         "damage prcnt": 0.02,
+         "functional": 0.92
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "125 yr",
+         "damage prcnt": 0.021,
+         "functional": 0.916
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "150 yr",
+         "damage prcnt": 0.023,
+         "functional": 0.908
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "175 yr",
+         "damage prcnt": 0.024,
+         "functional": 0.904
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "200 yr",
+         "damage prcnt": 0.025,
+         "functional": 0.9
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "225 yr",
+         "damage prcnt": 0.026,
+         "functional": 0.896
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "250 yr",
+         "damage prcnt": 0.028,
+         "functional": 0.888
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "275 yr",
+         "damage prcnt": 0.029,
+         "functional": 0.884
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "300 yr",
+         "damage prcnt": 0.03,
+         "functional": 0.88
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "325 yr",
+         "damage prcnt": 0.031,
+         "functional": 0.876
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "350 yr",
+         "damage prcnt": 0.033,
+         "functional": 0.868
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "375 yr",
+         "damage prcnt": 0.034,
+         "functional": 0.864
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "400 yr",
+         "damage prcnt": 0.035,
+         "functional": 0.86
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "425 yr",
+         "damage prcnt": 0.036,
+         "functional": 0.856
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "450 yr",
+         "damage prcnt": 0.038,
+         "functional": 0.848
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "475 yr",
+         "damage prcnt": 0.039,
+         "functional": 0.844
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "500 yr",
+         "damage prcnt": 0.04,
+         "functional": 0.84
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "525 yr",
+         "damage prcnt": 0.041,
+         "functional": 0.836
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "550 yr",
+         "damage prcnt": 0.042,
+         "functional": 0.832
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "575 yr",
+         "damage prcnt": 0.043,
+         "functional": 0.828
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "600 yr",
+         "damage prcnt": 0.044,
+         "functional": 0.824
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "625 yr",
+         "damage prcnt": 0.045,
+         "functional": 0.82
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "650 yr",
+         "damage prcnt": 0.046,
+         "functional": 0.816
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "675 yr",
+         "damage prcnt": 0.047,
+         "functional": 0.812
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "700 yr",
+         "damage prcnt": 0.048,
+         "functional": 0.808
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "725 yr",
+         "damage prcnt": 0.049,
+         "functional": 0.804
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "750 yr",
+         "damage prcnt": 0.05,
+         "functional": 0.8
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "775 yr",
+         "damage prcnt": 0.051,
+         "functional": 0.796
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "800 yr",
+         "damage prcnt": 0.052,
+         "functional": 0.792
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "825 yr",
+         "damage prcnt": 0.053,
+         "functional": 0.788
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "850 yr",
+         "damage prcnt": 0.054,
+         "functional": 0.784
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "875 yr",
+         "damage prcnt": 0.055,
+         "functional": 0.78
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "900 yr",
+         "damage prcnt": 0.056,
+         "functional": 0.776
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "925 yr",
+         "damage prcnt": 0.057,
+         "functional": 0.772
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "950 yr",
+         "damage prcnt": 0.058,
+         "functional": 0.768
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "975 yr",
+         "damage prcnt": 0.059,
+         "functional": 0.764
+      },
+      {
+         "ScourPotential": "2",
+         "Flood Scenario": "1000 yr",
+         "damage prcnt": 0.06,
+         "functional": 0.76
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "25 yr",
+         "damage prcnt": 0.003,
+         "functional": 0.988
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "50 yr",
+         "damage prcnt": 0.005,
+         "functional": 0.98
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "75 yr",
+         "damage prcnt": 0.008,
+         "functional": 0.968
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "100 yr",
+         "damage prcnt": 0.01,
+         "functional": 0.96
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "125 yr",
+         "damage prcnt": 0.011,
+         "functional": 0.956
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "150 yr",
+         "damage prcnt": 0.011,
+         "functional": 0.956
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "175 yr",
+         "damage prcnt": 0.012,
+         "functional": 0.952
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "200 yr",
+         "damage prcnt": 0.013,
+         "functional": 0.948
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "225 yr",
+         "damage prcnt": 0.013,
+         "functional": 0.948
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "250 yr",
+         "damage prcnt": 0.014,
+         "functional": 0.944
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "275 yr",
+         "damage prcnt": 0.014,
+         "functional": 0.944
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "300 yr",
+         "damage prcnt": 0.015,
+         "functional": 0.94
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "325 yr",
+         "damage prcnt": 0.016,
+         "functional": 0.936
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "350 yr",
+         "damage prcnt": 0.016,
+         "functional": 0.936
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "375 yr",
+         "damage prcnt": 0.017,
+         "functional": 0.932
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "400 yr",
+         "damage prcnt": 0.018,
+         "functional": 0.928
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "425 yr",
+         "damage prcnt": 0.018,
+         "functional": 0.928
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "450 yr",
+         "damage prcnt": 0.019,
+         "functional": 0.924
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "475 yr",
+         "damage prcnt": 0.019,
+         "functional": 0.924
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "500 yr",
+         "damage prcnt": 0.02,
+         "functional": 0.92
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "525 yr",
+         "damage prcnt": 0.021,
+         "functional": 0.916
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "550 yr",
+         "damage prcnt": 0.021,
+         "functional": 0.916
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "575 yr",
+         "damage prcnt": 0.022,
+         "functional": 0.912
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "600 yr",
+         "damage prcnt": 0.022,
+         "functional": 0.912
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "625 yr",
+         "damage prcnt": 0.023,
+         "functional": 0.908
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "650 yr",
+         "damage prcnt": 0.023,
+         "functional": 0.908
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "675 yr",
+         "damage prcnt": 0.024,
+         "functional": 0.904
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "700 yr",
+         "damage prcnt": 0.024,
+         "functional": 0.904
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "725 yr",
+         "damage prcnt": 0.025,
+         "functional": 0.9
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "750 yr",
+         "damage prcnt": 0.025,
+         "functional": 0.9
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "775 yr",
+         "damage prcnt": 0.026,
+         "functional": 0.896
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "800 yr",
+         "damage prcnt": 0.026,
+         "functional": 0.896
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "825 yr",
+         "damage prcnt": 0.027,
+         "functional": 0.892
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "850 yr",
+         "damage prcnt": 0.027,
+         "functional": 0.892
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "875 yr",
+         "damage prcnt": 0.028,
+         "functional": 0.888
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "900 yr",
+         "damage prcnt": 0.028,
+         "functional": 0.888
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "925 yr",
+         "damage prcnt": 0.029,
+         "functional": 0.884
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "950 yr",
+         "damage prcnt": 0.029,
+         "functional": 0.884
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "975 yr",
+         "damage prcnt": 0.03,
+         "functional": 0.88
+      },
+      {
+         "ScourPotential": "3",
+         "Flood Scenario": "1000 yr",
+         "damage prcnt": 0.03,
+         "functional": 0.88
+      }
+   ]
+}

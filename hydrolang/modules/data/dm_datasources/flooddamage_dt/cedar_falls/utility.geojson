@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "utility",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "WasteWater": "IA001052", "UtilFcltyC": "WDFLT", "Descriptio": "Default Facility", "Cost": 129205.5556, "depth100":0, "depth500":7, "Latitude": 42.535278, "Longitude": -92.439722 }, "geometry": { "type": "Point", "coordinates": [ -92.440761875254566, 42.534854794954576 ] } }
+]
+}

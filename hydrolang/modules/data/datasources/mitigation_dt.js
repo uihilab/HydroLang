@@ -16,7 +16,7 @@ export default {
     let endpoint = '';
     switch (dataType) {
       case "community_flood_damage":
-        endpoint = "https://hydroinformatics.uiowa.edu/lab/midas/communities/";
+        endpoint = window.location.origin + "/hydrolang/modules/data/dm_datasources/mitigation_dt/";
         switch (sourceType) {
           case "Waterloo":
             endpoint += "waterloo.json";
@@ -32,7 +32,7 @@ export default {
         }
         break;
       case "community_flood_inundation":
-        endpoint = "https://hydroinformatics.uiowa.edu/lab/midas/communities/";
+        endpoint = window.location.origin + "/hydrolang/modules/data/dm_datasources/mitigation_dt/";
         switch (sourceType) {
           case "Waterloo":
             endpoint += "waterloo.geojson";
@@ -48,7 +48,7 @@ export default {
         }
         break;
       case "property_mitigation_cost":
-        endpoint = "https://hydroinformatics.uiowa.edu/lab/midas/jsons/mitigations.json";
+        endpoint = window.location.origin + "/hydrolang/modules/data/dm_datasources/mitigation_dt/mitigations.json";
         break;
       default:
         break;
@@ -57,7 +57,7 @@ export default {
   },
 
   community_flood_damage: {
-    endpoint: "https://hydroinformatics.uiowa.edu/lab/midas/communities/<community>.json",
+    endpoint: window.location.origin + "/hydrolang/modules/data/dm_datasources/mitigation_dt/<community>.json",
     params: {},
     "data-fields": {},
     methods: {
@@ -67,8 +67,7 @@ export default {
   },
 
   community_flood_inundation: {
-    endpoint:
-      "https://hydroinformatics.uiowa.edu/lab/midas/communities/<community>.geojson",
+    endpoint: window.location.origin + "/hydrolang/modules/data/dm_datasources/mitigation_dt/<community>.geojson",
     params: {},
     "data-fields": {},
     methods: {
@@ -78,7 +77,7 @@ export default {
   },
 
   property_mitigation_cost: {
-    endpoint: "https://hydroinformatics.uiowa.edu/lab/midas/jsons/mitigations.json",
+    endpoint : window.location.origin + "/hydrolang/modules/data/dm_datasources/mitigation_dt/mitigations.json",
     params: {},
     "data-fields": {},
     methods: {

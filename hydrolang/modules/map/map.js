@@ -104,7 +104,8 @@ async function Layers({ params, args, data } = {}) {
         !divisors.isdivAdded({ params: { id: "gmap-control-div" } })
           ? divisors.createDiv({
               params: {
-                id: "gmap-control-div",
+                id: "gmap-control-div", 
+                title: "Show Map Layers",
                 style: `
                 #gmap-control-div {
                   position: relative;
@@ -126,12 +127,18 @@ async function Layers({ params, args, data } = {}) {
                   border-radius: 2px;
                   box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px;
                   background: none padding-box rgb(255, 255, 255);
-                  font-weight: bold;
+                  font-weight: 500;
                   margin: 10px 10px 0px 0px;
                 }
 
+                #select-box:hover {
+                  background-color: rgb(235, 235, 235);
+                }
+
                 #options-container {
+                  background-color: rgb(255, 255, 255);
                   display: none;
+                  padding: 2px;
                   position: absolute;
                   top: 100%;
                   left: 0;
@@ -142,12 +149,25 @@ async function Layers({ params, args, data } = {}) {
                   overflow-y: auto;
                   background-color: white;
                   margin: 0px 10px 0px 0px;
-
+                  border-bottom-left-radius: 2px;
+                  border-bottom-right-radius: 2px;
+                  box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px;
+                  text-align: left;
                 }
 
                 #options-container label {
                   display: block;
                   padding: 8px 10px;
+
+                  color: rgb(0, 0, 0);
+                  font-family: Roboto, Arial, sans-serif;
+                  user-select: none;
+                  font-size: 18px;
+                  background-color: rgb(255, 255, 255);
+                  padding: 7px 8px 7px 7px;
+                  direction: ltr;
+                  text-align: left;
+                  white-space: nowrap;
                 }
 
                 #options-container label:hover {
@@ -177,15 +197,26 @@ async function Layers({ params, args, data } = {}) {
         const selectBox = document.querySelector('#select-box');
         const optionsContainer = document.querySelector('#options-container');
 
+        let isMouseOver = false;
+
         // Toggle the controller list if the Layer button is clicked
-        selectBox.addEventListener('click', function(event) {
-          optionsContainer.style.display = optionsContainer.style.display === 'block' ? 'none' : 'block';
+        selectBox.addEventListener('mouseover', function(event) {
+          isMouseOver = true;
+          optionsContainer.style.display = 'block';
+        });
+
+        selectBox.addEventListener('mouseout', function(event) {
+          isMouseOver = false;
+          setTimeout(() => {
+            if(!isMouseOver) {
+              optionsContainer.style.display = 'none';
+            }
+          }, 1000);
         });
 
         // Toggle the layer if checkbox is toggles on or off
         optionsContainer.addEventListener('change', function(event) {
           if (event.target.type === 'checkbox') {
-              console.log(event.target.value)
               if(event.target.checked) {
                 baselayers[event.target.value].setMap(osmap);
               } else {
@@ -348,13 +379,13 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
   await Promise.resolve(loader({params, args}));
   //Reading layer types and map configurations from the user's parameters inputs.
   var layertype,
-  { maptype = "leaflet", lat = 41.6572, lon = -91.5414 } = params;
+  { maptype = "leaflet", lat = 41.6572, lon = -91.5414, zoom = 10 } = params;
 
   let mapconfig = {
     maptype,
     lat,
     lon,
-    zoom: 10
+    zoom
   };
 
   //Allocating a container object where the map should be set.
@@ -369,7 +400,7 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
           width: 800px;
           margin-left: auto;
           margin-right: auto;
-          position: ${maptype === 'leaflet'?'fixed':'absolute'};
+          position: 'absolute';
           min-width: 200px;
           min-height: 200px;
           resize: both;
@@ -384,41 +415,6 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
     }) : null;
   container = document.getElementById("map");
 
-  // Creating an icon in the bottom right corner of the map that allows the map to be resized
-  /*!divisors.isdivAdded({params:{id: "resize-icon"}}) ?  
-    divisors.createDiv({
-      params: {
-        id: "resize-icon",
-        style: `
-        #resize-icon {
-          position: absolute;
-          top: 380px;
-          left: 780px;
-          width: 20px;
-          height: 20px;
-          background-color: gray;
-          border-radius: 50%;
-          opacity: 50%;
-          color: transparent;
-        }
-
-        #resize-icon:hover  {
-          background-color: transparent;
-          font-size: 24px;
-          color: black;
-          opacity: 100%;
-        }
-
-        #resize-icon::before {
-          content: '\\2921';
-        }
-      `
-      }
-    }) : null;
-  const resizeIcon = document.getElementById('resize-icon');
-
-  // Setup map resizing icon
-  setupMapResizing(container, resizeIcon);*/
 
   mapId = 'MAP_ID'
 
@@ -448,6 +444,11 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
     };
     mapType = "leaflet"
     osmap = new L.map(container.id);
+    // Ensure correct resizing of Leaflet map
+    const resizeObserver = new ResizeObserver((entry) => {
+      setTimeout(function(){ osmap.invalidateSize()}, 400);
+    });
+    resizeObserver.observe(container);
     //assign the tile type to the data object for rendering.
     const tiletype = layertype.name;
     //Rendering the tile type the user has requested from the available tile types.
@@ -455,6 +456,8 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
       console.log("No tile found!");
       return;
     }
+
+    console.log('mapconfig.zoom',mapconfig.zoom)
     //import the tile options from the given data.
     osmap.setView([mapconfig.lat, mapconfig.lon], mapconfig.zoom);
     Layers({ params: mapconfig, args: layertype });
@@ -900,8 +903,6 @@ async function addCustomLegend({ params, args, data } = {}) {
 
   let type = mapType;
 
-  console.log('mapType', type);
-
   // Handle the case when the map type is 'google'
   if (type === "google") {
     switch (position) {
@@ -956,7 +957,6 @@ async function addCustomLegend({ params, args, data } = {}) {
       legend.onAdd = function (map) {
         // Add the legend to the map
         let legendDiv = L.DomUtil.create('div', 'legend-container')
-        console.log(div)        
         legendDiv.innerHTML = args.div.innerHTML;
 
         return legendDiv

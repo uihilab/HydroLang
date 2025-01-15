@@ -5,7 +5,7 @@
  * @name flooddamage_dt
  * @memberof datasources
  */
-
+// import proxies from "./../dm_datasources/flooddamage_dt";
 /**
  * @prop {string} sourceType - name of the community that will be queried. 
  * Currently supported communities are 'Bettendorf', 'Cedar Rapids', 'Cedar Falls', 'Davenport', 'Iowa City', 'Waterloo', 'Waverly'
@@ -13,7 +13,7 @@
 
 export default {
   sourceType: (sourceType, dataType) => {
-    let endpoint = "https://hydroinformatics.uiowa.edu/lab/fidas/data/";
+    let endpoint = window.location.origin + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/";
     let val = "";
     if (dataType === "x100_year") {
       val += "/flood_extent_100yr.geojson";
@@ -161,8 +161,7 @@ export default {
   },
 
   x100_year: {
-    endpoint:
-      "https://hydroinformatics.uiowa.edu/lab/fidas/data/<community>/<source>.json",
+    endpoint: window.location.href.replace('index.html', '') + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/<community>/<source>.json",
     params: {},
     "data-fields": {},
     methods: {
@@ -172,8 +171,7 @@ export default {
   },
 
   x500_year: {
-    endpoint:
-      "https://hydroinformatics.uiowa.edu/lab/fidas/data/<community>/<source>.json",
+    endpoint:window.location.href.replace('index.html', '') + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/<community>/<source>.json",
     params: {},
     "data-fields": {},
     methods: {
@@ -183,8 +181,7 @@ export default {
   },
 
   vehicles: {
-    endpoint:
-      "https://hydroinformatics.uiowa.edu/lab/fidas/data/<community>/<source>.json",
+    endpoint:window.location.href.replace('index.html', '') + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/<community>/<source>.json",
     params: {},
     "data-fields": {},
     methods: {
@@ -193,8 +190,7 @@ export default {
     },
   },
   utilities: {
-    endpoint:
-      "https://hydroinformatics.uiowa.edu/lab/fidas/data/<community>/<source>.json",
+    endpoint:window.location.href.replace('index.html', '') + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/<community>/<source>.json",
     params: {},
     "data-fields": {},
     methods: {
@@ -203,8 +199,7 @@ export default {
     },
   },
   buildings: {
-    endpoint:
-      "https://hydroinformatics.uiowa.edu/lab/fidas/data/<community>/<source>.json",
+    endpoint:window.location.href.replace('index.html', '') + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/<community>/<source>.json",
     params: {},
     "data-fields": {},
     methods: {
@@ -214,8 +209,7 @@ export default {
   },
 
   bridges: {
-    endpoint:
-      "https://hydroinformatics.uiowa.edu/lab/fidas/data/<community>/<source>.json",
+    endpoint:window.location.href.replace('index.html', '') + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/<community>/<source>.json",
     params: {},
     "data-fields": {},
     methods: {

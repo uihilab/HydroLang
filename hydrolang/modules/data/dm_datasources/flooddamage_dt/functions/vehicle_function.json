@@ -1,0 +1,586 @@
+{
+   "PassengerCar": [
+      {
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "floodDepth": 1,
+         "damage": 15
+      },
+      {
+         "floodDepth": 2,
+         "damage": 40
+      },
+      {
+         "floodDepth": 3,
+         "damage": 100
+      },
+      {
+         "floodDepth": 4,
+         "damage": 100
+      },
+      {
+         "floodDepth": 5,
+         "damage": 100
+      },
+      {
+         "floodDepth": 6,
+         "damage": 100
+      },
+      {
+         "floodDepth": 7,
+         "damage": 100
+      },
+      {
+         "floodDepth": 8,
+         "damage": 100
+      },
+      {
+         "floodDepth": 9,
+         "damage": 100
+      },
+      {
+         "floodDepth": 10,
+         "damage": 100
+      },
+      {
+         "floodDepth": 11,
+         "damage": 100
+      },
+      {
+         "floodDepth": 12,
+         "damage": 100
+      },
+      {
+         "floodDepth": 13,
+         "damage": 100
+      },
+      {
+         "floodDepth": 14,
+         "damage": 100
+      },
+      {
+         "floodDepth": 15,
+         "damage": 100
+      },
+      {
+         "floodDepth": 16,
+         "damage": 100
+      },
+      {
+         "floodDepth": 17,
+         "damage": 100
+      },
+      {
+         "floodDepth": 18,
+         "damage": 100
+      },
+      {
+         "floodDepth": 19,
+         "damage": 100
+      },
+      {
+         "floodDepth": 20,
+         "damage": 100
+      },
+      {
+         "floodDepth": 21,
+         "damage": 100
+      },
+      {
+         "floodDepth": 22,
+         "damage": 100
+      },
+      {
+         "floodDepth": 23,
+         "damage": 100
+      }
+   ],
+   "LightTruck": [
+      {
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "floodDepth": 1,
+         "damage": 6
+      },
+      {
+         "floodDepth": 2,
+         "damage": 12
+      },
+      {
+         "floodDepth": 3,
+         "damage": 30
+      },
+      {
+         "floodDepth": 4,
+         "damage": 100
+      },
+      {
+         "floodDepth": 5,
+         "damage": 100
+      },
+      {
+         "floodDepth": 6,
+         "damage": 100
+      },
+      {
+         "floodDepth": 7,
+         "damage": 100
+      },
+      {
+         "floodDepth": 8,
+         "damage": 100
+      },
+      {
+         "floodDepth": 9,
+         "damage": 100
+      },
+      {
+         "floodDepth": 10,
+         "damage": 100
+      },
+      {
+         "floodDepth": 11,
+         "damage": 100
+      },
+      {
+         "floodDepth": 12,
+         "damage": 100
+      },
+      {
+         "floodDepth": 13,
+         "damage": 100
+      },
+      {
+         "floodDepth": 14,
+         "damage": 100
+      },
+      {
+         "floodDepth": 15,
+         "damage": 100
+      },
+      {
+         "floodDepth": 16,
+         "damage": 100
+      },
+      {
+         "floodDepth": 17,
+         "damage": 100
+      },
+      {
+         "floodDepth": 18,
+         "damage": 100
+      },
+      {
+         "floodDepth": 19,
+         "damage": 100
+      },
+      {
+         "floodDepth": 20,
+         "damage": 100
+      },
+      {
+         "floodDepth": 21,
+         "damage": 100
+      },
+      {
+         "floodDepth": 22,
+         "damage": 100
+      },
+      {
+         "floodDepth": 23,
+         "damage": 100
+      }
+   ],
+   "HeavyTruck": [
+      {
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "floodDepth": 1,
+         "damage": 3
+      },
+      {
+         "floodDepth": 2,
+         "damage": 7
+      },
+      {
+         "floodDepth": 3,
+         "damage": 10
+      },
+      {
+         "floodDepth": 4,
+         "damage": 13
+      },
+      {
+         "floodDepth": 5,
+         "damage": 17
+      },
+      {
+         "floodDepth": 6,
+         "damage": 34
+      },
+      {
+         "floodDepth": 7,
+         "damage": 51
+      },
+      {
+         "floodDepth": 8,
+         "damage": 100
+      },
+      {
+         "floodDepth": 9,
+         "damage": 100
+      },
+      {
+         "floodDepth": 10,
+         "damage": 100
+      },
+      {
+         "floodDepth": 11,
+         "damage": 100
+      },
+      {
+         "floodDepth": 12,
+         "damage": 100
+      },
+      {
+         "floodDepth": 13,
+         "damage": 100
+      },
+      {
+         "floodDepth": 14,
+         "damage": 100
+      },
+      {
+         "floodDepth": 15,
+         "damage": 100
+      },
+      {
+         "floodDepth": 16,
+         "damage": 100
+      },
+      {
+         "floodDepth": 17,
+         "damage": 100
+      },
+      {
+         "floodDepth": 18,
+         "damage": 100
+      },
+      {
+         "floodDepth": 19,
+         "damage": 100
+      },
+      {
+         "floodDepth": 20,
+         "damage": 100
+      },
+      {
+         "floodDepth": 21,
+         "damage": 100
+      },
+      {
+         "floodDepth": 22,
+         "damage": 100
+      },
+      {
+         "floodDepth": 23,
+         "damage": 100
+      }
+   ],
+   "Sedan": [
+      {
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "floodDepth": 1,
+         "damage": 28
+      },
+      {
+         "floodDepth": 2,
+         "damage": 46
+      },
+      {
+         "floodDepth": 3,
+         "damage": 62
+      },
+      {
+         "floodDepth": 4,
+         "damage": 76
+      },
+      {
+         "floodDepth": 5,
+         "damage": 87
+      },
+      {
+         "floodDepth": 6,
+         "damage": 97
+      },
+      {
+         "floodDepth": 7,
+         "damage": 100
+      },
+      {
+         "floodDepth": 8,
+         "damage": 100
+      },
+      {
+         "floodDepth": 9,
+         "damage": 100
+      },
+      {
+         "floodDepth": 10,
+         "damage": 100
+      },
+      {
+         "floodDepth": 11,
+         "damage": 100
+      },
+      {
+         "floodDepth": 12,
+         "damage": 100
+      },
+      {
+         "floodDepth": 13,
+         "damage": 100
+      }
+   ],
+   "Pickup": [
+      {
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "floodDepth": 1,
+         "damage": 20.3
+      },
+      {
+         "floodDepth": 2,
+         "damage": 34.4
+      },
+      {
+         "floodDepth": 3,
+         "damage": 47.5
+      },
+      {
+         "floodDepth": 4,
+         "damage": 59.6
+      },
+      {
+         "floodDepth": 5,
+         "damage": 70.7
+      },
+      {
+         "floodDepth": 6,
+         "damage": 80.8
+      },
+      {
+         "floodDepth": 7,
+         "damage": 89.9
+      },
+      {
+         "floodDepth": 8,
+         "damage": 98
+      },
+      {
+         "floodDepth": 9,
+         "damage": 100
+      },
+      {
+         "floodDepth": 10,
+         "damage": 100
+      },
+      {
+         "floodDepth": 11,
+         "damage": 100
+      },
+      {
+         "floodDepth": 12,
+         "damage": 100
+      },
+      {
+         "floodDepth": 13,
+         "damage": 100
+      }
+   ],
+   "SUV": [
+      {
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "floodDepth": 1,
+         "damage": 13.8
+      },
+      {
+         "floodDepth": 2,
+         "damage": 30.6
+      },
+      {
+         "floodDepth": 3,
+         "damage": 45.8
+      },
+      {
+         "floodDepth": 4,
+         "damage": 59.4
+      },
+      {
+         "floodDepth": 5,
+         "damage": 71.4
+      },
+      {
+         "floodDepth": 6,
+         "damage": 81.8
+      },
+      {
+         "floodDepth": 7,
+         "damage": 90.6
+      },
+      {
+         "floodDepth": 8,
+         "damage": 97
+      },
+      {
+         "floodDepth": 9,
+         "damage": 100
+      },
+      {
+         "floodDepth": 10,
+         "damage": 100
+      },
+      {
+         "floodDepth": 11,
+         "damage": 100
+      },
+      {
+         "floodDepth": 12,
+         "damage": 100
+      },
+      {
+         "floodDepth": 13,
+         "damage": 100
+      }
+   ],
+   "Sport": [
+      {
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "floodDepth": 1,
+         "damage": 29.2
+      },
+      {
+         "floodDepth": 2,
+         "damage": 52.5
+      },
+      {
+         "floodDepth": 3,
+         "damage": 72.2
+      },
+      {
+         "floodDepth": 4,
+         "damage": 87.4
+      },
+      {
+         "floodDepth": 5,
+         "damage": 98.4
+      },
+      {
+         "floodDepth": 6,
+         "damage": 100
+      },
+      {
+         "floodDepth": 7,
+         "damage": 100
+      },
+      {
+         "floodDepth": 8,
+         "damage": 100
+      },
+      {
+         "floodDepth": 9,
+         "damage": 100
+      },
+      {
+         "floodDepth": 10,
+         "damage": 100
+      },
+      {
+         "floodDepth": 11,
+         "damage": 100
+      },
+      {
+         "floodDepth": 12,
+         "damage": 100
+      },
+      {
+         "floodDepth": 13,
+         "damage": 100
+      }
+   ],
+   "Mini Van": [
+      {
+         "floodDepth": 0,
+         "damage": 0
+      },
+      {
+         "floodDepth": 1,
+         "damage": 17.8
+      },
+      {
+         "floodDepth": 2,
+         "damage": 38.3
+      },
+      {
+         "floodDepth": 3,
+         "damage": 56.8
+      },
+      {
+         "floodDepth": 4,
+         "damage": 73.3
+      },
+      {
+         "floodDepth": 5,
+         "damage": 87
+      },
+      {
+         "floodDepth": 6,
+         "damage": 100
+      },
+      {
+         "floodDepth": 7,
+         "damage": 100
+      },
+      {
+         "floodDepth": 8,
+         "damage": 100
+      },
+      {
+         "floodDepth": 9,
+         "damage": 100
+      },
+      {
+         "floodDepth": 10,
+         "damage": 100
+      },
+      {
+         "floodDepth": 11,
+         "damage": 100
+      },
+      {
+         "floodDepth": 12,
+         "damage": 100
+      },
+      {
+         "floodDepth": 13,
+         "damage": 100
+      }
+   ]
+}
