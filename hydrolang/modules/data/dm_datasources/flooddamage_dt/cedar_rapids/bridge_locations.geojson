@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "bridge_locations",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "HighwayBri": "IA002803", "BridgeClas": "HWB28", "Tract": "19113002200", "Name": "CEDAR RIVER", "Owner": "State Highway Agency", "BridgeType": "211", "Width": 30.0, "NumSpans": 6, "Length": 212, "MaxSpanLen": 34, "SkewAngle": 0, "SeatLength": 0.0, "SeatWidth": 0.0, "YearBuilt": 1964, "YearRemode": 1964, "ScourIndex": "3", "Condition": "655", "Cost": 16217.7995, "Latitude": 41.976764, "Longitude": -91.672711, "ESRI_OID": 104, "bridgeT": "Continuous Span", "scoIndex": "3", "flood100":"yes", "flood500":"yes" }, "geometry": { "type": "Point", "coordinates": [ -91.672711, 41.976764 ] } }
+]
+}

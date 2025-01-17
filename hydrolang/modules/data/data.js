@@ -130,8 +130,6 @@ async function retrieve({ params, args, data } = {}) {
             args: { keep: '["datetime", "value"]', type: 'ARR'}, 
             data: lowercasing(responseData)
           });
-        } else if (trans === "eval") {
-          return eval(responseData); // Use eval cautiously
         }
       } else {
         return lowercasing(responseData);

@@ -1,0 +1,4702 @@
+{
+    "curves": [
+        {
+            "occupancy": "RES1",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "0",
+            "cont_dam_per": "7",
+            "struct_dam_per": "5"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "1",
+            "cont_dam_per": "15",
+            "struct_dam_per": "8"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "2",
+            "cont_dam_per": "21",
+            "struct_dam_per": "12"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "3",
+            "cont_dam_per": "22",
+            "struct_dam_per": "17"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "4",
+            "cont_dam_per": "23",
+            "struct_dam_per": "19"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "5",
+            "cont_dam_per": "25",
+            "struct_dam_per": "22"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "6",
+            "cont_dam_per": "27",
+            "struct_dam_per": "24"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "7",
+            "cont_dam_per": "30",
+            "struct_dam_per": "25"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "8",
+            "cont_dam_per": "35",
+            "struct_dam_per": "30"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "9",
+            "cont_dam_per": "40",
+            "struct_dam_per": "35"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "10",
+            "cont_dam_per": "43",
+            "struct_dam_per": "38"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "11",
+            "cont_dam_per": "45",
+            "struct_dam_per": "39"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "12",
+            "cont_dam_per": "48",
+            "struct_dam_per": "40"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "13",
+            "cont_dam_per": "50",
+            "struct_dam_per": "42"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "14",
+            "cont_dam_per": "52",
+            "struct_dam_per": "43"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "15",
+            "cont_dam_per": "54",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "16",
+            "cont_dam_per": "56",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "17",
+            "cont_dam_per": "58",
+            "struct_dam_per": "47"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "18",
+            "cont_dam_per": "60",
+            "struct_dam_per": "48"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "19",
+            "cont_dam_per": "60",
+            "struct_dam_per": "49"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "20",
+            "cont_dam_per": "60",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "21",
+            "cont_dam_per": "60",
+            "struct_dam_per": "52"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "22",
+            "cont_dam_per": "60",
+            "struct_dam_per": "53"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "23",
+            "cont_dam_per": "60",
+            "struct_dam_per": "54"
+        },
+        {
+            "occupancy": "RES1",
+            "depth": "24",
+            "cont_dam_per": "60",
+            "struct_dam_per": "56"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "0",
+            "cont_dam_per": "3",
+            "struct_dam_per": "11"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "1",
+            "cont_dam_per": "27",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "2",
+            "cont_dam_per": "49",
+            "struct_dam_per": "63"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "3",
+            "cont_dam_per": "64",
+            "struct_dam_per": "73"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "4",
+            "cont_dam_per": "70",
+            "struct_dam_per": "78"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "5",
+            "cont_dam_per": "76",
+            "struct_dam_per": "79"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "6",
+            "cont_dam_per": "78",
+            "struct_dam_per": "81"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "7",
+            "cont_dam_per": "79",
+            "struct_dam_per": "82"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "8",
+            "cont_dam_per": "81",
+            "struct_dam_per": "83"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "9",
+            "cont_dam_per": "83",
+            "struct_dam_per": "84"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "10",
+            "cont_dam_per": "83",
+            "struct_dam_per": "85"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "11",
+            "cont_dam_per": "83",
+            "struct_dam_per": "86"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "12",
+            "cont_dam_per": "83",
+            "struct_dam_per": "88"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "13",
+            "cont_dam_per": "83",
+            "struct_dam_per": "89"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "14",
+            "cont_dam_per": "83",
+            "struct_dam_per": "90"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "15",
+            "cont_dam_per": "83",
+            "struct_dam_per": "91"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "16",
+            "cont_dam_per": "83",
+            "struct_dam_per": "92"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "17",
+            "cont_dam_per": "83",
+            "struct_dam_per": "94"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "18",
+            "cont_dam_per": "83",
+            "struct_dam_per": "95"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "19",
+            "cont_dam_per": "83",
+            "struct_dam_per": "96"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "20",
+            "cont_dam_per": "83",
+            "struct_dam_per": "97"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "21",
+            "cont_dam_per": "83",
+            "struct_dam_per": "98"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "22",
+            "cont_dam_per": "83",
+            "struct_dam_per": "99"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "23",
+            "cont_dam_per": "83",
+            "struct_dam_per": "100"
+        },
+        {
+            "occupancy": "RES2",
+            "depth": "24",
+            "cont_dam_per": "83",
+            "struct_dam_per": "100"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "0",
+            "cont_dam_per": "6",
+            "struct_dam_per": "5"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "1",
+            "cont_dam_per": "34",
+            "struct_dam_per": "28"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "2",
+            "cont_dam_per": "44",
+            "struct_dam_per": "29"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "3",
+            "cont_dam_per": "55",
+            "struct_dam_per": "31"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "4",
+            "cont_dam_per": "67",
+            "struct_dam_per": "36"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "5",
+            "cont_dam_per": "77",
+            "struct_dam_per": "37"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "6",
+            "cont_dam_per": "87",
+            "struct_dam_per": "39"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "7",
+            "cont_dam_per": "97",
+            "struct_dam_per": "40"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "8",
+            "cont_dam_per": "100",
+            "struct_dam_per": "41"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "9",
+            "cont_dam_per": "100",
+            "struct_dam_per": "42"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "10",
+            "cont_dam_per": "100",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "11",
+            "cont_dam_per": "100",
+            "struct_dam_per": "46"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "12",
+            "cont_dam_per": "100",
+            "struct_dam_per": "48"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "13",
+            "cont_dam_per": "100",
+            "struct_dam_per": "52"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "14",
+            "cont_dam_per": "100",
+            "struct_dam_per": "55"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "15",
+            "cont_dam_per": "100",
+            "struct_dam_per": "58"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "16",
+            "cont_dam_per": "100",
+            "struct_dam_per": "61"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "17",
+            "cont_dam_per": "100",
+            "struct_dam_per": "64"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "18",
+            "cont_dam_per": "100",
+            "struct_dam_per": "68"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "19",
+            "cont_dam_per": "100",
+            "struct_dam_per": "69"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "20",
+            "cont_dam_per": "100",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "21",
+            "cont_dam_per": "100",
+            "struct_dam_per": "71"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "22",
+            "cont_dam_per": "100",
+            "struct_dam_per": "72"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "23",
+            "cont_dam_per": "100",
+            "struct_dam_per": "73"
+        },
+        {
+            "occupancy": "RES3",
+            "depth": "24",
+            "cont_dam_per": "100",
+            "struct_dam_per": "74"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "1",
+            "cont_dam_per": "11",
+            "struct_dam_per": "3"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "2",
+            "cont_dam_per": "19",
+            "struct_dam_per": "5"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "3",
+            "cont_dam_per": "25",
+            "struct_dam_per": "6"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "4",
+            "cont_dam_per": "29",
+            "struct_dam_per": "7"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "5",
+            "cont_dam_per": "34",
+            "struct_dam_per": "9"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "6",
+            "cont_dam_per": "39",
+            "struct_dam_per": "12"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "7",
+            "cont_dam_per": "44",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "8",
+            "cont_dam_per": "49",
+            "struct_dam_per": "18"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "9",
+            "cont_dam_per": "56",
+            "struct_dam_per": "21"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "10",
+            "cont_dam_per": "65",
+            "struct_dam_per": "26"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "11",
+            "cont_dam_per": "74",
+            "struct_dam_per": "31"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "12",
+            "cont_dam_per": "82",
+            "struct_dam_per": "36"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "13",
+            "cont_dam_per": "88",
+            "struct_dam_per": "41"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "14",
+            "cont_dam_per": "98",
+            "struct_dam_per": "46"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "15",
+            "cont_dam_per": "98",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "16",
+            "cont_dam_per": "98",
+            "struct_dam_per": "54"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "17",
+            "cont_dam_per": "98",
+            "struct_dam_per": "58"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "18",
+            "cont_dam_per": "98",
+            "struct_dam_per": "62"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "19",
+            "cont_dam_per": "98",
+            "struct_dam_per": "66"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "20",
+            "cont_dam_per": "98",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "21",
+            "cont_dam_per": "98",
+            "struct_dam_per": "74"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "22",
+            "cont_dam_per": "98",
+            "struct_dam_per": "78"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "23",
+            "cont_dam_per": "98",
+            "struct_dam_per": "82"
+        },
+        {
+            "occupancy": "RES4",
+            "depth": "24",
+            "cont_dam_per": "98",
+            "struct_dam_per": "86"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "1",
+            "cont_dam_per": "38",
+            "struct_dam_per": "7"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "2",
+            "cont_dam_per": "60",
+            "struct_dam_per": "10"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "3",
+            "cont_dam_per": "73",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "4",
+            "cont_dam_per": "81",
+            "struct_dam_per": "15"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "5",
+            "cont_dam_per": "88",
+            "struct_dam_per": "15"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "6",
+            "cont_dam_per": "94",
+            "struct_dam_per": "16"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "7",
+            "cont_dam_per": "100",
+            "struct_dam_per": "18"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "8",
+            "cont_dam_per": "100",
+            "struct_dam_per": "20"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "9",
+            "cont_dam_per": "100",
+            "struct_dam_per": "23"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "10",
+            "cont_dam_per": "100",
+            "struct_dam_per": "26"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "11",
+            "cont_dam_per": "100",
+            "struct_dam_per": "30"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "12",
+            "cont_dam_per": "100",
+            "struct_dam_per": "34"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "13",
+            "cont_dam_per": "100",
+            "struct_dam_per": "38"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "14",
+            "cont_dam_per": "100",
+            "struct_dam_per": "42"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "15",
+            "cont_dam_per": "100",
+            "struct_dam_per": "47"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "16",
+            "cont_dam_per": "100",
+            "struct_dam_per": "52"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "17",
+            "cont_dam_per": "100",
+            "struct_dam_per": "57"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "18",
+            "cont_dam_per": "100",
+            "struct_dam_per": "62"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "19",
+            "cont_dam_per": "100",
+            "struct_dam_per": "67"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "20",
+            "cont_dam_per": "100",
+            "struct_dam_per": "72"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "21",
+            "cont_dam_per": "100",
+            "struct_dam_per": "77"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "22",
+            "cont_dam_per": "100",
+            "struct_dam_per": "82"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "23",
+            "cont_dam_per": "100",
+            "struct_dam_per": "87"
+        },
+        {
+            "occupancy": "RES5",
+            "depth": "24",
+            "cont_dam_per": "100",
+            "struct_dam_per": "92"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "1",
+            "cont_dam_per": "38",
+            "struct_dam_per": "7"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "2",
+            "cont_dam_per": "60",
+            "struct_dam_per": "10"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "3",
+            "cont_dam_per": "73",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "4",
+            "cont_dam_per": "81",
+            "struct_dam_per": "15"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "5",
+            "cont_dam_per": "88",
+            "struct_dam_per": "15"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "6",
+            "cont_dam_per": "94",
+            "struct_dam_per": "16"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "7",
+            "cont_dam_per": "100",
+            "struct_dam_per": "18"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "8",
+            "cont_dam_per": "100",
+            "struct_dam_per": "20"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "9",
+            "cont_dam_per": "100",
+            "struct_dam_per": "23"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "10",
+            "cont_dam_per": "100",
+            "struct_dam_per": "26"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "11",
+            "cont_dam_per": "100",
+            "struct_dam_per": "30"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "12",
+            "cont_dam_per": "100",
+            "struct_dam_per": "34"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "13",
+            "cont_dam_per": "100",
+            "struct_dam_per": "38"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "14",
+            "cont_dam_per": "100",
+            "struct_dam_per": "42"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "15",
+            "cont_dam_per": "100",
+            "struct_dam_per": "47"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "16",
+            "cont_dam_per": "100",
+            "struct_dam_per": "52"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "17",
+            "cont_dam_per": "100",
+            "struct_dam_per": "57"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "18",
+            "cont_dam_per": "100",
+            "struct_dam_per": "62"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "19",
+            "cont_dam_per": "100",
+            "struct_dam_per": "67"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "20",
+            "cont_dam_per": "100",
+            "struct_dam_per": "72"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "21",
+            "cont_dam_per": "100",
+            "struct_dam_per": "77"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "22",
+            "cont_dam_per": "100",
+            "struct_dam_per": "82"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "23",
+            "cont_dam_per": "100",
+            "struct_dam_per": "87"
+        },
+        {
+            "occupancy": "RES6",
+            "depth": "24",
+            "cont_dam_per": "100",
+            "struct_dam_per": "92"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "6"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "11"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "15"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "0",
+            "cont_dam_per": "6",
+            "struct_dam_per": "19"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "1",
+            "cont_dam_per": "20",
+            "struct_dam_per": "25"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "2",
+            "cont_dam_per": "43",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "3",
+            "cont_dam_per": "58",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "4",
+            "cont_dam_per": "65",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "5",
+            "cont_dam_per": "66",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "6",
+            "cont_dam_per": "66",
+            "struct_dam_per": "30"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "7",
+            "cont_dam_per": "67",
+            "struct_dam_per": "35"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "8",
+            "cont_dam_per": "70",
+            "struct_dam_per": "41"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "9",
+            "cont_dam_per": "75",
+            "struct_dam_per": "46"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "10",
+            "cont_dam_per": "76",
+            "struct_dam_per": "51"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "11",
+            "cont_dam_per": "76",
+            "struct_dam_per": "57"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "12",
+            "cont_dam_per": "76",
+            "struct_dam_per": "63"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "13",
+            "cont_dam_per": "77",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "14",
+            "cont_dam_per": "77",
+            "struct_dam_per": "75"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "15",
+            "cont_dam_per": "77",
+            "struct_dam_per": "79"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "16",
+            "cont_dam_per": "78",
+            "struct_dam_per": "82"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "17",
+            "cont_dam_per": "78",
+            "struct_dam_per": "84"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "18",
+            "cont_dam_per": "78",
+            "struct_dam_per": "87"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "19",
+            "cont_dam_per": "79",
+            "struct_dam_per": "89"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "20",
+            "cont_dam_per": "79",
+            "struct_dam_per": "90"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "21",
+            "cont_dam_per": "79",
+            "struct_dam_per": "92"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "22",
+            "cont_dam_per": "79",
+            "struct_dam_per": "93"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "23",
+            "cont_dam_per": "80",
+            "struct_dam_per": "95"
+        },
+        {
+            "occupancy": "AGR1",
+            "depth": "24",
+            "cont_dam_per": "80",
+            "struct_dam_per": "96"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "1",
+            "cont_dam_per": "15",
+            "struct_dam_per": "12"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "2",
+            "cont_dam_per": "24",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "3",
+            "cont_dam_per": "34",
+            "struct_dam_per": "17"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "4",
+            "cont_dam_per": "41",
+            "struct_dam_per": "19"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "5",
+            "cont_dam_per": "47",
+            "struct_dam_per": "23"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "6",
+            "cont_dam_per": "52",
+            "struct_dam_per": "27"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "7",
+            "cont_dam_per": "57",
+            "struct_dam_per": "31"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "8",
+            "cont_dam_per": "60",
+            "struct_dam_per": "35"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "9",
+            "cont_dam_per": "63",
+            "struct_dam_per": "40"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "10",
+            "cont_dam_per": "64",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "11",
+            "cont_dam_per": "66",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "12",
+            "cont_dam_per": "68",
+            "struct_dam_per": "55"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "13",
+            "cont_dam_per": "69",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "14",
+            "cont_dam_per": "72",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "15",
+            "cont_dam_per": "73",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "16",
+            "cont_dam_per": "73",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "17",
+            "cont_dam_per": "73",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "18",
+            "cont_dam_per": "74",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "19",
+            "cont_dam_per": "74",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "20",
+            "cont_dam_per": "74",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "21",
+            "cont_dam_per": "74",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "22",
+            "cont_dam_per": "75",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "23",
+            "cont_dam_per": "75",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "IND1",
+            "depth": "24",
+            "cont_dam_per": "75",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "1"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "1",
+            "cont_dam_per": "9",
+            "struct_dam_per": "9"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "2",
+            "cont_dam_per": "23",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "3",
+            "cont_dam_per": "35",
+            "struct_dam_per": "17"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "4",
+            "cont_dam_per": "44",
+            "struct_dam_per": "22"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "5",
+            "cont_dam_per": "52",
+            "struct_dam_per": "26"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "6",
+            "cont_dam_per": "58",
+            "struct_dam_per": "30"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "7",
+            "cont_dam_per": "62",
+            "struct_dam_per": "32"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "8",
+            "cont_dam_per": "65",
+            "struct_dam_per": "35"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "9",
+            "cont_dam_per": "68",
+            "struct_dam_per": "37"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "10",
+            "cont_dam_per": "70",
+            "struct_dam_per": "39"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "11",
+            "cont_dam_per": "73",
+            "struct_dam_per": "43"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "12",
+            "cont_dam_per": "74",
+            "struct_dam_per": "46"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "13",
+            "cont_dam_per": "77",
+            "struct_dam_per": "48"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "14",
+            "cont_dam_per": "78",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "15",
+            "cont_dam_per": "78",
+            "struct_dam_per": "51"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "16",
+            "cont_dam_per": "79",
+            "struct_dam_per": "54"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "17",
+            "cont_dam_per": "80",
+            "struct_dam_per": "55"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "18",
+            "cont_dam_per": "80",
+            "struct_dam_per": "57"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "19",
+            "cont_dam_per": "80",
+            "struct_dam_per": "59"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "20",
+            "cont_dam_per": "80",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "21",
+            "cont_dam_per": "81",
+            "struct_dam_per": "62"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "22",
+            "cont_dam_per": "81",
+            "struct_dam_per": "63"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "23",
+            "cont_dam_per": "81",
+            "struct_dam_per": "65"
+        },
+        {
+            "occupancy": "IND2",
+            "depth": "24",
+            "cont_dam_per": "81",
+            "struct_dam_per": "66"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "0",
+            "cont_dam_per": "2",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "1",
+            "cont_dam_per": "20",
+            "struct_dam_per": "13"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "2",
+            "cont_dam_per": "41",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "3",
+            "cont_dam_per": "51",
+            "struct_dam_per": "19"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "4",
+            "cont_dam_per": "62",
+            "struct_dam_per": "22"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "5",
+            "cont_dam_per": "67",
+            "struct_dam_per": "25"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "6",
+            "cont_dam_per": "71",
+            "struct_dam_per": "28"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "7",
+            "cont_dam_per": "73",
+            "struct_dam_per": "30"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "8",
+            "cont_dam_per": "76",
+            "struct_dam_per": "33"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "9",
+            "cont_dam_per": "78",
+            "struct_dam_per": "34"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "10",
+            "cont_dam_per": "79",
+            "struct_dam_per": "36"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "11",
+            "cont_dam_per": "82",
+            "struct_dam_per": "39"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "12",
+            "cont_dam_per": "83",
+            "struct_dam_per": "40"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "13",
+            "cont_dam_per": "84",
+            "struct_dam_per": "42"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "14",
+            "cont_dam_per": "86",
+            "struct_dam_per": "42"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "15",
+            "cont_dam_per": "87",
+            "struct_dam_per": "43"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "16",
+            "cont_dam_per": "87",
+            "struct_dam_per": "43"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "17",
+            "cont_dam_per": "88",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "18",
+            "cont_dam_per": "88",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "19",
+            "cont_dam_per": "88",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "20",
+            "cont_dam_per": "88",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "21",
+            "cont_dam_per": "88",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "22",
+            "cont_dam_per": "88",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "23",
+            "cont_dam_per": "88",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "IND3",
+            "depth": "24",
+            "cont_dam_per": "88",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "0",
+            "cont_dam_per": "15",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "1",
+            "cont_dam_per": "20",
+            "struct_dam_per": "10"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "2",
+            "cont_dam_per": "26",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "3",
+            "cont_dam_per": "31",
+            "struct_dam_per": "18"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "4",
+            "cont_dam_per": "37",
+            "struct_dam_per": "22"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "5",
+            "cont_dam_per": "40",
+            "struct_dam_per": "26"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "6",
+            "cont_dam_per": "44",
+            "struct_dam_per": "34"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "7",
+            "cont_dam_per": "48",
+            "struct_dam_per": "41"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "8",
+            "cont_dam_per": "53",
+            "struct_dam_per": "42"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "9",
+            "cont_dam_per": "56",
+            "struct_dam_per": "42"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "10",
+            "cont_dam_per": "57",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "11",
+            "cont_dam_per": "60",
+            "struct_dam_per": "47"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "12",
+            "cont_dam_per": "62",
+            "struct_dam_per": "49"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "13",
+            "cont_dam_per": "63",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "14",
+            "cont_dam_per": "63",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "15",
+            "cont_dam_per": "63",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "16",
+            "cont_dam_per": "64",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "17",
+            "cont_dam_per": "65",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "18",
+            "cont_dam_per": "65",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "19",
+            "cont_dam_per": "65",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "20",
+            "cont_dam_per": "65",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "21",
+            "cont_dam_per": "65",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "22",
+            "cont_dam_per": "65",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "23",
+            "cont_dam_per": "65",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND4",
+            "depth": "24",
+            "cont_dam_per": "65",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "0",
+            "cont_dam_per": "2",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "1",
+            "cont_dam_per": "20",
+            "struct_dam_per": "13"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "2",
+            "cont_dam_per": "41",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "3",
+            "cont_dam_per": "51",
+            "struct_dam_per": "19"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "4",
+            "cont_dam_per": "62",
+            "struct_dam_per": "22"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "5",
+            "cont_dam_per": "67",
+            "struct_dam_per": "25"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "6",
+            "cont_dam_per": "71",
+            "struct_dam_per": "28"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "7",
+            "cont_dam_per": "73",
+            "struct_dam_per": "30"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "8",
+            "cont_dam_per": "76",
+            "struct_dam_per": "33"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "9",
+            "cont_dam_per": "78",
+            "struct_dam_per": "34"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "10",
+            "cont_dam_per": "79",
+            "struct_dam_per": "36"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "11",
+            "cont_dam_per": "82",
+            "struct_dam_per": "39"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "12",
+            "cont_dam_per": "83",
+            "struct_dam_per": "40"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "13",
+            "cont_dam_per": "84",
+            "struct_dam_per": "42"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "14",
+            "cont_dam_per": "86",
+            "struct_dam_per": "42"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "15",
+            "cont_dam_per": "87",
+            "struct_dam_per": "43"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "16",
+            "cont_dam_per": "87",
+            "struct_dam_per": "43"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "17",
+            "cont_dam_per": "88",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "18",
+            "cont_dam_per": "88",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "19",
+            "cont_dam_per": "88",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "20",
+            "cont_dam_per": "88",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "21",
+            "cont_dam_per": "88",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "22",
+            "cont_dam_per": "88",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "23",
+            "cont_dam_per": "88",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "IND5",
+            "depth": "24",
+            "cont_dam_per": "88",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "1",
+            "cont_dam_per": "20",
+            "struct_dam_per": "22"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "2",
+            "cont_dam_per": "35",
+            "struct_dam_per": "31"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "3",
+            "cont_dam_per": "47",
+            "struct_dam_per": "37"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "4",
+            "cont_dam_per": "56",
+            "struct_dam_per": "43"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "5",
+            "cont_dam_per": "59",
+            "struct_dam_per": "47"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "6",
+            "cont_dam_per": "66",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "7",
+            "cont_dam_per": "69",
+            "struct_dam_per": "54"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "8",
+            "cont_dam_per": "71",
+            "struct_dam_per": "57"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "9",
+            "cont_dam_per": "72",
+            "struct_dam_per": "61"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "10",
+            "cont_dam_per": "78",
+            "struct_dam_per": "63"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "11",
+            "cont_dam_per": "79",
+            "struct_dam_per": "64"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "12",
+            "cont_dam_per": "80",
+            "struct_dam_per": "65"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "13",
+            "cont_dam_per": "80",
+            "struct_dam_per": "67"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "14",
+            "cont_dam_per": "81",
+            "struct_dam_per": "68"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "15",
+            "cont_dam_per": "81",
+            "struct_dam_per": "69"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "16",
+            "cont_dam_per": "81",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "17",
+            "cont_dam_per": "82",
+            "struct_dam_per": "71"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "18",
+            "cont_dam_per": "82",
+            "struct_dam_per": "72"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "19",
+            "cont_dam_per": "82",
+            "struct_dam_per": "73"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "20",
+            "cont_dam_per": "83",
+            "struct_dam_per": "74"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "21",
+            "cont_dam_per": "83",
+            "struct_dam_per": "75"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "22",
+            "cont_dam_per": "83",
+            "struct_dam_per": "76"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "23",
+            "cont_dam_per": "83",
+            "struct_dam_per": "76"
+        },
+        {
+            "occupancy": "IND6",
+            "depth": "24",
+            "cont_dam_per": "83",
+            "struct_dam_per": "77"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "10",
+            "cont_dam_per": "100",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "0",
+            "cont_dam_per": "10",
+            "struct_dam_per": "10"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "1",
+            "cont_dam_per": "52",
+            "struct_dam_per": "11"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "2",
+            "cont_dam_per": "72",
+            "struct_dam_per": "11"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "3",
+            "cont_dam_per": "85",
+            "struct_dam_per": "12"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "4",
+            "cont_dam_per": "92",
+            "struct_dam_per": "12"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "5",
+            "cont_dam_per": "95",
+            "struct_dam_per": "13"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "6",
+            "cont_dam_per": "98",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "7",
+            "cont_dam_per": "99",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "8",
+            "cont_dam_per": "100",
+            "struct_dam_per": "15"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "9",
+            "cont_dam_per": "100",
+            "struct_dam_per": "17"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "11",
+            "cont_dam_per": "100",
+            "struct_dam_per": "19"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "12",
+            "cont_dam_per": "100",
+            "struct_dam_per": "24"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "13",
+            "cont_dam_per": "100",
+            "struct_dam_per": "30"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "14",
+            "cont_dam_per": "100",
+            "struct_dam_per": "38"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "15",
+            "cont_dam_per": "100",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "16",
+            "cont_dam_per": "100",
+            "struct_dam_per": "52"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "17",
+            "cont_dam_per": "100",
+            "struct_dam_per": "58"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "18",
+            "cont_dam_per": "100",
+            "struct_dam_per": "64"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "19",
+            "cont_dam_per": "100",
+            "struct_dam_per": "69"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "20",
+            "cont_dam_per": "100",
+            "struct_dam_per": "74"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "21",
+            "cont_dam_per": "100",
+            "struct_dam_per": "78"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "22",
+            "cont_dam_per": "100",
+            "struct_dam_per": "82"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "23",
+            "cont_dam_per": "100",
+            "struct_dam_per": "85"
+        },
+        {
+            "occupancy": "REL1",
+            "depth": "24",
+            "cont_dam_per": "100",
+            "struct_dam_per": "88"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "0",
+            "cont_dam_per": "2",
+            "struct_dam_per": "1"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "1",
+            "cont_dam_per": "26",
+            "struct_dam_per": "9"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "2",
+            "cont_dam_per": "42",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "3",
+            "cont_dam_per": "56",
+            "struct_dam_per": "16"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "4",
+            "cont_dam_per": "68",
+            "struct_dam_per": "18"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "5",
+            "cont_dam_per": "78",
+            "struct_dam_per": "20"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "6",
+            "cont_dam_per": "83",
+            "struct_dam_per": "23"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "7",
+            "cont_dam_per": "85",
+            "struct_dam_per": "26"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "8",
+            "cont_dam_per": "87",
+            "struct_dam_per": "30"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "9",
+            "cont_dam_per": "88",
+            "struct_dam_per": "34"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "10",
+            "cont_dam_per": "89",
+            "struct_dam_per": "38"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "11",
+            "cont_dam_per": "90",
+            "struct_dam_per": "42"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "12",
+            "cont_dam_per": "91",
+            "struct_dam_per": "47"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "13",
+            "cont_dam_per": "92",
+            "struct_dam_per": "51"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "14",
+            "cont_dam_per": "92",
+            "struct_dam_per": "55"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "15",
+            "cont_dam_per": "92",
+            "struct_dam_per": "58"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "16",
+            "cont_dam_per": "93",
+            "struct_dam_per": "61"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "17",
+            "cont_dam_per": "93",
+            "struct_dam_per": "64"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "18",
+            "cont_dam_per": "94",
+            "struct_dam_per": "67"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "19",
+            "cont_dam_per": "94",
+            "struct_dam_per": "69"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "20",
+            "cont_dam_per": "94",
+            "struct_dam_per": "71"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "21",
+            "cont_dam_per": "94",
+            "struct_dam_per": "74"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "22",
+            "cont_dam_per": "94",
+            "struct_dam_per": "76"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "23",
+            "cont_dam_per": "94",
+            "struct_dam_per": "78"
+        },
+        {
+            "occupancy": "COM1",
+            "depth": "24",
+            "cont_dam_per": "94",
+            "struct_dam_per": "80"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "1",
+            "cont_dam_per": "28",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "2",
+            "cont_dam_per": "40",
+            "struct_dam_per": "1"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "3",
+            "cont_dam_per": "58",
+            "struct_dam_per": "1"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "4",
+            "cont_dam_per": "75",
+            "struct_dam_per": "1"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "5",
+            "cont_dam_per": "75",
+            "struct_dam_per": "3"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "6",
+            "cont_dam_per": "75",
+            "struct_dam_per": "5"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "7",
+            "cont_dam_per": "75",
+            "struct_dam_per": "8"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "8",
+            "cont_dam_per": "75",
+            "struct_dam_per": "12"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "9",
+            "cont_dam_per": "75",
+            "struct_dam_per": "16"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "10",
+            "cont_dam_per": "75",
+            "struct_dam_per": "21"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "11",
+            "cont_dam_per": "80",
+            "struct_dam_per": "26"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "12",
+            "cont_dam_per": "80",
+            "struct_dam_per": "32"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "13",
+            "cont_dam_per": "80",
+            "struct_dam_per": "38"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "14",
+            "cont_dam_per": "80",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "15",
+            "cont_dam_per": "80",
+            "struct_dam_per": "51"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "16",
+            "cont_dam_per": "80",
+            "struct_dam_per": "58"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "17",
+            "cont_dam_per": "80",
+            "struct_dam_per": "65"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "18",
+            "cont_dam_per": "80",
+            "struct_dam_per": "73"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "19",
+            "cont_dam_per": "80",
+            "struct_dam_per": "80"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "20",
+            "cont_dam_per": "80",
+            "struct_dam_per": "87"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "21",
+            "cont_dam_per": "80",
+            "struct_dam_per": "94"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "22",
+            "cont_dam_per": "80",
+            "struct_dam_per": "100"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "23",
+            "cont_dam_per": "80",
+            "struct_dam_per": "100"
+        },
+        {
+            "occupancy": "COM2",
+            "depth": "24",
+            "cont_dam_per": "80",
+            "struct_dam_per": "100"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "0",
+            "cont_dam_per": "4",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "1",
+            "cont_dam_per": "29",
+            "struct_dam_per": "9"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "2",
+            "cont_dam_per": "46",
+            "struct_dam_per": "12"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "3",
+            "cont_dam_per": "67",
+            "struct_dam_per": "13"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "4",
+            "cont_dam_per": "79",
+            "struct_dam_per": "16"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "5",
+            "cont_dam_per": "85",
+            "struct_dam_per": "19"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "6",
+            "cont_dam_per": "91",
+            "struct_dam_per": "22"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "7",
+            "cont_dam_per": "92",
+            "struct_dam_per": "25"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "8",
+            "cont_dam_per": "92",
+            "struct_dam_per": "28"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "9",
+            "cont_dam_per": "93",
+            "struct_dam_per": "32"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "10",
+            "cont_dam_per": "94",
+            "struct_dam_per": "35"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "11",
+            "cont_dam_per": "96",
+            "struct_dam_per": "39"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "12",
+            "cont_dam_per": "96",
+            "struct_dam_per": "43"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "13",
+            "cont_dam_per": "97",
+            "struct_dam_per": "47"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "14",
+            "cont_dam_per": "97",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "15",
+            "cont_dam_per": "98",
+            "struct_dam_per": "54"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "16",
+            "cont_dam_per": "98",
+            "struct_dam_per": "57"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "17",
+            "cont_dam_per": "98",
+            "struct_dam_per": "61"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "18",
+            "cont_dam_per": "98",
+            "struct_dam_per": "64"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "19",
+            "cont_dam_per": "98",
+            "struct_dam_per": "68"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "20",
+            "cont_dam_per": "98",
+            "struct_dam_per": "71"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "21",
+            "cont_dam_per": "98",
+            "struct_dam_per": "75"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "22",
+            "cont_dam_per": "98",
+            "struct_dam_per": "78"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "23",
+            "cont_dam_per": "98",
+            "struct_dam_per": "82"
+        },
+        {
+            "occupancy": "COM3",
+            "depth": "24",
+            "cont_dam_per": "98",
+            "struct_dam_per": "85"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "0",
+            "cont_dam_per": "2",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "1",
+            "cont_dam_per": "18",
+            "struct_dam_per": "12"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "2",
+            "cont_dam_per": "25",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "3",
+            "cont_dam_per": "35",
+            "struct_dam_per": "17"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "4",
+            "cont_dam_per": "43",
+            "struct_dam_per": "19"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "5",
+            "cont_dam_per": "49",
+            "struct_dam_per": "23"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "6",
+            "cont_dam_per": "52",
+            "struct_dam_per": "27"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "7",
+            "cont_dam_per": "55",
+            "struct_dam_per": "31"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "8",
+            "cont_dam_per": "57",
+            "struct_dam_per": "35"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "9",
+            "cont_dam_per": "58",
+            "struct_dam_per": "40"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "10",
+            "cont_dam_per": "60",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "11",
+            "cont_dam_per": "65",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "12",
+            "cont_dam_per": "67",
+            "struct_dam_per": "55"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "13",
+            "cont_dam_per": "68",
+            "struct_dam_per": "59"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "14",
+            "cont_dam_per": "69",
+            "struct_dam_per": "63"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "15",
+            "cont_dam_per": "70",
+            "struct_dam_per": "67"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "16",
+            "cont_dam_per": "71",
+            "struct_dam_per": "71"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "17",
+            "cont_dam_per": "71",
+            "struct_dam_per": "74"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "18",
+            "cont_dam_per": "72",
+            "struct_dam_per": "77"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "19",
+            "cont_dam_per": "72",
+            "struct_dam_per": "80"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "20",
+            "cont_dam_per": "72",
+            "struct_dam_per": "83"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "21",
+            "cont_dam_per": "72",
+            "struct_dam_per": "86"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "22",
+            "cont_dam_per": "72",
+            "struct_dam_per": "89"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "23",
+            "cont_dam_per": "72",
+            "struct_dam_per": "92"
+        },
+        {
+            "occupancy": "COM4",
+            "depth": "24",
+            "cont_dam_per": "72",
+            "struct_dam_per": "95"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "1",
+            "cont_dam_per": "50",
+            "struct_dam_per": "11"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "2",
+            "cont_dam_per": "74",
+            "struct_dam_per": "11"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "3",
+            "cont_dam_per": "83",
+            "struct_dam_per": "12"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "4",
+            "cont_dam_per": "100",
+            "struct_dam_per": "13"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "5",
+            "cont_dam_per": "100",
+            "struct_dam_per": "15"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "6",
+            "cont_dam_per": "100",
+            "struct_dam_per": "17"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "7",
+            "cont_dam_per": "100",
+            "struct_dam_per": "19"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "8",
+            "cont_dam_per": "100",
+            "struct_dam_per": "22"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "9",
+            "cont_dam_per": "100",
+            "struct_dam_per": "24"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "10",
+            "cont_dam_per": "100",
+            "struct_dam_per": "28"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "11",
+            "cont_dam_per": "100",
+            "struct_dam_per": "31"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "12",
+            "cont_dam_per": "100",
+            "struct_dam_per": "34"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "13",
+            "cont_dam_per": "100",
+            "struct_dam_per": "37"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "14",
+            "cont_dam_per": "100",
+            "struct_dam_per": "40"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "15",
+            "cont_dam_per": "100",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "16",
+            "cont_dam_per": "100",
+            "struct_dam_per": "48"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "17",
+            "cont_dam_per": "100",
+            "struct_dam_per": "51"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "18",
+            "cont_dam_per": "100",
+            "struct_dam_per": "55"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "19",
+            "cont_dam_per": "100",
+            "struct_dam_per": "59"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "20",
+            "cont_dam_per": "100",
+            "struct_dam_per": "63"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "21",
+            "cont_dam_per": "100",
+            "struct_dam_per": "67"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "22",
+            "cont_dam_per": "100",
+            "struct_dam_per": "71"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "23",
+            "cont_dam_per": "100",
+            "struct_dam_per": "75"
+        },
+        {
+            "occupancy": "COM5",
+            "depth": "24",
+            "cont_dam_per": "100",
+            "struct_dam_per": "79"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "3",
+            "cont_dam_per": "10",
+            "struct_dam_per": "20"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "4",
+            "cont_dam_per": "20",
+            "struct_dam_per": "25"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "5",
+            "cont_dam_per": "30",
+            "struct_dam_per": "30"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "6",
+            "cont_dam_per": "65",
+            "struct_dam_per": "35"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "7",
+            "cont_dam_per": "72",
+            "struct_dam_per": "40"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "8",
+            "cont_dam_per": "78",
+            "struct_dam_per": "43"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "9",
+            "cont_dam_per": "85",
+            "struct_dam_per": "47"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "10",
+            "cont_dam_per": "95",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "11",
+            "cont_dam_per": "95",
+            "struct_dam_per": "53"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "12",
+            "cont_dam_per": "95",
+            "struct_dam_per": "55"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "13",
+            "cont_dam_per": "95",
+            "struct_dam_per": "57"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "14",
+            "cont_dam_per": "96",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "15",
+            "cont_dam_per": "96",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "16",
+            "cont_dam_per": "96",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "17",
+            "cont_dam_per": "96",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "18",
+            "cont_dam_per": "96",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "19",
+            "cont_dam_per": "96",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "20",
+            "cont_dam_per": "96",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "21",
+            "cont_dam_per": "96",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "22",
+            "cont_dam_per": "96",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "23",
+            "cont_dam_per": "96",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "COM6",
+            "depth": "24",
+            "cont_dam_per": "96",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "2"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "1",
+            "cont_dam_per": "28",
+            "struct_dam_per": "11"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "2",
+            "cont_dam_per": "51",
+            "struct_dam_per": "12"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "3",
+            "cont_dam_per": "60",
+            "struct_dam_per": "13"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "4",
+            "cont_dam_per": "63",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "5",
+            "cont_dam_per": "67",
+            "struct_dam_per": "16"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "6",
+            "cont_dam_per": "71",
+            "struct_dam_per": "17"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "7",
+            "cont_dam_per": "72",
+            "struct_dam_per": "18"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "8",
+            "cont_dam_per": "74",
+            "struct_dam_per": "20"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "9",
+            "cont_dam_per": "77",
+            "struct_dam_per": "22"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "10",
+            "cont_dam_per": "81",
+            "struct_dam_per": "24"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "11",
+            "cont_dam_per": "86",
+            "struct_dam_per": "27"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "12",
+            "cont_dam_per": "92",
+            "struct_dam_per": "30"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "13",
+            "cont_dam_per": "94",
+            "struct_dam_per": "34"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "14",
+            "cont_dam_per": "97",
+            "struct_dam_per": "37"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "15",
+            "cont_dam_per": "99",
+            "struct_dam_per": "41"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "16",
+            "cont_dam_per": "100",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "17",
+            "cont_dam_per": "100",
+            "struct_dam_per": "48"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "18",
+            "cont_dam_per": "100",
+            "struct_dam_per": "51"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "19",
+            "cont_dam_per": "100",
+            "struct_dam_per": "54"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "20",
+            "cont_dam_per": "100",
+            "struct_dam_per": "56"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "21",
+            "cont_dam_per": "100",
+            "struct_dam_per": "59"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "22",
+            "cont_dam_per": "100",
+            "struct_dam_per": "61"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "23",
+            "cont_dam_per": "100",
+            "struct_dam_per": "64"
+        },
+        {
+            "occupancy": "COM7",
+            "depth": "24",
+            "cont_dam_per": "100",
+            "struct_dam_per": "66"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "1"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "1",
+            "cont_dam_per": "40",
+            "struct_dam_per": "9"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "2",
+            "cont_dam_per": "57",
+            "struct_dam_per": "11"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "3",
+            "cont_dam_per": "70",
+            "struct_dam_per": "12"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "4",
+            "cont_dam_per": "71",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "5",
+            "cont_dam_per": "75",
+            "struct_dam_per": "16"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "6",
+            "cont_dam_per": "82",
+            "struct_dam_per": "18"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "7",
+            "cont_dam_per": "100",
+            "struct_dam_per": "20"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "8",
+            "cont_dam_per": "100",
+            "struct_dam_per": "22"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "9",
+            "cont_dam_per": "100",
+            "struct_dam_per": "26"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "10",
+            "cont_dam_per": "100",
+            "struct_dam_per": "29"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "11",
+            "cont_dam_per": "100",
+            "struct_dam_per": "33"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "12",
+            "cont_dam_per": "100",
+            "struct_dam_per": "37"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "13",
+            "cont_dam_per": "100",
+            "struct_dam_per": "41"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "14",
+            "cont_dam_per": "100",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "15",
+            "cont_dam_per": "100",
+            "struct_dam_per": "50"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "16",
+            "cont_dam_per": "100",
+            "struct_dam_per": "53"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "17",
+            "cont_dam_per": "100",
+            "struct_dam_per": "57"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "18",
+            "cont_dam_per": "100",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "19",
+            "cont_dam_per": "100",
+            "struct_dam_per": "63"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "20",
+            "cont_dam_per": "100",
+            "struct_dam_per": "66"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "21",
+            "cont_dam_per": "100",
+            "struct_dam_per": "69"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "22",
+            "cont_dam_per": "100",
+            "struct_dam_per": "73"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "23",
+            "cont_dam_per": "100",
+            "struct_dam_per": "76"
+        },
+        {
+            "occupancy": "COM8",
+            "depth": "24",
+            "cont_dam_per": "100",
+            "struct_dam_per": "78"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "1",
+            "cont_dam_per": "4",
+            "struct_dam_per": "2"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "2",
+            "cont_dam_per": "6",
+            "struct_dam_per": "4"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "3",
+            "cont_dam_per": "8",
+            "struct_dam_per": "5"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "4",
+            "cont_dam_per": "9",
+            "struct_dam_per": "5"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "5",
+            "cont_dam_per": "10",
+            "struct_dam_per": "5"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "6",
+            "cont_dam_per": "12",
+            "struct_dam_per": "6"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "7",
+            "cont_dam_per": "17",
+            "struct_dam_per": "8"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "8",
+            "cont_dam_per": "22",
+            "struct_dam_per": "10"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "9",
+            "cont_dam_per": "30",
+            "struct_dam_per": "12"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "10",
+            "cont_dam_per": "41",
+            "struct_dam_per": "15"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "11",
+            "cont_dam_per": "57",
+            "struct_dam_per": "20"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "12",
+            "cont_dam_per": "66",
+            "struct_dam_per": "24"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "13",
+            "cont_dam_per": "73",
+            "struct_dam_per": "29"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "14",
+            "cont_dam_per": "79",
+            "struct_dam_per": "35"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "15",
+            "cont_dam_per": "84",
+            "struct_dam_per": "42"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "16",
+            "cont_dam_per": "90",
+            "struct_dam_per": "49"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "17",
+            "cont_dam_per": "97",
+            "struct_dam_per": "56"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "18",
+            "cont_dam_per": "98",
+            "struct_dam_per": "62"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "19",
+            "cont_dam_per": "100",
+            "struct_dam_per": "68"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "20",
+            "cont_dam_per": "100",
+            "struct_dam_per": "74"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "21",
+            "cont_dam_per": "100",
+            "struct_dam_per": "80"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "22",
+            "cont_dam_per": "100",
+            "struct_dam_per": "86"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "23",
+            "cont_dam_per": "100",
+            "struct_dam_per": "92"
+        },
+        {
+            "occupancy": "COM9",
+            "depth": "24",
+            "cont_dam_per": "100",
+            "struct_dam_per": "98"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "1",
+            "cont_dam_per": "27",
+            "struct_dam_per": "5"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "2",
+            "cont_dam_per": "38",
+            "struct_dam_per": "7"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "3",
+            "cont_dam_per": "53",
+            "struct_dam_per": "9"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "4",
+            "cont_dam_per": "64",
+            "struct_dam_per": "9"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "5",
+            "cont_dam_per": "68",
+            "struct_dam_per": "10"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "6",
+            "cont_dam_per": "70",
+            "struct_dam_per": "11"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "7",
+            "cont_dam_per": "72",
+            "struct_dam_per": "13"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "8",
+            "cont_dam_per": "75",
+            "struct_dam_per": "15"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "9",
+            "cont_dam_per": "79",
+            "struct_dam_per": "17"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "10",
+            "cont_dam_per": "83",
+            "struct_dam_per": "20"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "11",
+            "cont_dam_per": "88",
+            "struct_dam_per": "24"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "12",
+            "cont_dam_per": "94",
+            "struct_dam_per": "28"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "13",
+            "cont_dam_per": "100",
+            "struct_dam_per": "33"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "14",
+            "cont_dam_per": "100",
+            "struct_dam_per": "39"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "15",
+            "cont_dam_per": "100",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "16",
+            "cont_dam_per": "100",
+            "struct_dam_per": "52"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "17",
+            "cont_dam_per": "100",
+            "struct_dam_per": "59"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "18",
+            "cont_dam_per": "100",
+            "struct_dam_per": "64"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "19",
+            "cont_dam_per": "100",
+            "struct_dam_per": "69"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "20",
+            "cont_dam_per": "100",
+            "struct_dam_per": "74"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "21",
+            "cont_dam_per": "100",
+            "struct_dam_per": "79"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "22",
+            "cont_dam_per": "100",
+            "struct_dam_per": "84"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "23",
+            "cont_dam_per": "100",
+            "struct_dam_per": "89"
+        },
+        {
+            "occupancy": "EDU1",
+            "depth": "24",
+            "cont_dam_per": "100",
+            "struct_dam_per": "94"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "1",
+            "cont_dam_per": "27",
+            "struct_dam_per": "5"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "2",
+            "cont_dam_per": "38",
+            "struct_dam_per": "7"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "3",
+            "cont_dam_per": "53",
+            "struct_dam_per": "9"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "4",
+            "cont_dam_per": "64",
+            "struct_dam_per": "9"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "5",
+            "cont_dam_per": "68",
+            "struct_dam_per": "10"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "6",
+            "cont_dam_per": "70",
+            "struct_dam_per": "11"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "7",
+            "cont_dam_per": "72",
+            "struct_dam_per": "13"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "8",
+            "cont_dam_per": "75",
+            "struct_dam_per": "15"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "9",
+            "cont_dam_per": "79",
+            "struct_dam_per": "17"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "10",
+            "cont_dam_per": "83",
+            "struct_dam_per": "20"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "11",
+            "cont_dam_per": "88",
+            "struct_dam_per": "24"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "12",
+            "cont_dam_per": "94",
+            "struct_dam_per": "28"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "13",
+            "cont_dam_per": "100",
+            "struct_dam_per": "33"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "14",
+            "cont_dam_per": "100",
+            "struct_dam_per": "39"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "15",
+            "cont_dam_per": "100",
+            "struct_dam_per": "45"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "16",
+            "cont_dam_per": "100",
+            "struct_dam_per": "52"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "17",
+            "cont_dam_per": "100",
+            "struct_dam_per": "59"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "18",
+            "cont_dam_per": "100",
+            "struct_dam_per": "64"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "19",
+            "cont_dam_per": "100",
+            "struct_dam_per": "69"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "20",
+            "cont_dam_per": "100",
+            "struct_dam_per": "74"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "21",
+            "cont_dam_per": "100",
+            "struct_dam_per": "79"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "22",
+            "cont_dam_per": "100",
+            "struct_dam_per": "84"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "23",
+            "cont_dam_per": "100",
+            "struct_dam_per": "89"
+        },
+        {
+            "occupancy": "EDU2",
+            "depth": "24",
+            "cont_dam_per": "100",
+            "struct_dam_per": "94"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "1",
+            "cont_dam_per": "30",
+            "struct_dam_per": "5"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "2",
+            "cont_dam_per": "59",
+            "struct_dam_per": "8"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "3",
+            "cont_dam_per": "74",
+            "struct_dam_per": "13"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "4",
+            "cont_dam_per": "83",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "5",
+            "cont_dam_per": "90",
+            "struct_dam_per": "14"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "6",
+            "cont_dam_per": "100",
+            "struct_dam_per": "15"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "7",
+            "cont_dam_per": "100",
+            "struct_dam_per": "17"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "8",
+            "cont_dam_per": "100",
+            "struct_dam_per": "19"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "9",
+            "cont_dam_per": "100",
+            "struct_dam_per": "22"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "10",
+            "cont_dam_per": "100",
+            "struct_dam_per": "26"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "11",
+            "cont_dam_per": "100",
+            "struct_dam_per": "31"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "12",
+            "cont_dam_per": "100",
+            "struct_dam_per": "37"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "13",
+            "cont_dam_per": "100",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "14",
+            "cont_dam_per": "100",
+            "struct_dam_per": "51"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "15",
+            "cont_dam_per": "100",
+            "struct_dam_per": "59"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "16",
+            "cont_dam_per": "100",
+            "struct_dam_per": "65"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "17",
+            "cont_dam_per": "100",
+            "struct_dam_per": "70"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "18",
+            "cont_dam_per": "100",
+            "struct_dam_per": "74"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "19",
+            "cont_dam_per": "100",
+            "struct_dam_per": "79"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "20",
+            "cont_dam_per": "100",
+            "struct_dam_per": "83"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "21",
+            "cont_dam_per": "100",
+            "struct_dam_per": "87"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "22",
+            "cont_dam_per": "100",
+            "struct_dam_per": "91"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "23",
+            "cont_dam_per": "100",
+            "struct_dam_per": "95"
+        },
+        {
+            "occupancy": "GOV1",
+            "depth": "24",
+            "cont_dam_per": "100",
+            "struct_dam_per": "98"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "-4",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "-3",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "-2",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "-1",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "0",
+            "cont_dam_per": "0",
+            "struct_dam_per": "0"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "1",
+            "cont_dam_per": "8",
+            "struct_dam_per": "7"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "2",
+            "cont_dam_per": "20",
+            "struct_dam_per": "10"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "3",
+            "cont_dam_per": "38",
+            "struct_dam_per": "11"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "4",
+            "cont_dam_per": "55",
+            "struct_dam_per": "12"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "5",
+            "cont_dam_per": "70",
+            "struct_dam_per": "15"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "6",
+            "cont_dam_per": "81",
+            "struct_dam_per": "17"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "7",
+            "cont_dam_per": "89",
+            "struct_dam_per": "20"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "8",
+            "cont_dam_per": "98",
+            "struct_dam_per": "23"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "9",
+            "cont_dam_per": "100",
+            "struct_dam_per": "27"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "10",
+            "cont_dam_per": "100",
+            "struct_dam_per": "31"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "11",
+            "cont_dam_per": "100",
+            "struct_dam_per": "35"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "12",
+            "cont_dam_per": "100",
+            "struct_dam_per": "40"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "13",
+            "cont_dam_per": "100",
+            "struct_dam_per": "44"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "14",
+            "cont_dam_per": "100",
+            "struct_dam_per": "48"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "15",
+            "cont_dam_per": "100",
+            "struct_dam_per": "52"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "16",
+            "cont_dam_per": "100",
+            "struct_dam_per": "56"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "17",
+            "cont_dam_per": "100",
+            "struct_dam_per": "60"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "18",
+            "cont_dam_per": "100",
+            "struct_dam_per": "64"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "19",
+            "cont_dam_per": "100",
+            "struct_dam_per": "68"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "20",
+            "cont_dam_per": "100",
+            "struct_dam_per": "72"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "21",
+            "cont_dam_per": "100",
+            "struct_dam_per": "76"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "22",
+            "cont_dam_per": "100",
+            "struct_dam_per": "80"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "23",
+            "cont_dam_per": "100",
+            "struct_dam_per": "84"
+        },
+        {
+            "occupancy": "GOV2",
+            "depth": "24",
+            "cont_dam_per": "100",
+            "struct_dam_per": "88"
+        }
+    ]
+}

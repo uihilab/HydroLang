@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "bridge_locations",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "HighwayBri": "IA005813", "YearRemode": 1900, "ScourIndex": "3", "Cost": 305.9773, "bridgeT": "Continuous Span", "flood100":"yes" , "flood500":"yes" }, "geometry": { "type": "Point", "coordinates": [ -92.482147, 42.766539 ] } }
+]
+}
