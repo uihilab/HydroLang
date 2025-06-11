@@ -18,9 +18,14 @@ import { waterOneFlow, hydroShare, hisCentral } from "./datasources/cuahsi.js";
 import proxies from "./datasources/proxy.js";
 import envelope from "./datasources/soapEnv.js";
 import nws from "./datasources/nws.js"
+import nws_prediction from "./datasources/nwps.js"
 import wqp from "./datasources/wqp.js"
 import mitigation_dt from "./datasources/mitigation_dt.js"
 import flooddamage_dt from "./datasources/flooddamage_dt.js"
+import ECMWF from "./datasources/ecmwf.js"
+import drought from "./datasources/drought.js"
+import nasapower from "./datasources/nasapower.js"
+import nldi from "./datasources/nldi.js"
 
 export {
   usgs,
@@ -42,5 +47,10 @@ export {
   nws,
   wqp,
   mitigation_dt,
-  flooddamage_dt
+  flooddamage_dt,
+  nws_prediction,
+  ECMWF,
+  drought,
+  nasapower,
+  nldi
 };

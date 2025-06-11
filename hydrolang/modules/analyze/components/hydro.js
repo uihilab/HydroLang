@@ -40,6 +40,61 @@ export default class hydro {
     return filtered;
   }
 
+  /**
+   * Computes the Standardized Precipitation Index (SPI) using gamma fit and inverse normal transformation.
+   * @method spiCompute
+   * @memberof stats
+   * @param {Object} params - Parameters for SPI computation
+   * @param {number} params.scale - Aggregation scale for SPI (e.g., 12 for SPI-12)
+   * @param {Array} data - Input precipitation time series (1D array)
+   * @returns {Array} SPI time series
+   */
+  static spiCompute({ params = {}, args = {}, data = [] } = {}) {
+    const scale = params.scale || 12;
+    const EPSILON = 1e-6;
+    const n = data.length;
+    if (n < scale) return [];
+
+    const m = n - scale + 1;
+    const result = new Array(m);
+
+    for (let i = 0; i < m; i++) {
+      let sum = 0;
+      for (let j = 0; j < scale; j++) {
+        let val = data[i + j];
+        if (val < 0.0) val = 0.0;
+        sum += val;
+      }
+      result[i] = sum;
+    }
+
+    const valid = result.filter(x => x > EPSILON);
+    if (valid.length < 10) return result.map(() => 0);
+
+    const mean = stats.default.mean({ data: valid });
+    const log_mean = stats.default.mean({ data: valid.map(x => Math.log(x)) });
+    const s = Math.log(mean) - log_mean;
+
+    const alpha = (1 + Math.sqrt(1 + (4 * s) / 3)) / (4 * s);
+    const beta = mean / alpha;
+
+    function invNormCDF(p) {
+      const t = Math.sqrt(-2.0 * Math.log(1.0 - p));
+      let z = t - (2.515517 + 0.802853 * t + 0.010328 * t * t) /
+                   (1.0 + 1.432788 * t + 0.189269 * t * t + 0.001308 * t * t * t);
+      return p < 0.5 ? -z : z;
+    }
+
+    return result.map(x => {
+      if (x > EPSILON) {
+        const px = stats.default.gammaCDFApprox({ params: { alpha, beta }, data: [x] });
+        const clampedPx = Math.max(Math.min(px, 1 - EPSILON), EPSILON);
+        return invNormCDF(clampedPx);
+      }
+      return 0;
+    });
+  }
+
   /**Thiessen polygon method for rainfall areal averaging.
    * Calculates the weighted average of point rainfall observations by dividing the study area into polygonal subareas and weighting each observation by the proportion of the total area it contributes to.
    * @method thiessen
@@ -873,75 +928,142 @@ export default class hydro {
    */
 
   static rainaggr({ params, args, data } = {}) {
-    var event = data,
-      agtype = params.type,
-      //time interval required by the user in minutes.
-      finagg = params.interval,
+    const isArray1D = Array.isArray(data) && typeof data[0] === "number";
+    const agtype = params.type;
+    const finagg = params.interval; // in minutes
+  
+    let datetr;
+  
+    // Handle single rainfall array
+    if (isArray1D) {
+      const dummyTime = data.map((_, i) => i * finagg * 60 * 1000); // fake uniform timestamp
+      datetr = [dummyTime, data];
+    } else {
+      // assume [time, values] format
       datetr = this.matrix({
-        params: { m: event.length, n: event[1].length, d: 0 },
+        params: { m: data.length, n: data[1].length, d: 0 },
       });
-
-    for (var i = 0; i < event[0].length; i++) {
-      if (typeof event[0][0] == "string") {
-        datetr[0][i] = Date.parse(event[0][i]);
-      } else {
-        datetr[0][i] = event[0][i];
+  
+      const isTimeString = typeof data[0][0] === "string";
+  
+      for (let i = 0; i < data[0].length; i++) {
+        datetr[0][i] = isTimeString ? Date.parse(data[0][i]) : data[0][i];
+      }
+  
+      for (let j = 1; j < data.length; j++) {
+        datetr[j] = data[j];
       }
     }
-
-    for (var j = 1; j < event.length; j++) {
-      datetr[j] = event[j];
-    }
-
-    //change the datatypes of date.
-    if (agtype == "aggr") {
-      //timestep and total duration in minutes.
-      var time = Math.abs(datetr[0][1]),
-        timestep = 0,
-        lastval = 0;
-
-      if (typeof event[0][0] == "string") {
-        time = Math.abs(datetr[0][0]);
-        timestep = Math.abs((datetr[0][0] - datetr[0][1]) / (60 * 1000));
-        lastval = Math.abs(
-          (datetr[0][0] - datetr[0][datetr[0].length - 1]) / (60 * 1000)
-        );
-      } else {
-        time = Math.abs(datetr[0][0]);
-        timestep = Math.abs(datetr[0][0] - datetr[0][1]);
-        lastval = Math.abs(datetr[0][datetr[0].length - 1]);
+  
+    if (agtype === "aggr") {
+      const timeSeries = datetr[0];
+      const rainSeries = datetr[1];
+      const timestep = Math.abs(timeSeries[1] - timeSeries[0]) / (60 * 1000); // in minutes
+      const count = Math.round(finagg / timestep);
+      const totalSteps = Math.floor(timeSeries.length / count);
+  
+      const aggTime = [];
+      const aggData = [];
+  
+      for (let i = 0; i < totalSteps; i++) {
+        const start = i * count;
+        const end = start + count;
+        const segmentTimes = timeSeries.slice(start, end);
+        const segmentData = rainSeries.slice(start, end);
+  
+        const timeVal = new Date(segmentTimes[0]).toISOString();
+        const rainVal = this.totalprec({ data: segmentData });
+  
+        aggTime.push(timeVal);
+        aggData.push(rainVal);
       }
-
-      //amount of steps required and length of each step.
-      var count = Math.round(finagg / timestep);
-      console.log(`Amount of steps: ${count}`);
-      var narr = Math.round(lastval / finagg);
-      console.log(`Final aggregation number: ${narr}`);
-
-      //initialize time and data variables to be handled separately.
-      var fintime = [],
-        findata = [];
-
-      for (var j = 0; j < narr * count; j += count) {
-        var minitime = datetr[0].slice(j, j + count),
-          minidata = datetr[1].slice(j, j + count);
-        if (typeof event[0][0] == "string") {
-          fintime.push(
-            new Date(
-              this.totalprec({ data: minitime }) - time
-            ).toLocaleTimeString()
-          );
-        } else {
-          fintime.push(j);
+  
+      return [aggTime, aggData];
+    } 
+    else if (agtype === "disagg") {
+      const method = params.method || "uniform";
+      const factor = params.factor || 2; // how many substeps per original timestep
+    
+      const originalTimes = datetr[0];
+      const originalVals = datetr[1];
+    
+      const disaggTime = [];
+      const disaggVals = [];
+    
+      const generateSubtimes = (start, interval, steps) => {
+        const dt = interval / steps;
+        return Array.from({ length: steps }, (_, i) => new Date(start + i * dt).toISOString());
+      };
+    
+      const disaggregateValue = (val, method, steps) => {
+        switch (method) {
+          case "uniform":
+            return Array(steps).fill(val / steps);
+    
+          case "normal": {
+            const mean = steps / 2;
+            const stdDev = steps / 6;
+            const weights = Array.from({ length: steps }, (_, i) =>
+              Math.exp(-0.5 * Math.pow((i - mean) / stdDev, 2))
+            );
+            const sum = weights.reduce((a, b) => a + b, 0);
+            return weights.map(w => (w / sum) * val);
+          }
+    
+          case "exponential": {
+            const lambda = 1;
+            const raw = Array.from({ length: steps }, () => -Math.log(Math.random()) / lambda);
+            const total = raw.reduce((a, b) => a + b, 0);
+            return raw.map(x => (x / total) * val);
+          }
+    
+          case "huff": {
+            // Huff Type II 2nd quartile distribution (most intense early-mid period)
+            const basePattern = [0.06, 0.10, 0.14, 0.20, 0.17, 0.13, 0.10, 0.07, 0.02, 0.01];
+            const steps = Math.min(steps, basePattern.length);
+            const pattern = basePattern.slice(0, steps);
+            const sum = pattern.reduce((a, b) => a + b, 0);
+            return pattern.map(p => (p / sum) * val);
+          }
+    
+          case "gumbel": {
+            // Gumbel distribution (for extremes)
+            const u = 0.5772; // Euler-Mascheroni constant
+            const beta = 1;
+            const alpha = 0;
+            const x = Array.from({ length: steps }, (_, i) => i + 1);
+            const weights = x.map(t => Math.exp(-Math.exp(-(t - alpha) / beta)));
+            const total = weights.reduce((a, b) => a + b, 0);
+            return weights.map(w => (w / total) * val);
+          }
+    
+          default:
+            throw new Error("Unknown disaggregation method: " + method);
         }
-        findata.push(this.totalprec({ data: minidata }));
+      };
+    
+      for (let i = 0; i < originalVals.length; i++) {
+        const t0 = typeof originalTimes[i] === "string"
+          ? Date.parse(originalTimes[i])
+          : originalTimes[i];
+        const interval = i < originalTimes.length - 1
+          ? (Date.parse(originalTimes[i + 1]) - t0)
+          : (originalTimes[i] - originalTimes[i - 1]);
+    
+        const subtimes = generateSubtimes(t0, interval, factor);
+        const subdivided = disaggregateValue(originalVals[i], method, factor);
+    
+        disaggTime.push(...subtimes);
+        disaggVals.push(...subdivided);
       }
-      return [fintime, findata];
-    } else if (agtype == "disagg") {
-      var finagg = params.interval;
-      //Unfinished, still need to link more implementation.
+    
+      return [disaggTime, disaggVals];
     }
+    
+  
+    throw new Error("Invalid aggregation type specified");
   }
+  
 
   /**
  * Calculates evapotranspiration using the Penman-Monteith equation
@@ -1422,26 +1544,394 @@ static timeAreaMethod({ params, args, data } = {}) {
 }
 
 /**
+ * Detects precipitation events in a time series based on threshold values and gap parameters
+ * @method detectPrecipEvents
+ * @memberof hydro
+ * @param {Object} args - Contains: threshold (minimum precipitation to consider as an event, default: 10),
+ *                        dryGap (number of consecutive dry periods to consider an event ended, default: 2),
+ *                        responseWindow (number of periods to consider for streamflow response, default: 5)
+ * @param {Object} data - Contains: precipitation time series data (can be a 1D array, 2D array with time and values,
+ *                        or nested array structure), optional streamflow data in similar format
+ * @returns {Object[]} Array of precipitation event objects containing start/end indices, dates and precipitation values
+ * @example
+ * // With 1D precipitation array
+ * hydro.analyze.hydro.detectPrecipEvents({ args: { threshold: 5, dryGap: 3 }, data: [0, 2, 6, 10, 8, 4, 1, 0, 0, 12, 15] });
+ * 
+ * // With time series and streamflow
+ * hydro.analyze.hydro.detectPrecipEvents({ 
+ *   args: { threshold: 5, responseWindow: 7 }, 
+ *   data: [
+ *     [["2023-01-01", "2023-01-02", "2023-01-03"], [2, 10, 15]], // precipitation
+ *     [["2023-01-01", "2023-01-02", "2023-01-03"], [5, 8, 25]]   // streamflow
+ *   ]
+ * });
+ */
+static detectPrecipEvents({ params = {}, args = {}, data } = {}) {
+  const threshold = args.threshold ?? 10;
+  const dryGap = args.dryGap ?? 2;
+  const responseWindow = args.responseWindow ?? 5;
+
+  const isTimeSeries = (arr) =>
+    Array.isArray(arr) &&
+    arr.length === 2 &&
+    Array.isArray(arr[0]) &&
+    typeof arr[0][0] === "string";
+
+  const generateFallbackDates = (length) =>
+    Array.from({ length }, (_, i) => `day${i}`);
+
+  // --- Normalize data to match expected internal structure ---
+  let precipValues, precipTimes, streamValues = [], streamTimes = [];
+
+  if (Array.isArray(data) && typeof data[0] === "number") {
+    // Case: flat 1D array of precip values
+    precipValues = data;
+    precipTimes = generateFallbackDates(data.length);
+  } else if (Array.isArray(data) && Array.isArray(data[0])) {
+    const d0 = data[0];
+
+    if (isTimeSeries(d0)) {
+      [precipTimes, precipValues] = d0;
+    } else if (typeof d0[0] === "number") {
+      precipValues = d0;
+      precipTimes = generateFallbackDates(d0.length);
+    } else {
+      throw new Error("Unsupported precipitation input format.");
+    }
+
+    // Optional streamflow
+    if (data.length > 1) {
+      const d1 = data[1];
+      if (isTimeSeries(d1)) {
+        [streamTimes, streamValues] = d1;
+      } else if (typeof d1[0] === "number") {
+        streamValues = d1;
+        streamTimes = generateFallbackDates(d1.length);
+      } else {
+        throw new Error("Unsupported streamflow input format.");
+      }
+    }
+  } else {
+    throw new Error("Unsupported data format.");
+  }
+
+  const events = [];
+  let i = 0;
+
+  while (i < precipValues.length) {
+    if (precipValues[i] >= threshold) {
+      let end = i + 1;
+      let dryCount = 0;
+
+      while (end < precipValues.length) {
+        if (precipValues[end] < threshold) {
+          dryCount++;
+          if (dryCount >= dryGap) break;
+        } else {
+          dryCount = 0;
+        }
+        end++;
+      }
+
+      const eventStart = i;
+      const eventEnd = end - dryCount;
+
+      const event = {
+        startIndex: eventStart,
+        endIndex: eventEnd,
+        startDate: precipTimes[eventStart],
+        endDate: precipTimes[eventEnd],
+        precip: precipValues.slice(eventStart, eventEnd + 1),
+      };
+
+      if (streamValues.length) {
+        event.streamflowWindow = streamValues.slice(eventStart, eventStart + responseWindow);
+        event.streamflowDates = streamTimes.slice(eventStart, eventStart + responseWindow);
+      }
+
+      events.push(event);
+      i = eventEnd + dryGap;
+    } else {
+      i++;
+    }
+  }
+
+  return events;
+}
+
+
+
+
+
+/**
+ * Analyzes a collection of precipitation-streamflow event pairs between specified start and end dates
+ * Calculates hydrological response metrics like lag time, runoff ratio, and recession characteristics
+ * @method analyzeCollectionofEvents
+ * @memberof hydro
+ * @param {Object} args - Contains: eventStart (start date for analysis), eventEnd (end date for analysis), 
+ *                       baseflowThreshold (threshold to distinguish baseflow from event flow, default: 0)
+ * @param {Object[]} data - Contains: [precipitationTimeSeries, streamflowTimeSeries] where each time series
+ *                         is a 2D array with format [[dates], [values]]
+ * @returns {Object} Analysis results including lag time, runoff ratio, recession duration and key event dates
+ * @example
+ * hydro.analyze.hydro.analyzeCollectionofEvents({
+ *   args: {
+ *     eventStart: '2023-01-15',
+ *     eventEnd: '2023-01-20',
+ *     baseflowThreshold: 2.5
+ *   },
+ *   data: [
+ *     [['2023-01-15', '2023-01-16', '2023-01-17', '2023-01-18', '2023-01-19'], [10, 25, 5, 2, 0]],  // precipitation
+ *     [['2023-01-15', '2023-01-16', '2023-01-17', '2023-01-18', '2023-01-19'], [3, 5, 15, 10, 4]]   // streamflow
+ *   ]
+ * });
+ */
+static analyzeCollectionofEvents({ params = {}, args = {}, data = [] } = {}) {
+  const { eventStart, eventEnd, baseflowThreshold = 0 } = args;
+
+  const toDate = (d) => new Date(d);
+  const toDay = (ms) => ms / (1000 * 60 * 60 * 24);
+
+  const start = toDate(eventStart);
+  const end = toDate(eventEnd);
+
+  const extractSeries = ([times, values]) => {
+    return times.map((t, i) => {
+      const date = toDate(t);
+      if (date >= start && date <= end) {
+        return { date, value: values[i] };
+      }
+      return null;
+    }).filter(e => e !== null);
+  };
+
+  const precipSeries = extractSeries(data[0]);
+  const streamSeries = extractSeries(data[1]);
+
+  // --- Center of Mass of Precipitation ---
+  const totalPrecip = precipSeries.reduce((sum, p) => sum + p.value, 0);
+  const tPrecipMass = precipSeries.reduce(
+    (sum, p) => sum + p.date.getTime() * p.value, 0
+  );
+  const centerMassPrecip = new Date(tPrecipMass / totalPrecip);
+
+  // --- Peak Streamflow ---
+  let peak = { value: -Infinity, date: null };
+  for (let s of streamSeries) {
+    if (s.value > peak.value) {
+      peak = { value: s.value, date: s.date };
+    }
+  }
+
+  const lagTimeDays = toDay(peak.date - centerMassPrecip);
+
+  // --- Runoff Ratio ---
+  const runoffVolume = streamSeries.reduce(
+    (sum, s) => sum + Math.max(0, s.value - baseflowThreshold), 0
+  );
+  const runoffRatio = totalPrecip > 0 ? runoffVolume / totalPrecip : null;
+
+  // --- Recession Duration ---
+  const postPeakFlow = streamSeries.filter(s => s.date > peak.date);
+  let recessionEndDate = null;
+  for (let s of postPeakFlow) {
+    if (s.value <= baseflowThreshold * 1.05) {
+      recessionEndDate = s.date;
+      break;
+    }
+  }
+  const recessionDurationDays = recessionEndDate
+    ? toDay(recessionEndDate - peak.date)
+    : null;
+
+  return {
+    lagTimeDays,
+    runoffRatio,
+    recessionDurationDays,
+    peakFlowDate: peak.date.toISOString(),
+    precipCenterMassDate: centerMassPrecip.toISOString()
+  };
+}
+
+/**
+ * Analyzes precipitation-streamflow events to calculate hydrological response characteristics
+ * Processes multiple events from detectPrecipEvents to calculate metrics like lag time, runoff ratio, 
+ * and recession characteristics for each event and provides summary statistics
+ * @method analyzeEvent
+ * @memberof hydro
+ * @param {Object} args - Contains: baseflowThreshold (threshold to distinguish baseflow from event flow),
+ *                       streamTimes (array of dates/times for streamflow data),
+ *                       bufferDays (number of days to consider after event end, default: 10),
+ *                       estimateBaseflow (whether to automatically estimate baseflow threshold, default: true)
+ * @param {Object[]} data - Contains: [events, fullStreamflow] where events is output from detectPrecipEvents
+ *                         and fullStreamflow is an array of streamflow values
+ * @returns {Object} Object containing detailed results for each event and summary statistics across all events
+ * @example
+ * // First detect events
+ * const events = hydro.analyze.hydro.detectPrecipEvents({
+ *   args: { threshold: 5 },
+ *   data: precipitationData
+ * });
+ * 
+ * // Then analyze the events
+ * hydro.analyze.hydro.analyzeEvent({
+ *   args: {
+ *     baseflowThreshold: 2.0,
+ *     streamTimes: ['2023-01-01', '2023-01-02', '2023-01-03', ...],
+ *     bufferDays: 7
+ *   },
+ *   data: [events, streamflowData]
+ * });
+ */
+static analyzeEvent({ params = {}, args = {}, data = [] } = {}) {
+  let {
+    baseflowThreshold = null,
+    streamTimes = [],
+    bufferDays = 10,
+    estimateBaseflow = true
+  } = args;
+
+  const [events, fullStreamflow] = data;
+
+  const toDate = (d) => new Date(d);
+  const toDay = (ms) => ms / (1000 * 60 * 60 * 24);
+
+  // Estimate baseflow threshold if requested
+  if (baseflowThreshold == null && estimateBaseflow) {
+    const sorted = [...fullStreamflow].sort((a, b) => a - b);
+    baseflowThreshold = sorted[Math.floor(0.1 * sorted.length)];
+    console.log("Estimated baseflowThreshold (10th percentile):", baseflowThreshold);
+  }
+
+  const results = [];
+
+  for (const event of events) {
+    const { startIndex, endIndex, precip } = event;
+    if (startIndex == null || endIndex == null || !Array.isArray(precip)) continue;
+
+    const eventLength = endIndex - startIndex + 1;
+
+    const precipDates = Array.from({ length: precip.length }, (_, i) =>
+      new Date(Date.UTC(2000, 0, 1 + startIndex + i))
+    );
+
+    const streamEndIndex = Math.min(fullStreamflow.length - 1, endIndex + bufferDays);
+    const streamValues = fullStreamflow.slice(startIndex, streamEndIndex + 1);
+
+    const streamDates = streamTimes.length
+      ? streamTimes.slice(startIndex, streamEndIndex + 1).map(toDate)
+      : Array.from({ length: streamValues.length }, (_, i) =>
+          new Date(Date.UTC(2000, 0, 1 + startIndex + i))
+        );
+
+    // Center of Mass of Precipitation
+    const totalPrecip = precip.reduce((sum, p) => sum + p, 0);
+    const tPrecipMass = precip.reduce(
+      (sum, val, i) => sum + precipDates[i].getTime() * val,
+      0
+    );
+    const centerMassPrecip = totalPrecip > 0 ? new Date(tPrecipMass / totalPrecip) : null;
+
+    // Peak Streamflow
+    let peak = { value: -Infinity, date: null, index: null };
+    for (let i = 0; i < streamValues.length; i++) {
+      if (streamValues[i] > peak.value) {
+        peak = { value: streamValues[i], date: streamDates[i], index: i };
+      }
+    }
+
+    const lagTimeDays =
+      centerMassPrecip && peak.date ? toDay(peak.date - centerMassPrecip) : null;
+
+    // Runoff Ratio
+    const runoffVolume = streamValues.reduce(
+      (sum, val) => sum + Math.max(0, val - baseflowThreshold),
+      0
+    );
+    const runoffRatio = totalPrecip > 0 ? runoffVolume / totalPrecip : null;
+
+    // Recession Duration
+    const postPeakFlow = streamDates
+      .map((d, i) => ({ date: d, value: streamValues[i] }))
+      .filter((d, i) => i > peak.index);
+
+    let recessionEndDate = null;
+    for (let s of postPeakFlow) {
+      if (s.value <= baseflowThreshold * 1.05) {
+        recessionEndDate = s.date;
+        break;
+      }
+    }
+
+    if (!recessionEndDate && postPeakFlow.length > 0) {
+      recessionEndDate = postPeakFlow[postPeakFlow.length - 1].date;
+    }
+
+    const recessionDurationDays = recessionEndDate
+      ? toDay(recessionEndDate - peak.date)
+      : null;
+
+    results.push({
+      lagTimeDays,
+      runoffRatio,
+      recessionDurationDays,
+      peakFlowDate: peak.date?.toISOString() ?? null,
+      precipCenterMassDate: centerMassPrecip?.toISOString() ?? null,
+      maxPrecip: Math.max(...precip)
+    });
+  }
+
+  // Compute statistics with avg/min/max
+  const stats = (key) => {
+    const vals = results.map(r => r[key]).filter(v => typeof v === 'number');
+    if (!vals.length) return { avg: null, min: null, max: null };
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    return {
+      avg,
+      min: Math.min(...vals),
+      max: Math.max(...vals)
+    };
+  };
+
+  const averages = {
+    lagTimeDays: stats('lagTimeDays'),
+    runoffRatio: stats('runoffRatio'),
+    recessionDurationDays: stats('recessionDurationDays'),
+    totalEvents: results.length
+  };
+
+  return { results, averages };
+}
+
+
+
+
+
+/**
  * Performs single channel routing of a hydrological process using the Kinematic Wave Routing method 
- *  * Reference: https://www.engr.colostate.edu/~ramirez/ce_old/classes/cive322-Ramirez/CE322_Web/ExampleKinematicWave.pdf
+ * The kinematic wave method is a simplified form of the Saint-Venant equations, assuming the friction slope
+ * equals the channel bed slope, allowing for modeling of water movement in channels or overland flow
+ * Reference: https://www.engr.colostate.edu/~ramirez/ce_old/classes/cive322-Ramirez/CE322_Web/ExampleKinematicWave.pdf
  * @method kinematicWaveRouting
  * @author riya-patil
  * @memberof hydro
- * @param {Object} params - travel time coefficient (C) represents time for water to travel a unit length of channel, 
- * Length of the reach (L) represents distance water travels within the channel, Time step (dt) is duration of each time interval
- * @param {Object} data - Input data for the routing
- * @returns {number[]} - Array of outflow values at each time step.
+ * @param {Object} params - Contains: C (travel time coefficient representing time for water to travel a unit length of channel),
+ *                        L (length of the reach in distance units),
+ *                        dt (time step in appropriate time units),
+ *                        initialDepth (initial water depth in the channel)
+ * @param {Object} data - Contains: inflow (array of inflow values at each time step)
+ * @returns {number[]} Array of outflow values at each time step
  * @example
-const params = {
-    C: 0.6,
-    L: 1000,
-    dt: 1
-    initialDepth: 0
-  };
-const data = {
-  inflow: [10, 15, 20, 18, 12],
-};
-hydro.analyze.hydro.kinematicWaveRouting({ params, data });
+ * const params = {
+ *   C: 0.6,        // Travel time coefficient 
+ *   L: 1000,       // Length of the reach in meters
+ *   dt: 1,         // Time step in hours
+ *   initialDepth: 0.5  // Initial water depth in meters
+ * };
+ * const data = {
+ *   inflow: [10, 15, 20, 18, 12]  // Inflow values in cubic meters per second
+ * };
+ * hydro.analyze.hydro.kinematicWaveRouting({ params, data });
  */
 static kinematicWaveRouting({ params, args, data }= {}) {
   const { C, L, dt, initialDepth } = params;
@@ -1465,57 +1955,70 @@ static kinematicWaveRouting({ params, args, data }= {}) {
 
 
 /**
-   * Calculate groundwater flow using Darcy's law for unconfined aquifers
-   * Reference: https://books.gw-project.org/hydrogeologic-properties-of-
-   * earth-materials-and-principles-of-groundwater-flow/chapter/darcys-law/
+   * Calculate groundwater flow using Darcy's law for different aquifer types (confined, unconfined, dynamic)
+   * Darcy's law describes the flow of a fluid through a porous medium and is fundamental to hydrogeology
+   * Reference: https://books.gw-project.org/hydrogeologic-properties-of-earth-materials-and-principles-of-groundwater-flow/chapter/darcys-law/
    * @method darcysLaw
    * @author riya-patil
    * @memberof hydro
-   * @param {Object} params - aquifer type (confined, unconfined, dynamic)
-   * @param {Object} args - hydraulicConductivity (ability to transmit water in m/s or cm/s), 
-   * and porosity (fraction of total volume filled with pores, dimensionless/percentage)
-   * @param {Object} data - hydraulicGradient (change in hydraulic head per unit distance, dimensionless), 
-   * aquiferThickness (thickness at a specific location, typically in meters/cm)
-   * @returns {number} Groundwater flow rate in unconfined aquifers
-   * @throws {Error} if the type of aquifer inputted is not a valid choice
+   * @param {Object} params - Contains: aquiferType (type of aquifer: "confined", "unconfined", or "dynamic"),
+   *                         for "dynamic" type, also requires storageCoefficient and changeInAquiferThickness
+   * @param {Object} args - Contains: hydraulicConductivity (ability to transmit water, in m/s or cm/s),
+   *                       porosity (fraction of volume filled with pores, dimensionless, default: 0)
+   * @param {Object} data - Contains: hydraulicGradients (array of hydraulic gradient values, change in head per unit distance),
+   *                       aquiferThickness (array of aquifer thickness values at corresponding locations, in meters/cm)
+   * @returns {number[]} Array of groundwater flow rates for each location
+   * @throws {Error} If an invalid aquifer type is provided
    * @example
-   * const unconfinedParams = {
-      hydraulicConductivity: 10,     
-      hydraulicGradient: 0.05,
-     aquiferThickness: 20 
-    };
-    hydro.analyze.hydro.darceysLawUnconfined({params: unconfinedParams})
+   * // For unconfined aquifer
+   * hydro.analyze.hydro.darcysLaw({
+   *   params: { aquiferType: "unconfined" },
+   *   args: { hydraulicConductivity: 10, porosity: 0.3 },
+   *   data: { 
+   *     hydraulicGradients: [0.05, 0.06, 0.04],
+   *     aquiferThickness: [20, 25, 18]
+   *   }
+   * });
+   * 
+   * // For confined aquifer
+   * hydro.analyze.hydro.darcysLaw({
+   *   params: { aquiferType: "confined" },
+   *   args: { hydraulicConductivity: 5 },
+   *   data: { 
+   *     hydraulicGradients: [0.02, 0.03],
+   *     aquiferThickness: [15, 20]
+   *   }
+   * });
    */
-    static darcysLaw({ params, args, data } = {}) {
-      const { aquiferType } = params;
-      const { hydraulicConductivity, porosity = 0 } = args;
-      const { hydraulicGradients = [], aquiferThickness } = data;
-    
-      const groundwaterFlows = [];
-    
-      for (let i = 0; i < hydraulicGradients.length; i++) {
-        let groundwaterFlow;
-    
-        if (aquiferType === 'confined') {
-          const transmissivity = hydraulicConductivity * aquiferThickness[i];
-          groundwaterFlow = transmissivity * hydraulicGradients[i];
-        } else if (aquiferType === 'unconfined') {
-          groundwaterFlow = hydraulicConductivity * hydraulicGradients[i] * aquiferThickness[i] * porosity;
-        } else if (aquiferType === 'dynamic') {
-          const { storageCoefficient, changeInAquiferThickness } = params;
-          groundwaterFlow =
-            hydraulicConductivity * hydraulicGradients[i] * aquiferThickness[i] +
-            storageCoefficient * changeInAquiferThickness[i];
-        } else {
-          throw new Error('Invalid aquifer type.');
-        }
-    
-        groundwaterFlows.push(groundwaterFlow);
+  static darcysLaw({ params, args, data } = {}) {
+    const { aquiferType } = params;
+    const { hydraulicConductivity, porosity = 0 } = args;
+    const { hydraulicGradients = [], aquiferThickness } = data;
+  
+    const groundwaterFlows = [];
+  
+    for (let i = 0; i < hydraulicGradients.length; i++) {
+      let groundwaterFlow;
+  
+      if (aquiferType === 'confined') {
+        const transmissivity = hydraulicConductivity * aquiferThickness[i];
+        groundwaterFlow = transmissivity * hydraulicGradients[i];
+      } else if (aquiferType === 'unconfined') {
+        groundwaterFlow = hydraulicConductivity * hydraulicGradients[i] * aquiferThickness[i] * porosity;
+      } else if (aquiferType === 'dynamic') {
+        const { storageCoefficient, changeInAquiferThickness } = params;
+        groundwaterFlow =
+          hydraulicConductivity * hydraulicGradients[i] * aquiferThickness[i] +
+          storageCoefficient * changeInAquiferThickness[i];
+      } else {
+        throw new Error('Invalid aquifer type.');
       }
-    
-      return groundwaterFlows;
+  
+      groundwaterFlows.push(groundwaterFlow);
     }
-    
+  
+    return groundwaterFlows;
+  }
 
 /**
  * Calculates the dissolved oxygen demand based on the given parameters and data
@@ -1584,41 +2087,49 @@ static inverseDistanceWeighting({ params, args, data } = {}) {
 }
 
  /**
-   * Generates synthetic rainfall data based on statistical characteristics of observed rainfall
+   * Generates synthetic rainfall data based on statistical characteristics of observed rainfall patterns
+   * This method uses statistical properties like mean and standard deviation of historical data
+   * to generate realistic synthetic rainfall time series for hydrological modeling
    * Reference: https://cran.r-project.org/web/packages/RGENERATEPREC/vignettes/precipitation_stochastic_generation_v8.html
-   @method stochasticRainfallGeneration
-   @author riya-patil
- * @memberof hydro
- * @param {Object} params - Contains observedRainfall (array of observed rainfall data).
- * @returns {number[]} Array of synthetic rainfall values generated based on the statistical characteristics.
- * @throws {Error} If observedRainfall is not provided or not in the correct format.
- * @example
- * hydro.analyze.hydro.stochasticRainfallGeneration({
- *   params: {
- *     observedRainfall: [observed_value_1, observed_value_2, observed_value_3]
- *   }
- * });
- */
- static stochasticRainfallGeneration({ params, args, data } = {}) {
-  if (!data || !Array.isArray(data)) {
-    throw new Error('Invalid data input. observedRainfall must be provided as an array.');
+   * @method stochasticRainfallGeneration
+   * @author riya-patil
+   * @memberof hydro
+   * @param {Object} params - Contains: distributionType (optional, distribution to use for generation: 'normal', 'binomial', or 'multinomial'; default: 'normal')
+   * @param {number[]} data - Array of observed rainfall values to use as the basis for synthetic generation
+   * @returns {number[]} Array of synthetic rainfall values with similar statistical properties to the observed data
+   * @throws {Error} If observed rainfall data is not provided or not in the correct format
+   * @example
+   * // Generate synthetic rainfall using normal distribution
+   * hydro.analyze.hydro.stochasticRainfallGeneration({
+   *   params: { distributionType: 'normal' },
+   *   data: [5.2, 10.5, 0, 2.3, 8.7, 15.2, 0, 0, 4.5]
+   * });
+   * 
+   * // Generate synthetic rainfall with default parameters
+   * hydro.analyze.hydro.stochasticRainfallGeneration({
+   *   data: [5.2, 10.5, 0, 2.3, 8.7, 15.2, 0, 0, 4.5]
+   * });
+   */
+  static stochasticRainfallGeneration({ params, args, data } = {}) {
+    if (!data || !Array.isArray(data)) {
+      throw new Error('Invalid data input. observedRainfall must be provided as an array.');
+    }
+  
+    const observedRainfall = data;
+    const numDataPoints = observedRainfall.length;
+    const distType = typeof params !== 'undefined' ? params.distributionType :  'normal'
+  
+    const meanRainfall = stats.mean({data: observedRainfall});
+    const stdDevRainfall = stats.stddev({data: observedRainfall});
+  
+    const syntheticRainfall = [];
+    for (let i = 0; i < numDataPoints; i++) {
+      const syntheticValue = this.generateSyntheticValue(meanRainfall, stdDevRainfall, distType);
+      syntheticRainfall.push(syntheticValue);
+    }
+  
+    return syntheticRainfall;
   }
-
-  const observedRainfall = data;
-  const numDataPoints = observedRainfall.length;
-  const distType = typeof params !== 'undefined' ? params.distributionType :  'normal'
-
-  const meanRainfall = stats.mean({data: observedRainfall});
-  const stdDevRainfall = stats.stddev({data: observedRainfall});
-
-  const syntheticRainfall = [];
-  for (let i = 0; i < numDataPoints; i++) {
-    const syntheticValue = this.generateSyntheticValue(meanRainfall, stdDevRainfall, distType);
-    syntheticRainfall.push(syntheticValue);
-  }
-
-  return syntheticRainfall;
-}
 
   /**
    * Calibrates the pH sensor reading using calibration values
@@ -2222,14 +2733,20 @@ static rainfallInterceptionModel({data}) {
 
   /**
  * Calculate the pH value based on the concentration of hydrogen ions (H+)
+ * pH is a measure of the acidity or alkalinity of a solution, defined as the negative logarithm (base 10)
+ * of the hydrogen ion concentration. The pH scale ranges from 0 to 14, with pH 7 being neutral.
+ * Values below 7 indicate acidity, while values above 7 indicate alkalinity.
  * @method calculatepH
  * @author riya-patil
  * @memberof hydro
- * @param {Object} params - The parameters for pH calculation
- * @returns {number} The pH value
+ * @param {Object} params - Contains: hConcentration (hydrogen ion concentration in moles per liter)
+ * @returns {number} The calculated pH value
  * @example
- * const params = { hConcentration: 1e-7 };
- * hydro.analyze.hydro.calculatepH({params})
+ * // Calculate pH for pure water at 25°C (H+ concentration = 1×10^-7 mol/L)
+ * hydro.analyze.hydro.calculatepH({ params: { hConcentration: 1e-7 } }); // Returns 7.0
+ * 
+ * // Calculate pH for an acidic solution (H+ concentration = 1×10^-4 mol/L)
+ * hydro.analyze.hydro.calculatepH({ params: { hConcentration: 1e-4 } }); // Returns 4.0
  */
 static calculatepH({params, args, data} = {}) {
   const { hConcentration } = params;
@@ -2306,14 +2823,22 @@ static convertTemperature({params, args, data} = {}) {
 
 /**
    * Calculates Julian day from a given date
+   * The Julian day is a continuous count of days since the beginning of the Julian period (4713 BCE),
+   * used primarily in astronomy, physics, and scientific calculations requiring a standard date reference.
+   * This function implements the standard algorithm for Julian day number calculation.
    * @method getJulianDay
    * @author riya-patil
    * @memberof hydro
-   * @param {string|Date} date The input date as a string in a recognized date format or a Date object
-   * @returns {number} calculated Julian date
-   * @throws {Error} If the input date format is invalid
+   * @param {string|Date} date - The input date as a string in a recognized date format (e.g., 'YYYY-MM-DD') or a Date object
+   * @returns {number} Calculated Julian day number corresponding to the input date
+   * @throws {Error} If the input date format is invalid or cannot be parsed
    * @example 
-   * hydro.analyze.hydro.getJulianDay('2022-01-01')
+   * // Calculate Julian day from a string date
+   * const jd1 = hydro.analyze.hydro.getJulianDay('2022-01-01'); // Returns 2459580.5
+   * 
+   * // Calculate Julian day from a Date object
+   * const dateObj = new Date(2022, 0, 1);
+   * const jd2 = hydro.analyze.hydro.getJulianDay(dateObj); // Returns 2459580.5
    */
 static getJulianDay(date) {
   let inputDate;
@@ -2339,4 +2864,24 @@ static getJulianDay(date) {
   /**********************************/
   /*** End of Helper functions **/
   /**********************************/
+
+  /**
+ * Generates synthetic values based on statistical distributions
+ * This utility function creates random values from various probability distributions
+ * and is used by other functions that need to generate synthetic data series
+ * @method generateSyntheticValue
+ * @author riya-patil
+ * @memberof hydro
+ * @param {number} mean - Mean (average) value for the distribution
+ * @param {number} stdDev - Standard deviation for the distribution, representing the spread
+ * @param {string} distributionType - Type of probability distribution to use: 'normal', 'binomial', or 'multinomial'
+ * @returns {number} A randomly generated value based on the specified distribution parameters
+ * @throws {Error} If an invalid distribution type is specified
+ * @example
+ * // Generate a value from a normal distribution with mean 10 and standard deviation 2
+ * const normalValue = hydro.analyze.hydro.generateSyntheticValue(10, 2, 'normal');
+ * 
+ * // Generate a value from a binomial distribution
+ * const binomialValue = hydro.analyze.hydro.generateSyntheticValue(20, 0.5, 'binomial');
+ */
 }

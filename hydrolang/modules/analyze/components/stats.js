@@ -110,26 +110,73 @@ export default class stats {
    * hydro.analyze.stats.gapremoval({data: [someData]})
    */
 
-  static gapremoval({ params, args, data } = {}) {
-    var arr = data,
-      or = this.copydata({ data: arr }),
-      val;
-
-    if (typeof or[0] != "object") {
-      val = this.cleaner({ data: or });
-    } else {
-      var time = or[0],
-        ds = or[1];
-      for (var i = 0; i < ds.length; i++) {
-        if (ds[i] === undefined || Number.isNaN(ds[i]) || ds[i] === false) {
-          delete time[i];
+  static gapremoval({ params = {}, args = {}, data } = {}) {
+    const gapValues = params.gapValues || [undefined, null, NaN, false, -9999, 9999];
+    const method = args.method || 'interpolate'; // 'interpolate', 'mean', 'median'
+    const isGap = (v) => gapValues.some(gap => Object.is(gap, v) || (Number.isNaN(gap) && Number.isNaN(v)));
+  
+    const cleanArray = (arr) => arr.filter(v => !isGap(v));
+  
+    const interpolate = (arr) => {
+      const result = [...arr];
+      for (let i = 0; i < result.length; i++) {
+        if (isGap(result[i])) {
+          // Find nearest non-gap neighbors
+          let prev = i - 1;
+          let next = i + 1;
+          while (prev >= 0 && isGap(result[prev])) prev--;
+          while (next < result.length && isGap(result[next])) next++;
+  
+          if (prev >= 0 && next < result.length) {
+            result[i] = (result[prev] + result[next]) / 2;
+          } else if (prev >= 0) {
+            result[i] = result[prev];
+          } else if (next < result.length) {
+            result[i] = result[next];
+          } else {
+            result[i] = 0;
+          }
         }
       }
-      val = this.cleaner({ data: ds });
-      time = this.cleaner({ data: time });
-      return [time, val];
+      return result;
+    };
+  
+    const fillStat = (arr, stat = 'mean') => {
+      const valid = cleanArray(arr);
+      const fill = stat === 'median'
+        ? valid.sort((a, b) => a - b)[Math.floor(valid.length / 2)]
+        : valid.reduce((a, b) => a + b, 0) / valid.length;
+      return arr.map(v => isGap(v) ? fill : v);
+    };
+  
+    if (!Array.isArray(data)) return data;
+  
+    // Case 1: Flat numeric array
+    if (typeof data[0] !== 'object') {
+      return method === 'interpolate'
+        ? interpolate(data)
+        : fillStat(data, method);
     }
+  
+    // Case 2: 2D array (e.g. [time, values])
+    let time = data[0], series = data[1];
+  
+    // Optionally remove both time & value if value is invalid
+    const validTime = [], validSeries = [];
+    for (let i = 0; i < series.length; i++) {
+      if (!isGap(series[i])) {
+        validTime.push(time[i]);
+        validSeries.push(series[i]);
+      }
+    }
+  
+    let filled = method === 'interpolate'
+      ? interpolate(series)
+      : fillStat(series, method);
+  
+    return [time, filled];
   }
+  
 
   /**
    * Identifies gaps in time. Used for filling gaps if required by the
@@ -386,6 +433,7 @@ export default class stats {
    */
 
   static frequency({ params, args, data } = {}) {
+    console.log(data)
     var _arr = this.copydata({ data: data }),
       counter = {};
     _arr.forEach((i) => {
@@ -543,26 +591,60 @@ export default class stats {
    * data: [[time1, time2,...], [data1, data2,...]]})
    */
 
-  static outremove({ params, args, data } = {}) {
-    var out,
-      p1 = args.p1,
-      p2 = args.p2;
-
-    if (params.type === "normalized") {
-      out = this.normoutliers({ params: { low: p1, high: p2 }, data: data });
+  static outremove({ data, args = {}, params = {} } = {}) {
+    const {
+      replaceValue = 0,
+      thresholds = [-9999, 9999],
+    } = args;
+  
+    const isOutlier = (v) =>
+      typeof v === 'number' &&
+      (v <= thresholds[0] || v >= thresholds[1]);
+  
+    const convert = (v) => {
+      const n = Number(v);
+      return isNaN(n) ? v : n;
+    };
+  
+    const clean1D = (arr) => arr.map(v => {
+      const num = convert(v);
+      return isOutlier(num) ? replaceValue : num;
+    });
+  
+    const clean2D = (arr) => arr.map(sub => clean1D(sub));
+  
+    const isNamedStructure = (arr) =>
+      Array.isArray(arr) &&
+      arr.length === 2 &&
+      typeof arr[0][0] === 'string' &&
+      typeof arr[1][0] === 'string';
+  
+    if (Array.isArray(data[0])) {
+      if (isNamedStructure(data)) {
+        const [timeRow, valueRow] = data;
+  
+        const timeHeader = timeRow[0];
+        const valueHeader = valueRow[0];
+  
+        const timeArray = timeRow.slice(1);
+        const valueArray = valueRow.slice(1).map(convert);
+  
+        const cleanedValues = valueArray.map(v =>
+          isOutlier(v) ? replaceValue : v
+        );
+  
+        return [
+          [timeHeader, ...timeArray],
+          [valueHeader, ...cleanedValues]
+        ];
+      } else {
+        return clean2D(data);
+      }
     } else {
-      out = this.interoutliers({ params: { q1: p1, q2: p2 }, data: data });
-    }
-
-    if (typeof data[0] != "object") {
-      return this.itemfilter(arr, out);
-    } else {
-      var t = this.itemfilter(arr[0], out[0]),
-        or = this.itemfilter(arr[1], out[1]);
-
-      return [t, or];
+      return clean1D(data);
     }
   }
+  
 
   /**
    * Calculates pearson coefficient for bivariate analysis.
@@ -603,30 +685,48 @@ export default class stats {
   }
 
   /**
-   * Calculates different types of efficiencies for hydrological models: Nash-Sutcliffe, Coefficient of Determination and Index of Agreement.
-   * Only accepts 1D array of observed and model data within the same time resolution.
-   * Range of validity: Nash-Sutcliffe: between 0.6-0.7 is acceptable, over 0.7 is very good.
-   * Determination coefficient: between 0 and 1, 1 being the highest with no dispersion between the data sets and 0 meaning there is no correlation.
-   * Index of agrement: between 0 and 1, with more than 0.65 being considered good.
-   * All efficiencies have limitations and showcase statistically the well performance of a model, but should not be considered as only variable for evaluation.
+   * Calculates various efficiency metrics to evaluate model performance
+   * Efficiency metrics are essential for evaluating hydrological model performance by comparing
+   * simulated outputs with observed data. These metrics help quantify the accuracy and reliability
+   * of models for streamflow prediction, water quality simulation, or other hydrological processes.
    * @method efficiencies
    * @memberof stats
-   * @param {Object} options - The options object.
-   * @param {Object} options.params - An object containing the type of efficiency to calculate ('NSE','determination', 'agreement', 'all').
-   * @param {Object} options.data - A 2D array with values arranged as [[observed], [model]].
-   * @param {Array} [options.args] - An optional array of additional arguments to pass to the function.
-   * @returns {Number|Object} - A number representing the calculated metric, or an object containing multiple metrics if 'all' is specified.
+   * @param {Object} params - Contains: type (type of efficiency metric to calculate)
+   *                          Options include:
+   *                          - 'NSE': Nash-Sutcliffe Efficiency (ranges from -∞ to 1, with 1 being perfect)
+   *                          - 'determination': Coefficient of determination (R²) (ranges from 0 to 1)
+   *                          - 'agreement': Index of agreement (ranges from 0 to 1)
+   *                          - 'all': Calculate all available metrics
+   * @param {Array} data - Array containing two arrays: [observed, modeled] values
+   * @returns {Number|Object} - A number representing the calculated metric, or an object containing multiple metrics if 'all' is specified
    * @example
-   * // Calculate Nash-Sutcliffe efficiency:
-   * const obs = [1, 2, 3];
-   * const model = [1.5, 2.5, 3.5];
-   * const NSE = hydro.analyze.stats.efficiencies({ params: { type: 'NSE' }, data: [obs, model] });
-   *
-   * // Calculate all efficiencies:
-   * const metrics = hydro.analyze.stats.efficiencies({ params: { type: 'all' }, data: [obs, model] });
-   * // metrics = { NSE: 0.72, r2: 0.5, d: 0.62 }
+   * // Calculate Nash-Sutcliffe Efficiency for a streamflow model
+   * const observedFlow = [12.5, 15.2, 22.8, 31.5, 25.4, 18.7, 10.3, 8.2];
+   * const modeledFlow = [11.3, 14.7, 20.5, 28.9, 27.1, 16.2, 11.8, 7.5];
+   * 
+   * const nse = hydro.analyze.stats.efficiencies({ 
+   *   params: { type: 'NSE' }, 
+   *   data: [observedFlow, modeledFlow] 
+   * });
+   * console.log(`NSE: ${nse.toFixed(3)}`); // Example: NSE: 0.856
+   * 
+   * // Calculate all efficiency metrics for model evaluation
+   * const metrics = hydro.analyze.stats.efficiencies({ 
+   *   params: { type: 'all' }, 
+   *   data: [observedFlow, modeledFlow] 
+   * });
+   * 
+   * console.log(`NSE: ${metrics.NSE.toFixed(3)}`);       // Example: 0.856
+   * console.log(`R²: ${metrics.r2.toFixed(3)}`);         // Example: 0.923
+   * console.log(`Agreement: ${metrics.d.toFixed(3)}`);   // Example: 0.947
+   * 
+   * // Interpretation guidelines for NSE values in hydrology:
+   * // NSE > 0.8: Excellent model performance
+   * // 0.6 < NSE < 0.8: Very good performance
+   * // 0.4 < NSE < 0.6: Good performance
+   * // 0.2 < NSE < 0.4: Poor performance
+   * // NSE < 0.2: Unacceptable performance
    */
-
   static efficiencies({ params, args, data } = {}) {
     let { type } = params,
       [obs, model] = data;
@@ -854,51 +954,194 @@ export default class stats {
   /***************************/
 
   /**
-   * Mann-Kendall trend test
-   * Checks for mononicity of data throughout time.
-   * Reference: Kottegoda & Rosso, 2008.
+   * Performs the Mann-Kendall trend test for time series data
+   * The Mann-Kendall test is a non-parametric statistical test used to identify trends in time series data.
+   * In hydrology, it's widely used to detect monotonic trends in climate variables, streamflow, water quality,
+   * and other environmental data. This test is particularly valuable because it doesn't require normally
+   * distributed data and is robust against outliers.
    * @method MK
    * @memberof stats
-   * @author Alexander Michalek & Renato Amorim, IFC, University of Iowa.
-   * @param {Object[]} data - Contains: 1d-JS array with timeseries
-   * @returns {Object[]} 1d array with 3 values: p-value, value sum and z value
+   * @param {Object} params - Contains alpha (significance level, default 0.05)
+   * @param {Object} data - Array of time series data to test for trend
+   * @returns {Object} Results containing:
+   *   - S: Mann-Kendall statistic
+   *   - z: Standardized test statistic 
+   *   - p: p-value of the test
+   *   - trend: String indicating detected trend ("increasing", "decreasing", or "no trend")
+   *   - significant: Boolean indicating if trend is statistically significant
    * @example
-   * hydro.analyze.stats.MK({data: [someData]})
+   * // Detect trend in annual streamflow data (m³/s) over 30 years
+   * const annualStreamflow = [
+   *   105, 98, 102, 95, 90, 100, 92, 87, 93, 85,
+   *   88, 82, 80, 85, 78, 75, 80, 76, 72, 70,
+   *   75, 68, 65, 72, 67, 62, 65, 60, 58, 55
+   * ];
+   * 
+   * const trendResult = hydro.analyze.stats.MK({
+   *   params: { alpha: 0.05 },  // 5% significance level
+   *   data: annualStreamflow
+   * });
+   * 
+   * // Interpret the results for water resource management
+   * if (trendResult.significant) {
+   *   if (trendResult.trend === "decreasing") {
+   *     console.log("Significant decreasing trend detected in streamflow");
+   *     console.log("Water management implication: Potential water scarcity issues");
+   *   } else if (trendResult.trend === "increasing") {
+   *     console.log("Significant increasing trend detected in streamflow");
+   *     console.log("Water management implication: Potential increased flood risk");
+   *   }
+   * } else {
+   *   console.log("No significant trend detected in streamflow");
+   * }
+   * console.log(`Test statistic (S): ${trendResult.S}`);
+   * console.log(`p-value: ${trendResult.p}`);
    */
 
   static MK({ params, args, data }) {
-    var flow = data,
-      S_sum = 0,
-      S = 0,
-      sign = 0,
-      z = 0,
-      sigma = 0;
+    var sum = 0,
+      count = 0,
+      sum_v = 0.0,
+      S_sum = 0.0,
+      z = 0.0;
+    
+    params = params || {};
+    const alpha = params.alpha || 0.05;
 
-    for (var i = 0; i < flow.length - 1; i++) {
-      for (var j = i + 1; j < flow.length; j++) {
-        sign = flow[j] - flow[i];
-        if (sign < 0) {
-          S = -1;
-        } else if (sign == 0) {
-          S = 0;
-        } else {
-          S = 1;
+    var p_equal, p_smaller, p_greater;
+
+    for (var i = 0; i < data.length; i++) {
+      for (var j = i + 1; j < data.length; j++) {
+        count += 1;
+        if (data[j] > data[i]) {
+          sum += 1;
+        } else if (data[j] == data[i]) {
+          sum_v += 1;
         }
-        S_sum = S_sum + S;
       }
     }
-    sigma = (flow.length * (flow.length - 1) * (2 * flow.length + 5)) / 18;
 
-    if (S_sum < 0) {
-      z = (S_sum - 1) / Math.pow(sigma, 0.5);
-    } else if (S_sum == 0) {
-      z = 0;
+    p_equal = sum_v / count;
+    p_greater = sum / count;
+    p_smaller = 1 - p_greater - p_equal;
+
+    S_sum = sum - (count - sum - sum_v);
+
+    var n = data.length;
+
+    // If n ≤ 10, use the exact variance calculation
+    // Otherwise, use the approximation
+    var sigma;
+    if (n <= 10) {
+      var ties = new Map();
+      // Count frequencies of values
+      for (var i = 0; i < n; i++) {
+        if (ties.has(data[i])) {
+          ties.set(data[i], ties.get(data[i]) + 1);
+        } else {
+          ties.set(data[i], 1);
+        }
+      }
+
+      // Calculate sum for ties correction
+      var tieCorrection = 0;
+      for (var [_, count] of ties) {
+        if (count > 1) {
+          tieCorrection += count * (count - 1) * (2 * count + 5);
+        }
+      }
+
+      sigma = Math.sqrt((n * (n - 1) * (2 * n + 5) - tieCorrection) / 18);
     } else {
-      z = (S_sum + 1) / Math.pow(sigma, 0.5);
+      sigma = Math.sqrt((n * (n - 1) * (2 * n + 5)) / 18);
     }
-    var pvalue = 2 * (1 - this.normalcdf({ data: Math.abs(z) }));
 
-    return [pvalue, S_sum, z];
+    if (S_sum > 0) {
+      z = (S_sum - 1) / sigma;
+    } else if (S_sum < 0) {
+      z = (S_sum + 1) / sigma;
+    } else {
+      z = 0;
+    }
+
+    var pvalue = 2 * (1 - this.normalcdf({ data: [Math.abs(z)] })[0]);
+
+    const trend = z > 0 ? "increasing" : z < 0 ? "decreasing" : "no trend";
+    const significant = pvalue < alpha;
+
+    return { S: S_sum, z, p: pvalue, trend, significant };
+  }
+
+  /**
+   * Regularized incomplete gamma function approximation using series expansion.
+   * @method gammaCDFApprox
+   * @memberof stats
+   * @param {Object} params - Parameters for the function
+   * @param {number} params.alpha - Shape parameter
+   * @param {number} params.beta - Scale parameter
+   * @param {Object} data - Data input (array with single value x)
+   * @returns {number} Regularized incomplete gamma CDF value
+   */
+  static gammaCDFApprox({ params = {}, args = {}, data } = {}) {
+    const { alpha, beta } = params;
+    const x = data[0];
+    const EPSILON = 1e-8;
+    const ITMAX = 100;
+
+    function gammln(zz) {
+      const cof = [76.18009172947146, -86.50532032941677,
+                   24.01409824083091, -1.231739572450155,
+                   0.1208650973866179e-2, -0.5395239384953e-5];
+      let x = zz - 1.0;
+      let tmp = x + 5.5;
+      tmp -= (x + 0.5) * Math.log(tmp);
+      let ser = 1.000000000190015;
+      for (let j = 0; j < 6; j++) {
+        x += 1;
+        ser += cof[j] / x;
+      }
+      return -tmp + Math.log(2.5066282746310005 * ser);
+    }
+
+    function gser(a, x) {
+      let sum = 1.0 / a;
+      let del = sum;
+      let ap = a;
+      for (let n = 1; n <= ITMAX; n++) {
+        ap += 1;
+        del *= x / ap;
+        sum += del;
+        if (Math.abs(del) < Math.abs(sum) * EPSILON) {
+          return sum * Math.exp(-x + a * Math.log(x) - gammln(a));
+        }
+      }
+      return sum * Math.exp(-x + a * Math.log(x) - gammln(a));
+    }
+
+    function gcf(a, x) {
+      let b = x + 1 - a;
+      let c = 1 / 1e-30;
+      let d = 1 / b;
+      let h = d;
+      for (let i = 1; i <= ITMAX; i++) {
+        let an = -i * (i - a);
+        b += 2;
+        d = an * d + b;
+        if (Math.abs(d) < EPSILON) d = EPSILON;
+        c = b + an / c;
+        if (Math.abs(c) < EPSILON) c = EPSILON;
+        d = 1 / d;
+        let delta = d * c;
+        h *= delta;
+        if (Math.abs(delta - 1.0) < EPSILON) break;
+      }
+      return Math.exp(-x + a * Math.log(x) - gammln(a)) * h;
+    }
+
+    const scaledX = x / beta;
+    return scaledX < alpha + 1
+      ? gser(alpha, scaledX)
+      : 1 - gcf(alpha, scaledX);
   }
 
   /**
@@ -1147,12 +1390,20 @@ hydro.analyze.stats.normalDistributio
   
   /**
    * Probability mass function (PMF) of a Bernoulli distribution
+   * The Bernoulli distribution is a discrete probability distribution for a random variable that takes the value 1 
+   * with probability of success p and the value 0 with probability of failure (1-p).
+   * It models binary outcomes like success/failure, yes/no, or true/false.
    * @method bernoulliDist
    * @author riya-patil
    * @memberof stats
-   * @param {Object} params - Contains: x (value at which to compute the PMF) and p (probability of success)
-   * @returns {Number} Probability mass function of the Bernoulli distribution
+   * @param {Object} params - Contains: f (indicator for failure=0 or success=1) and s (probability of success, between 0 and 1)
+   * @returns {Number} Probability mass function of the Bernoulli distribution at the specified point
+   * @example
+   * // Calculate probability of success (f=1) with p=0.7
+   * hydro.analyze.stats.bernoulliDist({ params: { f: 1, s: 0.7 } }); // Returns 0.7
    * 
+   * // Calculate probability of failure (f=0) with p=0.7
+   * hydro.analyze.stats.bernoulliDist({ params: { f: 0, s: 0.7 } }); // Returns 0.3
    */
   static bernoulliDist({params, args, data} = {}) {
     const { f, s } = params; //f = failure, s = success
@@ -1166,14 +1417,39 @@ hydro.analyze.stats.normalDistributio
   }
   
   /**
-   * Computes the probability density function (PDF) of the Generalized Extreme Value (GEV) distribution.
+   * Computes the probability density function (PDF) of the Generalized Extreme Value (GEV) distribution
+   * The GEV distribution is widely used in hydrology for modeling extreme events like maximum rainfall
+   * or flood discharges. It combines three extreme value distributions: Gumbel (Type I),
+   * Fréchet (Type II), and Weibull (Type III) into a single parametric family.
    * @method gevDistribution
    * @author riya-patil
    * @memberof stats
    * @param {Object} params - Contains: 
-   * x (value at which to compute the PDF), mu (location parameter), 
-   * sigma (scale parameter), xi (shape parameter).
-   * @returns {Number} Probability density function of the GEV distribution.
+   *                        x (value at which to compute the PDF), 
+   *                        mu (location parameter, determines the mode of the distribution),
+   *                        sigma (scale parameter > 0, controls the spread of the distribution), 
+   *                        xi (shape parameter, determines the tail behavior - xi=0 gives Gumbel, xi>0 gives Fréchet, xi<0 gives Weibull)
+   * @returns {Number} Probability density function value of the GEV distribution at point x
+   * @example
+   * // Calculate PDF for Gumbel distribution (xi=0)
+   * hydro.analyze.stats.gevDistribution({
+   *   params: { 
+   *     x: 50,      // Value at which to evaluate the PDF
+   *     mu: 30,     // Location parameter
+   *     sigma: 10,  // Scale parameter
+   *     xi: 0       // Shape parameter (Gumbel distribution)
+   *   }
+   * });
+   * 
+   * // Calculate PDF for Fréchet distribution (xi>0)
+   * hydro.analyze.stats.gevDistribution({
+   *   params: { 
+   *     x: 50,
+   *     mu: 30,
+   *     sigma: 10,
+   *     xi: 0.2     // Positive shape parameter (heavy tail)
+   *   }
+   * });
    */
   static gevDistribution({params, args, data} = {}) {
     const { x, mu, sigma, xi } = params;
@@ -1213,16 +1489,38 @@ static geometricDist({params, args, data} = {}) {
 }
 
 /**
- * Calculates the probability mass function (PMF) of a Binomial Distribution.
+ * Calculates the probability mass function (PMF) of a Binomial Distribution
+ * The binomial distribution models the number of successes in a fixed number of independent
+ * trials, each with the same probability of success. In hydrology, it can be used to model
+ * discrete event occurrences like the number of days with rainfall exceeding a threshold
+ * in a given month, or the number of flood events in a year.
  * @method binomialDist
  * @author riya-patil
  * @memberof stats
- * @param {Object} params - Contains the number of trials 'n' (n >= 0) and the probability of success 
- * @param {Object} args - Contains the number of successes 's'
- * @param {Array} data - Empty array as no data is needed for this calculation.
- * @returns {Number} The probability of getting exactly 's' successes in trials.
+ * @param {Object} params - Contains: trials (integer n ≥ 0, the total number of independent trials)
+ *                        and probSuccess (probability p of success in a single trial, 0 ≤ p ≤ 1)
+ * @param {Object} args - Contains: s (integer k, 0 ≤ k ≤ n, representing the number of successes)
+ * @returns {Number} The probability of getting exactly k successes in n trials with probability p of success
  * @example
- * hydro.analyze.stats.binomialDist({ params: { trials: 10, probSuccess: 0.5 }, args: { s: 3 });
+ * // Calculate the probability of exactly 3 rainy days out of 10 days,
+ * // when the probability of rain on any given day is 0.3
+ * hydro.analyze.stats.binomialDist({ 
+ *   params: { 
+ *     trials: 10,       // 10 days observed
+ *     probSuccess: 0.3  // 30% chance of rain on any given day
+ *   }, 
+ *   args: { 
+ *     s: 3              // We want exactly 3 rainy days
+ *   }
+ * }); // Returns approximately 0.2668
+ * 
+ * // Find the probability of having at most 2 flood events in 5 years
+ * // when annual probability of a flood is 0.2
+ * // First calculate P(X=0) + P(X=1) + P(X=2)
+ * const p0 = hydro.analyze.stats.binomialDist({ params: { trials: 5, probSuccess: 0.2 }, args: { s: 0 }});
+ * const p1 = hydro.analyze.stats.binomialDist({ params: { trials: 5, probSuccess: 0.2 }, args: { s: 1 }});
+ * const p2 = hydro.analyze.stats.binomialDist({ params: { trials: 5, probSuccess: 0.2 }, args: { s: 2 }});
+ * const atMost2 = p0 + p1 + p2; // Gives the cumulative probability
  */
 static binomialDist({params, args, data} = {}) {
   const { trials, probSuccess } = params;
@@ -1452,12 +1750,11 @@ static linearMovingAverage({params, args, data} = {}) {
 
 static exponentialMovingAverage({params, args, data} = {}) {
   const { alpha } = params;
-  const { dataset } = data;
   const emaValues = [];
-  let ema = dataset[0];
+  let ema = data[0];
 
-  for (let i = 1; i < dataset.length; i++) {
-    ema = alpha * dataset[i] + (1 - alpha) * ema;
+  for (let i = 1; i < data.length; i++) {
+    ema = alpha * data[i] + (1 - alpha) * ema;
     emaValues.push(ema);
   }
 
@@ -1465,147 +1762,131 @@ static exponentialMovingAverage({params, args, data} = {}) {
 }
 
 /**
- * Generates a sequence of events representing a Poisson Process
+ * Generates a sequence of events following a Poisson process
+ * A Poisson process models the occurrence of random events where the time between events
+ * follows an exponential distribution. In hydrology, this is useful for modeling random
+ * occurrences such as rainfall events, flood peaks, or extreme weather phenomena that
+ * happen at a known average rate but with random timing.
  * @method poissonProcess
  * @author riya-patil
  * @memberof stats
- * @param {Object} params -  Contains the type of Poisson process ('homogeneous' or 'nonhomogeneous') and the time period 'T'.
- * @param {Object} args - Additional arguments depending on the type of Poisson process.
- * @returns {Array} Array of event times.
+ * @param {Object} params - Contains: 
+ *                         - lambda (event rate, average number of events per time unit)
+ *                         - timeFrame (duration for which to simulate the process)
+ *                         - type (optional, "time" for event times or "count" for event counts in intervals)
+ * @returns {Array} For type="time": Array of time points when events occur
+ *                 For type="count": Array of counts per unit time interval
  * @example
- * hydro.analyze.stats.poissonProcess({ params: { type: 'homogeneous', T: 10 }, args: { lambda: 2 } });
- * hydro.analyze.stats.poissonProcess({ params: { type: 'nonhomogeneous', T: 10 }, args: { rateFunction: (t) => Math.sin(t) } });
+ * // Scenario: Generate a synthetic sequence of storm events over a 30-day period
+ * // Assuming storms occur at a rate of 0.2 per day (on average, 1 storm every 5 days)
+ * 
+ * // Get the timing of storm events over the 30-day period
+ * const stormTimes = hydro.analyze.stats.poissonProcess({
+ *   params: {
+ *     lambda: 0.2,      // Rate of 0.2 storms per day
+ *     timeFrame: 30,    // 30-day simulation period
+ *     type: "time"      // Return the timing of events
+ *   }
+ * });
+ * console.log("Storm events occur at days:", stormTimes);
+ * // Example output: [3.2, 8.7, 15.4, 21.1, 28.9]
+ * 
+ * // Or get the daily count of storms for each day in the 30-day period
+ * const dailyStormCounts = hydro.analyze.stats.poissonProcess({
+ *   params: {
+ *     lambda: 0.2,      // Rate of 0.2 storms per day
+ *     timeFrame: 30,    // 30-day simulation period
+ *     type: "count"     // Return counts per interval
+ *   }
+ * });
+ * // Example output: [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+ * 
+ * // This synthetic data can be used for:
+ * // - Testing rainfall-runoff models with varying storm patterns
+ * // - Evaluating flood risk under different precipitation scenarios
+ * // - Studying reservoir operation under random inflow conditions
  */
 static poissonProcess({params, args, data} = {}) {
-  const { type = 'homogeneous', T } = params;
-  const { lambda, rateFunction } = args;
+  const { lambda, timeFrame, type = "time" } = params;
+  const { rateFunction } = args;
 
-  const events = [];
-  let t = 0;
-
-  while (t < T) {
-    const rand = Math.random();
-    const interTime = (type === 'homogeneous' ? -1 / lambda : -1 / rateFunction(t)) * Math.log(1 - rand);
-    t += interTime;
-
-    if (t < T) {
-      if (type === 'homogeneous' || Math.random() <= rateFunction(t) / rateFunction(T)) {
-        events.push(t);
+  if (type === "time") {
+    const eventTimes = [];
+    let currentTime = 0;
+    
+    while (currentTime < timeFrame) {
+      // Generate time to next event based on exponential distribution
+      const timeToNextEvent = -Math.log(Math.random()) / lambda;
+      currentTime += timeToNextEvent;
+      
+      if (currentTime < timeFrame) {
+        eventTimes.push(currentTime);
       }
     }
-  }
-
-  return events;
-}
-
-/**
-   * Generates random numbers following a Log Pearson Type III distribution.
-   * @method logPearsonTypeIII
-   * @author riya-patil
-   * @memberof stats
-   * @param {Object} params - Contains the parameters 'mu' 'sigma' and 'gamma'.
-   * @param {Number} size - Number of random numbers to generate.
-   * @returns {Array} Array of random numbers following the Log Pearson Type III distribution.
-   * @example
-   * hydro.analyze.stats.logPearsonTypeIII({ params: { mu: 1, sigma: 2, gamma: 3 }, args: { size: 100 } })
-   */
-static logPearsonTypeIII({params, args, data} = {}) {
-  const { mu, sigma, gamma } = params;
-  const { size } = args || 10;
-  const randomNumbers = [];
-
-  for (let i = 0; i < size; i++) {
-    const rand1 = Math.random();
-    const rand2 = Math.random();
-    const x = Math.sqrt(-2 * Math.log(rand1)) * Math.cos(2 * Math.PI * rand2);
-    const y = mu + sigma * (x / Math.sqrt(gamma));
-    const z = Math.exp(y);
-
-    randomNumbers.push(z);
-  }
-
-  return randomNumbers;
-}
-
- /**
-   * Generates random numbers from within a Box Plot distribution.
-   * @method boxPlotDistribution
-   * @author riya-patil
-   * @memberof stats
-   * @param {Object} params - Contains the parameters 'min', 'q1', 'median', 'q3', 'max'.
-   * @param {Object} args - Contains the argument 'size' for the number of random numbers to generate.
-   * @returns {Array} Array of random numbers following the Box Plot Distribution.
-   * @example
-   * hydro.analyze.stats.boxPlotDistribution({ params: { min: 1, q1: 2, median: 3, q3: 4, max: 5 }, args: { size: 100 }})
-   */
- static boxPlotDistribution({params, args, data} = {}) {
-  const { min, q1, median, q3, max } = params;
-  const { size } = args;
-  const randomNumbers = [];
-
-  for (let i = 0; i < size; i++) {
-    const randNum = Math.random();
-    let value;
-
-    if (randNum < 0.25) {
-      value = min - (q1 - min) * Math.random();
-    } else if (randNum < 0.5) {
-      value = q1 + (median - q1) * Math.random();
-    } else if (randNum < 0.75) {
-      value = median + (q3 - median) * Math.random();
-    } else {
-      value = q3 + (max - q3) * Math.random();
+    
+    return eventTimes;
+  } else if (type === "count") {
+    const counts = new Array(Math.ceil(timeFrame)).fill(0);
+    
+    // Generate event times
+    const eventTimes = this.poissonProcess({
+      params: { lambda, timeFrame, type: "time" }
+    });
+    
+    // Count events per unit time
+    for (const time of eventTimes) {
+      const timeIndex = Math.floor(time);
+      if (timeIndex < counts.length) {
+        counts[timeIndex]++;
+      }
     }
-
-    randomNumbers.push(value);
+    
+    return counts;
+  } else {
+    throw new Error("Invalid type. Use 'time' or 'count'.");
   }
-
-  return randomNumbers;
 }
 
 /**
- * Mean Squared Error (MSE) Estimation - Computes the Mean Squared Error (MSE) between two datasets
- * @method meanSquaredError
- * @author riya-patil
- * @memberof stats
- * @param {Object} args - Contains the two datasets as 'data1' and 'data2' (1D JavaScript arrays)
- * @returns {number} The Mean Squared Error (MSE) between the two datasets
- * @example
- * const dataset1 = [1, 2, 3, 4, 5];
- * const dataset2 = [1.5, 2.8, 3.6, 4.2, 4.9];
- * hydro.analyze.stats.meanSquaredError({ data: { data1: dataset1, data2: dataset2 } });
- */
-
-static meanSquaredError({params, args, data} = {}) {
-  const { data1, data2 } = data;
-
-  if (data1.length !== data2.length) {
-    throw new Error('Datasets need to have same length');
-  }
-
-  const n = data1.length;
-  let sum = 0;
-  for (let i = 0; i < n; i++) {
-    const diff = data1[i] - data2[i];
-    sum += diff * diff;
-  }
-
-  const mse = sum / n;
-  return mse;
-}
-
-/**
- * Return Period - Calculates the return period for a given probability of occurrence.
+ * Calculates the return period for a given probability of occurrence
+ * In hydrology, the return period (or recurrence interval) represents the average time between events
+ * of a certain magnitude. It is fundamental for flood frequency analysis, infrastructure design, and
+ * risk assessment. The return period T is calculated as T = 1/p, where p is the probability of 
+ * exceedance in a given year.
  * @method returnPeriod
- * @author riya-patil
  * @memberof stats
- * @param {Object} params - probability: Probability of occurrence (between 0 and 1)
- * @returns {Number} Return period corresponding to the given probability
+ * @param {Object} params - Contains probability (decimal between 0 and 1, probability of occurrence in a given time unit)
+ * @returns {Number} Return period (average time between events of the specified probability)
+ * @throws {Error} If probability is not between 0 and 1
  * @example
- * const returnPeriodData = {
- *   probability: 0.1
- * };
- * hydro.analyze.stats.returnPeriod({ params: returnPeriodData });
+ * // Calculate the return period for a flood with a 0.01 (1%) annual exceedance probability
+ * const hundredYearFlood = hydro.analyze.stats.returnPeriod({
+ *   params: { probability: 0.01 }
+ * });
+ * // Returns 100 (years)
+ * 
+ * // Calculate return periods for different design events
+ * const designEvents = [
+ *   { name: "2-year event", probability: 0.5 },
+ *   { name: "10-year event", probability: 0.1 },
+ *   { name: "25-year event", probability: 0.04 },
+ *   { name: "50-year event", probability: 0.02 },
+ *   { name: "100-year event", probability: 0.01 },
+ *   { name: "500-year event", probability: 0.002 }
+ * ];
+ * 
+ * // Calculate and display the return periods
+ * designEvents.forEach(event => {
+ *   const period = hydro.analyze.stats.returnPeriod({
+ *     params: { probability: event.probability }
+ *   });
+ *   console.log(`${event.name}: ${period} years`);
+ * });
+ * 
+ * // This information can be used for:
+ * // - Designing hydraulic structures like bridges, culverts, and dams
+ * // - Establishing flood insurance rates and floodplain regulations
+ * // - Assessing risk for critical infrastructure
  */
 static returnPeriod({params, args, data} = {}) {
   const { probability } = params;

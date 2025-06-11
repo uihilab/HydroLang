@@ -1,24 +1,162 @@
 import * as datasources from "./datasources.js";
 import stats from "../analyze/components/stats.js";
+//import fxparserMin from "./fxparser.min.js";
+
+//import XMLParser from './fxparser.min.js'
+//import  {XMLParser} from "./fxparser.min.js";
+
+//Workaround for DOM manipulation using a web worker environment
+
+
+// 'https://cdnjs.cloudflare.com/ajax/libs/fast-xml-parser/4.5.1/fxparser.min.js'
 
 /**
- * Module for dealing with data.
+ * Module for dealing with data retrieval, transformation, upload, and download operations.
+ * Provides functions to interact with various hydrological data sources and perform data operations.
  * @class 
  * @name data
  */
 
 /**
- * Main function to retrieve data.
+ * Main function to retrieve data from various hydrological data sources.
+ * Supports multiple data sources including USGS, NLDI, NWS, and others.
+ * 
  * @function retrieve
  * @memberof data
- * @param {Object} params - Contains: source(USGS, MeteoSTAT, etc.),dataType (streamflow, gauges, etc.),  type (CSV, XML, JSON).
- * @param {Object} args - Contains: Arguments from the API. See each API data source to know how to send the requests.
- * @returns {Object} Object with retrived data. Usually in JSON format.
+ * @async
+ * @param {Object} options - Configuration object for data retrieval
+ * @param {Object} options.params - Parameters for the request
+ * @param {string} options.params.source - Data source identifier (e.g., 'usgs', 'nldi', 'nws')
+ * @param {string} options.params.datatype - Type of data to retrieve (varies by source)
+ * @param {string} [options.params.type] - Response format ('json', 'xml', 'csv', 'soap') - defaults to source's default
+ * @param {boolean} [options.params.transform] - Whether to apply data transformation
+ * @param {boolean} [options.params.placeHolder] - Whether to use placeholder data
+ * @param {string} [options.params.keyname] - API key parameter name for authenticated sources
+ * @param {Object} options.args - Arguments specific to the data source endpoint
+ * @param {Object} [options.data] - Additional data payload (for POST requests)
+ * @returns {Promise<Object|string>} Promise resolving to retrieved data in specified format
+ * 
  * @example
- * hydro.data.retrieve({params: {source: 'someSource', dataType: 'someEndpoint', proxy: 'ifProxyReq'}, args: {'someEndpointArgs'}})
+ * // Retrieve USGS instantaneous streamflow data
+ * const streamflowData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'usgs',
+ *     datatype: 'instant-values',
+ *     transform: true
+ *   },
+ *   args: {
+ *     format: 'json',
+ *     sites: '05454500',
+ *     startDT: '2020-01-01',
+ *     endDT: '2020-01-07'
+ *   }
+ * });
+ * 
+ * @example
+ * // Retrieve NLDI basin boundary data
+ * const basinData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'nldi',
+ *     datatype: 'getBasin'
+ *   },
+ *   args: {
+ *     featureSource: 'comid',
+ *     featureId: '13297246'
+ *   }
+ * });
+ * 
+ * @example
+ * // Retrieve NASA POWER meteorological data
+ * const powerData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'nasapower',
+ *     datatype: 'point-data'
+ *   },
+ *   args: {
+ *     parameters: 'T2M,PRECTOTCORR,RH2M',
+ *     community: 're',
+ *     longitude: -76.3,
+ *     latitude: 38.5,
+ *     start: '20200101',
+ *     end: '20200131',
+ *     format: 'JSON'
+ *   }
+ * });
+ * 
+ * @example
+ * // Retrieve NOAA climate data with API key
+ * const climateData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'noaa',
+ *     datatype: 'prec-15min',
+ *     token: 'YOUR_NOAA_TOKEN'
+ *   },
+ *   args: {
+ *     datasetid: 'PRECIP_15',
+ *     stationid: 'GHCND:USW00014895',
+ *     startdate: '2020-01-01',
+ *     enddate: '2020-01-07',
+ *     limit: 100
+ *   }
+ * });
+ * 
+ * @example
+ * // Retrieve Meteostat weather station data
+ * const meteoData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'meteostat',
+ *     datatype: 'dailydata-station',
+ *     'x-rapidapi-key': 'YOUR_RAPIDAPI_KEY'
+ *   },
+ *   args: {
+ *     station: '10382',
+ *     start: '2020-01-01',
+ *     end: '2020-01-31'
+ *   }
+ * });
+ * 
+ * @example
+ * // Retrieve EPA precipitation data (POST request)
+ * const epaData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'epa',
+ *     datatype: 'precipitation',
+ *     type: 'json'
+ *   },
+ *   args: {
+ *     source: 'nldas',
+ *     dateTimeSpan: {
+ *       startDate: '2020-01-01 00',
+ *       endDate: '2020-01-07 00',
+ *       dateTimeFormat: 'yyyy-MM-dd HH'
+ *     },
+ *     geometry: {
+ *       point: {
+ *         latitude: 33.925,
+ *         longitude: -83.356
+ *       }
+ *     },
+ *     dataValueFormat: 'E3',
+ *     temporalResolution: 'hourly',
+ *     units: 'metric'
+ *   }
+ * });
+ * 
+ * @example
+ * // Retrieve flood damage scenario data
+ * const floodData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'flooddamage_dt',
+ *     datatype: 'x500_year',
+ *     transform: 'eval'
+ *   },
+ *   args: {
+ *     sourceType: 'Cedar Rapids'
+ *   }
+ * });
  */
-
 async function retrieve({ params, args, data } = {}) {
+
   let source = params.source;
   let dataType = params.datatype;
   let placeHolder = params.placeHolder || false;
@@ -114,10 +252,18 @@ async function retrieve({ params, args, data } = {}) {
     .then((responseData) => {
       if (type === "soap") {
         try {
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(responseData, "text/xml");
-          let j = xml2json(xmlDoc);
-          return j["soap:Envelope"]?.["soap:Body"] || j; // Handle cases where soap:Body might not exist
+          //DOM Parser workaround
+          // const parser = new DOMParser();
+          // const xmlDoc = parser.parseFromString(responseData, "text/xml");
+
+          // const parser = new XMLParser();
+          // console.log(parser)
+          // const xmlDoc = parser.parse(responseData);
+
+          return responseData
+
+          //let j = xml2json(xmlDoc);
+          // return xmlDoc["soap:Envelope"]?.["soap:Body"] || j; // Handle cases where soap:Body might not exist
         } catch (xmlError) {
           throw new Error(`Error parsing SOAP response from ${endpoint}: ${xmlError.message}`);
         }
@@ -130,6 +276,8 @@ async function retrieve({ params, args, data } = {}) {
             args: { keep: '["datetime", "value"]', type: 'ARR'}, 
             data: lowercasing(responseData)
           });
+        } else if (trans === "eval") {
+          return eval(responseData); // Use eval cautiously
         }
       } else {
         return lowercasing(responseData);
@@ -139,159 +287,404 @@ async function retrieve({ params, args, data } = {}) {
 
 
 /**
- * Convert data types into others based on the premise of having JS objects as primary input.
+ * Convert data types into various formats based on JavaScript objects as primary input.
+ * Supports extraction of nested data, filtering, and format conversion.
+ * 
  * @function transform
  * @memberof data
- * @param {Object} params - Contains: save (string with name of array to save), output (name of output variable)
- * @param {Object} args - Contains: type (CSV, JSON, XML, Tab), keep (JS array with column headers to keep)
- * @param {Object} data - Contains: data object to be transformed in JS format.
- * @returns {Object} Object in different formats with transformed data
+ * @param {Object} options - Configuration object for transformation
+ * @param {Object} [options.params] - Parameters for data extraction and saving
+ * @param {string} [options.params.save] - Key name to search for and extract from nested objects
+ * @param {string} [options.params.output] - Output variable name (currently unused)
+ * @param {Object} [options.args] - Arguments for transformation options
+ * @param {string} [options.args.type] - Output format: 'ARR', 'ARR-col', 'CSV', 'JSON', 'XML2JSON'
+ * @param {string[]|string} [options.args.keep] - Array of column headers to keep (JSON string or array)
+ * @param {boolean} [options.args.parse] - Whether to parse strings to numbers/dates/booleans
+ * @param {string} [options.args.mode] - Processing mode: 'flatten', 'flatten-objects'
+ * @param {number} [options.args.pick] - Pick specific row index from 2D array
+ * @param {boolean} [options.args.attachNames=true] - Whether to attach column names to arrays
+ * @param {Object|Array} options.data - Input data object to be transformed
+ * @returns {Object|Array|string} Transformed data in the specified format
+ * 
  * @example
- * hydro.data.transform({params: {save: 'saveVarNamefromObj', output: 'someFinalName'}, args: {keep: [value2keep1, value2keep2], type: "typeRequired"}, data: {someJSObject}})
+ * // Extract specific data from nested object and convert to array
+ * const arrayData = hydro.data.transform({
+ *   params: { save: 'timeSeries' },
+ *   args: { 
+ *     keep: ['dateTime', 'value'], 
+ *     type: 'ARR',
+ *     parse: true 
+ *   },
+ *   data: usgsResponseData
+ * });
+ * 
+ * @example
+ * // Convert object array to CSV format
+ * const csvData = hydro.data.transform({
+ *   args: { type: 'CSV' },
+ *   data: [
+ *     { date: '2023-01-01', flow: 100.5 },
+ *     { date: '2023-01-02', flow: 95.3 }
+ *   ]
+ * });
+ * 
+ * @example
+ * // Flatten nested object structure
+ * const flattenedData = hydro.data.transform({
+ *   args: { mode: 'flatten-objects' },
+ *   data: {
+ *     station: {
+ *       info: { name: 'USGS Station', id: '01646500' },
+ *       data: { flow: 100.5, stage: 2.1 }
+ *     }
+ *   }
+ * });
+ * // Result: { 'station.info.name': 'USGS Station', 'station.info.id': '01646500', ... }
+ * 
+ * @example
+ * // Extract specific columns as separate arrays
+ * const columnArrays = hydro.data.transform({
+ *   args: { 
+ *     type: 'ARR-col',
+ *     keep: ['dateTime', 'value'],
+ *     attachNames: false
+ *   },
+ *   data: [
+ *     { dateTime: '2023-01-01', value: 100.5, quality: 'A' },
+ *     { dateTime: '2023-01-02', value: 95.3, quality: 'A' }
+ *   ]
+ * });
+ * // Result: [['2023-01-01', '2023-01-02'], [100.5, 95.3]]
+ * 
+ * @example
+ * // Convert XML string to JSON
+ * const jsonData = hydro.data.transform({
+ *   args: { type: 'XML2JSON' },
+ *   data: '<root><item>value1</item><item>value2</item></root>'
+ * });
+ * 
+ * @example
+ * // Pick specific row from 2D array and flatten
+ * const singleRow = hydro.data.transform({
+ *   args: { 
+ *     pick: 0, 
+ *     mode: 'flatten' 
+ *   },
+ *   data: [
+ *     ['dates', '2023-01-01', '2023-01-02'],
+ *     ['values', 100.5, 95.3]
+ *   ]
+ * });
+ * // Result: [100.5, 95.3] (numeric values from first row, excluding header)
  */
-
 function transform({ params, args, data } = {}) {
-
-  console.log(data)
-  //initial cleanup to remove metadata from object
-  if (!params) {
-    data = data;
-  } else if (params.save !== undefined && args === undefined) {
-    data = recursiveSearch({ obj: data, searchkey: params.save });
-    data = data[0];
-  } else if (params.save !== undefined && args.keep !== undefined) {
-    data = recursiveSearch({ obj: data, searchkey: params.save });
-    data = data[0];
-    args.keep = JSON.parse(args.keep);
-    //Case all parameters are to be saved and the result is an array.
-  } else if (params.save !== undefined && args.keep === undefined) {
-    data = recursiveSearch({ obj: data, searchkey: params.save });
-    return data[0];
+  function deepClone(value) {
+    if (value === null || typeof value !== 'object') return value;
+    if (value instanceof Date) return new Date(value.getTime());
+    if (Array.isArray(value)) return value.map(deepClone);
+    const result = {};
+    for (const key in value) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        result[key] = deepClone(value[key]);
+      }
+    }
+    return result;
   }
 
-  var type = args.type,
-    clean;
+  const convertToNumberIfPossible = (value) => {
+    if (typeof value === 'string' && !isNaN(value) && value.trim() !== '') {
+      return Number(value);
+    }
+    return value;
+  };
 
-  if (data instanceof Array) {
-    //verify if the object is an object. Go to the following step.
-    var arr = data.map((_arrayElement) => Object.assign({}, _arrayElement));
-    arr = typeof arr != "object" ? JSON.parse(arr) : arr;
+  const cleanData = (data) => {
+    if (Array.isArray(data)) {
+      return data.map(item => cleanData(item));
+    } else if (typeof data === 'object' && data !== null) {
+      const cleaned = {};
+      for (const key in data) {
+        cleaned[key] = cleanData(data[key]);
+      }
+      return cleaned;
+    } else {
+      return convertToNumberIfPossible(data);
+    }
+  };
 
-    if (args.hasOwnProperty("keep")) {
-      clean = args["keep"];
-      //values to be left on the object according to user, fed as array.
-      var keep = new RegExp(clean.join("|"));
-      for (var i = 0; i < arr.length; i++) {
-        for (var k in arr[i]) {
-          keep.test(k) || delete arr[i][k];
+  const parseSpecialTypes = (value) => {
+    if (typeof value === 'string') {
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) return date;
+      if (value.toLowerCase() === 'true' || value.toLowerCase() === 'false') {
+        return value.toLowerCase() === 'true';
+      }
+    }
+    return value;
+  };
+
+  const extractNestedValue = (obj, path) => {
+    return path.split('.').reduce((acc, key) => acc?.[key], obj);
+  };
+
+  const flattenObject = (obj, parentKey = '', result = {}) => {
+    for (const key in obj) {
+      const value = obj[key];
+      const newKey = parentKey ? `${parentKey}.${key}` : key;
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        flattenObject(value, newKey, result);
+      } else {
+        result[newKey] = value;
+      }
+    }
+    return result;
+  };
+
+  // Start transforming
+  console.log('[transform] Original input data:', data);
+  data = deepClone(data);
+
+  // === PARAMS & ARGS LOGIC ===
+  if (!params) {
+    data = args?.parse ? cleanData(data) : data;
+  } else if (params.save !== undefined && args === undefined) {
+    const found = recursiveSearch({ obj: data, searchkey: params.save });
+    data = found?.[0];
+  } else if (params.save !== undefined && args.keep !== undefined) {
+    const found = recursiveSearch({ obj: data, searchkey: params.save });
+    data = found?.[0];
+
+    if (!data) return null;
+    if (args.parse) {
+      data = cleanData(data);
+    }
+
+    if (typeof args.keep === 'string') {
+      args.keep = JSON.parse(args.keep);
+    }
+
+    const keepKeys = new RegExp(args.keep.join('|'));
+
+    if (Array.isArray(data)) {
+      data = data.map(obj => {
+        if (typeof obj !== 'object') return obj;
+        const filtered = {};
+        for (const key in obj) {
+          if (keepKeys.test(key)) {
+            filtered[key] = obj[key];
+          }
+        }
+        return filtered;
+      });
+    } else if (typeof data === 'object' && data !== null) {
+      const filtered = {};
+      for (const key in data) {
+        if (keepKeys.test(key)) {
+          filtered[key] = data[key];
+        }
+      }
+      data = filtered;
+    }
+  } else if (params.save !== undefined && args.keep === undefined) {
+    const found = recursiveSearch({ obj: data, searchkey: params.save });
+    data = found?.[0];
+    data = args?.parse ? cleanData(data) : data;
+  }
+
+    // === PICKING A SPECIFIC ROW FROM 2D ARRAY ===
+    if (args?.pick !== undefined) {
+      if (Array.isArray(data) && Array.isArray(data[0])) {
+        const idx = Number(args.pick);
+        if (!isNaN(idx) && data.length > idx) {
+          data = data[idx];
         }
       }
     }
-    if (!args.keep) {
-      //if params dont have a keep array, continue.
-      arr = arr;
+
+  // === MODE HANDLING ===
+  if (args?.mode === 'flatten') {
+    if (Array.isArray(data) && Array.isArray(data[0])) {
+      if (typeof data[0][0] === 'string' && data[0].length > 1) {
+        return data[0].slice(1).map(convertToNumberIfPossible);
+      }
+    }
+    if (Array.isArray(data)) {
+      return data
+        .map(convertToNumberIfPossible)
+        .filter(val => typeof val === 'number' && !isNaN(val));
     }
   }
-  //convert array of objects into array of arrays for further manipulation.
-  if (type === "ARR") {
-    var arrays = arr.map(function (obj) {
-        return Object.keys(obj)
-          .sort()
-          .map(function (key) {
-            return obj[key];
-          });
-      }),
-      final = Array(arrays[0].length)
-        .fill(0)
-        .map(() => Array(arrays.length).fill(0));
-    for (var j = 0; j < arrays[0].length; j++) {
-      for (var n = 0; n < arrays.length; n++) {
+
+  if (args?.mode === 'flatten-objects') {
+    if (Array.isArray(data) && typeof data[0] === 'object') {
+      data = data.map(flattenObject);
+    } else if (typeof data === 'object') {
+      data = flattenObject(data);
+    }
+  }
+
+  // === KEEP NESTED KEYS AFTER FLATTEN ===
+  if (Array.isArray(data) && args?.keep) {
+    const keepPaths = args.keep;
+    data = data.map(item => {
+      const extracted = {};
+      for (const path of keepPaths) {
+        const key = path.includes('.') ? path.split('.').pop() : path;
+        extracted[key] = extractNestedValue(item, path);
+      }
+      return extracted;
+    });
+  }
+
+  const type = args?.type;
+  let arr;
+
+  if (Array.isArray(data)) {
+    arr = deepClone(data);
+
+    if (args?.keep) {
+      const keep = new RegExp(args.keep.join('|'));
+      for (let i = 0; i < arr.length; i++) {
+        for (const k in arr[i]) {
+          if (!keep.test(k)) {
+            delete arr[i][k];
+          }
+        }
+      }
+    }
+  }
+
+  // === FORMAT TRANSFORMATIONS ===
+  if (type === 'ARR') {
+    if (!arr || !Array.isArray(arr)) {
+      console.error('[transform] arr is undefined or not an array:', arr);
+      return null;
+    }
+  
+    const arrays = arr.map(obj =>
+      Object.keys(obj)
+        .sort()
+        .map(key => args.parse ? parseSpecialTypes(obj[key]) : obj[key])
+    );
+  
+    const final = Array(arrays[0]?.length || 0)
+      .fill(0)
+      .map(() => Array(arrays.length).fill(0));
+  
+    for (let j = 0; j < arrays[0]?.length; j++) {
+      for (let n = 0; n < arrays.length; n++) {
         final[j][n] = arrays[n][j];
       }
     }
-
-    if (args.keep) {
-      for (var j = 0; j < final.length; j++) {
+  
+    // Attach names only if requested
+    if (args.keep && args.attachNames !== false) {
+      for (let j = 0; j < final.length; j++) {
         final[j].unshift(args.keep[j]);
       }
     }
+  
     return final;
   }
 
-  // convert from JSON to CSV
-  else if (type === "CSV") {
-    if (data[0] instanceof Array) {
-      arr = stats.arrchange({ data: data });
-    } else {
-      arr = arr;
-    }
-    var str = "";
-    for (var i = 0; i < arr.length; i++) {
-      var line = "";
-      for (var index in arr[i]) {
-        if (line != "") line += ",";
+  else if (type === 'ARR-col') {
+    if (!arr || !Array.isArray(arr)) return null;
 
-        line += `\"${arr[i][index]}\"`;
+    const keysToUse = args.keep;
+    const arrays = keysToUse.map(key => {
+      const column = [];
+      if (args.attachNames !== false) {
+        column.push(key); // Only attach name if requested
       }
-      str += line + "\r\n";
+      for (let i = 0; i < arr.length; i++) {
+        const val = arr[i]?.[key];
+        column.push(args.parse ? parseSpecialTypes(val) : val);
+      }
+      return column;
+    });
+  
+    return arrays;
+  }
+
+  else if (type === 'CSV') {
+    if (!arr || !Array.isArray(arr)) {
+      console.error('[transform] CSV conversion failed: arr is invalid');
+      return null;
+    }
+
+    let str = '';
+    for (let i = 0; i < arr.length; i++) {
+      let line = '';
+      for (const index in arr[i]) {
+        if (line !== '') line += ',';
+        line += `"${arr[i][index]}"`;
+      }
+      str += line + '\r\n';
     }
     return str;
   }
 
-  //covert data from Object to JSON
-  else if (type === "JSON") {
-    var js = JSON.stringify(arr);
-    return js;
+  else if (type === 'JSON') {
+    return JSON.stringify(data);
   }
 
-  //convert data from array to XML
-  else if (type === "ARR2XML") {
-    var xml = "";
-    for (var prop in arr) {evalif = datasources[source]["requirements"]["needEval"];
-      xml += arr[prop] instanceof Array ? "" : "<" + prop + ">";
-      if (arr[prop] instanceof Array) {
-        for (var array in arr[prop]) {
-          xml += "<" + prop + ">";
-          xml += transform({ data: new Object(arr[prop], config) });
-        }
-      } else if (typeof arr[prop] == "object") {
-        xml += transform({ data: new Object(arr[prop], config) });
-      } else {
-        xml += arr[prop];
-      }
-      xml += arr[prop] instanceof Array ? "" : "</" + prop + ">";
-    }
-    var xml = xml.replace(/<\/?[0-9]{1,}>/g, "");
-    return xml;
-    //Conversion from XML to JSON, XML has been converted previously to a string.
-  } else if (type === "XML2JSON") {
+  else if (type === 'XML2JSON') {
     const XMLJSon = (data) => {
-      var json = {};
-      for (const res of data.matchAll(
-        /(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\/>/gm
-      )) {
+      const json = {};
+      for (const res of data.matchAll(/(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\/>/gm)) {
         const key = res[1] || res[3],
-          value = res[2] && XMLJSon(res[2]);
+              value = res[2] && XMLJSon(res[2]);
         json[key] = value && Object.keys(value).length ? value : res[2] || null;
       }
       return json;
     };
     return XMLJSon(data);
-  } else {
-    throw new Error("Please select a supported data conversion type!");
   }
+
+  else if (type) {
+    throw new Error('Please select a supported data conversion type!');
+  }
+
+  return data;
 }
 
+
 /**
- * Data upload from the user's local storage for analysis.
+ * Upload data from the user's local file system for analysis.
+ * Creates a file input dialog and processes the selected file based on its type.
+ * 
  * @function upload
  * @memberof data
- * @param {Object} params - Contains: type(CSV, JSON).
- * @returns {Object} JS object, either array or JSON.
+ * @async
+ * @param {Object} options - Configuration object for file upload
+ * @param {Object} options.params - Parameters for upload configuration
+ * @param {string} options.params.type - File type to accept ('CSV', 'JSON', 'KML')
+ * @param {Object} [options.args] - Additional arguments (currently unused)
+ * @param {Object} [options.data] - Additional data (currently unused)
+ * @returns {Promise<Array|Object|string>} Promise resolving to parsed file content
+ * 
  * @example
- * hydro.data.upload({params: {type: 'someType'}})
+ * // Upload and parse CSV file
+ * const csvData = await hydro.data.upload({
+ *   params: { type: 'CSV' }
+ * });
+ * // Returns array of arrays with numeric conversion for numeric columns
+ * // Example result: [['Date', 'Flow', 'Stage'], ['2023-01-01', 100.5, 2.1], ...]
+ * 
+ * @example
+ * // Upload and parse JSON file
+ * const jsonData = await hydro.data.upload({
+ *   params: { type: 'JSON' }
+ * });
+ * // Returns parsed JSON object
+ * 
+ * @example
+ * // Upload KML file as raw text
+ * const kmlData = await hydro.data.upload({
+ *   params: { type: 'KML' }
+ * });
+ * // Returns raw KML content as string
  */
-
 async function upload({ params, args, data } = {}) {
   const fileInput = document.createElement("input");
   fileInput.type = "file";
@@ -354,18 +747,50 @@ async function upload({ params, args, data } = {}) {
 
 
 /**
- * Download files on different formats, depending on the formatted object. It extends the
- * the transform function to automatically transform the data. The default format
+ * Download data in various formats to the user's local file system.
+ * Automatically transforms data using the transform function and creates a downloadable file.
+ * 
  * @function download
  * @memberof data
- * @param {Object} params - Contains: save (string with name of array to save), output (name of output variable)
- * @param {Object} args - Contains: type ('CSV, JSON, XML')
- * @param {Object} data - type (CSV, JSON, XML, Tab), keep (JS array with column headers to keep)
- * @returns {Object} Downloaded data as link from HTML file.
+ * @async
+ * @param {Object} options - Configuration object for download
+ * @param {Object} [options.params] - Parameters for download configuration
+ * @param {string} [options.params.fileName] - Name for the downloaded file (without extension)
+ * @param {Object} options.args - Arguments for download format and transformation
+ * @param {string} options.args.type - Download format ('CSV', 'JSON')
+ * @param {string[]} [options.args.keep] - Column headers to keep (for CSV)
+ * @param {Object|Array|Promise} options.data - Data to download (can be a Promise)
+ * @returns {Promise<void>} Promise that resolves when download is initiated
+ * 
  * @example
- * hydro.data.transform({params: {save: 'saveVarNamefromObj', output: 'someFinalName'}, args: {keep: [value2keep1, value2keep2]}, data: {someJSObject}})
+ * // Download data as CSV file
+ * await hydro.data.download({
+ *   params: { fileName: 'streamflow_data' },
+ *   args: { 
+ *     type: 'CSV',
+ *     keep: ['dateTime', 'value']
+ *   },
+ *   data: transformedData
+ * });
+ * // Downloads file as 'streamflow_data.csv'
+ * 
+ * @example
+ * // Download data as JSON file
+ * await hydro.data.download({
+ *   params: { fileName: 'station_info' },
+ *   args: { type: 'JSON' },
+ *   data: stationData
+ * });
+ * // Downloads file as 'station_info.json'
+ * 
+ * @example
+ * // Download with auto-generated filename
+ * await hydro.data.download({
+ *   args: { type: 'CSV' },
+ *   data: myData
+ * });
+ * // Downloads with timestamp-based filename like '23.12.15.14:30.csv'
  */
-
 async function download({ params, args, data } = {}) {
   let { type } = args;
   let blob = null;
@@ -413,50 +838,89 @@ async function download({ params, args, data } = {}) {
   }
 }
 
-/***************************/
-/***** Helper functions ****/
-/***************************/
+/**********************************/
+/****** Helper functions **********/
+/**********************************/
 
 /**
- * Searches for an array with data passed as string.
+ * Recursively searches for arrays with specific key names in nested objects.
+ * Useful for extracting data from complex nested JSON structures returned by APIs.
+ * 
  * @function recursiveSearch
  * @memberof data
- * @param {Object} obj - Object to find the results from.
- * @param {String} searchKey - Key to find inside the object.
- * @param {Object[]} results - default parameter used to save objects.
- * @returns {Object[]} Saved object from the search.
+ * @param {Object} options - Search configuration object
+ * @param {Object} options.obj - Object to search within
+ * @param {string} options.searchkey - Key name to search for
+ * @param {Array} [options.results=[]] - Array to store found values (used internally for recursion)
+ * @returns {Array} Array containing all found values for the specified key
+ * 
  * @example
- * recursiveSearch({obj: {key1: "thisiskey", data: ["data1", "data2"]}, searchkey: 'data'})
- * returns ["data1", "data2"]
+ * // Search for 'timeSeries' arrays in USGS response
+ * const complexData = {
+ *   value: {
+ *     queryInfo: { ... },
+ *     timeSeries: [
+ *       { name: 'Streamflow', values: [{ value: 100 }, { value: 95 }] }
+ *     ]
+ *   }
+ * };
+ * 
+ * const timeSeries = hydro.data.recursiveSearch({
+ *   obj: complexData,
+ *   searchkey: 'timeSeries'
+ * });
+ * // Returns: [[{ name: 'Streamflow', values: [...] }]]
+ * 
+ * @example
+ * // Search for 'values' arrays in nested data
+ * const found = hydro.data.recursiveSearch({
+ *   obj: complexData,
+ *   searchkey: 'values'
+ * });
+ * // Returns all arrays with key 'values'
  */
-
 function recursiveSearch({ obj, searchkey, results = [] } = {}) {
   const r = results;
-  //if (!obj.hasOwnProperty(searchkey)) {return}
   Object.keys(obj).forEach((key) => {
-    const value = obj[key];
-    if (key === searchkey && Array.isArray(value)) {
-      r.push(value);
-      //evalif = datasources[source]["requirements"]["needEval"];
-      return;
-    } else if (typeof value === "object" && value !== null) {
-      recursiveSearch({ obj: value, searchkey: searchkey, results: r });
-    }
+      const value = obj[key];
+      if (key === searchkey && Array.isArray(value)) {
+          r.push(value);
+          return;
+      } else if (typeof value === "object" && value !== null) {
+          recursiveSearch({ obj: value, searchkey: searchkey, results: r });
+      }
   });
   return r;
 }
 
 /**
- * Lowercases the keys in an object. Can be nested object with arrays or what not.
+ * Converts all object keys to lowercase recursively, including nested objects and arrays.
+ * Useful for normalizing API responses that may have inconsistent casing.
+ * 
  * @function lowercasing
  * @memberof data
- * @param {Object} obj - Object keys to lowercase them.
- * @returns {Object[]} Copy of object with keys in lowercase.
+ * @param {Object|Array|*} obj - Object, array, or value to process
+ * @returns {Object|Array|*} Copy of input with all object keys converted to lowercase
+ * 
  * @example
- * lowercasing({NaMe: "myname", OtherName: "nextname"})
- * returns {name: "myname", othername: "nextname"}
+ * // Normalize object keys
+ * const normalized = hydro.data.lowercasing({
+ *   StationName: "USGS Station",
+ *   FlowData: {
+ *     DateTime: "2023-01-01T12:00:00Z",
+ *     Value: 100.5
+ *   }
+ * });
+ * // Returns: { stationname: "USGS Station", flowdata: { datetime: "2023-01-01T12:00:00Z", value: 100.5 } }
+ * 
+ * @example
+ * // Process array of objects
+ * const normalizedArray = hydro.data.lowercasing([
+ *   { StationID: "01646500", FlowRate: 100 },
+ *   { StationID: "01647000", FlowRate: 85 }
+ * ]);
+ * // Returns: [{ stationid: "01646500", flowrate: 100 }, { stationid: "01647000", flowrate: 85 }]
  */
-
 function lowercasing(obj) {
   if (typeof obj !== "object") return obj;
   if (Array.isArray(obj)) return obj.map(lowercasing);
@@ -469,52 +933,98 @@ function lowercasing(obj) {
 }
 
 /**
- * Recursive function that iteratively converts XML document format to JSON format.
- * Required the XML input to be a JQUERY object parsed from string.
- * Credit: https://stackoverflow.com/a/20861541
+ * Recursively converts XML document format to JSON format.
+ * Handles XML attributes, text content, and nested elements.
+ * 
  * @function xml2json
  * @memberof data
- * @param {Document} xml - parsed XML document from text
- * @returns {Object} obj - tagged key-value pair from the XML document.
- * @example 
- * xml2json(<someString attr1:1 attr2:2></someString>)
- * returns {somestring{ attr1: 1, attr2: 2}}
- *
+ * @param {Document|Element} xml - Parsed XML document or element from DOMParser
+ * @returns {Object|string|null} Object representation of XML structure, or null if error occurs
+ * 
+ * @example
+ * // Convert XML to JSON
+ * const parser = new DOMParser();
+ * const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+ * const jsonResult = hydro.data.xml2json(xmlDoc);
+ * 
+ * // For XML like: <station id="01646500"><name>Potomac River</name><flow>100.5</flow></station>
+ * // Returns: { station: { "@id": "01646500", name: "Potomac River", flow: "100.5" } }
+ * 
+ * @example
+ * // Handle XML with multiple elements
+ * // XML: <stations><station>Station1</station><station>Station2</station></stations>
+ * // Returns: { stations: { station: ["Station1", "Station2"] } }
  */
 function xml2json(xml) {
   try {
-    var obj = {};
-    if (xml.children.length > 0) {
-      for (var i = 0; i < xml.children.length; i++) {
-        var item = xml.children.item(i),
-          nodeName = item.nodeName;
+      let obj = {};
 
-        if (typeof obj[nodeName] == "undefined") {
-          obj[nodeName] = xml2json(item);
-        } else {
-          if (typeof obj[nodeName].push == "undefined") {
-            var old = obj[nodeName];
-
-            obj[nodeName] = [];
-            obj[nodeName].push(old);
+      // Handle attributes
+      if (xml.attributes && xml.attributes.length > 0) {
+          for (let i = 0; i < xml.attributes.length; i++) {
+              const attr = xml.attributes.item(i);
+              obj[`@${attr.nodeName}`] = attr.nodeValue;
           }
-          obj[nodeName].push(xml2json(item));
-        }
       }
-    } else {
-      obj = xml.textContent;
-    }
-    return obj;
+
+      // Handle child nodes
+      for (let i = 0; i < xml.childNodes.length; i++) {
+          const node = xml.childNodes[i];
+
+          if (node.nodeType === Node.TEXT_NODE) {
+              const text = node.textContent.trim();
+              if (text.length > 0) {
+                  obj["#text"] = text;
+              }
+          } else if (node.nodeType === Node.ELEMENT_NODE) {
+              const nodeName = node.nodeName;
+              const childObj = xml2json(node);
+
+              if (obj[nodeName] === undefined) {
+                  obj[nodeName] = childObj;
+              } else {
+                  if (!Array.isArray(obj[nodeName])) {
+                      obj[nodeName] = [obj[nodeName]];
+                  }
+                  obj[nodeName].push(childObj);
+              }
+          }
+      }
+
+      // Edge case: If no children or attributes and there's textContent
+      if (
+          Object.keys(obj).length === 0 &&
+          xml.textContent &&
+          xml.textContent.trim().length > 0
+      ) {
+          return xml.textContent.trim();
+      }
+
+      return obj;
   } catch (e) {
-    console.log(e.message);
+      console.error('[xml2json] Error during conversion:', e.message);
+      return null;
   }
 }
 
+
 /**
- * Creates a date a outof a string.
+ * Generates a timestamp-based string for file naming.
+ * Creates a formatted date string in YY.MM.DD.HH:MM format.
+ * 
  * @function generateDateString
  * @memberof data
- * @returns {String} - generates a string in format YY.MM.DD.HH.MM
+ * @returns {string} Formatted date string
+ * 
+ * @example
+ * // Get current timestamp for filename
+ * const timestamp = hydro.data.generateDateString();
+ * // Returns something like: "23.12.15.14:30"
+ * 
+ * @example
+ * // Use in file download
+ * const filename = `data_${hydro.data.generateDateString()}.csv`;
+ * // Results in: "data_23.12.15.14:30.csv"
  */
 function generateDateString() {
   const now = new Date();
@@ -530,4 +1040,4 @@ function generateDateString() {
 /*** End of Helper functions **/
 /**********************************/
 
-export { retrieve, transform, download, upload, recursiveSearch };
+export { retrieve, transform, download, upload, recursiveSearch, xml2json };

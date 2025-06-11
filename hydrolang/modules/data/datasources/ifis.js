@@ -59,4 +59,38 @@ export default {
     needProxy: true,
     requireskey: false,
   },
+  info: {
+    returnFormats: "xml",
+    MoreInfo: "https://ifis.iowafloodcenter.org/ifis/ws/",
+    About: "This API returns data from the IFIS web service."
+  },
+  "endpoint-info": {
+    "stream-data": {
+      paramFormat: {
+        site: "String - Site code (e.g., 'AMEI4')",
+        period: "String - Time period (e.g., '7d' for 7 days)",
+        format: "String - Output format (xml is default)"
+      },
+      infoSource: "https://ifis.iowafloodcenter.org/ifis/ws/",
+      example: "http://ifis.iowafloodcenter.org/ifis/ws/sites.php?site=AMEI4&period=7d"
+    },
+    "sensor-elevation": {
+      paramFormat: {
+        site: "String - Site code (e.g., 'AMEI4')",
+        period: "String - Time period (e.g., '7d' for 7 days)",
+        format: "String - Output format (xml is default)"
+      },
+      infoSource: "https://ifis.iowafloodcenter.org/ifis/ws/",
+      example: "http://ifis.iowafloodcenter.org/ifis/ws/elev_sites.php?site=CR02&period=7d"
+    },
+    "soil-moisture": {
+      paramFormat: {
+        site: "String - Site code (e.g., 'SM01')",
+        period: "String - Time period (e.g., '7d' for 7 days)",
+        format: "String - Output format (xml is default)"
+      },
+      infoSource: "https://ifis.iowafloodcenter.org/ifis/ws/",
+      example: "http://ifis.iowafloodcenter.org/ifis/ws/elev_sites.php?site=SM01&period=7d"
+    }
+  }
 };

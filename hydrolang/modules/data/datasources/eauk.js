@@ -138,4 +138,91 @@ export default {
     needProxy: true,
     requireskey: false,
   },
+  info: {
+    returnFormats: "json",
+    MoreInfo: "https://environment.data.gov.uk/apiportal",
+    About: "Data gov uk: provides API for free datasets from the UK and other parts of the world. The service does not require an API key, but, size limitations should be considered when downloading data."
+  },
+  "endpoint-info": {
+    "flood-warnings": {
+      paramFormat: {
+        "min-severity": "String - Minimum severity level (e.g., 1, 2, 3, 4)",
+        county: "String - County name",
+        lat: "Number - Latitude coordinate",
+        long: "Number - Longitude coordinate"
+      },
+      infoSource: "https://environment.data.gov.uk/flood-monitoring/doc/reference",
+      example: "http://environment.data.gov.uk/flood-monitoring/id/floods?county=Gloucestershire"
+    },
+    "flood-areas": {
+      paramFormat: {
+        search: "String - Search term",
+        lat: "Number - Latitude coordinate",
+        long: "Number - Longitude coordinate",
+        dist: "Number - Search radius in km"
+      },
+      infoSource: "https://environment.data.gov.uk/flood-monitoring/doc/reference",
+      example: "http://environment.data.gov.uk/flood-monitoring/id/floodAreas/context.jsonId?search=Severn&lat=51.86&long=-2.24&dist=5"
+    },
+    "flood-stations": {
+      paramFormat: {
+        parameterName: "String - Parameter name (e.g., 'rainfall', 'flow', 'level')",
+        qualifier: "String - Qualifier for the parameter",
+        label: "String - Station label",
+        town: "String - Town name",
+        catchmentName: "String - Catchment name",
+        search: "String - Search term"
+      },
+      infoSource: "https://environment.data.gov.uk/flood-monitoring/doc/reference",
+      example: "http://environment.data.gov.uk/flood-monitoring/id/stations?parameterName=rainfall&town=Gloucester"
+    },
+    "list-floodstations": {
+      paramFormat: {
+        parameter: "String - Parameter name (e.g., 'rainfall', 'flow', 'level')",
+        label: "String - Station label",
+        stationReference: "String - Station reference code",
+        search: "String - Search term",
+        lat: "Number - Latitude coordinate",
+        long: "Number - Longitude coordinate",
+        dist: "Number - Search radius in km"
+      },
+      infoSource: "https://environment.data.gov.uk/flood-monitoring/doc/reference",
+      example: "http://environment.data.gov.uk/flood-monitoring/id/stations?parameter=rainfall&lat=51.86&long=-2.24&dist=5"
+    },
+    "data-floodstations": {
+      paramFormat: {
+        parameter: "String - Parameter name (e.g., 'rainfall', 'flow', 'level')",
+        latest: "Boolean - Return only latest readings",
+        today: "Boolean - Return only today's readings",
+        date: "String - Specific date (YYYY-MM-DD)",
+        startdate: "String - Start date (YYYY-MM-DD)",
+        enddate: "String - End date (YYYY-MM-DD)",
+        since: "String - Date-time since when to return data",
+        stationReference: "String - Station reference code"
+      },
+      infoSource: "https://environment.data.gov.uk/flood-monitoring/doc/reference",
+      example: "http://environment.data.gov.uk/flood-monitoring/data/readings?parameter=rainfall&stationReference=E2043&startdate=2020-01-01&enddate=2020-01-07"
+    },
+    "list-wq-sampling": {
+      paramFormat: {
+        lat: "Number - Latitude coordinate",
+        lon: "Number - Longitude coordinate",
+        easting: "Number - Easting coordinate (OSGB36)",
+        northing: "Number - Northing coordinate (OSGB36)",
+        dist: "Number - Search radius in km"
+      },
+      infoSource: "https://environment.data.gov.uk/water-quality/doc/reference",
+      example: "http://environment.data.gov.uk/water-quality/id/sampling-point?lat=51.86&lon=-2.24&dist=5"
+    },
+    "data-wqsite": {
+      paramFormat: {
+        startDate: "String - Start date (YYYY-MM-DD)",
+        endDate: "String - End date (YYYY-MM-DD)",
+        year: "Number - Specific year",
+        purpose: "String - Sampling purpose"
+      },
+      infoSource: "https://environment.data.gov.uk/water-quality/doc/reference",
+      example: "http://environment.data.gov.uk/water-quality/id/sampling-point/AN-WAL01/measurements?startDate=2020-01-01&endDate=2020-12-31"
+    }
+  }
 };

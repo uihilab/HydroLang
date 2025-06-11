@@ -36,6 +36,35 @@
  *
  */
 const waterOneFlow = {
+  availableSources: [
+    "USGS Daily Values",
+    "USGS GroundWater",
+    "USGS Unit Values",
+    "Andrew Forest StreamFlow",
+    "Curated Brazilian Savana",
+    "Aquatic Habitat Lab CALVIN",
+    "Crowd Hydrology",
+    "Corpus Christi Bay",
+    "California DEC",
+    "Cedar River WS Forest",
+    "Clarksburg CSU",
+    "Commmunity Rain Network",
+    "Coopercreek Watershed",
+    "Charles River Watershed",
+    "Cornell Six Mile Isotopes",
+    "Delaware River WS",
+    "Farmington River Watershed",
+    "Florida Everglades LTER",
+    "FSU Hydrowell",
+    "NOAA GHCN",
+    "Boston Harbor",
+    "MOPEX",
+    "Swedish Monitoring",
+    "Humedales Atacama",
+    "Global Rivers",
+    "NLDAS Hourly Forcings",
+    "NLDAS Hourly NOAH Data"
+  ],
   action: "http://www.cuahsi.org/his/1.1/ws/",
   sourceType: (type) => {
     var val = "";
@@ -393,6 +422,59 @@ const waterOneFlow = {
     needProxy: true,
     requireskey: false,
   },
+  info: {
+    returnFormats: "soap",
+    MoreInfo: "https://hydroportal.cuahsi.org/ipswich/",
+    About: "Data endpoints for the CUAHSI HIS WaterOneFlow services. The services accessed require POST requests through SOAP protocol."
+  },
+  "endpoint-info": {
+    sourceType: {
+      paramFormat: {
+        type: "String - Name of the data source (e.g., 'USGS Daily Values', 'USGS GroundWater')"
+      },
+      infoSource: "https://hydroportal.cuahsi.org/",
+      example: "waterOneFlow.sourceType('USGS Daily Values') returns 'https://hydroportal.cuahsi.org/nwisdv/cuahsi_1_1.asmx'"
+    },
+    GetSiteInfo: {
+      paramFormat: {
+        site: "String/Array - Network name and site code (e.g., 'NetworkName:01234567')"
+      },
+      infoSource: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSiteInfo",
+      example: "Requires SOAP request with body: <GetSiteInfo xmlns=\"http://www.cuahsi.org/his/1.1/ws/\"><site>NetworkName:01234567</site></GetSiteInfo>"
+    },
+    GetSites: {
+      paramFormat: {
+        site: "Array - Array of network name and site codes (e.g., ['NetworkName:01234567', 'NetworkName:01234568'])"
+      },
+      infoSource: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSites",
+      example: "Requires SOAP request with body: <GetSites xmlns=\"http://www.cuahsi.org/his/1.1/ws/\"><site><string>NetworkName:01234567</string><string>NetworkName:01234568</string></site></GetSites>"
+    },
+    GetSitesByBoxObject: {
+      paramFormat: {
+        west: "Number - Western longitude boundary",
+        south: "Number - Southern latitude boundary",
+        east: "Number - Eastern longitude boundary",
+        north: "Number - Northern latitude boundary"
+      },
+      infoSource: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetSitesByBoxObject",
+      example: "Requires SOAP request with body: <GetSitesByBoxObject xmlns=\"http://www.cuahsi.org/his/1.1/ws/\"><west>-71.5</west><south>42.2</south><east>-70.5</east><north>43.0</north><IncludeSeries>true</IncludeSeries></GetSitesByBoxObject>"
+    },
+    GetValues: {
+      paramFormat: {
+        location: "String - Network name and site code (e.g., 'NetworkName:01234567')",
+        variable: "String - Network name and variable code (e.g., 'NetworkName:00060')",
+        startDate: "String - Start date (YYYY-MM-DD format)",
+        endDate: "String - End date (YYYY-MM-DD format)"
+      },
+      infoSource: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetValues",
+      example: "Requires SOAP request with body: <GetValues xmlns=\"http://www.cuahsi.org/his/1.1/ws/\"><location>NetworkName:01234567</location><variable>NetworkName:00060</variable><startDate>2020-01-01</startDate><endDate>2020-01-31</endDate></GetValues>"
+    },
+    GetVariables: {
+      paramFormat: {},
+      infoSource: "https://hydroportal.cuahsi.org/ipswich/cuahsi_1_1.asmx?op=GetVariables",
+      example: "Requires SOAP request with body: <GetVariables xmlns=\"http://www.cuahsi.org/his/1.1/ws/\"></GetVariables>"
+    }
+  }
 };
 
 /**
@@ -568,6 +650,50 @@ const hisCentral = {
     needProxy: true,
     requireskey: false,
   },
+  info: {
+    returnFormats: "soap",
+    MoreInfo: "https://his.cuahsi.org/",
+    About: "HIS Central serves as the main functions that can be used for a specific resource. It allows for users to obtain specific data from a resource without the need of manipulation a large chunk of data."
+  },
+  "endpoint-info": {
+    sourceType: {
+      paramFormat: {
+        type: "String - Type parameter (optional)"
+      },
+      infoSource: "https://his.cuahsi.org/",
+      example: "hisCentral.sourceType() returns 'https://hiscentral.cuahsi.org/webservices/hiscentral.asmx'"
+    },
+    GetControlledVocabulary: {
+      paramFormat: {
+        cvField: "String - Controlled vocabulary field"
+      },
+      infoSource: "https://hiscentral.cuahsi.org/webservices/hiscentral.asmx?op=GetControlledVocabulary",
+      example: "Requires SOAP request with body: <GetControlledVocabulary xmlns=\"http://hiscentral.cuahsi.org/20100205/\"><cvField>SampleMedium</cvField></GetControlledVocabulary>"
+    },
+    GetWaterOneFlowServiceInfo: {
+      paramFormat: {},
+      infoSource: "https://hiscentral.cuahsi.org/webservices/hiscentral.asmx?op=GetWaterOneFlowServiceInfo",
+      example: "Requires SOAP request with body: <GetWaterOneFlowServiceInfo xmlns=\"http://hiscentral.cuahsi.org/20100205/\"></GetWaterOneFlowServiceInfo>"
+    },
+    GetCountOrData: {
+      paramFormat: {
+        xmin: "Number - Minimum longitude",
+        xmax: "Number - Maximum longitude",
+        ymin: "Number - Minimum latitude",
+        ymax: "Number - Maximum latitude",
+        sampleMedium: "String - Sample medium (e.g., 'Surface Water')",
+        dataType: "String - Data type",
+        valueType: "String - Value type",
+        generalCat: "String - General category",
+        conceptKey: "String - Concept keyword",
+        networkID: "String - Network ID",
+        startDate: "String - Start date (YYYY-MM-DD format)",
+        endDate: "String - End date (YYYY-MM-DD format)"
+      },
+      infoSource: "https://hiscentral.cuahsi.org/webservices/hiscentral.asmx?op=GetCountOrData",
+      example: "Requires SOAP request with body containing xmin, xmax, ymin, ymax parameters"
+    }
+  }
 };
 
 /**
@@ -683,6 +809,63 @@ const hydroShare = {
     needProxy: true,
     requireskey: false,
   },
+  info: {
+    returnFormats: "json",
+    MoreInfo: "https://www.hydroshare.org/hsapi/",
+    About: "HydroShare API, enabling acccess to data resources, examples, models and more hosted within the HydroShare sphere."
+  },
+  "endpoint-info": {
+    resource_list: {
+      paramFormat: {
+        page: "Number - Page number for pagination",
+        count: "Number - Number of results per page",
+        creator: "String - Filter by creator",
+        author: "String - Filter by author",
+        group: "String - Filter by group",
+        user: "String - Filter by user",
+        owner: "String - Filter by owner",
+        from_date: "String - Start date filter (YYYY-MM-DD)",
+        to_date: "String - End date filter (YYYY-MM-DD)",
+        subject: "String - Filter by subject",
+        full_text_search: "String - Full text search term",
+        edit_permission: "Boolean - Filter by edit permission",
+        published: "Boolean - Filter by published status",
+        type: "String - Filter by resource type",
+        coverage_type: "String - Filter by coverage type",
+        north: "Number - Northern boundary",
+        south: "Number - Southern boundary",
+        east: "Number - Eastern boundary",
+        west: "Number - Western boundary",
+        include_obsolete: "Boolean - Include obsolete resources"
+      },
+      infoSource: "https://www.hydroshare.org/hsapi/",
+      example: "https://www.hydroshare.org/hsapi/resource?count=10&published=true"
+    },
+    resource_create: {
+      paramFormat: {
+        metadata: "Object - Resource metadata",
+        abstract: "String - Resource abstract",
+        keywords: "Array - Keywords for the resource",
+        resource_type: "String - Type of resource (default: 'CompositeResource')"
+      },
+      infoSource: "https://www.hydroshare.org/hsapi/",
+      example: "POST to https://www.hydroshare.org/hsapi/resource with appropriate parameters"
+    },
+    search: {
+      paramFormat: {
+        text: "String - Search text",
+        author: "String - Filter by author",
+        subject: "Array - Filter by subjects",
+        abstract: "String - Filter by abstract content",
+        resource_type: "String - Filter by resource type",
+        coverage_type: "Array - Filter by coverage types",
+        start_date: "String - Start date filter",
+        end_date: "String - End date filter"
+      },
+      infoSource: "https://www.hydroshare.org/hsapi/",
+      example: "https://www.hydroshare.org/hsapi/resource/search?text=water&resource_type=CompositeResource"
+    }
+  }
 };
 
 export { waterOneFlow, hydroShare, hisCentral };

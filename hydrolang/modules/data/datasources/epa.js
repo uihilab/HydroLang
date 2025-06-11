@@ -89,4 +89,99 @@ export default {
     needProxy: true,
     requireskey: false,
   },
+  info: {
+    returnFormats: "json",
+    MoreInfo: "https://qed.epa.gov/hms/meteorology/precipitation/data_request/",
+    About: "Data endpoints for the Hydrologic Micro Services from the EPA. HydroLang supports the requests through AJAX calls to the server."
+  },
+  "endpoint-info": {
+    precipitation: {
+      paramFormat: {
+        source: "String - Data source (e.g., 'nldas', 'gldas', 'nexrad', 'ncei', 'prism')",
+        dateTimeSpan: {
+          startDate: "String - Start date (YYYY-MM-DD HH format)",
+          endDate: "String - End date (YYYY-MM-DD HH format)",
+          dateTimeFormat: "String - Format of date-time (yyyy-MM-dd HH)"
+        },
+        geometry: {
+          hucID: "String - HUC ID (e.g., '03120001')",
+          stationID: "String - Station ID",
+          point: {
+            latitude: "Number - Latitude coordinate",
+            longitude: "Number - Longitude coordinate"
+          },
+          geometryMetadata: "Object - Additional metadata",
+          timezone: "String - Timezone"
+        },
+        dataValueFormat: "String - Data value format (e.g., 'E3')",
+        temporalResolution: "String - Temporal resolution (e.g., 'default', 'hourly')",
+        timeLocalized: "Boolean - Whether time is localized",
+        units: "String - Units (e.g., 'metric', 'imperial')",
+        outputFormat: "String - Output format"
+      },
+      infoSource: "https://qed.epa.gov/hms/meteorology/precipitation/#output_parameters",
+      example: `POST to https://qed.epa.gov/hms/rest/api/meteorology/precipitation
+      {
+        "source": "nldas",
+        "dateTimeSpan": {
+          "startDate": "2020-01-01 00",
+          "endDate": "2020-01-07 00",
+          "dateTimeFormat": "yyyy-MM-dd HH"
+        },
+        "geometry": {
+          "point": {
+            "latitude": 33.925,
+            "longitude": -83.356
+          }
+        },
+        "dataValueFormat": "E3",
+        "temporalResolution": "hourly",
+        "units": "metric"
+      }`
+    },
+    evapotranspiration: {
+      paramFormat: {
+        source: "String - Data source (e.g., 'nldas', 'gldas')",
+        dateTimeSpan: {
+          startDate: "String - Start date (YYYY-MM-DD HH format)",
+          endDate: "String - End date (YYYY-MM-DD HH format)",
+          dateTimeFormat: "String - Format of date-time (yyyy-MM-dd HH)"
+        },
+        geometry: {
+          hucID: "String - HUC ID (e.g., '03120001')",
+          stationID: "String - Station ID",
+          point: {
+            latitude: "Number - Latitude coordinate",
+            longitude: "Number - Longitude coordinate"
+          },
+          geometryMetadata: "Object - Additional metadata",
+          timezone: "String - Timezone"
+        },
+        dataValueFormat: "String - Data value format (e.g., 'E3')",
+        temporalResolution: "String - Temporal resolution (e.g., 'default', 'hourly')",
+        timeLocalized: "Boolean - Whether time is localized",
+        units: "String - Units (e.g., 'metric', 'imperial')",
+        outputFormat: "String - Output format"
+      },
+      infoSource: "https://qed.epa.gov/hms/hydrology/evapotranspiration/#input_parameters",
+      example: `POST to https://qed.epa.gov/hms/rest/api/v3/hydrology/evapotranspiration
+      {
+        "source": "nldas",
+        "dateTimeSpan": {
+          "startDate": "2020-01-01 00",
+          "endDate": "2020-01-07 00",
+          "dateTimeFormat": "yyyy-MM-dd HH"
+        },
+        "geometry": {
+          "point": {
+            "latitude": 33.925,
+            "longitude": -83.356
+          }
+        },
+        "dataValueFormat": "E3",
+        "temporalResolution": "hourly",
+        "units": "metric"
+      }`
+    }
+  }
 };

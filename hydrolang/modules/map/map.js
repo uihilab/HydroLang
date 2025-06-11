@@ -51,6 +51,54 @@ async function loader({ params = {maptype: "leaflet"}, args = {}, data = {}} = {
   }
 }
 
+function removeMap() {
+  if (osmap) {
+      // Remove the map and all its layers
+      osmap.remove();
+      
+      // Clean up global variables
+      osmap = null;
+      layercontroller = null;
+      window.baselayers = {};
+      window.overlayers = {};
+      window.usedColors = new Set();
+  }
+}
+
+
+function reinitializeController(mapType) {
+  if (!osmap) return;
+  
+  // Remove existing controller if it exists
+  if (layercontroller) {
+      if (mapType === "google") {
+          const controlDiv = document.getElementById("gmap-control-div");
+          if (controlDiv) controlDiv.remove();
+      } else if (mapType === "leaflet") {
+          layercontroller.remove();
+      }
+      layercontroller = null;
+  }
+
+  // Reinitialize the controller
+  if (mapType === "google") {
+      // Google Maps controller initialization
+      // ... existing Google Maps controller code ...
+      return
+  } else if (mapType === "leaflet") {
+      layercontroller = new L.control.layers().addTo(osmap);
+      
+      // Readd existing layers
+      Object.entries(window.baselayers).forEach(([name, layer]) => {
+          layercontroller.addBaseLayer(layer, name);
+      });
+      
+      Object.entries(window.overlayers).forEach(([name, layer]) => {
+          layercontroller.addOverlay(layer, name);
+      });
+  }
+}
+
 /**
  * Layer function for appending tiles, geodata, markers, kml or drawing tools to a map.
  * @function Layers
@@ -104,8 +152,7 @@ async function Layers({ params, args, data } = {}) {
         !divisors.isdivAdded({ params: { id: "gmap-control-div" } })
           ? divisors.createDiv({
               params: {
-                id: "gmap-control-div", 
-                title: "Show Map Layers",
+                id: "gmap-control-div",
                 style: `
                 #gmap-control-div {
                   position: relative;
@@ -127,18 +174,12 @@ async function Layers({ params, args, data } = {}) {
                   border-radius: 2px;
                   box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px;
                   background: none padding-box rgb(255, 255, 255);
-                  font-weight: 500;
+                  font-weight: bold;
                   margin: 10px 10px 0px 0px;
                 }
 
-                #select-box:hover {
-                  background-color: rgb(235, 235, 235);
-                }
-
                 #options-container {
-                  background-color: rgb(255, 255, 255);
                   display: none;
-                  padding: 2px;
                   position: absolute;
                   top: 100%;
                   left: 0;
@@ -149,25 +190,12 @@ async function Layers({ params, args, data } = {}) {
                   overflow-y: auto;
                   background-color: white;
                   margin: 0px 10px 0px 0px;
-                  border-bottom-left-radius: 2px;
-                  border-bottom-right-radius: 2px;
-                  box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px;
-                  text-align: left;
+
                 }
 
                 #options-container label {
                   display: block;
                   padding: 8px 10px;
-
-                  color: rgb(0, 0, 0);
-                  font-family: Roboto, Arial, sans-serif;
-                  user-select: none;
-                  font-size: 18px;
-                  background-color: rgb(255, 255, 255);
-                  padding: 7px 8px 7px 7px;
-                  direction: ltr;
-                  text-align: left;
-                  white-space: nowrap;
                 }
 
                 #options-container label:hover {
@@ -197,26 +225,15 @@ async function Layers({ params, args, data } = {}) {
         const selectBox = document.querySelector('#select-box');
         const optionsContainer = document.querySelector('#options-container');
 
-        let isMouseOver = false;
-
         // Toggle the controller list if the Layer button is clicked
-        selectBox.addEventListener('mouseover', function(event) {
-          isMouseOver = true;
-          optionsContainer.style.display = 'block';
-        });
-
-        selectBox.addEventListener('mouseout', function(event) {
-          isMouseOver = false;
-          setTimeout(() => {
-            if(!isMouseOver) {
-              optionsContainer.style.display = 'none';
-            }
-          }, 1000);
+        selectBox.addEventListener('click', function(event) {
+          optionsContainer.style.display = optionsContainer.style.display === 'block' ? 'none' : 'block';
         });
 
         // Toggle the layer if checkbox is toggles on or off
         optionsContainer.addEventListener('change', function(event) {
           if (event.target.type === 'checkbox') {
+              console.log(event.target.value)
               if(event.target.checked) {
                 baselayers[event.target.value].setMap(osmap);
               } else {
@@ -241,7 +258,8 @@ async function Layers({ params, args, data } = {}) {
         addLayerToGMapController(layer, layername)
       //Caller for the geoJSON data renderer.
       } else if (type === "geojson") {
-        layer = await geoJSON({ params: mapconfig, args: layertype, data: layertype.data });
+        layer = geoJSON({ params: mapconfig, args: layertype, data: layertype.data });
+        osmap.addLayer(layer)
         layer.setMap(osmap);
         baselayers[layername] = layer;
         addLayerToGMapController(layer, layername)
@@ -266,7 +284,7 @@ async function Layers({ params, args, data } = {}) {
     await osmap.whenReady(async function () {
       if (typeof layercontroller === "undefined") {
         //Defining the controller for the layers.
-        layercontroller = new L.control.layers().addTo(osmap);
+        reinitializeController('leaflet');
       }
 
       if (type === "tile") {
@@ -379,13 +397,13 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
   await Promise.resolve(loader({params, args}));
   //Reading layer types and map configurations from the user's parameters inputs.
   var layertype,
-  { maptype = "leaflet", lat = 41.6572, lon = -91.5414, zoom = 10 } = params;
+  { maptype = "leaflet", lat = 41.6572, lon = -91.5414 } = params;
 
   let mapconfig = {
     maptype,
     lat,
     lon,
-    zoom
+    zoom: 10
   };
 
   //Allocating a container object where the map should be set.
@@ -400,10 +418,9 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
           width: 800px;
           margin-left: auto;
           margin-right: auto;
-          position: 'absolute';
+          position: ${maptype === 'leaflet'?'fixed':'absolute'};
           min-width: 200px;
           min-height: 200px;
-          resize: both;
         }
       
         .content {
@@ -415,6 +432,41 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
     }) : null;
   container = document.getElementById("map");
 
+  // Creating an icon in the bottom right corner of the map that allows the map to be resized
+  // !divisors.isdivAdded({params:{id: "resize-icon"}}) ?  
+  //   divisors.createDiv({
+  //     params: {
+  //       id: "resize-icon",
+  //       style: `
+  //       #resize-icon {
+  //         position: absolute;
+  //         top: 380px;
+  //         left: 780px;
+  //         width: 20px;
+  //         height: 20px;
+  //         background-color: gray;
+  //         border-radius: 50%;
+  //         opacity: 50%;
+  //         color: transparent;
+  //       }
+
+  //       #resize-icon:hover  {
+  //         background-color: transparent;
+  //         font-size: 24px;
+  //         color: black;
+  //         opacity: 100%;
+  //       }
+
+  //       #resize-icon::before {
+  //         content: '\\2921';
+  //       }
+  //     `
+  //     }
+  //   }) : null;
+  // const resizeIcon = document.getElementById('resize-icon');
+
+  // Setup map resizing icon
+  // setupMapResizing(container, resizeIcon);
 
   mapId = 'MAP_ID'
 
@@ -432,9 +484,7 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
     
     mapType = 'google';
     //append a new map to the map variable.
-    //osmap = new google.maps.Map(container, options);
-    const { Map } = await google.maps.importLibrary("maps");
-    osmap = new Map(container, options);
+    osmap = new google.maps.Map(container, options);
     
   } else if (mapconfig.maptype === "leaflet") {
     let {type = "tile", name = "OpenStreetMap"} = args
@@ -444,11 +494,6 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
     };
     mapType = "leaflet"
     osmap = new L.map(container.id);
-    // Ensure correct resizing of Leaflet map
-    const resizeObserver = new ResizeObserver((entry) => {
-      setTimeout(function(){ osmap.invalidateSize()}, 400);
-    });
-    resizeObserver.observe(container);
     //assign the tile type to the data object for rendering.
     const tiletype = layertype.name;
     //Rendering the tile type the user has requested from the available tile types.
@@ -456,8 +501,6 @@ async function renderMap({ params = {}, args = {}, data } = {}) {
       console.log("No tile found!");
       return;
     }
-
-    console.log('mapconfig.zoom',mapconfig.zoom)
     //import the tile options from the given data.
     osmap.setView([mapconfig.lat, mapconfig.lon], mapconfig.zoom);
     Layers({ params: mapconfig, args: layertype });
@@ -557,34 +600,38 @@ async function recenter ({ params, args, data } = {}) {
  * @function geoJSON
  * @memberof map
  * @param {Object} params - Contains: maptype (google, osm)
- * @args.styleFunction {Function} args.markerOptionsCallback - Callback function to set the geojsonMarkerOptions based on geoJson properties
- * @args.popUpFunction {Function} args.markerPopupCallback - Callback function to set the bindPopup based on geoJson properties
- * @args.onClickFunction {Function} args.onClickFunction - Callback function for an onClick event for the geoJson properties
+ * @param {Function} args.markerOptionsCallback - Callback function to set the geojsonMarkerOptions based on geoJson properties
+ * @param {Function} args.markerPopupCallback - Callback function to set the bindPopup based on geoJson properties
+ * @param {Function} args.onClickFunction - Callback function for an onClick event for the geoJson properties
  * @param {Object} data - Data as geoJSON format compliant to OGM standards. See: https://docs.ogc.org/is/17-003r2/17-003r2.html
  * @returns {Element} geoJSON layer added into a rendered map.
  * @example
  * hydro.map.geoJSON({params: {maptype: 'someMapType'}, data: {somegeoJSON}})
  */
-async function geoJSON({ params, args, data } = {}) {
-  let geoType; // Variable to hold the type of geometry (Point, Polygon, etc.)
 
-  // Destructuring the style, popup, and click functions from the args parameter
-  let { styleFunction, popUpFunction, onClickFunction } = args;
+ async function geoJSON({ params, args, data } = {}) {
+  let geoType;
 
-  // Determine the type of GeoJSON data (FeatureCollection or single Feature) and get the geometry type
+  let {styleFunction, popUpFunction, onClickFunction} = args;
+
+  console.log('data',data);
+
   if (data.type === "FeatureCollection") {
-    geoType = data.features[0].geometry.type; // Get the type from the first feature in the collection
+    //Get the type of feature to be drawn
+    geoType = data.features[0].geometry.type;
+
+
   } else if (data.type === "Feature") {
-    geoType = data.geometry.type; // Get the type directly from the feature
+    geoType = data.geometry.type;
   }
 
-  // Check if the map type specified in params is Google Maps
-  if (params.maptype === "google") {
-    const layer = new google.maps.Data(); // Create a new Google Maps data layer
-    const infoWindow = new google.maps.InfoWindow(); // Initialize an InfoWindow for displaying popups
-    let contentString; // Variable to hold the content for the InfoWindow
+  
 
-    // Default styles for points and polygons on Google Maps
+  if (params.maptype === "google") {
+    const layer = new google.maps.Data();
+    const infoWindow = new google.maps.InfoWindow();
+    let contentString;
+
     const geoPoint = {
       scale: 5,
       fillColor: "red",
@@ -603,134 +650,144 @@ async function geoJSON({ params, args, data } = {}) {
       fillOpacity: 0.6,
     };
 
-    // If the geometry type is a Point
     if (geoType === "Point") {
-      layer.addGeoJson(data); // Add the GeoJSON data to the layer
-
-      // Set the style of the layer, either using the styleFunction or the default geoPoint style
-      layer.setStyle(function (feature) {
-        return {
-          map: osmap,
-          center: feature.getGeometry().get(),
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            ...styleFunction ? styleFunction(feature) : geoPoint,
-          }
+      layer.addGeoJson(data);
+      layer.setStyle(function (feature) { return {
+        map: osmap,
+        center: feature.getGeometry().get(),
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          ...styleFunction ? styleFunction(feature) : geoPoint,
         }
-      });
+      }});
 
-      // Add a click listener to the layer
       layer.addListener("click", function (event) {
-        // If a popUpFunction is provided, use it to generate the content of the InfoWindow
-        if (popUpFunction) {
-          contentString = popUpFunction(event.feature);
+        if(popUpFunction) {
+          contentString = popUpFunction(event.feature)
         } else {
-          contentString = `<div>Coordinates: ${event.latLng}</div>`; // Default content
+          contentString = `<div>Coordinates: ${event.latLng}</div>`;
         }
-        infoWindow.setContent(contentString); // Set the content of the InfoWindow
-        infoWindow.setPosition(event.feature.getGeometry().get()); // Position the InfoWindow
-        infoWindow.open(osmap); // Open the InfoWindow on the map
+        infoWindow.setContent(contentString);
+        infoWindow.setPosition(event.feature.getGeometry().get());
+        infoWindow.open(osmap);
 
-        // If an onClickFunction is provided, execute it
-        if (onClickFunction) {
-          onClickFunction(event);
+        if(onClickFunction) {
+          onClickFunction(event)
         }
       });
 
-      return layer; // Return the configured layer
+      //layer.setMap(osmap);
+      return layer
 
     } else if (geoType === "Polygon" || geoType === "MultiPolygon") {
-      layer.addGeoJson(data); // Add the GeoJSON data to the layer
+      layer.addGeoJson(data);
 
-      // Set the style of the layer, either using the styleFunction or the default geoPolygon style
-      layer.setStyle(function (feature) {
-        return {
-          map: osmap,
-          ...styleFunction ? styleFunction(feature) : geoPolygon,
-        }
-      });
-
-      // Add a click listener to the layer
+      layer.setStyle(function (feature) { return {
+        map: osmap,
+        ...styleFunction ? styleFunction(feature) : geoPolygon,
+      }});
+      
       layer.addListener("click", function (event) {
-        if (popUpFunction) {
-          contentString = popUpFunction(event.feature); // Generate the content for the InfoWindow
+        if(popUpFunction) {
+          contentString = popUpFunction(event.feature)
         }
-        infoWindow.setContent(contentString); // Set the content of the InfoWindow
-        infoWindow.setPosition(event.latLng); // Position the InfoWindow
-        infoWindow.open(osmap); // Open the InfoWindow on the map
+        console.log(event.feature.getGeometry())
 
-        // If an onClickFunction is provided, execute it
-        if (onClickFunction) {
-          onClickFunction(event); // Passing the feature object to the onClick function
+        
+        infoWindow.setContent(contentString);
+        infoWindow.setPosition(event.latLng);
+        infoWindow.open(osmap);
+
+
+        if(onClickFunction) {
+          onClickFunction(event.feature.Gg)
         }
       });
 
-      return layer; // Return the configured layer
+      //layer.setMap(osmap);
+      return layer;
+
     }
 
-    // Check if the map type specified in params is Leaflet
+
+    //return layer;
   } else if (params.maptype === "leaflet") {
-
-    // Define a function that binds a popup and click event handler to each feature
+    
+    // Bind Popup values and onClick function values
     const onEachFeature = (feature, layer) => {
-      if (popUpFunction) {
-        layer.bindPopup(popUpFunction(feature)); // Bind the popup content using the popUpFunction
-      } else if (feature.properties && feature.properties.Name && feature.properties.Lat && feature.properties.Lon) {
-        // Default popup content if popUpFunction is not provided
-        layer.bindPopup(`${feature.properties.Name} (${feature.properties.Lat}, ${feature.properties.Lon})`);
-      }
+      
+      if(popUpFunction) {
+          layer.bindPopup(popUpFunction(feature))
+        } else if (feature.properties && feature.properties.Name && feature.properties.Lat && feature.properties.Lon) {
+          layer.bindPopup(`${feature.properties.Name} (${feature.properties.Lat}, ${feature.properties.Lon})`);
+        }
 
-      // If an onClickFunction is provided, attach it to the 'click' event of the layer
-      if (onClickFunction) {
-        layer.on("click", onClickFunction);
-      }
-    };
+        if(onClickFunction) {
+          layer.on(
+            "click", onClickFunction
+        )};
+      };
 
-    // Default styles for points and polygons on Leaflet
-    const geoPoint = {
-      radius: 10,
-      fillColor: "#2ce4f3",
-      color: "#0dc1d3",
-      weight: 1,
-      opacity: 1,
-      fillOpacity: 0.7,
-    };
-
+      const geoPoint = {
+        radius: 10,
+        fillColor: "#2ce4f3",
+        color: "#0dc1d3",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.7,
+      };
+      
     const geoPolygon = {
       weight: 2,
       color: "#432",
     };
 
-    // If the geometry type is a Point
     if (geoType === "Point") {
-      return L.geoJSON(data, {
-        pointToLayer: function (feature, latlng) {
-          // Convert each point to a circle marker, applying the styleFunction or the default geoPoint style
-          return L.circleMarker(latlng, function (feature) {
-            if (styleFunction !== null) return styleFunction(feature);
-            return geoPoint;
-          });
-        },
-        onEachFeature: onEachFeature, // Apply the onEachFeature function to bind popups and events
-        style: function (feature) {
-          if (styleFunction !== null) return styleFunction(feature);
-          return geoPoint;
-        },
-      });
-      // If the geometry type is a Polygon or MultiPolygon
+      
+    //   return L.geoJSON(data, {
+    //     pointToLayer: function (feature, latlng) {
+    //         // Apply style function if it exists, otherwise use default geoPoint
+    //         const style = styleFunction !== null ? styleFunction(feature) : geoPoint;
+    //         return L.circleMarker(latlng, style);
+    //     },
+    //     onEachFeature: onEachFeature,
+    //     style: function (feature) {
+    //         // Only needed for non-point features
+    //         if (styleFunction !== null) return styleFunction(feature);
+    //         return geoPolygon; // Default style for polygons
+    //     }
+    // });
+
+    return L.geoJSON(data 
+  //     {
+  //     pointToLayer: function (feature, latlng) {
+  //         // Apply style function if it exists, otherwise use default geoPoint
+  //         const style = styleFunction !== null ? styleFunction(feature) : geoPoint;
+  //         return L.circleMarker(latlng, style);
+  //     },
+  //     onEachFeature: onEachFeature,
+  //     style: function (feature) {
+  //         // Only needed for non-point features
+  //         if (styleFunction !== null) return styleFunction(feature);
+  //         return geoPolygon; // Default style for polygons
+  //     }
+  // }
+)
+
+
+
+
     } else if (geoType === "Polygon" || geoType === "MultiPolygon") {
       return L.geoJSON(data, {
         style: function (feature) {
-          // Apply the styleFunction or the default geoPolygon style
-          if (styleFunction !== null) return styleFunction(feature);
+          if(styleFunction!== null) return styleFunction(feature);
           return geoPolygon;
         },
-        onEachFeature: onEachFeature, // Apply the onEachFeature function to bind popups and events
+        onEachFeature: onEachFeature,
       });
     }
   }
 }
-
 
 
 
@@ -903,6 +960,8 @@ async function addCustomLegend({ params, args, data } = {}) {
 
   let type = mapType;
 
+  console.log('mapType', type);
+
   // Handle the case when the map type is 'google'
   if (type === "google") {
     switch (position) {
@@ -912,34 +971,22 @@ async function addCustomLegend({ params, args, data } = {}) {
       case 'top left':
         osmap.controls[google.maps.ControlPosition.TOP_LEFT].push(div);
         break;
-      case 'left top':
-        osmap.controls[google.maps.ControlPosition.LEFT_TOP].push(div);
-        break;
       case 'left':
         osmap.controls[google.maps.ControlPosition.LEFT_CENTER].push(div);
         break;
       case 'bottom left':
         osmap.controls[google.maps.ControlPosition.BOTTOM_LEFT].push(div);
         break;
-      case 'left bottom':
-          osmap.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(div);
-          break;
       case 'bottom':
         osmap.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(div);
         break;
       case 'bottom right':
         osmap.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(div);
         break;
-      case 'right bottom':
-        osmap.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);
-        break;
       case 'right':
         osmap.controls[google.maps.ControlPosition.RIGHT_CENTER].push(div);
         break;
       case 'top right':
-        osmap.controls[google.maps.ControlPosition.RIGHT_TOP].push(div);
-        break;
-      case 'right top':
         osmap.controls[google.maps.ControlPosition.TOP_RIGHT].push(div);
         break;
       default:
@@ -957,6 +1004,7 @@ async function addCustomLegend({ params, args, data } = {}) {
       legend.onAdd = function (map) {
         // Add the legend to the map
         let legendDiv = L.DomUtil.create('div', 'legend-container')
+        console.log(div)        
         legendDiv.innerHTML = args.div.innerHTML;
 
         return legendDiv
@@ -1203,4 +1251,4 @@ function generateColors () {
 /*** End of Supporting functions **/
 /**********************************/
 
-export { loader, Layers, renderMap, recenter, addCustomLegend };
+export { loader, Layers, renderMap, recenter, addCustomLegend, removeMap, reinitializeController  };

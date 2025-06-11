@@ -128,4 +128,78 @@ export default {
     requireskey: true,
     keyname: "x-api-key",
   },
+  info: {
+    returnFormats: "json",
+    MoreInfo: "https://dev.meteostat.net/",
+    About: "Meteostat data retrieval API. The API retrieves all the variables that are measured in a given station. Activation key format and name is 'x-api-key'."
+  },
+  "endpoint-info": {
+    "find-stations": {
+      paramFormat: {
+        query: "String - Search query (e.g., 'Berlin')",
+        limit: "Number - Maximum number of results to return"
+      },
+      infoSource: "https://dev.meteostat.net/api/stations/search.html",
+      example: "https://api.meteostat.net/v2/stations/search?query=Berlin&limit=5"
+    },
+    "nearby-stations": {
+      paramFormat: {
+        lat: "Number - Latitude coordinate",
+        long: "Number - Longitude coordinate",
+        limit: "Number - Maximum number of results to return",
+        radius: "Number - Search radius in kilometers"
+      },
+      infoSource: "https://dev.meteostat.net/api/stations/nearby.html",
+      example: "https://api.meteostat.net/v2/stations/nearby?lat=52.52&lon=13.41&limit=5&radius=20"
+    },
+    "hourlydata-stations": {
+      paramFormat: {
+        station: "String - Station ID (e.g., '10382')",
+        start: "String - Start date (YYYY-MM-DD format)",
+        end: "String - End date (YYYY-MM-DD format)",
+        model: "Boolean - Include model data (true/false)"
+      },
+      infoSource: "https://dev.meteostat.net/api/stations/hourly.html",
+      example: "https://api.meteostat.net/v2/stations/hourly?station=10382&start=2020-01-01&end=2020-01-02"
+    },
+    "dailydata-station": {
+      paramFormat: {
+        station: "String - Station ID (e.g., '10382')",
+        start: "String - Start date (YYYY-MM-DD format)",
+        end: "String - End date (YYYY-MM-DD format)"
+      },
+      infoSource: "https://dev.meteostat.net/api/stations/daily.html",
+      example: "https://api.meteostat.net/v2/stations/daily?station=10382&start=2020-01-01&end=2020-01-31"
+    },
+    "hourlydata-point": {
+      paramFormat: {
+        lat: "Number - Latitude coordinate",
+        lon: "Number - Longitude coordinate",
+        alt: "Number - Altitude in meters",
+        start: "String - Start date (YYYY-MM-DD format)",
+        end: "String - End date (YYYY-MM-DD format)",
+        tz: "String - Timezone (e.g., 'Europe/Berlin')"
+      },
+      infoSource: "https://dev.meteostat.net/api/point/hourly.html",
+      example: "https://api.meteostat.net/v2/point/hourly?lat=52.52&lon=13.41&start=2020-01-01&end=2020-01-10"
+    },
+    "dailydata-point": {
+      paramFormat: {
+        lat: "Number - Latitude coordinate",
+        lon: "Number - Longitude coordinate",
+        alt: "Number - Altitude in meters",
+        start: "String - Start date (YYYY-MM-DD format)",
+        end: "String - End date (YYYY-MM-DD format)"
+      },
+      infoSource: "https://dev.meteostat.net/api/point/daily.html",
+      example: "https://api.meteostat.net/v2/point/daily?lat=52.52&lon=13.41&start=2020-01-01&end=2020-01-31"
+    },
+    "bulkdata": {
+      paramFormat: {
+        station: "String - Station ID (e.g., '10382')"
+      },
+      infoSource: "https://dev.meteostat.net/bulk/",
+      example: "https://bulk.meteostat.net/daily/10382.csv.gz"
+    }
+  }
 };

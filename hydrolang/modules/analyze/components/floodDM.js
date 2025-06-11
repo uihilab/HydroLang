@@ -1,6 +1,5 @@
 import proxies from "./../../data/datasources/proxy.js";
 import { retrieve } from "./../../data/data.js";
-import { createDiv } from "../../visualize/divisors.js";
 import {
   Layers,
   renderMap,
@@ -9,9 +8,27 @@ import {
 } from "./../../map/map.js";
 
 /**
- * This class contains methods which can be used to model various flood damage and mitigation scenarios for hydrological analyses.
+ * This class contains methods for modeling various flood damage and mitigation scenarios for hydrological analyses.
+ * Provides comprehensive flood impact assessment including property damage, vehicle damage, infrastructure damage,
+ * life loss estimation, and mitigation planning capabilities for multiple cities.
+ * 
  * @class
  * @name floodDM
+ * @example
+ * // Initialize a new flood damage and mitigation scenario
+ * const scenario = new floodDM();
+ * 
+ * // Run a damage scenario for Cedar Falls with 18ft depth, 500-year flood
+ * const damageResults = await scenario.initDamageScenario({
+ *   params: { maptype: 'leaflet' },
+ *   args: { city: "Cedar Falls", depth: 18, scenario: '500-year' }
+ * });
+ * 
+ * // Run a mitigation scenario for Waterloo
+ * const mitigationResults = await scenario.initMitigationScenario({
+ *   params: { maptype: 'leaflet' },
+ *   args: { city: "Waterloo", depth: 30.5 }
+ * });
  */
 export default class floodDM {
   city = "";
@@ -19,35 +36,80 @@ export default class floodDM {
   mapRendered = false;
   selectedfeature = null;
 
-  // Static variable to cache fetched data to improve page performance
-  static damageDataCache = {};
-  static mitigationDataCache = null;
-  static curvesDataCache = null;
-
-
   /**
-   * Initialize the damage scenario for a particular city, 100 or 500 year flood scenario and render based on google or leaflet
+   * Initialize a comprehensive damage scenario for a particular city with specified flood parameters.
+   * Calculates and visualizes damage to buildings, vehicles, bridges, and utilities while estimating
+   * life loss and debris generation. Renders an interactive map with damage layers and summary statistics.
+   * 
    * @method initDamageScenario
    * @memberof floodDM
    * @instance
    * @async
-   * @param {Object} params - Parameters to define map data to initialize
-   * @param {String} params.maptype - Type of map to initialize as a String, currently supported values are google or leaflet
-   * @param {String} params.key - Required if maptype is google, pass in the API key for google maps
-   * @param {Object} args - Arguments to initialize flood damage scenario being intialized
-   * @param {String} args.city - City name as a String, currently supported cities include Bettendorf, Cedar Falls, Cedar Rapids, Davenport, Iowa City, Waterloo and Waverly
-   * @param {number} args.depth - Number value indicating flood depth
-   * @returns {Promise<Object>} A Promise that resolves with an object containing the scenario results, and damage values for the scenario
+   * @param {Object} options - Configuration object for damage scenario
+   * @param {Object} [options.params] - Parameters for map rendering and visualization
+   * @param {string} [options.params.maptype='leaflet'] - Type of map to render: 'google' or 'leaflet'
+   * @param {string} [options.params.key] - Google Maps API key (required if maptype is 'google')
+   * @param {Object} options.args - Arguments defining the flood scenario
+   * @param {string} options.args.city - City name. Supported: 'Bettendorf', 'Cedar Falls', 'Cedar Rapids', 'Davenport', 'Iowa City', 'Waterloo', 'Waverly'
+   * @param {number} options.args.depth - Flood depth in feet
+   * @param {string} options.args.scenario - Flood return period: '100-year' or '500-year'
+   * @param {Object} [options.data] - Additional data (currently unused)
+   * @returns {Promise<Object>} Promise resolving to comprehensive damage assessment results
+   * 
    * @example
-   * scenario = new floodDM()
-   * scenario.initDamageScenario({params:{maptype:'leaflet'},args:{city:"Cedar Falls", depth:18, scenario:'500-year'}})
+   * // Initialize damage scenario for Cedar Falls with 500-year flood at 18ft depth
+   * const scenario = new floodDM();
+   * const damageResults = await scenario.initDamageScenario({
+   *   params: { 
+   *     maptype: 'leaflet'  // or 'google' with API key
+   *   },
+   *   args: { 
+   *     city: "Cedar Falls", 
+   *     depth: 18, 
+   *     scenario: '500-year' 
+   *   }
+   * });
+   * 
+   * // Results include damage categories:
+   * console.log(damageResults.Buildings.Structure);     // "$2,450,000"
+   * console.log(damageResults.Vehicles.Day);           // "$1,200,000"
+   * console.log(damageResults.Bridges.Damage);         // "$850,000"
+   * console.log(damageResults.Utilities.Damage);       // "$340,000"
+   * 
+   * @example
+   * // Initialize with Google Maps
+   * const damageResults = await scenario.initDamageScenario({
+   *   params: { 
+   *     maptype: 'google',
+   *     key: 'your-google-maps-api-key'
+   *   },
+   *   args: { 
+   *     city: "Waterloo", 
+   *     depth: 25, 
+   *     scenario: '100-year' 
+   *   }
+   * });
+   * 
+   * @example
+   * // View specific damage components
+   * const results = await scenario.initDamageScenario({
+   *   params: { maptype: 'leaflet' },
+   *   args: { city: "Davenport", depth: 22, scenario: '500-year' }
+   * });
+   * 
+   * // Building damage breakdown
+   * console.log(results.Buildings.Structure);           // Structural damage
+   * console.log(results.Buildings.Content);             // Content damage  
+   * console.log(results.Buildings.Income);              // Income loss
+   * console.log(results.Buildings.Wage);                // Wage loss
+   * console.log(results.Buildings["Loss of Life (Day)"]); // Fatalities during day
+   * console.log(results.Buildings.Debris);              // Debris amount (tons)
    */
   async initDamageScenario({ params, args, data } = {}) {
     // Destructure the arguments passed to the function
     let { city, depth, scenario } = args;
     this.city = city;
     this.depth = depth;
-    this.minimizedDivs = [];
 
     // Set default map type as leaflet
     if (params === undefined) {
@@ -71,9 +133,7 @@ export default class floodDM {
     if (scenario === "100-year") scenario = "x100_year";
     else if (scenario === "500-year") scenario = "x500_year";
     else {
-      console.log(
-        "Pass 100-year or 500-year flood scenario in the args.scenario"
-      );
+      console.log("Pass 100-year or 500-year flood scenario in the args.scenario");
       return;
     }
 
@@ -85,12 +145,10 @@ export default class floodDM {
       params: {
         source: "flooddamage_dt",
         datatype: scenario,
+        transform: "eval",
       },
       args: { sourceType: this.city },
     });
-    // Convert data from the format 'varname={\n"key1": "val1", ....' to a javascript object
-    flood_layer = JSON.parse(flood_layer);
-
 
     // Retrieve the utilities layer based on the selected scenario
     let utilities_layer;
@@ -100,11 +158,10 @@ export default class floodDM {
         params: {
           source: "flooddamage_dt",
           datatype: "utilities",
+          transform: "eval",
         },
         args: { sourceType: this.city },
       });
-      // Convert data from the format 'varname={\n"key1": "val1", ....' to a javascript object
-      utilities_layer = JSON.parse(utilities_layer);
     }
 
     // Retrieve the vehicles layer based on the selected scenario
@@ -112,22 +169,20 @@ export default class floodDM {
       params: {
         source: "flooddamage_dt",
         datatype: "vehicles",
+        transform: "eval",
       },
       args: { sourceType: this.city },
     });
-    // Convert data from the format 'varname={\n"key1": "val1", ....' to a javascript object
-    vehicles_layer = JSON.parse(vehicles_layer);
 
     // Retrieve the buildings layer based on the selected scenario
     let buildings_layer = await retrieve({
       params: {
         source: "flooddamage_dt",
         datatype: "buildings",
+        transform: "eval",
       },
       args: { sourceType: this.city },
     });
-    // Convert data from the format 'varname={\n"key1": "val1", ....' to a javascript object
-    buildings_layer = JSON.parse(buildings_layer);
 
     // Retrieve the bridge layer based on the selected scenario
     let bridges_layer;
@@ -142,11 +197,10 @@ export default class floodDM {
         params: {
           source: "flooddamage_dt",
           datatype: "bridges",
+          transform: "eval",
         },
         args: { sourceType: this.city },
       });
-    // Convert data from the format 'varname={\n"key1": "val1", ....' to a javascript object
-    bridges_layer = JSON.parse(bridges_layer);
 
     // Calculate the centroid of the buildings layer so render map center
     let centroid = floodDM.featureCollectionCentroid(buildings_layer);
@@ -159,9 +213,6 @@ export default class floodDM {
       });
       this.mapRendered = true;
     }
-
-    // Add CSS Style classes for use in overlay divs and map legends
-    floodDM.addFontStyle();
 
     // Variable to store and render scenario rendering results
     let scenario_results = {
@@ -189,9 +240,7 @@ export default class floodDM {
     };
 
     /*
-     *
      * Begin Rendering Vehicles Layer
-     *
      */
 
     // Variable to store vehicle layer calculations
@@ -208,64 +257,96 @@ export default class floodDM {
 
         // Set feature style using feature properties
         styleFunction: (feature) => {
-          // Get properties based on map type
-          const properties = this.maptype === "google"
-            ? (() => {
-              const props = {};
-              feature.forEachProperty((value, property) => props[property] = value);
-              return props;
-            })()
-            : feature.properties;
-
-          // Get scenario-specific depth and area
-          const { flood100_avg, flood500_avg, area_fe_100yr, area_fe_500yr } = properties;
-          const inundationDepth = this.scenario === "x100_year" ? flood100_avg : flood500_avg;
-          const areaPrc = this.scenario === "x100_year" ? area_fe_100yr : area_fe_500yr;
-
-          // Get damage percentages for each vehicle type
-          const getVehicleDamage = (vehicleType) => {
-            const entry = vehicleDamFun[vehicleType].find(
-              item => item.floodDepth === inundationDepth
-            );
-            return entry?.damage || 0;
-          };
-
-          const damagePercentages = {
-            car: getVehicleDamage("PassengerCar"),
-            light: getVehicleDamage("LightTruck"),
-            heavy: getVehicleDamage("HeavyTruck")
-          };
-
-          // Calculate damages for day and night
-          const calculateDamage = (time) => {
-            const damages = {
-              car: (damagePercentages.car / 100) * areaPrc * properties[`car_val_${time}`],
-              light: (damagePercentages.light / 100) * areaPrc * properties[`light_val_${time}`],
-              heavy: (damagePercentages.heavy / 100) * areaPrc * properties[`heavy_val_${time}`]
-            };
-
-            return {
-              formatted: {
-                car: parseInt(damages.car).toLocaleString(),
-                light: parseInt(damages.light).toLocaleString(),
-                heavy: parseInt(damages.heavy).toLocaleString()
-              },
-              total: Object.values(damages).reduce((sum, val) => sum + val, 0)
-            };
-          };
-
-          const dayDamage = calculateDamage('day');
-          const nightDamage = calculateDamage('night');
-
-          // Update scenario results
-          if (!isNaN(dayDamage.total)) {
-            scenario_results.Vehicles.Day += dayDamage.total;
-          }
-          if (!isNaN(nightDamage.total)) {
-            scenario_results.Vehicles.Night += nightDamage.total;
+          // Destructure properties according to features based on maptype
+          let properties;
+          if (this.maptype === "google") {
+            properties = {};
+            feature.forEachProperty(function (value, property) {
+              properties[property] = value;
+            });
+          } else if (this.maptype === "leaflet") {
+            properties = feature.properties;
           }
 
-          // Store calculations for feature popup
+          // Calculate vehicle damage based on flood depth and area
+          let depth100yr = properties.flood100_avg;
+          let depth500yr = properties.flood500_avg;
+          let areaPrc100yr = properties.area_fe_100yr;
+          let areaPrc500yr = properties.area_fe_500yr;
+          let car = "PassengerCar";
+          let light = "LightTruck";
+          let heavy = "HeavyTruck";
+
+          let inundationDepth,
+            areaPrc,
+            vehDamPrcntCar,
+            vehDamPrcntLight,
+            vehDamPrcntHeavy;
+
+          if (this.scenario === "x100_year") {
+            inundationDepth = depth100yr;
+            areaPrc = areaPrc100yr;
+          } else if (this.scenario === "x500_year") {
+            inundationDepth = depth500yr;
+            areaPrc = areaPrc500yr;
+          }
+          for (let i in vehicleDamFun[car]) {
+            if (vehicleDamFun[car][i]["floodDepth"] == inundationDepth) {
+              vehDamPrcntCar = vehicleDamFun[car][i]["damage"];
+            }
+          }
+          for (let i in vehicleDamFun[light]) {
+            if (vehicleDamFun[light][i]["floodDepth"] == inundationDepth) {
+              vehDamPrcntLight = vehicleDamFun[light][i]["damage"];
+            }
+          }
+          for (let i in vehicleDamFun[heavy]) {
+            if (vehicleDamFun[heavy][i]["floodDepth"] == inundationDepth) {
+              vehDamPrcntHeavy = vehicleDamFun[heavy][i]["damage"];
+            }
+          }
+
+          // Calculate vehicle damage for different vehicle types at day and night
+          let carDamageD = parseInt(
+            (vehDamPrcntCar / 100) * areaPrc * properties.car_val_day
+          ).toLocaleString();
+          let lightDamageD = parseInt(
+            (vehDamPrcntLight / 100) * areaPrc * properties.light_val_day
+          ).toLocaleString();
+          let heavyDamageD = parseInt(
+            (vehDamPrcntHeavy / 100) * areaPrc * properties.heavy_val_day
+          ).toLocaleString();
+          let carDamageN = parseInt(
+            (vehDamPrcntCar / 100) * areaPrc * properties.car_val_night
+          ).toLocaleString();
+          let lightDamageN = parseInt(
+            (vehDamPrcntLight / 100) * areaPrc * properties.light_val_night
+          ).toLocaleString();
+          let heavyDamageN = parseInt(
+            (vehDamPrcntHeavy / 100) * areaPrc * properties.heavy_val_night
+          ).toLocaleString();
+          let carDamageDC =
+            (vehDamPrcntCar / 100) * areaPrc * properties.car_val_day;
+          let lightDamageDC =
+            (vehDamPrcntLight / 100) * areaPrc * properties.light_val_day;
+          let heavyDamageDC =
+            (vehDamPrcntHeavy / 100) * areaPrc * properties.heavy_val_day;
+          let carDamageNC =
+            (vehDamPrcntCar / 100) * areaPrc * properties.car_val_night;
+          let lightDamageNC =
+            (vehDamPrcntLight / 100) * areaPrc * properties.light_val_night;
+          let heavyDamageNC =
+            (vehDamPrcntHeavy / 100) * areaPrc * properties.heavy_val_night;
+          let totalDamageD = carDamageDC + lightDamageDC + heavyDamageDC;
+          let totalDamageN = carDamageNC + lightDamageNC + heavyDamageNC;
+
+          // Update scenario variable
+          if (!isNaN(totalDamageD))
+            scenario_results["Vehicles"]["Day"] += totalDamageD;
+          if (!isNaN(totalDamageN))
+            scenario_results["Vehicles"]["Night"] += totalDamageN;
+
+          // Update vehicle damage calculations for each feature
           vehicleFeatureCalculations[properties.CensusBloc] = {
             "Block Information": properties.CensusBloc,
             "Flood Scenario:": this.scenario,
@@ -276,69 +357,55 @@ export default class floodDM {
             "Light Truck Count (Night)": properties.light_night,
             "Heavy Truck Count (Day)": properties.heavy_day,
             "Heavy Truck Count (Night)": properties.heavy_night,
-            "Cars Damage (Day)": dayDamage.formatted.car,
-            "Cars Damage (Night)": nightDamage.formatted.car,
-            "Light Trucks (Day)": dayDamage.formatted.light,
-            "Light Trucks (Night)": nightDamage.formatted.light,
-            "Heavy Trucks (Day)": dayDamage.formatted.heavy,
-            "Heavy Truck (Night)": nightDamage.formatted.heavy
+            "Cars Damage (Day)": carDamageD,
+            "Cars Damage (Night)": carDamageN,
+            "Light Trucks (Day)": lightDamageD,
+            "Light Trucks (Night)": lightDamageN,
+            "Heavy Trucks (Day)": heavyDamageD,
+            "Heavy Truck (Night)": heavyDamageN,
           };
 
-          // Return style based on total damage
+          // return style values for the feature
           return {
-            fillColor: dayDamage.total > 1000000 ? "#323232"
-              : dayDamage.total > 100000 ? "#7E7E7E"
+            fillColor:
+              totalDamageD > 1000000
+                ? "#323232"
+                : totalDamageD > 100000
+                ? "#7E7E7E"
                 : "#BFBFBF",
             weight: 2,
             opacity: 1,
             color: "black",
             dashArray: "3",
             fillOpacity: 0.9,
-            strokeWeight: 1,
-            strokeColor: "black"
           };
         },
 
         // Set popup values based on feature properties
         popUpFunction: (feature) => {
-          // Get properties based on map type
-          const properties = this.maptype === "google"
-            ? (() => {
-              const props = {};
-              feature.forEachProperty((value, property) => props[property] = value);
-              return props;
-            })()
-            : feature.properties;
+          // Destructure properties according to features based on maptype
+          let properties;
+          if (this.maptype === "google") {
+            properties = {};
+            feature.forEachProperty(function (value, property) {
+              properties[property] = value;
+            });
+          } else if (this.maptype === "leaflet") {
+            properties = feature.properties;
+          }
 
-          const blockData = vehicleFeatureCalculations[properties.CensusBloc];
-          const formattedAttributes = Object.entries(blockData).reduce((acc, [prop, value]) => {
-            const isCurrencyField = [
-              "Cars Damage (Day)", "Cars Damage (Night)",
-              "Light Trucks (Day)", "Light Trucks (Night)",
-              "Heavy Trucks (Day)", "Heavy Truck (Night)"
-            ].includes(prop);
-
-            const isBasicField = [
-              "Block Information", "Flood Scenario:", "Avg. Flood Depth:"
-            ].includes(prop);
-
-            acc[prop] = isBasicField ? value
-              : floodDM.formatNumber(value, isCurrencyField);
-            return acc;
-          }, {});
-
-          return this.popUpFormatter("Vehicle Census Block", formattedAttributes);
+          // return popup values for this feature
+          return JSON.stringify(
+            vehicleFeatureCalculations[properties.CensusBloc]
+          ).replaceAll(",", "<br>").replaceAll(/|{|}/g,"");
         },
       },
       data: vehicles_layer,
     });
 
     /*
-     *
      * Begin Rendering Flood Inundation Layer
-     *
      */
-
     // Render flood inundation layer
     await Layers({
       args: {
@@ -354,8 +421,6 @@ export default class floodDM {
             opacity: 1,
             fillColor: "blue",
             fillOpacity: 0.5,
-            strokeWeight: 0.5,
-            strokeColor: "dark blue",
           };
         },
       },
@@ -363,9 +428,7 @@ export default class floodDM {
     });
 
     /*
-     *
-     * Begin Rendering Buildings Layer
-     *
+     * Begin Rendering Vehicles Layer
      */
 
     // Variable to store building layer calculations
@@ -376,8 +439,6 @@ export default class floodDM {
     let lifeLoss = await floodDM.getLifeLossFunction();
     let debrisLoss = await floodDM.getDebrisWeightFunction();
 
-    console.log('lifeLoss', lifeLoss)
-
     // Render Building Layer Calculations
     await Layers({
       args: {
@@ -386,176 +447,215 @@ export default class floodDM {
 
         // Set style based on feature properties
         styleFunction: (feature) => {
-          // Get properties based on map type
-          const properties = this.maptype === "google"
-            ? (() => {
-              const props = {};
-              feature.forEachProperty((value, property) => props[property] = value);
-              return props;
-            })()
-            : feature.properties;
+          // Destructure properties according to features based on maptype
+          let properties;
+          if (this.maptype === "google") {
+            properties = {};
+            feature.forEachProperty(function (value, property) {
+              properties[property] = value;
+            });
+          } else if (this.maptype === "leaflet") {
+            properties = feature.properties;
+          }
 
-          const { occupancy } = properties;
-          const inundationDepth = scenario === "x100_year" ? properties.depth100 : properties.depth500;
+          // Calculate metrics for property damage
+          let occupancy = properties.occupancy;
+          let inundationDepth =
+            scenario === "x100_year"
+              ? properties.depth100
+              : properties.depth500;
 
-          // Get property damage inputs
-          const propertyInputs = buildingDamage[occupancy].find(
-            item => item.floodDepth === inundationDepth
+          let propertyInputs = buildingDamage[occupancy].find(
+            (item) => item.floodDepth === inundationDepth
           );
 
-          // Calculate all damages
-          const damages = {
-            structure: (properties.val_struct * propertyInputs.structure) / 100,
-            content: (properties.val_cont * propertyInputs.content) / 100,
-            income: (1 - propertyInputs.recapturFactor) * properties.sqfoot *
-              propertyInputs.incomePerSqftPerDay * propertyInputs.maxTime * 30,
-            wage: (1 - propertyInputs.recapturFactor) * properties.sqfoot *
-              propertyInputs.wagePerSqftPerDay * propertyInputs.maxTime * 30
-          };
+          let structureDamPercent = propertyInputs["structure"];
+          let contentDamPercent = propertyInputs["content"];
+          let incomeRecaptureFactor = propertyInputs["recapturFactor"];
+          let incomePerDay = propertyInputs["incomePerSqftPerDay"];
+          let lossFunction = propertyInputs["maxTime"];
+          let wageRecaptureFactor = propertyInputs["recapturFactor"];
+          let wagePerDay = propertyInputs["wagePerSqftPerDay"];
+          let percentOwnerOccupied = propertyInputs["percentOwnerOccupied"];
+          let rentalCostPerSqftPerDay =
+            propertyInputs["rentalCostPerSqftPerDay"];
+          let disruptionCostPerSqft = propertyInputs["disruptionCostPerSqft"];
+          let relocation, rentalIncome;
 
-          // Calculate relocation and rental costs
-          const { relocation, rental } = (() => {
-            if (propertyInputs.structure <= 10) return { relocation: 0, rental: 0 };
+          if (propertyInputs["structure"] > 10) {
+            relocation = [
+              (1 - percentOwnerOccupied / 100) * disruptionCostPerSqft +
+                (percentOwnerOccupied / 100) *
+                  (disruptionCostPerSqft +
+                    rentalCostPerSqftPerDay * lossFunction * 30),
+            ];
+            rentalIncome =
+              (1 - percentOwnerOccupied / 100) *
+              rentalCostPerSqftPerDay *
+              lossFunction *
+              30;
+          } else {
+            relocation = 0;
+            rentalIncome = 0;
+          }
 
-            const pctOwner = propertyInputs.percentOwnerOccupied / 100;
-            const relocationCost = (1 - pctOwner) * propertyInputs.disruptionCostPerSqft +
-              pctOwner * (propertyInputs.disruptionCostPerSqft +
-                propertyInputs.rentalCostPerSqftPerDay * propertyInputs.maxTime * 30);
+          let strDamage = (properties.val_struct * structureDamPercent) / 100;
+          let contDamage = (properties.val_cont * contentDamPercent) / 100;
 
-            const rentalCost = (1 - pctOwner) * propertyInputs.rentalCostPerSqftPerDay *
-              propertyInputs.maxTime * 30;
+          let incomeLoss =
+            (1 - incomeRecaptureFactor) *
+            properties.sqfoot *
+            incomePerDay *
+            lossFunction *
+            30;
+          let wageLoss =
+            (1 - wageRecaptureFactor) *
+            properties.sqfoot *
+            wagePerDay *
+            lossFunction *
+            30;
+          let relocationExpenses = properties.sqfoot * relocation;
+          let rentalIncomeLoss = properties.sqfoot * rentalIncome;
 
-            return {
-              relocation: properties.sqfoot * relocationCost,
-              rental: properties.sqfoot * rentalCost
-            };
-          })();
+          let totalDamageBuild =
+            strDamage +
+            contDamage +
+            incomeLoss +
+            wageLoss +
+            relocationExpenses +
+            rentalIncomeLoss;
 
-          damages.relocation = relocation;
-          damages.rental = rental;
+          // Update scenario variable with building damage
+          if (!isNaN(strDamage))
+            scenario_results.Buildings.Structure += strDamage;
+          if (!isNaN(contDamage))
+            scenario_results.Buildings.Content += contDamage;
+          if (!isNaN(incomeLoss))
+            scenario_results.Buildings.Income += incomeLoss;
+          if (!isNaN(wageLoss)) scenario_results.Buildings.Wage += wageLoss;
+          if (!isNaN(relocationExpenses))
+            scenario_results.Buildings["Relocation Expenses"] +=
+              relocationExpenses;
+          if (!isNaN(rentalIncomeLoss))
+            scenario_results.Buildings["Rental Income"] += rentalIncomeLoss;
 
-          const totalDamageBuild = Object.values(damages).reduce((sum, val) => sum + val, 0);
-
-          // Update scenario results
-          Object.entries({
-            Structure: damages.structure,
-            Content: damages.content,
-            Income: damages.income,
-            Wage: damages.wage,
-            "Relocation Expenses": damages.relocation,
-            "Rental Income": damages.rental
-          }).forEach(([key, value]) => {
-            if (!isNaN(value)) scenario_results.Buildings[key] += value;
-          });
-
-          // Calculate life loss
-          const calculateLifeLoss = (age) => {
-            const lifeInputs = lifeLoss[occupancy].find(item =>
-              item.floodDepth === inundationDepth && item.age === age
+          // Calculate metrics for life damage
+          // Filter life function data using inputs
+          let lifeInputsOver65 = lifeLoss[occupancy].find((item) => {
+            return (
+              item.floodDepth === inundationDepth && item.age === "over 65"
             );
-            return {
-              day: lifeInputs.zone * properties[`POP_${age === "over 65" ? "O65DAY" : "U65DAY"}`],
-              night: lifeInputs.zone * properties[`POP_${age === "over 65" ? "O65NGT" : "U65NGT"}`]
-            };
-          };
-
-          const lifeLossOver65 = calculateLifeLoss("over 65");
-          const lifeLossUnder65 = calculateLifeLoss("under 65");
-
-          console.log('lifeLossOver65', lifeLossOver65)
-          console.log('lifeLossUnder65', lifeLossUnder65)
-
-          const lifeLoss = {
-            day: lifeLossOver65.day + lifeLossUnder65.day,
-            night: lifeLossOver65.night + lifeLossUnder65.night
-          };
-
-          // Update life loss in scenario results
-          ["Day", "Night"].forEach(time => {
-            if (!isNaN(lifeLoss[time.toLowerCase()])) {
-              scenario_results.Buildings[`Loss of Life (${time})`] += lifeLoss[time.toLowerCase()];
-            }
+          });
+          let lifeInputsUnder65 = lifeLoss[occupancy].find((item) => {
+            return (
+              item.floodDepth === inundationDepth && item.age === "under 65"
+            );
           });
 
-          // Calculate debris damage
-          const debrisValue = debrisLoss[occupancy].find(item =>
-            item.floodDepth === inundationDepth && item.foundationType === "footing"
-          );
+          let lifeLossDay =
+            lifeInputsOver65["zone"] * properties.POP_O65DAY +
+            lifeInputsUnder65["zone"] * properties.POP_U65DAY;
+          let lifeLossNight =
+            lifeInputsOver65["zone"] * properties.POP_O65NGT +
+            lifeInputsUnder65["zone"] * properties.POP_U65NGT;
 
-          const debrisAmount = properties.sqfoot *
-            (debrisValue.finishes + debrisValue.structure + debrisValue.foundation) / 1000;
+          // Update scenario variable with life damage
+          if (!isNaN(lifeLossDay))
+            scenario_results.Buildings["Loss of Life (Day)"] += lifeLossDay;
+          if (!isNaN(lifeLossNight))
+            scenario_results.Buildings["Loss of Life (Night)"] += lifeLossNight;
 
-          if (!isNaN(debrisAmount)) scenario_results.Buildings.Debris += debrisAmount;
+          // Calculate metrics for debris damage
+          // Filter debris function data using inputs
+          let debrisValue = debrisLoss[occupancy].find((item) => {
+            return (
+              item["floodDepth"] == inundationDepth &&
+              item["foundationType"] == "footing"
+            );
+          });
 
-          // Store calculations for popup
+          let finishes = debrisValue["finishes"];
+          let structure = debrisValue["structure"];
+          let foundation = debrisValue["foundation"];
+          let debrisWeight = finishes + structure + foundation;
+
+          let debrisAmount = (properties.sqfoot * debrisWeight) / 1000;
+
+          // Update scenario variable with debris damage
+          if (!isNaN(debrisAmount))
+            scenario_results.Buildings.Debris += debrisAmount;
+
+          // Store building feature calculations for reuse in popup function
           buildingFeatureCalculations.push({
             occupancy,
             gid: properties.gid,
             totalDamageBuild,
-            ...damages,
+            strDamage,
+            contDamage,
+            incomeLoss,
+            wageLoss,
+            relocationExpenses,
+            rentalIncomeLoss,
             debrisAmount,
-            ...lifeLoss,
-            inundationDepth
+            lifeLossDay,
+            lifeLossNight,
+            inundationDepth,
           });
 
-          // Hide building if not inundated
-          if ((scenario === "x100_year" && properties.depth100 < 1) ||
-            (scenario === "x500_year" && properties.depth500 < 1)) {
-            return { display: "none", color: "none", fillColor: "none" };
+          // Hide building marker if it is not underwater under the current scenario
+          if (scenario === "x100_year") {
+            if (properties.depth100 < 1)
+              return { display: "none", color: "none", fillColor: "none" };
+          } else {
+            if (properties.depth500 < 1)
+              return { display: "none", color: "none", fillColor: "none" };
           }
 
-          // Return style
+          // Return styling of the building marker later
           return {
-            fillColor: totalDamageBuild > 1000000 ? "red"
-              : totalDamageBuild > 100000 ? "yellow"
+            fillColor:
+              totalDamageBuild > 1000000
+                ? "red"
+                : totalDamageBuild > 100000
+                ? "yellow"
                 : "green",
             weight: 2,
             opacity: 1,
             color: "black",
             fillOpacity: 1,
             radius: 4,
-            scale: 3,
-            strokeWeight: 0.7
+            scale: 4,
+            strokeWeight: 0.7,
           };
         },
 
         // Return the popup value based on feature properties
         popUpFunction: (feature) => {
-          // Get properties based on map type
-          const properties = this.maptype === "google"
-            ? (() => {
-              const props = {};
-              feature.forEachProperty((value, property) => props[property] = value);
-              return props;
-            })()
-            : feature.properties;
+          // Destructure properties according to features based on maptype
+          let properties;
+          if (this.maptype === "google") {
+            properties = {};
+            feature.forEachProperty(function (value, property) {
+              properties[property] = value;
+            });
+          } else if (this.maptype === "leaflet") {
+            properties = feature.properties;
+          }
 
-          const featureData = buildingFeatureCalculations.find(
-            item => item.gid === properties.gid
+          // Return value to rendered in the popup of the building
+          let val = JSON.stringify(
+            buildingFeatureCalculations.find(
+              (item) => item.gid === properties.gid
+            )
           );
-
-          const formattedAttributes = Object.entries(featureData).reduce((acc, [prop, value]) => {
-            const isBasicField = ["gid", "inundationDepth", "occupancy"].includes(prop);
-            const isCurrencyField = [
-              "totalDamageBuild", "structure", "content", "income",
-              "wage", "relocation", "rental"
-            ].includes(prop);
-
-            acc[prop] = isBasicField ? value
-              : floodDM.formatNumber(value, isCurrencyField);
-            return acc;
-          }, {});
-
-          return this.popUpFormatter("Building Information", formattedAttributes);
+          return val.replaceAll(",", "<br>").replaceAll(/|{|}/g,"");
         },
       },
       data: buildings_layer,
     });
 
     /*
-     *
-     * Begin Rendering Bridges Layer
-     *
+     * Begin Rendering Vehicle Layer
      */
 
     // Bridges Layer only exists for Cedar Falls, Cedar Rapids, Davenport and Waverly
@@ -575,122 +675,130 @@ export default class floodDM {
 
           // Set bridge style function
           styleFunction: (feature) => {
-            // Get properties based on map type
-            const properties = this.maptype === "google"
-              ? (() => {
-                const props = {};
-                feature.forEachProperty((value, property) => props[property] = value);
-                return props;
-              })()
-              : feature.properties;
-
-            // Get bridge parameters
-            const { bridgeT: bridgeType, ScourIndex: scour, Cost: bridgeCost, flood100, flood500 } = properties;
-            const floodScenario = scenario === "x100_year" ? "100-year" : "500-year";
-
-            // Determine inundation depth
-            const inundationDepth = (() => {
-              if (floodScenario === "100-yr" && flood100 === "yes") return "100 yr";
-              if (floodScenario === "500-yr" && flood500 === "yes") return "500 yr";
-              return null;
-            })();
-
-            // Calculate bridge damage
-            const bridgeDamage = (() => {
-              if (!inundationDepth) return 0;
-
-              const damageEntry = bridgeDamFun[bridgeType].find(item =>
-                item.ScourPotential === scour &&
-                item["Flood Scenario"] === inundationDepth
-              );
-
-              return damageEntry ? damageEntry["damage prcnt"] * bridgeCost * 1000 : 0;
-            })();
-
-            // Update scenario results
-            if (!isNaN(bridgeDamage)) {
-              scenario_results.Bridges.Damage += bridgeDamage;
+            // Destructure properties according to features based on maptype
+            let properties;
+            if (this.maptype === "google") {
+              properties = {};
+              feature.forEachProperty(function (value, property) {
+                properties[property] = value;
+              });
+            } else if (this.maptype === "leaflet") {
+              properties = feature.properties;
             }
 
-            // Return bridge style
+            // Calculate bridge damage
+            let floodScenario, bridgDam, inundationDepth, bridgeDamPrcnt;
+            let bridgeT = properties.bridgeT;
+            let scour = String(properties.ScourIndex);
+            let bridgeCost = properties.Cost;
+            let depth100 = properties.flood100;
+            let depth500 = properties.flood500;
+            let depth100yr = "100 yr";
+            let depth500yr = "500 yr";
+
+            if (scenario === "x100_year") {
+              floodScenario = "100-year";
+            } else {
+              floodScenario = "500-year";
+            }
+
+            if (floodScenario === "100-yr" && depth100 === "yes") {
+              inundationDepth = depth100yr;
+            } else if (floodScenario === "500-yr") {
+              inundationDepth = depth500yr;
+            } else {
+              bridgDam = 0;
+            }
+
+            for (let i in bridgeDamFun[bridgeT]) {
+              if (
+                bridgeDamFun[bridgeT][i]["ScourPotential"] == scour &&
+                bridgeDamFun[bridgeT][i]["Flood Scenario"] == inundationDepth
+              ) {
+                bridgeDamPrcnt = bridgeDamFun[bridgeT][i]["damage prcnt"];
+              }
+            }
+            bridgDam = bridgeDamPrcnt * bridgeCost * 1000;
+
+            // Update scenario variable
+            if (!isNaN(bridgDam))
+              scenario_results["Bridges"]["Damage"] += bridgDam;
+
+            // Return styling
             return {
               scale: 5,
               radius: 2,
               weight: 10,
               fillColor: "black",
               color: "black",
-              fillOpacity: 1,
-              strokeWeight: 0.7
+              fillOpacity: 0.5,
+              strokeWeight: 0.7,
             };
           },
 
-          // Bridge popup function
           popUpFunction: (feature) => {
-            // Get properties based on map type
-            const properties = this.maptype === "google"
-              ? (() => {
-                const props = {};
-                feature.forEachProperty((value, property) => props[property] = value);
-                return props;
-              })()
-              : feature.properties;
+            let properties;
 
-            // Get bridge parameters
-            const {
-              bridgeT: bridgeType,
-              ScourIndex: scour,
-              Cost: bridgeCost,
-              flood100,
-              flood500,
-              HighwayBri: bridgeId
-            } = properties;
+            if (this.maptype === "google") {
+              properties = {};
+              feature.forEachProperty(function (value, property) {
+                properties[property] = value;
+              });
+            } else if (this.maptype === "leaflet") {
+              properties = feature.properties;
+            }
+            console.log(feature);
 
-            const floodScenario = scenario === "x100_year" ? "100-year" : "500-year";
+            let totalBridgDam = 0,
+              floodScenario,
+              bridgDam,
+              inundationDepth,
+              bridgeDamPrcnt,
+              bridgeFunction;
+            let bridgeT = properties.bridgeT;
+            let scour = String(properties.ScourIndex);
+            let bridgeCost = properties.Cost;
+            let depth100 = properties.flood100;
+            let depth500 = properties.flood500;
+            let depth100yr = "100 yr";
+            let depth500yr = "500 yr";
 
-            // Determine inundation depth
-            const inundationDepth = (() => {
-              if (floodScenario === "100-yr" && flood100 === "yes") return "100 yr";
-              if (floodScenario === "500-yr" && flood500 === "yes") return "500 yr";
-              return null;
-            })();
+            if (scenario === "x100_year") {
+              floodScenario = "100-year";
+            } else {
+              floodScenario = "500-year";
+            }
 
-            // Calculate bridge damage and get functional percentage
-            const { damagePercent, bridgeDamage, functionalPercent } = (() => {
-              if (!inundationDepth) return { damagePercent: 0, bridgeDamage: 0, functionalPercent: 0 };
+            if (floodScenario === "100-yr" && depth100 === "yes") {
+              inundationDepth = depth100yr;
+            } else if (floodScenario === "500-yr") {
+              inundationDepth = depth500yr;
+            } else {
+              bridgDam = 0;
+            }
 
-              const damageEntry = bridgeDamFun[bridgeType].find(item =>
-                item.ScourPotential === scour &&
-                item["Flood Scenario"] === inundationDepth
-              );
+            for (let i in bridgeDamFun[bridgeT]) {
+              if (
+                bridgeDamFun[bridgeT][i]["ScourPotential"] == scour &&
+                bridgeDamFun[bridgeT][i]["Flood Scenario"] == inundationDepth
+              ) {
+                bridgeDamPrcnt = bridgeDamFun[bridgeT][i]["damage prcnt"];
+                bridgeFunction = bridgeDamFun[bridgeT][i]["functional"];
+              }
+            }
+            bridgDam = bridgeDamPrcnt * bridgeCost * 1000;
 
-              return {
-                damagePercent: damageEntry?.["damage prcnt"] || 0,
-                bridgeDamage: (damageEntry?.["damage prcnt"] || 0) * bridgeCost * 1000,
-                functionalPercent: damageEntry?.functional || 0
-              };
-            })();
-
-            // Format attributes for popup
-            const attributes = {
-              Bridge_ID: bridgeId,
-              Bridge_Type: bridgeType,
+            let val = JSON.stringify({
+              Bridge_ID: properties.HighwayBri,
+              Bridge_Type: bridgeT,
               Scour_Index: scour,
               Flood_Scenario: inundationDepth,
-              Damage_Percentage: damagePercent * 100,
-              Damage: parseInt(bridgeDamage).toLocaleString(),
-              Functional_Percent: parseInt(functionalPercent * 100)
-            };
+              Damage: bridgeDamPrcnt * 100,
+              Damage: parseInt(bridgDam).toLocaleString(),
+              Functionality: parseInt(bridgeFunction * 100),
+            });
 
-            const formattedAttributes = Object.entries(attributes).reduce((acc, [prop, value]) => {
-              const isBasicField = ["Bridge_ID", "Bridge_Type", "Scour_Index", "Flood_Scenario"].includes(prop);
-              const isCurrencyField = prop === "Damage";
-
-              acc[prop] = isBasicField ? value
-                : floodDM.formatNumber(value, isCurrencyField);
-              return acc;
-            }, {});
-
-            return this.popUpFormatter("Bridge Information", formattedAttributes);
+            return val.replaceAll(",", "<br>").replaceAll(/|{|}/g,"");
           },
         },
         data: bridges_layer,
@@ -711,110 +819,105 @@ export default class floodDM {
           type: "geojson",
           name: "Utilities Layer",
 
-          // Utilities style function
+          // Function to set style
           styleFunction: (feature) => {
-            // Get properties based on map type
-            const properties = this.maptype === "google"
-              ? (() => {
-                const props = {};
-                feature.forEachProperty((value, property) => props[property] = value);
-                return props;
-              })()
-              : feature.properties;
-
-            // Get utility parameters
-            const {
-              depth100,
-              depth500,
-              UtilFcltyC: utilitySystem,
-              Cost: utilityCost
-            } = properties;
-
-            const inundationDepth = this.scenario === "x100_year" ? depth100 : depth500;
-
-            // Calculate utility damage
-            const { damagePercent, utilityType } = (() => {
-              const damageEntry = utilityDamFun[utilitySystem].find(
-                item => item.floodDepth === inundationDepth
-              );
-
-              return {
-                damagePercent: damageEntry?.damage || 0,
-                utilityType: damageEntry?.utilitySystem || ''
-              };
-            })();
-
-            const utilityDamage = (damagePercent / 100) * utilityCost * 1000;
-
-            // Update scenario results
-            if (!isNaN(utilityDamage)) {
-              scenario_results.Utilities.Damage += utilityDamage;
+            // Destructure properties according to features based on maptype
+            let properties;
+            if (this.maptype === "google") {
+              properties = {};
+              feature.forEachProperty(function (value, property) {
+                properties[property] = value;
+              });
+            } else if (this.maptype === "leaflet") {
+              properties = feature.properties;
             }
 
-            // Return utility style
+            let utilityDam = 0,
+              inundationDepth,
+              utilityType,
+              utilityDamPrcnt;
+            let depth100 = properties.depth100;
+            let depth500 = properties.depth500;
+            let utilitySystem = properties.UtilFcltyC;
+            let utilityCost = properties.Cost;
+            let floodScenario = this.scenario;
+            if (floodScenario === "x100_year") {
+              inundationDepth = depth100;
+            } else if (floodScenario === "x500_year") {
+              inundationDepth = depth500;
+            }
+            for (let i in utilityDamFun[utilitySystem]) {
+              if (
+                utilityDamFun[utilitySystem][i]["floodDepth"] ===
+                inundationDepth
+              ) {
+                utilityDamPrcnt = utilityDamFun[utilitySystem][i]["damage"];
+                utilityType = utilityDamFun[utilitySystem][i]["utilitySystem"];
+              }
+            }
+            utilityDam = (utilityDamPrcnt / 100) * utilityCost * 1000;
+
+            //Update scenario variable
+            if (!isNaN(utilityDam))
+              scenario_results["Utilities"]["Damage"] += utilityDam;
+
             return {
-              scale: 5,
+              scale: 2,
               radius: 2,
               weight: 10,
-              fillColor: "#ffa500",
-              color: "#ffa500",
-              fillOpacity: 0.8,
-              strokeWeight: 0.7
+              fillColor: "#F2B679",
+              color: "#F2B679",
+              fillOpacity: 0.5,
+              strokeWeight: 0.7,
             };
           },
 
-          // Utilities popup function
+          // Set popup properties based on feature properties
           popUpFunction: (feature) => {
-            // Get properties based on map type
-            const properties = this.maptype === "google"
-              ? (() => {
-                const props = {};
-                feature.forEachProperty((value, property) => props[property] = value);
-                return props;
-              })()
-              : feature.properties;
+            // Destructure properties according to features based on maptype
+            let properties;
+            if (this.maptype === "google") {
+              properties = {};
+              feature.forEachProperty(function (value, property) {
+                properties[property] = value;
+              });
+            } else if (this.maptype === "leaflet") {
+              properties = feature.properties;
+            }
 
-            // Get utility parameters
-            const {
-              depth100,
-              depth500,
-              UtilFcltyC: utilitySystem,
-              Cost: utilityCost,
-              WasteWater: utilityId
-            } = properties;
+            // Calculate utilities values
+            let utilityDam = 0,
+              inundationDepth,
+              utilityType,
+              utilityDamPrcnt;
+            let depth100 = properties.depth100;
+            let depth500 = properties.depth500;
+            let utilitySystem = properties.UtilFcltyC;
+            let utilityCost = properties.Cost;
+            let floodScenario = this.scenario;
+            if (floodScenario === "x100_year") {
+              inundationDepth = depth100;
+            } else if (floodScenario === "x500_year") {
+              inundationDepth = depth500;
+            }
+            for (let i in utilityDamFun[utilitySystem]) {
+              if (
+                utilityDamFun[utilitySystem][i]["floodDepth"] ===
+                inundationDepth
+              ) {
+                utilityDamPrcnt = utilityDamFun[utilitySystem][i]["damage"];
+                utilityType = utilityDamFun[utilitySystem][i]["utilitySystem"];
+              }
+            }
+            utilityDam = (utilityDamPrcnt / 100) * utilityCost * 1000;
 
-            const inundationDepth = this.scenario === "x100_year" ? depth100 : depth500;
-
-            // Calculate utility damage
-            const { damagePercent, utilityType } = (() => {
-              const damageEntry = utilityDamFun[utilitySystem].find(
-                item => item.floodDepth === inundationDepth
-              );
-
-              return {
-                damagePercent: damageEntry?.damage || 0,
-                utilityType: damageEntry?.utilitySystem || ''
-              };
-            })();
-
-            const utilityDamage = (damagePercent / 100) * utilityCost * 1000;
-
-            // Format attributes for popup
-            const attributes = {
-              "Utility ID": utilityId,
+            // Set popup values
+            return JSON.stringify({
+              "Utiltiy ID": properties.WasteWater,
               "Utility Type": utilityType,
               "Flood depth": inundationDepth,
-              "Damage": parseInt(utilityDamage)
-            };
-
-            const formattedAttributes = Object.entries(attributes).reduce((acc, [prop, value]) => {
-              const isBasicField = ["Utility ID", "Utility Type", "Flood depth"].includes(prop);
-              acc[prop] = isBasicField ? value
-                : floodDM.formatNumber(value, true);
-              return acc;
-            }, {});
-
-            return this.popUpFormatter("Utility Information", formattedAttributes);
+              Damage: parseInt(utilityDam),
+            }).replaceAll(",", "<br>").replaceAll(/|{|}/g,"");
           },
         },
         data: utilities_layer,
@@ -826,31 +929,31 @@ export default class floodDM {
      */
 
     // Create legend div for the map
-    const legendHTML = `
-    <div id="legend" class="content" style="display: block; background: rgba(255, 255, 255, 1); padding: 5px; border-style: solid !important;">
-
-    <div style="margin: 0px 5px 5px 5px;" class="style_text_small_bold">Legend</div>
-    
-    <ul style="
- list-style-type:none; padding-left: 5px; margin: 5px 5px 0px 0px">
-        <li><span class="style_text_small">&#9679;</span><span class="style_text_small"> Bridge</span></li>
-    	<li><span style="color: orange;">&#9679;</span><span  class="style_text_small"> Utility</span></li>
-        <li><span style="background-color: blue; color: blue;">&#9679;</span><span  class="style_text_small"> Flood extent</span></li>
-    </ul>
-    
-    <ul style="
- list-style-type:none; padding-left: 5px;  margin: 5px 5px 0px 0px" class="style_text_small_bold"> Building Damage ($)
-        <li><span style="color: green;">&#9679;</span><span class="style_text_small"> 0 - 100k</span></li>
-        <li><span style="color: yellow;">&#9679;</span><span class="style_text_small"> 100k - 1M</span></li>
-        <li><span style="color: red;">&#9679;</span><span class="style_text_small"> 1M+</span></li>
-    </ul>
-    
-    <ul style="
- list-style-type:none; padding-left: 5px;  margin: 5px 5px 0px 0px" class="style_text_small_bold">Vehicle Damage ($)
-        <li><span style="background-color: #BFBFBF; color: #BFBFBF;">&#9679;</span><span class="style_text_small"> 0 - 100k</span></li>
-        <li><span style="background-color: #7E7E7E; color: #7E7E7E;">&#9679;</span><span class="style_text_small"> 100k - 1M</span></li>
-        <li><span style="background-color: #323232; color: #323232;">&#9679;</span><span class="style_text_small"> 1M+</span></li>
-    </ul>
+    const legendHTML = `<div id="legend" class="content" 
+    style="display: block; background: rgba(255, 255, 255, 1); padding: 2px 5px; border-style: solid !important;">
+    <b>Legend</b>
+    <br>
+    <span>&#9679;</span> Bridge
+    <br>
+    <span style="color: orange;">&#9679;</span> Utility
+    <br>
+    <span style="background-color: blue; color: blue;">&#9679;</span> Flood extent
+    <br>
+    <b>Building Damage ($)</b>
+    <br>
+    <span style="color: green;">&#9679;</span> 0 - 100k
+    <br>
+    <span style="color: yellow;">&#9679;</span> 100k - 1M
+    <br>
+    <span style="color: red;">&#9679;</span> 1M+
+    <br>
+    <b>Vehicle Damage ($)</b>
+    <br>
+    <span style="background-color: #BFBFBF; color: #BFBFBF;">&#9679;</span> 0 - 100k
+    <br>
+    <span style="background-color: #7E7E7E; color: #7E7E7E;">&#9679;</span> 100k - 1M
+    <br>
+    <span style="background-color: #323232; color: #323232;">&#9679;</span> 1M+
   </div>`;
 
     // Call the addCustomLegend function for Maps
@@ -858,7 +961,7 @@ export default class floodDM {
     legendDiv.innerHTML = legendHTML;
     await addCustomLegend({
       params: {
-        position: this.maptype === "google" ? "left bottom" : "bottom left",
+        position: "bottom left",
       },
       args: {
         div: legendDiv,
@@ -866,94 +969,64 @@ export default class floodDM {
     });
 
     /*
-     * 
      * Create and display a overlay to display scenario summary on the map
-     * 
      */
 
-    let cloned_scenario_results = JSON.parse(JSON.stringify(scenario_results));
-
     // Format results before printing
-    cloned_scenario_results["Vehicles"]["Day"] = floodDM.formatNumber(
-      cloned_scenario_results["Vehicles"]["Day"],
-      true
+    scenario_results["Vehicles"]["Day"] = floodDM.formatUSDollar(
+      scenario_results["Vehicles"]["Day"]
     );
-    cloned_scenario_results["Vehicles"]["Night"] = floodDM.formatNumber(
-      cloned_scenario_results["Vehicles"]["Night"],
-      true
+    scenario_results["Vehicles"]["Night"] = floodDM.formatUSDollar(
+      scenario_results["Vehicles"]["Night"]
     );
-    cloned_scenario_results["Buildings"]["Structure"] = floodDM.formatNumber(
-      cloned_scenario_results["Buildings"]["Structure"],
-      true
+    scenario_results["Buildings"]["Structure"] = floodDM.formatUSDollar(
+      scenario_results["Buildings"]["Structure"]
     );
-    cloned_scenario_results["Buildings"]["Content"] = floodDM.formatNumber(
-      cloned_scenario_results["Buildings"]["Content"],
-      true
+    scenario_results["Buildings"]["Content"] = floodDM.formatUSDollar(
+      scenario_results["Buildings"]["Content"]
     );
-    cloned_scenario_results["Buildings"]["Income"] = floodDM.formatNumber(
-      cloned_scenario_results["Buildings"]["Income"],
-      true
+    scenario_results["Buildings"]["Income"] = floodDM.formatUSDollar(
+      scenario_results["Buildings"]["Income"]
     );
-    cloned_scenario_results["Buildings"]["Wage"] = floodDM.formatNumber(
-      cloned_scenario_results["Buildings"]["Wage"],
-      true
+    scenario_results["Buildings"]["Wage"] = floodDM.formatUSDollar(
+      scenario_results["Buildings"]["Wage"]
     );
-    cloned_scenario_results["Buildings"]["Relocation Expenses"] =
-      floodDM.formatNumber(
-        cloned_scenario_results["Buildings"]["Relocation Expenses"],
-        true
+    scenario_results["Buildings"]["Relocation Expenses"] =
+      floodDM.formatUSDollar(
+        scenario_results["Buildings"]["Relocation Expenses"]
       );
-    cloned_scenario_results["Buildings"]["Rental Income"] = floodDM.formatNumber(
-      cloned_scenario_results["Buildings"]["Rental Income"],
-      true
+    scenario_results["Buildings"]["Rental Income"] = floodDM.formatUSDollar(
+      scenario_results["Buildings"]["Rental Income"]
     );
-    cloned_scenario_results["Utilities"]["Damage"] = floodDM.formatNumber(
-      cloned_scenario_results["Utilities"]["Damage"],
-      true
+    scenario_results["Utilities"]["Damage"] = floodDM.formatUSDollar(
+      scenario_results["Utilities"]["Damage"]
     );
-    cloned_scenario_results["Buildings"]["Loss of Life (Day)"] =
-      floodDM.formatNumber(
-        cloned_scenario_results["Buildings"]["Loss of Life (Day)"],
-        false
-      );
-    cloned_scenario_results["Buildings"]["Loss of Life (Night)"] =
-      floodDM.formatNumber(
-        cloned_scenario_results["Buildings"]["Loss of Life (Day)"],
-        false
-      );
-    cloned_scenario_results["Buildings"]["Debris"] = floodDM.formatNumber(
-      cloned_scenario_results["Buildings"]["Debris"],
-      false
+    scenario_results["Buildings"]["Loss of Life (Day)"] = Math.floor(
+      scenario_results["Buildings"]["Loss of Life (Day)"]
+    );
+    scenario_results["Buildings"]["Loss of Life (Night)"] = Math.floor(
+      scenario_results["Buildings"]["Loss of Life (Day)"]
     );
 
     // Create HTML table using the scenario summary
     let city_damage_table = floodDM.createTableFromObject({
-      args: {
-        obj: cloned_scenario_results,
-        tableHeaderText: "Community Total Damage",
-      },
+      args: { obj: scenario_results },
     });
 
     // Create enclosing div for the scenario summary
-    createDiv({
-      params: {
-        id: "flood-damage-scenario-total",
-        style:
-          `position: fixed !important;  top: ${document.getElementById('map').offsetTop + 150}px; left: ${document.getElementById('map').offsetLeft + 400}px; display: block;`,
-        //maindiv: "map"
-      },
-    });
-
-    // Add the table to the HTML page
-    let city_damage_div = document.getElementById(
-      "flood-damage-scenario-total"
-    );
+    let city_damage_div = document.createElement("div");
     city_damage_div.appendChild(city_damage_table);
-    city_damage_div.position = 'fixed';
-
+    city_damage_div.style.position = "absolute";
+    city_damage_div.style.float = "left";
+    city_damage_div.style.top = "50px";
+    city_damage_div.style.left = "50px";
+    city_damage_div.style.display = "block";
+    city_damage_div.style.backgroundColor = "white";
+    city_damage_div.style.fontSize = "x-small";
     floodDM.appendCloseButton(city_damage_div);
-    floodDM.dragElement(city_damage_div);
-    city_damage_div.style.cssText = `position: fixed; width: fit-content; z-index:2000; top: ${document.getElementById("map").offsetTop + 150}px; left: ${document.getElementById("map").offsetLeft + 400}px; display: block;`
+
+    // Add the div to the HTML page
+    document.body.appendChild(city_damage_div);
 
     // return scenario summary
     return scenario_results;
@@ -971,8 +1044,8 @@ export default class floodDM {
     // Set CSS styles
     const styles = {
       position: "absolute",
-      top: "15px",
-      right: "15px",
+      top: "10px",
+      right: "10px",
       width: "20px",
       height: "20px",
       cursor: "pointer",
@@ -1017,66 +1090,18 @@ export default class floodDM {
     div.appendChild(cross);
   }
 
-  // Helper function to drag div
-  static dragElement(elmnt) {
-    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    if (elmnt.querySelectorAll(".header_row")[0]) {
-      // if present, the header is where you move the DIV from:
-      elmnt.querySelectorAll(".header_row")[0].onmousedown = dragMouseDown;
-    } else {
-      // otherwise, move the DIV from anywhere inside the DIV:
-      elmnt.onmousedown = dragMouseDown;
-    }
-
-    function dragMouseDown(e) {
-      e = e || window.event;
-      e.preventDefault();
-
-      // Get the initial position of the element
-      const rect = elmnt.getBoundingClientRect();
-
-      console.log('rect', rect)
-
-      // Calculate the offset between mouse position and element position
-      pos3 = e.clientX - rect.left;
-      pos4 = e.clientY - rect.top;
-
-      document.onmouseup = closeDragElement;
-      document.onmousemove = elementDrag;
-    }
-
-    function elementDrag(e) {
-      e = e || window.event;
-      e.preventDefault();
-
-      // Calculate new position while maintaining offset
-      const newLeft = e.clientX - pos3;
-      const newTop = e.clientY - pos4;
-
-      // Set the element's new position
-      elmnt.style.left = newLeft + 'px';
-      elmnt.style.top = newTop + 'px';
-    }
-
-    function closeDragElement() {
-      // stop moving when mouse button is released:
-      document.onmouseup = null;
-      document.onmousemove = null;
-    }
-  }
-
-
   // Helper function for initDamageScenario to get property loss data by depth and type
   static async getPropertyDamageFunction({ params, args, data } = {}) {
     const corsProxyUrl = proxies["local-proxy"]["endpoint"];
     const propertyLossesUrl =
-      window.location.origin + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/functions/business_str_cnt_inputs.json";
+      "https://hydroinformatics.uiowa.edu/lab/fidas/data/functions/business_str_cnt_inputs.js";
     const proxyUrl = `${corsProxyUrl}${propertyLossesUrl}`;
 
     try {
       const response = await fetch(proxyUrl);
       let propertyLosses = await response.text();
-      return JSON.parse(propertyLosses);
+      eval(propertyLosses);
+      return propertyLosses;
     } catch (error) {
       console.error("Error fetching property losses data:", error);
       return null;
@@ -1087,13 +1112,14 @@ export default class floodDM {
   static async getLifeLossFunction({ params, args, data } = {}) {
     const corsProxyUrl = proxies["local-proxy"]["endpoint"];
     const lifeLossesUrl =
-      window.location.origin + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/functions/life_inputs.json";
+      "https://hydroinformatics.uiowa.edu/lab/fidas/data/functions/life_inputs.js";
     const proxyUrl = `${corsProxyUrl}${lifeLossesUrl}`;
 
     try {
       const response = await fetch(proxyUrl);
       let life = await response.text();
-      return JSON.parse(life);
+      eval(life);
+      return life;
     } catch (error) {
       console.error("Error fetching life losses data:", error);
       return null;
@@ -1104,13 +1130,14 @@ export default class floodDM {
   static async getDebrisWeightFunction({ params, args, data } = {}) {
     const corsProxyUrl = proxies["local-proxy"]["endpoint"];
     const debrisUrl =
-      window.location.origin + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/functions/debris_weight.json";
+      "https://hydroinformatics.uiowa.edu/lab/fidas/data/functions/debris_weight.js";
     const proxyUrl = `${corsProxyUrl}${debrisUrl}`;
 
     try {
       const response = await fetch(proxyUrl);
       let debris = await response.text();
-      return JSON.parse(debris);
+      eval(debris);
+      return debris;
     } catch (error) {
       console.error("Error fetching debris weight data:", error);
       return null;
@@ -1121,13 +1148,14 @@ export default class floodDM {
   static async getBridgeDamageFunction({ params, args, data } = {}) {
     const corsProxyUrl = proxies["local-proxy"]["endpoint"];
     const debrisUrl =
-      window.location.origin + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/functions/bridge_function.json";
+      "https://hydroinformatics.uiowa.edu/lab/fidas/data/functions/bridge_function.js";
     const proxyUrl = `${corsProxyUrl}${debrisUrl}`;
 
     try {
       const response = await fetch(proxyUrl);
       let bridgeDamFun = await response.text();
-      return JSON.parse(bridgeDamFun);
+      eval(bridgeDamFun);
+      return bridgeDamFun;
     } catch (error) {
       console.error("Error fetching debris weight data:", error);
       return null;
@@ -1138,13 +1166,14 @@ export default class floodDM {
   static async getVehicleDamageFunction({ params, args, data } = {}) {
     const corsProxyUrl = proxies["local-proxy"]["endpoint"];
     const debrisUrl =
-      window.location.origin + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/functions/vehicle_function.json";
+      "https://hydroinformatics.uiowa.edu/lab/fidas/data/functions/vehicle_function.js";
     const proxyUrl = `${corsProxyUrl}${debrisUrl}`;
 
     try {
       const response = await fetch(proxyUrl);
       let vehicleDamFun = await response.text();
-      return JSON.parse(vehicleDamFun);
+      eval(vehicleDamFun);
+      return vehicleDamFun;
     } catch (error) {
       console.error("Error fetching debris weight data:", error);
       return null;
@@ -1155,14 +1184,15 @@ export default class floodDM {
   static async getUtilityDamageFunction({ params, args, data } = {}) {
     const corsProxyUrl = proxies["local-proxy"]["endpoint"];
     const debrisUrl =
-      window.location.origin + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/functions/utility_function.json";
+      "https://hydroinformatics.uiowa.edu/lab/fidas/data/functions/utility_function.js";
     const proxyUrl = `${corsProxyUrl}${debrisUrl}`;
 
     try {
       const response = await fetch(proxyUrl);
       let utilityDamFun = await response.text();
 
-      return JSON.parse(utilityDamFun);
+      eval(utilityDamFun);
+      return utilityDamFun;
     } catch (error) {
       console.error("Error fetching debris weight data:", error);
       return null;
@@ -1170,16 +1200,63 @@ export default class floodDM {
   }
 
   /**
-   * Initialize flood mitigation scenario
+   * Initialize a flood mitigation scenario for property-level analysis and intervention planning.
+   * Creates an interactive map displaying buildings at risk and provides tools for selecting
+   * individual properties to analyze mitigation options and cost-benefit calculations.
+   * 
    * @method initMitigationScenario
    * @memberof floodDM
    * @instance
    * @async
-   * @param {String} args.city - City name for which mitigation scenario needs to be built. Allowed cities are Waterloo, Cedar Rapids or Cedar Falls
-   * @param {number} args.depth - The flood depth for which to retrieve damage data.
+   * @param {Object} options - Configuration object for mitigation scenario
+   * @param {Object} [options.params] - Parameters for map rendering and visualization
+   * @param {string} [options.params.maptype='leaflet'] - Type of map to render: 'google' or 'leaflet'
+   * @param {string} [options.params.key] - Google Maps API key (required if maptype is 'google')
+   * @param {Object} options.args - Arguments defining the mitigation scenario
+   * @param {string} options.args.city - City name. Supported: 'Waterloo', 'Cedar Rapids', 'Cedar Falls'
+   * @param {number} options.args.depth - Flood depth in feet for analysis
+   * @param {Object} [options.data] - Additional data (currently unused)
+   * @returns {Promise<Object>} Promise resolving to city-wide damage estimates and mitigation summary
+   * 
    * @example
-   * hydro.analyze.hydro.initMitigationScenario({
-   *   args: { city : "Waterloo", depth: 30.5 }
+   * // Initialize mitigation scenario for Waterloo at 30.5ft depth
+   * const scenario = new floodDM();
+   * const mitigationData = await scenario.initMitigationScenario({
+   *   params: { maptype: 'leaflet' },
+   *   args: { 
+   *     city: "Waterloo", 
+   *     depth: 30.5 
+   *   }
+   * });
+   * 
+   * // Results include city-wide damage estimates
+   * console.log(mitigationData.low_emission);   // "$ 269.2 M"
+   * console.log(mitigationData.high_emission);  // "$ 785.6 M"
+   * 
+   * @example
+   * // Initialize for Cedar Rapids with detailed building analysis
+   * const results = await scenario.initMitigationScenario({
+   *   params: { maptype: 'leaflet' },
+   *   args: { 
+   *     city: "Cedar Rapids", 
+   *     depth: 25.0 
+   *   }
+   * });
+   * 
+   * // Click on building markers to select for detailed mitigation analysis
+   * // Use runMitigationScenario() after selection for specific building analysis
+   * 
+   * @example
+   * // Initialize with Google Maps for Cedar Falls
+   * const cedarFallsData = await scenario.initMitigationScenario({
+   *   params: { 
+   *     maptype: 'google',
+   *     key: 'your-google-maps-api-key'
+   *   },
+   *   args: { 
+   *     city: "Cedar Falls", 
+   *     depth: 20.0 
+   *   }
    * });
    */
   async initMitigationScenario({ params, args, data } = {}) {
@@ -1227,7 +1304,6 @@ export default class floodDM {
       });
       this.mapRendered = true;
     }
-    floodDM.addFontStyle()
 
     // If any building features exist
     if (city_features.features.length > 0) {
@@ -1282,11 +1358,11 @@ export default class floodDM {
           properties = feature.properties;
         }
 
-        return `<div class="style_text_small_bold">Building Damage Information</div>
-          <div class="style_text_small">
+        return `<h4><b>Damage and Mitigation</b><br></h4>
+          <b>Building Information</b><br>
           Building ID: ${String(properties.gid)}<br>
           Occupancy Type: ${String(properties.occupancy2)}<br>
-          Flood Depth: ${properties[current_scenario]} ft</div>`;
+          Flood Depth: ${properties[current_scenario]} ft<br>`;
       };
 
       // Define click function for the features
@@ -1303,7 +1379,7 @@ export default class floodDM {
       await Layers({
         args: {
           type: "geojson",
-          name: "Buildings Layer",
+          name: "mygeoJSON",
           styleFunction,
           popUpFunction,
           onClickFunction,
@@ -1318,8 +1394,6 @@ export default class floodDM {
     });
 
     // Hard code emissions data for various cities as these values were hardcoded in original MiDAS system
-    city_damage["low_emission"] = {};
-    city_damage["high_emission"] = [];
     if (city === "Cedar Rapids") {
       city_damage["low_emission"] = "$ 295.3 M";
       city_damage["high_emission"] = "$ 635.8 M";
@@ -1336,36 +1410,33 @@ export default class floodDM {
       args: { obj: city_damage, tableHeaderText: this.city },
     });
 
-    createDiv({
-      params: {
-        id: "community-mitigation-scenario-total",
-        style:
-          "position: absolute; float: left; top: 50px; left: 50px; display: block;",
-      },
-    });
-
-    // Add the table to the HTML page
-    let city_damage_div = document.getElementById(
-      "community-mitigation-scenario-total"
-    );
+    // Create a wrapper div for table
+    let city_damage_div = document.createElement("div");
     city_damage_div.appendChild(city_damage_table);
+    city_damage_div.style.position = "absolute";
+    city_damage_div.style.float = "left";
+    city_damage_div.style.top = "50px";
+    city_damage_div.style.left = "50px";
+    city_damage_div.style.display = "block";
+    city_damage_div.style.backgroundColor = "white";
+    city_damage_div.style.fontSize = "x-small";
     floodDM.appendCloseButton(city_damage_div);
-    floodDM.dragElement(city_damage_div);
     document.body.appendChild(city_damage_div);
-    city_damage_div.style.cssText('position: absolute;')
 
     // Create a HTML div
     const legendHTML = `
-    <div id="legend" class="content" style="display: block; background: rgba(255, 255, 255, 1); padding: 5px; border-style: solid !important; margin:5px;">
-
-    <div style="margin: 0px 5px 5px 5px;" class="style_text_small_bold">Legend</div>
-
-    <ul style="
- list-style-type:none; padding-left: 5px; margin: 5px 5px 0px 0px" class="style_text_small_bold">Depth
-        <li><span style="color: purple;">&#9632;</span><span class="style_text_small"> &gt; 5 - 10 ft</span></li>
-    	<li><span style="color: red;">&#9632;</span><span  class="style_text_small"> 2 - 5 ft</span></li>
-        <li><span style="color: yellow;">&#9632;</span><span  class="style_text_small"> &lt; 2 ft</span></li>
-    </ul>
+  <div id="legend" class="content" 
+  style="display: block; background: rgba(255, 255, 255, 1); padding: 2px 5px; border-style: solid !important;">
+  ">
+    <b>LEGEND</b>
+    <br>
+    <b>Depth</b>
+    <br>
+    <span style="color: purple;">&#9632;</span> &gt; 5 - 10 ft</span>
+    <br>
+    <span style="color: red;">&#9632;</span> 2 - 5 ft</span>
+    <br>
+    <span style="color: yellow;">&#9632;</span> &lt; 2 ft</span>
   </div>
 `;
     const legendDiv = document.createElement("div");
@@ -1374,7 +1445,7 @@ export default class floodDM {
     // Call the addCustomLegend function for Maps
     await addCustomLegend({
       params: {
-        position: this.maptype === "google" ? "right bottom" : "bottom right",
+        position: "bottom right",
       },
       args: {
         div: legendDiv,
@@ -1404,18 +1475,65 @@ export default class floodDM {
   }
 
   /**
-   * Run the damage and mitigation scenario of the selected property based on flood depth and mitigation parameters
+   * Run a detailed damage and mitigation analysis for a selected property.
+   * Must be called after initMitigationScenario() and after clicking on a building marker to select it.
+   * Calculates property-specific damage estimates and evaluates mitigation measures with cost-benefit analysis.
    *
    * @method runMitigationScenario
    * @memberof floodDM
    * @instance
    * @async
-   * @param {String} args.city - City name for which mitigation scenario needs to be built. Allowed cities are Waterloo, Cedar Rapids or Cedar Falls
-   * @param {number} args.depth - The flood depth for which to retrieve damage data.
+   * @param {Object} options - Configuration object for property mitigation analysis
+   * @param {Object} [options.params] - Parameters (automatically set from selected building properties)
+   * @param {Object} options.args - Arguments defining the mitigation analysis
+   * @param {string} options.args.mitigationMeasure - Type of mitigation measure to evaluate (e.g., 'Elevation', 'Dry Floodproofing', 'Wet Floodproofing')
+   * @param {number} options.args.mitigationDepth - Depth of protection provided by mitigation measure (in feet)
+   * @param {string} options.args.foundationType - Foundation type of the building ('footing' or 'slab on grade')
+   * @param {Object} [options.data] - Additional data (currently unused)
+   * @returns {Promise<HTMLTableElement>} Promise resolving to HTML table element with detailed damage and mitigation summary
+   * 
    * @example
-   * hydro.analyze.hydro.initMitigationScenario({
-   *   args: { city : "Waterloo", depth: 30.5 }
+   * // First initialize mitigation scenario and select a building by clicking on map
+   * const scenario = new floodDM();
+   * await scenario.initMitigationScenario({
+   *   params: { maptype: 'leaflet' },
+   *   args: { city: "Waterloo", depth: 30.5 }
    * });
+   * 
+   * // Click on a building marker on the map to select it, then run analysis
+   * const mitigationResults = await scenario.runMitigationScenario({
+   *   args: {
+   *     mitigationMeasure: 'Elevation',
+   *     mitigationDepth: 5.0,
+   *     foundationType: 'footing'
+   *   }
+   * });
+   * 
+   * @example
+   * // Analyze dry floodproofing for selected building
+   * const dryFloodproofing = await scenario.runMitigationScenario({
+   *   args: {
+   *     mitigationMeasure: 'Dry Floodproofing',
+   *     mitigationDepth: 3.0,
+   *     foundationType: 'slab on grade'
+   *   }
+   * });
+   * 
+   * @example
+   * // Analyze wet floodproofing option
+   * const wetFloodproofing = await scenario.runMitigationScenario({
+   *   args: {
+   *     mitigationMeasure: 'Wet Floodproofing',
+   *     mitigationDepth: 2.0,
+   *     foundationType: 'footing'
+   *   }
+   * });
+   * 
+   * // Results displayed as overlay table showing:
+   * // - Current flood damage estimates
+   * // - Mitigation costs
+   * // - Net benefit/cost of mitigation
+   * // - Building characteristics
    */
   async runMitigationScenario({ params, args, data } = {}) {
     let { mitigationMeasure, mitigationDepth, foundationType } = args;
@@ -1463,51 +1581,82 @@ export default class floodDM {
       data,
     });
 
-    let mitigation_result_copy = JSON.parse(JSON.stringify(mitigationResult));
-
     // Create HTML table using the damage and mitigation metrics of the buildings
     let city_damage_table = floodDM.createTableFromObject({
       args: {
-        obj: mitigation_result_copy,
+        obj: mitigationResult,
         tableHeaderText: "Damage and Mitigation Summary",
       },
     });
 
-    // Add the table to the HTML page
-    createDiv({
-      params: {
-        id: "property-mitigation-scenario",
-      },
-    });
+    // Create wrapper for HTML table
+    let city_damage_div = document.createElement("div");
+    city_damage_div.appendChild(city_damage_table);
+    city_damage_div.style.position = "absolute";
+    city_damage_div.style.float = "left";
+    city_damage_div.style.top = "200px";
+    city_damage_div.style.left = "50px";
+    city_damage_div.style.display = "block";
+    city_damage_div.style.backgroundColor = "white";
+    city_damage_div.style.fontSize = "x-small";
+    floodDM.appendCloseButton(city_damage_div)
 
-    let city_damage_div2 = document.getElementById(
-      "property-mitigation-scenario"
-    );
-
-    city_damage_div2.appendChild(city_damage_table);
-    floodDM.appendCloseButton(city_damage_div2);
-    floodDM.dragElement(city_damage_div2);
-    document.body.appendChild(city_damage_div2);
-    city_damage_div2.style.cssText = `
-          position: absolute; float: left; top: 200px; left: 50px; display: block;`
+    // Add div to page
+    document.body.appendChild(city_damage_div);
 
     // Return summary
     return city_damage_table;
   }
 
   /**
-   * Retrieves flood damage data for a given flood depth.
+   * Retrieves comprehensive flood damage data for a specific city and flood depth.
+   * Accesses pre-computed damage estimates from the MIDAS database including
+   * building counts, economic losses, and emission scenarios.
    *
    * @method getCityFloodDamage
    * @memberof floodDM
+   * @static
    * @async
-   * @param {String} args.city - An array of objects containing flood damage data for each flood level.
-   * @param {number} args.depth - The flood depth for which to retrieve damage data.
-   * @returns {Object} An object containing the number of buildings affected, the structural loss, and the content loss for the closest matching flood level.
+   * @param {Object} options - Configuration object for damage data retrieval
+   * @param {Object} [options.params] - Additional parameters (currently unused)
+   * @param {Object} options.args - Arguments for damage data query
+   * @param {string} options.args.city - City name for damage lookup. Supported: 'Cedar Rapids', 'Cedar Falls', 'Waterloo'
+   * @param {number} options.args.depth - Flood depth in feet for which to retrieve damage data
+   * @param {Object} [options.data] - Additional data (currently unused)
+   * @returns {Promise<Object|string>} Promise resolving to damage data object or error message
+   * 
    * @example
-   * hydro.analyze.hydro.getCityFloodDamage({
-   *   args: { depth: 30.5, city: "Cedar Rapids" }
+   * // Get flood damage data for Cedar Rapids at 30.5ft depth
+   * const damageData = await floodDM.getCityFloodDamage({
+   *   args: { 
+   *     city: "Cedar Rapids", 
+   *     depth: 30.5 
+   *   }
    * });
+   * 
+   * console.log(damageData.flood_level);      // "30.5"
+   * console.log(damageData.buildings);       // Number of buildings affected
+   * console.log(damageData.struct_loss);     // Structural loss estimate
+   * console.log(damageData.cont_loss);       // Content loss estimate
+   * 
+   * @example
+   * // Get damage data for Waterloo at different depth
+   * const waterlooData = await floodDM.getCityFloodDamage({
+   *   args: { 
+   *     city: "Waterloo", 
+   *     depth: 25.0 
+   *   }
+   * });
+   * 
+   * @example
+   * // Handle invalid inputs
+   * const invalidData = await floodDM.getCityFloodDamage({
+   *   args: { 
+   *     city: "InvalidCity", 
+   *     depth: 30.5 
+   *   }
+   * });
+   * // Returns: "City or depth not found"
    */
   static async getCityFloodDamage({ params, args, data } = {}) {
     // Validate input data
@@ -1526,7 +1675,7 @@ export default class floodDM {
       cityname = "waterloo";
     }
 
-    const debrisUrl = window.location.origin + `/hydrolang/modules/data/dm_datasources/mitigation_dt/${cityname}.json`;
+    const debrisUrl = `https://hydroinformatics.uiowa.edu/lab/midas/communities/${cityname}.json`;
     const proxyUrl = `${corsProxyUrl}${debrisUrl}`;
 
     try {
@@ -1545,7 +1694,7 @@ export default class floodDM {
   }
 
   /**
-   *
+   * 
    * Helper function to create an HTML table element from a JavaScript object.
    * @method createTableFromObject
    * @memberof floodDM
@@ -1563,154 +1712,123 @@ export default class floodDM {
     let { obj, depth = 0, showHeader = true, tableHeaderText = null } = args;
     // Create the table element
     const table = document.createElement("table");
-
-    // Enhanced base table styling
-    table.style.cssText = `
-      border-collapse: collapse;
-      background-color: white;
-      border-spacing: 0;
-      border: none;
-      border-radius: 6px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      width: auto;
-      margin: 8px;
-      overflow: hidden;
-      table-layout: fixed;
-      font-size: 11px;
-      zIndex: 200;
-      line-height: 1;
-    `;
-    table.classList.add("style_text_large_bold");
+    table.style.borderCollapse = "collapse"; // Collapse borders for better lines
+    table.style.border = "1px solid #fff"; // Add border to the table
 
     // Add table header row if tableHeaderText is provided
     if (tableHeaderText !== null && depth === 0) {
       const headerRow = table.insertRow();
       const headerCell = headerRow.insertCell();
       headerCell.textContent = tableHeaderText;
+      headerCell.style.fontWeight = "bold";
+      headerCell.style.fontFamily = "Arial";
       headerCell.colSpan = 2;
-      headerCell.classList.add("style_text_large_bold", "header-row");
-
-      // Enhanced header styling
-      headerCell.style.cssText = `
-        background-color: #2c3e50;
-        color: white;
-        padding: 6px 10px;
-        text-align: center;
-        font-size: 13px;
-        cursor: move;
-        border-bottom: 2px solid #34495e;
-        user-select: none;
-        line-height: 1.2;
-      `;
+      headerCell.style.borderRight = "1px solid #000";
     }
 
     // Loop through the object keys
     for (const key in obj) {
+      // Create a new row
       const row = table.insertRow();
 
-      // Zebra striping for rows
-      if (depth === 0) {
-        row.style.backgroundColor = table.rows.length % 2 === 0 ? '#f8f9fa' : 'white';
-      }
-
-      // Insert and style key cell
+      // Insert a cell for the key
       const keyCell = row.insertCell();
       keyCell.textContent = key;
-      keyCell.classList.add("style_text_small_bold");
-      keyCell.style.cssText = `
-        padding: 4px 10px;
-        min-width: 100px;
-        color: #2c3e50;
-        font-weight: 500;
-        border-bottom: 1px solid #eee;
-        line-height: 1.1;
-      `;
+      keyCell.style.padding = "0 10px 0 10px"; // Indent based on depth
+      keyCell.style.borderRight = "1px solid #fff"; // Add right border to key cell
+      keyCell.style.backgroundColor = "#337bcb";
+      keyCell.style.color = "white";
+      keyCell.style.fontFamily = "Arial";
 
-      // Insert and style value cell
-      const valueCell = row.insertCell();
-      valueCell.classList.add("style_text_small");
-
-      // Handle nested objects
-      if (typeof obj[key] === "object" && obj[key] !== null) {
-        valueCell.style.padding = "0";
-        const nestedTable = floodDM.createTableFromObject({
-          args: {
-            obj: obj[key],
-            depth: depth + 1,
-            showHeader: true
-          }
-        });
-
-        // Style nested tables
-        nestedTable.style.cssText = `
-          margin: 0;
-          width: 100%;
-          box-shadow: none;
-          border-radius: 0;
-          background-color: ${depth === 0 ? '#f8f9fa' : 'white'};
-        `;
-
-        valueCell.appendChild(nestedTable);
-      } else {
-        valueCell.textContent = obj[key];
-        valueCell.style.cssText = `
-          padding: 4px 10px;
-          color: #505050;
-          border-bottom: 1px solid #eee;
-          text-align: right;
-          line-height: 1.1;
-        `;
+      // If showHeader is true, make the key bold
+      if (showHeader) {
+        keyCell.style.fontWeight = "bold";
       }
 
-      // Add hover effect for rows
-      row.addEventListener('mouseover', () => {
-        if (depth === 0) {
-          row.style.backgroundColor = '#f0f2f5';
-        }
-      });
-      row.addEventListener('mouseout', () => {
-        if (depth === 0) {
-          row.style.backgroundColor = table.rows.length % 2 === 0 ? '#f8f9fa' : 'white';
-        }
-      });
+      // Insert a cell for the value
+      const valueCell = row.insertCell();
+
+      // If the value is an object, create a nested table
+      if (typeof obj[key] === "object" && obj[key] !== null) {
+        valueCell.style.borderBottom = "1px solid #fff"; // Add bottom border to value cell
+        valueCell.style.backgroundColor = "#fff";
+        valueCell.appendChild(
+          floodDM.createTableFromObject({
+            args: { obj: obj[key], depth: depth + 1, showHeader: true },
+          })
+        );
+      } else {
+        valueCell.textContent = obj[key];
+      }
     }
 
     return table;
   }
 
   /**
-   * Returns an array of GeoJSON point features of Buildings from midas data source and community_flood_inundation datatype
-   * based on flood depth
+   * Filters a GeoJSON FeatureCollection to return only buildings that would be flooded at a specific depth.
+   * Takes building features with depth-specific properties and returns only those with significant inundation.
    *
    * @method getFloodInundation
    * @memberof floodDM
-   * @param {Object[]} data - An array of objects containing flood damage data for each flood level.
-   * @param {number} args.depth - The flood depth for which to retrieve inundation data.
-   * @returns {Object} An object containing the number of buildings affected for the closest matching flood level.
+   * @static
+   * @param {Object} options - Configuration object for flood inundation filtering
+   * @param {Object} [options.params] - Additional parameters (currently unused)
+   * @param {Object} options.args - Arguments for filtering
+   * @param {number} options.args.depth - Flood depth in feet for filtering buildings
+   * @param {Object} options.data - GeoJSON FeatureCollection with building data
+   * @param {string} options.data.type - Must be "FeatureCollection"
+   * @param {Array} options.data.features - Array of GeoJSON Feature objects with flood depth properties
+   * @returns {Object} Filtered GeoJSON FeatureCollection containing only buildings with flood depth >= 1 foot
+   * 
    * @example
-   * hydro.analyze.hydro.getFloodInundation({ args:{depth: 20 }, data: {
-   * "type": "FeatureCollection",
-   * "name": "waterloo",
-   * "crs": {
-   *   "type": "name",
-   *    "properties": {
-   *       "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
-   *     }
-   *   },
-   *   "features": [
-   *     {
-   *       "type": "Feature",
+   * // Filter buildings for 20ft flood depth
+   * const floodedBuildings = floodDM.getFloodInundation({
+   *   args: { depth: 20 }, 
+   *   data: {
+   *     "type": "FeatureCollection",
+   *     "name": "waterloo",
+   *     "crs": {
+   *       "type": "name",
    *       "properties": {
-   *         ...
-   *      },
-   *       "geometry": {
-   *         "type": "Point",
-   *         "coordinates": [
-   *           -92.39561119522634,
-   *           42.47028021204937
-   *         ]
+   *         "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
    *       }
-   *     },...
+   *     },
+   *     "features": [
+   *       {
+   *         "type": "Feature",
+   *         "properties": {
+   *           "depth200": 3.5,  // Depth at 20.0ft scenario
+   *           "gid": 1,
+   *           "occupancy": "RES1-1SNB"
+   *         },
+   *         "geometry": {
+   *           "type": "Point",
+   *           "coordinates": [-92.39561, 42.47028]
+   *         }
+   *       }
+   *     ]
+   *   }
+   * });
+   * 
+   * // Returns only buildings where depth200 >= 1.0
+   * console.log(floodedBuildings.features.length); // Number of significantly flooded buildings
+   * 
+   * @example
+   * // Handle edge cases
+   * const invalidData = floodDM.getFloodInundation({
+   *   args: { depth: "invalid" },
+   *   data: { type: "FeatureCollection", features: [] }
+   * });
+   * // Returns: { error: "Invalid args format" }
+   * 
+   * @example
+   * // Process different flood depths
+   * const depth15Buildings = floodDM.getFloodInundation({
+   *   args: { depth: 15.5 },
+   *   data: buildingFeatures
+   * });
+   * // Uses "depth155" property (15.5 * 10 = 155)
    */
   static getFloodInundation({ params, args, data } = {}) {
     // Validate input data
@@ -1735,245 +1853,382 @@ export default class floodDM {
   }
 
   /**
-   * Calculates the property details and optionally retrieves flood damage and mitigation options.
+   * Builds a comprehensive property damage and mitigation scenario for a specific building.
+   * Calculates flood damage estimates, business interruption losses, and evaluates
+   * mitigation options with detailed cost-benefit analysis.
    *
    * @method buildPropertyDMScenario
    * @memberof floodDM
+   * @static
    * @async
-   * @param {Object} params - An object containing additional parameters (currently unused).
-   * @param {Object} args - An object containing the property details and optional flood depth and mitigation depth.
-   * @param {string} params.occupancy - The occupancy type (e.g., 'RES1', 'COM1', 'IND1', 'GOV1', 'AGR1').
-   * @param {number} params.structuralValue - The structural value of the property.
-   * @param {number} params.contentValue - The content value of the property.
-   * @param {number} params.buildingArea - The building area of the property.
-   * @param {number} [args.floodDepth] - The flood depth for which to calculate the damage (optional).
-   * @param {number} [args.mitigationDepth] - The desired mitigation measure (optional).
-   * @param {number} [args.mitigationDepth] - The desired mitigation depth (optional).
-   * @param {Object} data - Additional data (currently unused).
-   * @returns {Promise<Object>} A Promise that resolves with an object containing the property details, and optionally the flood depth, calculated losses, and mitigation options.
+   * @param {Object} options - Configuration object for property analysis
+   * @param {Object} options.params - Property characteristics and values
+   * @param {string} options.params.occupancy - Building occupancy type (e.g., 'RES1-1SNB', 'COM1', 'IND1', 'GOV1', 'AGR1')
+   * @param {number} options.params.structuralValue - Replacement value of building structure in dollars
+   * @param {number} options.params.contentValue - Value of building contents in dollars
+   * @param {number} options.params.buildingArea - Building floor area in square feet
+   * @param {Object} options.args - Flood scenario and mitigation parameters
+   * @param {number} [options.args.floodDepth] - Flood depth above building in feet
+   * @param {string} [options.args.mitigationMeasure] - Type of mitigation ('Elevation', 'Dry Floodproofing', 'Wet Floodproofing', etc.)
+   * @param {number} [options.args.mitigationDepth] - Protection depth provided by mitigation in feet
+   * @param {string} [options.args.foundationType] - Foundation type ('footing' or 'slab on grade')
+   * @param {Object} [options.data] - Additional data (currently unused)
+   * @returns {Promise<Object>} Promise resolving to comprehensive property analysis results
+   * 
    * @example
-   * const propertyDetails = await floodDM.buildPropertyDMScenario({}, { occupancy: 'RES1', structuralValue: 200000, contentValue: 100000, buildingArea: 2000 }, {});
-   * console.log(propertyDetails);
-   *
-   * const propertyDamage = await floodDM.buildPropertyDMScenario({}, { occupancy: 'RES1', structuralValue: 200000, contentValue: 100000, buildingArea: 2000, floodDepth: 3 }, {});
-   * console.log(propertyDamage);
-   *
-   * const propertyDamageAndMitigation = await floodDM.buildPropertyDMScenario({}, { occupancy: 'RES1', structuralValue: 200000, contentValue: 100000, buildingArea: 2000, floodDepth: 3, mitigationDepth: 2 }, {});
-   * console.log(propertyDamageAndMitigation);
+   * // Basic property damage calculation
+   * const damageAnalysis = await floodDM.buildPropertyDMScenario({
+   *   params: {
+   *     occupancy: 'RES1-1SNB',
+   *     structuralValue: 250000,
+   *     contentValue: 125000,
+   *     buildingArea: 2000
+   *   },
+   *   args: {
+   *     floodDepth: 4.0
+   *   }
+   * });
+   * 
+   * console.log(damageAnalysis.structuralLoss);  // "$45,000"
+   * console.log(damageAnalysis.contentLoss);     // "$62,500"
+   * 
+   * @example
+   * // Property damage with mitigation analysis
+   * const mitigationAnalysis = await floodDM.buildPropertyDMScenario({
+   *   params: {
+   *     occupancy: 'COM1',
+   *     structuralValue: 500000,
+   *     contentValue: 300000,
+   *     buildingArea: 5000
+   *   },
+   *   args: {
+   *     floodDepth: 6.0,
+   *     mitigationMeasure: 'Elevation',
+   *     mitigationDepth: 8.0,
+   *     foundationType: 'footing'
+   *   }
+   * });
+   * 
+   * console.log(mitigationAnalysis.mitigationOptions.cost);     // "$75,000"
+   * console.log(mitigationAnalysis.mitigationOptions.benefit);  // "$45,000"
+   * 
+   * @example
+   * // Compare different mitigation strategies
+   * const dryFloodproofing = await floodDM.buildPropertyDMScenario({
+   *   params: {
+   *     occupancy: 'RES1-1SNB',
+   *     structuralValue: 200000,
+   *     contentValue: 100000,
+   *     buildingArea: 1800
+   *   },
+   *   args: {
+   *     floodDepth: 3.0,
+   *     mitigationMeasure: 'Dry Floodproofing',
+   *     mitigationDepth: 5.0,
+   *     foundationType: 'slab on grade'
+   *   }
+   * });
+   * 
+   * // Result includes formatted dollar values and cost-benefit ratios
    */
-  static async buildPropertyDMScenario({ params, args } = {}) {
-    // Get required parameters
+  static async buildPropertyDMScenario({ params, args, data } = {}) {
+    // Destructure the required parameters and arguments
     const { occupancy, structuralValue, contentValue, buildingArea } = params;
-    const { floodDepth, mitigationMeasure, mitigationDepth, foundationType } = args;
+    const { floodDepth, mitigationMeasure, mitigationDepth, foundationType } =
+      args;
 
-    // Initialize result with base properties
+    // Create an object to store the result
     const result = {
       occupancy,
       structuralValue,
       contentValue,
-      buildingArea
-    };
-
-    // Return early if floodDepth is not a number
-    if (typeof floodDepth !== "number") {
-      return floodDM.formatResultValues(result);
-    }
-
-    // Calculate damage
-    const damageData = await floodDM.fetchCurvesData(occupancy, floodDepth);
-    const losses = floodDM.calculateLosses(structuralValue, contentValue, damageData);
-
-    // Add flood data to result
-    Object.assign(result, {
-      floodDepth,
-      structuralLoss: losses.structuralLoss,
-      contentLoss: losses.contentLoss
-    });
-
-    // Add mitigation options if requested
-    if (mitigationDepth && mitigationMeasure) {
-      result.mitigationOptions = await floodDM.getMitigationOptions(
-        foundationType,
-        mitigationMeasure,
-        mitigationDepth,
-        buildingArea,
-        result
-      );
-    }
-
-    return floodDM.formatResultValues(result);
-  }
-
-  // Helper function to format result values
-  static formatResultValues(result) {
-    const formattedResult = { ...result };
-
-    // Format monetary values
-    ['structuralValue', 'contentValue', 'structuralLoss', 'contentLoss'].forEach(key => {
-      if (key in formattedResult) {
-        formattedResult[key] = floodDM.formatNumber(formattedResult[key], true);
-      }
-    });
-
-    // Format area
-    if ('buildingArea' in formattedResult) {
-      formattedResult.buildingArea = floodDM.formatNumber(formattedResult.buildingArea);
-    }
-
-    // Format mitigation options if present
-    if (formattedResult.mitigationOptions) {
-      formattedResult.mitigationOptions = {
-        ...formattedResult.mitigationOptions,
-        cost: floodDM.formatNumber(formattedResult.mitigationOptions.cost, true),
-        benefit: floodDM.formatNumber(formattedResult.mitigationOptions.benefit, true)
-      };
-    }
-
-    return formattedResult;
-  }
-
-  static async getMitigationOptions(foundationType, mitigationMeasure, mitigationDepth, buildingArea, result) {
-    // Get mitigation data from cache or fetch new
-    const mitigationData = floodDM.mitigationDataCache || await retrieve({
-      params: {
-        source: "mitigation_dt",
-        datatype: 'property_mitigation_cost',
-      },
-      args: { sourceType: 'property_mitigation_cost' },
-    });
-
-    // Cache the data for future use
-    if (!floodDM.mitigationDataCache) {
-      floodDM.mitigationDataCache = mitigationData;
-    }
-
-    // Return early if no data available
-    if (!mitigationData) {
-      return { error: "Failed to fetch mitigation data" };
-    }
-
-    // Find matching mitigation option
-    const option = mitigationData.mitigation_options.find(opt => {
-      if (mitigationMeasure === "Wet Floodproofing") {
-        return mitigationDepth === opt.design;
-      }
-      return mitigationMeasure === opt.measure &&
-        (foundationType === opt.foundation_type || mitigationDepth === opt.design);
-    });
-
-    if (!option) return null;
-
-    // Calculate costs and benefits with raw numbers
-    const { cost, benefit } = floodDM.calculateMitigationValues(
-      option,
       buildingArea,
-      result.floodDepth,
-      mitigationDepth,
-      result.structuralLoss,
-      result.contentLoss,
-      mitigationMeasure
-    );
-
-    // Return raw values - formatting will be done later
-    return {
-      measure: mitigationMeasure,
-      foundationType,
-      cost,
-      benefit
     };
+
+    // Check if floodDepth is a number
+    if (typeof floodDepth === "number") {
+      // Fetch the damage data based on occupancy and flood depth
+      const damageData = await this.fetchCurvesData(occupancy, floodDepth);
+
+      // Calculate structural and content losses based on the damage data
+      const losses = this.calculateLosses(
+        structuralValue,
+        contentValue,
+        damageData
+      );
+
+      // Add flood depth, structural loss, and content loss to the result object
+      result.floodDepth = floodDepth;
+      result.structuralLoss = losses.structuralLoss;
+      result.contentLoss = losses.contentLoss;
+      let finalSqft = result.buildingArea;
+
+      // Check if mitigation measure and depth are provided
+      if (mitigationDepth && mitigationMeasure) {
+        // Get mitigation options based on foundation type, mitigation measure, mitigation depth, and building area
+        const mitigationOptions = await this.getMitigationOptions(
+          foundationType,
+          mitigationMeasure,
+          mitigationDepth,
+          finalSqft,
+          result
+        );
+
+        // Add mitigation options to the result object
+        result.mitigationOptions = mitigationOptions;
+      }
+
+      // Formatting loss values as US Dollar values
+      result.structuralLoss = floodDM.formatUSDollar(result.structuralLoss);
+      result.contentLoss = floodDM.formatUSDollar(result.contentLoss);
+      result.structuralValue = floodDM.formatUSDollar(result.structuralValue);
+      result.contentValue = floodDM.formatUSDollar(result.contentValue);
+    }
+
+    // Return the result object
+    return result;
   }
 
+  // Helper function for buildPropertyDMScenario to retrieve curves.json
+  // which contains property and depth specific damage per unit area data
   static async fetchCurvesData(occupancy, floodDepth) {
     const corsProxyUrl = proxies["local-proxy"]["endpoint"];
-    const curvesUrl = window.location.origin + "/hydrolang/modules/data/dm_datasources/mitigation_dt/curves.json";
+    const curvesUrl =
+      "https://hydroinformatics.uiowa.edu/lab/midas/jsons/curves.json";
+    const proxyUrl = `${corsProxyUrl}${curvesUrl}`;
 
-    let data, response;
-    if (!floodDM.curvesDataCache) {
-      response = await fetch(`${corsProxyUrl}${curvesUrl}`);
-      data = await response.json();
-      floodDM.curvesDataCache = data
-    } else {
-      data = floodDM.curvesDataCache
-    }
+    let response = await fetch(proxyUrl);
+    response = await response.json();
 
-    // Find matching occupancy data
-    const occupancyData = data.curves.filter(curve =>
-      curve.occupancy === occupancy &&
-      curve.depth === floodDepth.toString()
+    const occupancyData = response.curves.filter(
+      (curve) =>
+        curve.occupancy === occupancy && curve.depth === floodDepth.toString()
     );
-
-    // Return closest depth match
-    return occupancyData.reduce((prev, curr) =>
+    const closestDepth = occupancyData.reduce((prev, curr) =>
       Math.abs(curr.depth - floodDepth) < Math.abs(prev.depth - floodDepth)
         ? curr
         : prev
     );
+
+    return closestDepth;
   }
 
+  //  Helper function for buildPropertyDMScenario to
+  // calculate the structural and content loss given curves data and property value
   static calculateLosses(structuralValue, contentValue, damageData) {
-    const calculateDamage = (value, damagePercent) =>
-      Math.round((value * damagePercent / 100) / 1000) * 1000;
+    const structuralLoss = (structuralValue * damageData.struct_dam_per) / 100;
+    const contentLoss = (contentValue * damageData.cont_dam_per) / 100;
 
     return {
-      structuralLoss: calculateDamage(structuralValue, damageData.struct_dam_per),
-      contentLoss: calculateDamage(contentValue, damageData.cont_dam_per)
+      structuralLoss: Math.round(structuralLoss / 1000) * 1000,
+      contentLoss: Math.round(contentLoss / 1000) * 1000,
     };
   }
 
+  //  Helper function for buildPropertyDMScenario to
+  // build mitigation scenario for selected property
+  static async getMitigationOptions(
+    foundationType,
+    mitigationMeasure,
+    mitigationDepth,
+    finalSqft,
+    result
+  ) {
+    // Fetch mitigation data
+    const mitigationData = await this.fetchMitigationData();
+    let final_mitigation_cost, final_mitigation_benefit;
+
+    // Check if mitigation data is available
+    if (!mitigationData) {
+      return { error: "Failed to fetch mitigation data" };
+    }
+
+    const mitigationOptions = mitigationData.mitigation_options;
+
+    // Get structural loss, content loss, and final depth from the result object
+    let structuralLoss = result.structuralLoss;
+    let contentLoss = result.contentLoss;
+    let finalDepth = result.floodDepth;
+
+    // Iterate over each mitigation option
+    for (let option of mitigationOptions) {
+      // Check if the mitigation measure matches the option and the foundation type matches
+      if (
+        mitigationMeasure == option.measure &&
+        option.foundation_type === foundationType
+      ) {
+        // Calculate mitigation cost and benefit for this option
+        final_mitigation_cost = finalSqft * option.cost;
+        final_mitigation_cost = Math.round(final_mitigation_cost / 1000) * 1000;
+
+        final_mitigation_benefit =
+          structuralLoss + contentLoss - final_mitigation_cost;
+        final_mitigation_benefit =
+          Math.round(final_mitigation_benefit / 1000) * 1000;
+      }
+      // Check if the mitigation measure is "Wet Floodproofing" and the mitigation depth matches the option design
+      else if (
+        mitigationMeasure == "Wet Floodproofing" &&
+        mitigationDepth == option.design
+      ) {
+        // Calculate mitigation cost and benefit for this option
+        var perimeter = Math.sqrt(finalSqft);
+        final_mitigation_cost = 4 * perimeter * option.cost;
+        final_mitigation_cost = Math.round(final_mitigation_cost / 1000) * 1000;
+
+        if (mitigationDepth < finalDepth) {
+          final_mitigation_benefit =
+            -final_mitigation_cost - structuralLoss - contentLoss;
+          final_mitigation_benefit =
+            Math.round(final_mitigation_benefit / 1000) * 1000;
+        } else if (mitigationDepth >= finalDepth) {
+          final_mitigation_benefit =
+            structuralLoss + contentLoss - final_mitigation_cost - contentLoss;
+          final_mitigation_benefit =
+            Math.round(final_mitigation_benefit / 1000) * 1000;
+        }
+      } else {
+        // Check if the mitigation measure and mitigation depth match the option
+        if (
+          mitigationMeasure == option.measure &&
+          mitigationDepth == option.design
+        ) {
+          // Calculate mitigation cost and benefit based on the application type
+          if (option.app_type == "linear") {
+            var perimeter = Math.sqrt(finalSqft);
+            final_mitigation_cost = 4 * perimeter * option.cost;
+            final_mitigation_cost =
+              Math.round(final_mitigation_cost / 1000) * 1000;
+
+            if (mitigationDepth < finalDepth) {
+              final_mitigation_benefit =
+                -final_mitigation_cost - structuralLoss - contentLoss;
+              final_mitigation_benefit =
+                Math.round(final_mitigation_benefit / 1000) * 1000;
+            } else if (mitigationDepth >= finalDepth) {
+              final_mitigation_benefit =
+                structuralLoss + contentLoss - final_mitigation_cost;
+              final_mitigation_benefit =
+                Math.round(final_mitigation_benefit / 1000) * 1000;
+            }
+          } else if (option.app_type == "area") {
+            final_mitigation_cost = finalSqft * option.cost;
+            final_mitigation_cost =
+              Math.round(final_mitigation_cost / 1000) * 1000;
+            if (mitigationDepth < finalDepth) {
+              final_mitigation_benefit =
+                -final_mitigation_cost - structuralLoss - contentLoss;
+              final_mitigation_benefit =
+                Math.round(final_mitigation_benefit / 1000) * 1000;
+            } else if (mitigationDepth >= finalDepth) {
+              final_mitigation_benefit =
+                structuralLoss + contentLoss - final_mitigation_cost;
+              final_mitigation_benefit =
+                Math.round(final_mitigation_benefit / 1000) * 1000;
+            }
+          }
+        }
+      }
+    }
+
+    // Create a return object with mitigation measure, foundation type, cost, and benefit
+    let returnVal = {
+      measure: mitigationMeasure,
+      foundationType: foundationType,
+      cost: floodDM.formatUSDollar(final_mitigation_cost),
+      benefit: floodDM.formatUSDollar(final_mitigation_benefit),
+    };
+
+    return returnVal;
+  }
+
+  // Helper function to convert number values to US $ formatted strings
+  static formatUSDollar(value) {
+    // Check if the input is a valid number
+    if (isNaN(value) || typeof value !== "number") {
+      return "Invalid input";
+    }
+
+    // Format the number with two decimal places and commas for thousands separator
+    const formattedValue = value.toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+    });
+
+    return formattedValue;
+  }
+
+  //  Helper function for getPropertyDmMt
   static async fetchMitigationData() {
     const corsProxyUrl = proxies["local-proxy"]["endpoint"];
-    const mitigationUrl = window.location.origin + "/hydrolang/modules/data/dm_datasources/mitigation_dt/mitigations.json";
+    const mitigationUrl =
+      "https://hydroinformatics.uiowa.edu/lab/midas/jsons/mitigations.json";
+    const proxyUrl = `${corsProxyUrl}${mitigationUrl}`;
 
     try {
-      const response = await fetch(`${corsProxyUrl}${mitigationUrl}`);
-      return await response.json();
+      const response = await fetch(proxyUrl);
+      const data = await response.json();
+      return data;
     } catch (error) {
       console.error("Error fetching mitigation data:", error);
       return null;
     }
   }
 
-  // Helper function to calculate mitigation costs and benefits
-  static calculateMitigationValues(option, area, floodDepth, mitigationDepth, structuralLoss, contentLoss, measure) {
-    const isLinearApplication = option.app_type === "linear";
-    const perimeter = Math.sqrt(area);
-
-    // Calculate base cost
-    const cost = Math.round(
-      (isLinearApplication ? 4 * perimeter : area) *
-      option.cost / 1000
-    ) * 1000;
-
-    // Calculate benefit based on mitigation effectiveness
-    let benefit;
-    if (mitigationDepth < floodDepth) {
-      benefit = -cost - structuralLoss - contentLoss;
-    } else {
-      benefit = measure === "Wet Floodproofing"
-        ? structuralLoss - cost
-        : structuralLoss + contentLoss - cost;
-    }
-
-    return {
-      cost,
-      benefit: Math.round(benefit / 1000) * 1000
-    };
-  }
-
   /**
-   * Retrieves bridge damage data based on the provided arguments.
+   * Calculates bridge damage estimates based on bridge characteristics and flood scenario.
+   * Evaluates structural damage and functional capacity loss for different bridge types
+   * under various flood return periods considering scour potential.
    *
    * @method getBridgeDamage
    * @memberof floodDM
+   * @static
    * @async
-   * @param {Object} params - An object containing additional parameters (currently unused).
-   * @param {Object} args - An object containing the required arguments.
-   * @param {string} args.bridge_type - The type of the bridge, either "Single Span" or "Continuous Span".
-   * @param {string} args.scour_index - The scour index, which can be "Unknown", "1", "2", or "3".
-   * @param {string} args.flood_scenario - The flood scenario, from "25 yr" to "500 yr" in 25-year intervals.
-   * @param {number} args.replacement_value - The replacement value of the bridge.
-   * @param {Object} data - Additional data (currently unused).
-   * @returns {Promise<Object|null>} A Promise that resolves with an object containing the bridge damage data, or null if no matching data is found or an error occurs.
+   * @param {Object} options - Configuration object for bridge damage assessment
+   * @param {Object} [options.params] - Additional parameters (currently unused)
+   * @param {Object} options.args - Arguments for bridge damage calculation
+   * @param {string} options.args.bridge_type - Bridge structural type: "Single Span" or "Continuous Span"
+   * @param {string} options.args.scour_index - Scour vulnerability index: "Unknown", "1", "2", or "3" (1=low, 3=high risk)
+   * @param {string} options.args.flood_scenario - Flood return period: "25 yr", "50 yr", "100 yr", "200 yr", "500 yr"
+   * @param {number} options.args.replacement_value - Total replacement cost of the bridge in dollars
+   * @param {Object} [options.data] - Additional data (currently unused)
+   * @returns {Promise<Object|null>} Promise resolving to bridge damage assessment or null if no match found
+   * 
+   * @example
+   * // Assess damage to a single span bridge in 100-year flood
+   * const bridgeDamage = await floodDM.getBridgeDamage({
+   *   args: {
+   *     bridge_type: "Single Span",
+   *     scour_index: "2",
+   *     flood_scenario: "100 yr",
+   *     replacement_value: 2500000
+   *   }
+   * });
+   * 
+   * console.log(bridgeDamage.damagePercent);  // 0.15 (15% damage)
+   * console.log(bridgeDamage.damageCost);     // 375000 (in dollars)
+   * 
+   * @example
+   * // Assess damage to continuous span bridge with high scour risk
+   * const majorBridgeDamage = await floodDM.getBridgeDamage({
+   *   args: {
+   *     bridge_type: "Continuous Span",
+   *     scour_index: "3",
+   *     flood_scenario: "500 yr",
+   *     replacement_value: 8500000
+   *   }
+   * });
+   * 
+   * @example
+   * // Handle unknown scour conditions
+   * const uncertainDamage = await floodDM.getBridgeDamage({
+   *   args: {
+   *     bridge_type: "Single Span",
+   *     scour_index: "Unknown",
+   *     flood_scenario: "200 yr",
+   *     replacement_value: 1200000
+   *   }
+   * });
    */
   static async getBridgeDamage({ params, args, data } = {}) {
     // Destructure the required arguments from the args object
@@ -1983,7 +2238,7 @@ export default class floodDM {
     // Define the URL for fetching bridge damage data and construct the proxy URL
     const corsProxyUrl = proxies["local-proxy"]["endpoint"];
     const bridgeDamageUrl =
-      window.location.origin + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/functions/bridge_function.json";
+      "https://hydroinformatics.uiowa.edu/lab/fidas/data/functions/bridge_function.js";
     const proxyUrl = `${corsProxyUrl}${bridgeDamageUrl}`;
 
     try {
@@ -1992,7 +2247,8 @@ export default class floodDM {
       const data = await response.text();
 
       // Extract the bridgeDamFun object from the fetched data
-      let bridgeDamFun = JSON.parse(data);
+      let bridgeDamFun;
+      eval(data);
 
       // Find the matching entry based on bridge_type, scour_index, and flood_scenario
       const matchingEntry = bridgeDamFun[bridge_type].find(
@@ -2005,13 +2261,12 @@ export default class floodDM {
         // If a matching entry is found, calculate and return the bridge damage data
         const damagePercent = matchingEntry["damage prcnt"];
         const damageCost = replacement_value * damagePercent;
-        const functionalCost = replacement_value * (1 - matchingEntry["functional"]);
+        const functionalCost = replacement_value * (1 - functionalPercent);
 
         return {
-          damagePercent: matchingEntry["damage prcnt"],
+          damagePercent,
           damageCost: Math.round(damageCost),
-          functionalPercent: matchingEntry["functional"],
-          functionalValue: Math.round(functionalCost)
+          damage: damage,
         };
       } else {
         // If no matching entry is found, log a warning and return null
@@ -2048,7 +2303,7 @@ export default class floodDM {
     // Define the URL for fetching utility damage data and construct the proxy URL
     const corsProxyUrl = proxies["local-proxy"]["endpoint"];
     const utilityDamageUrl =
-      window.location.origin + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/functions/utility_function.json"
+      "https://hydroinformatics.uiowa.edu/lab/fidas/data/functions/utility_function.js";
     const proxyUrl = `${corsProxyUrl}${utilityDamageUrl}`;
 
     try {
@@ -2057,7 +2312,8 @@ export default class floodDM {
       const data = await response.text();
 
       // Extract the utilityDamFun object from the fetched data
-      let utilityDamFun = JSON.parse(data);
+      let utilityDamFun;
+      eval(data);
 
       // Find the matching entry based on utility and depth
       const matchingEntry = utilityDamFun[utility].find(
@@ -2118,25 +2374,25 @@ export default class floodDM {
     const corsProxyUrl = proxies["local-proxy"]["endpoint"];
     let propertyLosses, debris;
 
-    let propertyLossesUrl =
-      window.location.origin + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/functions/business_str_cnt_inputs.json";
-    let debrisUrl =
-      window.location.origin + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/functions/debris_weight.json";
+    const propertyLossesUrl =
+      "https://hydroinformatics.uiowa.edu/lab/fidas/data/functions/business_str_cnt_inputs.js";
+    const debrisUrl =
+      "https://hydroinformatics.uiowa.edu/lab/fidas/data/functions/debris_weight.js";
 
-    let [propertyLossesData, debrisData] = await Promise.all([
+    const [propertyLossesData, debrisData] = await Promise.all([
       fetch(`${corsProxyUrl}${propertyLossesUrl}`).then((response) =>
         response.text()
       ),
       fetch(`${corsProxyUrl}${debrisUrl}`).then((response) => response.text()),
     ]);
 
-    propertyLossesData = JSON.parse(propertyLossesData)
-    debrisData = JSON.parse(debrisData)
+    eval(propertyLossesData);
+    eval(debrisData);
 
-    const propertyLossEntry = propertyLossesData[occupancy].find(
+    const propertyLossEntry = propertyLosses[occupancy].find(
       (entry) => entry.floodDepth === depth
     );
-    const debrisEntry = debrisData[occupancy].find(
+    const debrisEntry = debris[occupancy].find(
       (entry) =>
         entry.floodDepth === depth && entry.foundationType === foundationType
     );
@@ -2161,10 +2417,10 @@ export default class floodDM {
           ((1 - propertyLossEntry.percentOwnerOccupied / 100) *
             propertyLossEntry.disruptionCostPerSqft +
             (propertyLossEntry.percentOwnerOccupied / 100) *
-            (propertyLossEntry.disruptionCostPerSqft +
-              propertyLossEntry.rentalCostPerSqftPerDay *
-              propertyLossEntry.maxTime *
-              30))) /
+              (propertyLossEntry.disruptionCostPerSqft +
+                propertyLossEntry.rentalCostPerSqftPerDay *
+                  propertyLossEntry.maxTime *
+                  30))) /
         1000;
 
       const finishesDebris = (area * debrisEntry.finishes) / 1000;
@@ -2227,7 +2483,7 @@ export default class floodDM {
     // Define the URL for fetching utility damage data and construct the proxy URL
     const corsProxyUrl = proxies["local-proxy"]["endpoint"];
     const lifeLossUrl =
-      window.location.origin + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/functions/life_inputs.json";
+      "https://hydroinformatics.uiowa.edu/lab/fidas/data/functions/life_inputs.js";
     const proxyUrl = `${corsProxyUrl}${lifeLossUrl}`;
 
     try {
@@ -2236,7 +2492,8 @@ export default class floodDM {
       const data = await response.text();
 
       // Extract the utilityDamFun object from the fetched data
-      let life = JSON.parse(data);
+      let life;
+      eval(data);
 
       // Find the matching entries for over and under 65 based on occupancy and depth
       const matchingEntryOver65 = life[occupancy].find(
@@ -2262,7 +2519,7 @@ export default class floodDM {
 
   /**
    * Fetches vehicle damage information based on flood depth and vehicle type.
-   *
+   * 
    * @method getVehicleDamage
    * @memberof floodDM
    * @async
@@ -2277,8 +2534,8 @@ export default class floodDM {
 
     // Construct the URL for fetching vehicle damage data using the proxy
     const corsProxyUrl = proxies["local-proxy"]["endpoint"];
-    const vehicleDamageUrl = window.location.origin + "/hydrolang/modules/data/dm_datasources/flooddamage_dt/functions/vehicle_function.json";
-
+    const vehicleDamageUrl =
+      "https://hydroinformatics.uiowa.edu/lab/fidas/data/functions/vehicle_function.js";
     const proxyUrl = `${corsProxyUrl}${vehicleDamageUrl}`;
 
     try {
@@ -2287,7 +2544,8 @@ export default class floodDM {
       const data = await response.text();
 
       // Parse the vehicle damage function data
-      let vehicleDamFun = JSON.parse(data);
+      let vehicleDamFun;
+      eval(data);
 
       // Find the matching entry based on flood depth and vehicle type
       const matchingEntry = vehicleDamFun[vehicleType].find(
@@ -2315,143 +2573,5 @@ export default class floodDM {
       console.error("Error fetching vehicle damage data:", error);
       return null;
     }
-  }
-
-  // Helper function to add font style css classes to the page header
-  static addFontStyle() {
-    if (!document.querySelector("#fontStyles")) {
-      let style = document.createElement("style");
-      style.id = "fontStyles";
-
-      let css = `
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;0,700;0,900&display=swap');
-
-        .style_text_small_bold {
-          font-family: "Roboto", sans-serif;
-          font-size: 11px;
-          color: #2c3e50;
-          font-weight: 500;
-          letter-spacing: 0.2px;
-          line-height: 1.1;
-        }
-        
-        .style_text_small {
-          font-family: "Roboto", sans-serif;
-          font-size: 11px;
-          color: #505050;
-          font-weight: 400;
-          line-height: 1.1;
-        }
-        
-        .style_text_large_bold {
-          font-family: "Roboto", sans-serif;
-          font-size: 13px;
-          color: #2c3e50;
-          font-weight: 500;
-          letter-spacing: 0.3px;
-          line-height: 1.2;
-        }
-        
-        .style_text_large {
-          font-family: "Roboto", sans-serif;
-          font-size: 13px;
-          color: #505050;
-          font-weight: 400;
-          line-height: 1.2;
-        }
-
-        /* Animation for hover effects */
-        @keyframes fadeIn {
-          from { background-color: transparent; }
-          to { background-color: #f0f2f5; }
-        }
-      `;
-
-      style.appendChild(document.createTextNode(css));
-      document.head.appendChild(style);
-    }
-  }
-
-  // Helper Function to be used in maps to format how the pop up looks like
-  popUpFormatter(objectName, objectData) {
-    return [
-      `<span class="style_text_small_bold">${objectName}</span><br>`,
-      ...Object.entries(objectData).map(([key, value]) =>
-        `<span class="style_text_small">${key} :</span> <span class="style_text_small">${value}</span><br>`
-      )
-    ].join('');
-  }
-
-  // Helper function to format a number
-  static formatNumber(number, isCurrency = false) {
-    // If passed number is a string then convert it to a number type or to 0
-    if (typeof number === "string") {
-      number = parseFloat(number.replaceAll(",", ""));
-    }
-    if (isNaN(number)) {
-      number = 0;
-    }
-
-    let number_absolute = Math.abs(number)
-
-    // Handle numbers less than 0.01
-    if (number_absolute < 0.01) {
-      number = 0;
-    }
-
-    // Define the suffixes for thousands and millions
-    const suffixes = ["", "K", "M"];
-
-    let suffixIndex = 0;
-    let formattedNumber;
-    // Handle numbers greater than or equal to 1,000,000 (use 'M' suffix)
-    if (number_absolute >= 1_000_000) {
-      suffixIndex = 2;
-      number /= 1_000_000;
-      formattedNumber = Number(number).toFixed(1);
-    }
-    // Handle numbers between 10,000 and 1,000,000 (use 'K' suffix)
-    else if (number_absolute >= 10_000) {
-      suffixIndex = 1;
-      number /= 1_000;
-      formattedNumber = Number(number).toFixed(1);
-    } else {
-      formattedNumber = Number(number).toPrecision(3);
-      formattedNumber =
-        Number(number) % 1 === 0
-          ? Number(number).toFixed(0)
-          : Number(number).toFixed(2);
-    }
-
-    // Format the number to two decimal places if needed
-    /*if (isCurrency) {
-      formattedNumber = Number(number).toFixed(2);
-    } else if (suffixIndex > 0) {
-      formattedNumber = Number(number).toPrecision(3);
-    } else {
-      formattedNumber =
-        Number(number) % 1 === 0
-          ? Number(number).toFixed(0)
-          : Number(number).toFixed(2);
-    }*/
-
-    if (isNaN(formattedNumber)) {
-      throw new Error("Assertion failed");
-    }
-
-    // Add comma as thousands separator if no suffix or isCurrency
-    if (suffixIndex === 0) {
-      formattedNumber = Number(formattedNumber).toLocaleString();
-    }
-
-    // Prepend the dollar sign for currency
-    if (isCurrency) {
-      formattedNumber = `$ ${formattedNumber}`;
-    }
-
-    // Append the appropriate suffix if needed
-    formattedNumber += suffixes[suffixIndex];
-
-    return formattedNumber;
   }
 }
