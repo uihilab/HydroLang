@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>modules/data/datasources/noaa.js - Documentation</title>
+    <title>modules/data/datasources/nldi.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -28,7 +28,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">modules/data/datasources/noaa.js</h1>
+    <h1 class="page-title">modules/data/datasources/nldi.js</h1>
     
     
 
@@ -38,282 +38,298 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * NOAA API for data retrieval, different application types.
- * Note: Different data sources may have different limitations
- * -> E.g., they may limit the # of queries per unit time
- * NOAA requires registration to get TOKEN and must be included in parameters.
- * https://www.ncdc.noaa.gov/cdo-web/webservices/v2#data
- * Must requests must be less than 1 year.
- * Dates in format YYYY-MM-DDThh:mm:ss
- * IMPORTANT: for retrieving more than 25 lines of data, include limit = required number.
+ * USGS National Land Data Interoperability (NLDI) API that allows access to hydrological data.
+ * https://waterdata.usgs.gov/blog/nldi-intro/
+ * The API's returns geoJSON, or JSON. Please verify each entry point BEFORE usage.
  * @type {Object}
- * @name NOAA
+ * @author kento-sugiyama
+ * @name NLDI
  * @memberof datasources
  */
 
+const baseEndpoint = 'https://api.water.usgs.gov/nldi/';
+
 export default {
-  // These are only written to aid users to know
-  // what parameters are available
+    //Returnns characteristic types
+    lookups: {
+        endpoint: `${baseEndpoint}/lookups`,
+        //example of request for the gridpoint endpoint.
+        params: {},
+        methods: {
+            type: "json",
+            method: "GET",
+        },
+    },
 
-  datasets: {
-    endpoint: "https://www.ncdc.noaa.gov/cdo-web/api/v2/datasets",
-    params: {
-      //No parameters required for calling the endpoint.
-    },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
+    //Returns available characteristics metadata
+    characteristics: {
+        endpoint: `${baseEndpoint}/lookups/{characteristicType}/characteristics`,
+        //example of request for the gridpoint endpoint.
+        params: {
+            characteristicType: null,
+        },
+        methods: {
+            type: "json",
+            method: "GET",
+        },
 
-  availablestations: {
-    endpoint: "https://www.ncdc.noaa.gov/cdo-web/api/v2/stations",
-    params: {
-      locationid: null,
-      extent: null,
-      limit: null,
     },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
-  "prec-15min": {
-    endpoint:
-      "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=PRECIP_15",
-    params: {
-      locationid: null,
-      stationid: null,
-      startdate: null,
-      enddate: null,
-      units: null,
-      limit: null,
-      offset: null,
-      includemetadata: false,
-    },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
 
-  "prec-hourly": {
-    endpoint:
-      "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=PRECIP_HLY",
-    params: {
-      locationid: null,
-      stationid: null,
-      startdate: null,
-      enddate: null,
-      units: null,
-      limit: null,
-      offset: null,
-      includemetadata: false,
-      // and more...
+    //Returns a list of data sources   
+    linkedData: {
+        endpoint: `${baseEndpoint}/linked-data`,
+        //example of request for the gridpoint endpoint.
+        params: {
+        },
+        methods: {
+            type: "json",
+            method: "GET",
+        },
     },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
 
-  "daily-summaries": {
-    endpoint: "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=GHCND",
-    params: {
-      locationid: null,
-      stationid: null,
-      startdate: null,
-      enddate: null,
-      units: null,
-      limit: null,
-      offset: null,
-      datatypeid: null,
-      includemetadata: false,
+    //Returns a list of features for a given data source
+    features: {
+        endpoint: `${baseEndpoint}/linked-data/{featureSource}`,
+        //example of request for the gridpoint endpoint.
+        params: {
+            featureSource: null,
+        },
+        methods: {
+            type: "json",
+            method: "GET",
+        },
     },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
 
-  "global-summary": {
-    endpoint: "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=GSOM",
-    params: {
-      locationid: null,
-      stationid: null,
-      startdate: null,
-      enddate: null,
-      units: null,
-      limit: null,
-      offset: null,
-      datatypeid: null,
-      includemetadata: false,
+    //Returns the basin for a given feature source, and provide a geoJSON with the basin boundary
+    getBasin: {
+        endpoint: `${baseEndpoint}/linked-data/{featureSource}/{featureId}/basin`,
+        //example of request for the gridpoint endpoint.
+        params: {
+            featureSource: null,
+            featureId: null,
+        },
+        methods: {
+            type: "json",
+            method: "GET",
+        },
     },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
 
-  "weather-radar-imagery": {
-    endpoint: "https://www.ncdc.noaa.gov/nexradinv/",
-    params: {
-      id: null,
-      datetime: null,
-      product: null,
-      year: null,
-      month: null,
-      day: null
+    //Returns a list of navigation modes for a given feature source
+    getNavigationTypes: {
+        endpoint: `${baseEndpoint}/linked-data/{featureSource}/{featureId}/navigation-types`,
+        //example of request for the gridpoint endpoint.
+        params: {
+            featureSource: null,
+            featureId: null,
+        },
+        methods: {
+            type: "json",
+            method: "GET",
+        },
     },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
 
-  requirements: {
-    needProxy: false,
-    requireskey: true,
-    keyname: "token",
-  },
-  info: {
-    returnFormats: "json",
-    MoreInfo: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#data",
-    About: "NOAA API for data retrieval, different application types. Requires registration to get TOKEN and must be included in parameters. Must requests must be less than 1 year."
-  },
-  "endpoint-info": {
-    datasets: {
-      paramFormat: {},
-      infoSource: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#datasets",
-      example: {
-        token: "YOUR_TOKEN",
-        exampleRequest: "https://www.ncdc.noaa.gov/cdo-web/api/v2/datasets?token=YOUR_TOKEN"
-      }
+    //Returns the geoJSONs of the navigation features following a path. Navigation
+    getNavigationFeatures: {
+        endpoint: `${baseEndpoint}/linked-data/{featureSource}/{featureId}/navigation/{navigationMode}/{dataSource}/{distance}`,
+        //example of request for the gridpoint endpoint.
+        params: {
+            featureSource: null,
+            featureId: null,
+            navigationMode: null,
+            dataSource: null,
+            //in km
+            distance: null,
+        },
+        methods: {
+            type: "json",
+            method: "GET",
+        },
     },
-    availablestations: {
-      paramFormat: {
-        locationid: "String - Location identifier (e.g., 'FIPS:37')",
-        extent: "String - Bounding box (e.g., '-90,30,-80,40')",
-        limit: "Number - Limit of results returned (default 25, max 1000)"
-      },
-      infoSource: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#stations",
-      example: {
-        locationid: "FIPS:37",
-        limit: 100,
-        token: "YOUR_TOKEN",
-        exampleRequest: "https://www.ncdc.noaa.gov/cdo-web/api/v2/stations?locationid=FIPS:37&amp;limit=100&amp;token=YOUR_TOKEN"
-      }
+
+    //Retrieve WSG84 geoJSON for a given COMID
+    getComid: {
+        endpoint: `${baseEndpoint}/linked-data/comid/{comid}`,
+        //example of request for the gridpoint endpoint.
+        params: {
+            comid: null,
+        },
+        methods: {
+            type: "json",
+            method: "GET",
+        },
     },
-    "prec-15min": {
-      paramFormat: {
-        locationid: "String - Location identifier",
-        stationid: "String - Station identifier (e.g., 'GHCND:USW00014895')",
-        startdate: "String - Start date (YYYY-MM-DD format)",
-        enddate: "String - End date (YYYY-MM-DD format)",
-        units: "String - 'standard' or 'metric'",
-        limit: "Number - Limit of results returned (default 25, max 1000)",
-        offset: "Number - Offset for pagination",
-        includemetadata: "Boolean - Include metadata in response"
-      },
-      infoSource: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#data",
-      example: {
-        datasetid: "PRECIP_15",
-        stationid: "GHCND:USW00014895",
-        startdate: "2020-01-01",
-        enddate: "2020-01-07",
-        limit: 100,
-        token: "YOUR_TOKEN",
-        exampleRequest: "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=PRECIP_15&amp;stationid=GHCND:USW00014895&amp;startdate=2020-01-01&amp;enddate=2020-01-07&amp;limit=100&amp;token=YOUR_TOKEN"
-      }
+
+    // Returns the features closest for a given coordinates
+    getFeatureByCoordinates: {
+        endpoint: `${baseEndpoint}/linked-data/comid/position`,
+        params: {
+            //in style POINT(longitude, latitude)
+            coords: null,
+        },
+        methods: {
+            type: "json",
+            method: "GET",
+        },
     },
-    "prec-hourly": {
-      paramFormat: {
-        locationid: "String - Location identifier",
-        stationid: "String - Station identifier (e.g., 'GHCND:USW00014895')",
-        startdate: "String - Start date (YYYY-MM-DD format)",
-        enddate: "String - End date (YYYY-MM-DD format)",
-        units: "String - 'standard' or 'metric'",
-        limit: "Number - Limit of results returned (default 25, max 1000)",
-        offset: "Number - Offset for pagination",
-        includemetadata: "Boolean - Include metadata in response"
-      },
-      infoSource: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#data",
-      example: {
-        datasetid: "PRECIP_HLY",
-        stationid: "GHCND:USW00014895",
-        startdate: "2020-01-01",
-        enddate: "2020-01-07",
-        limit: 100,
-        token: "YOUR_TOKEN",
-        exampleRequest: "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=PRECIP_HLY&amp;stationid=GHCND:USW00014895&amp;startdate=2020-01-01&amp;enddate=2020-01-07&amp;limit=100&amp;token=YOUR_TOKEN"
-      }
+
+    getHydrologicLocation: {
+        endpoint: `${baseEndpoint}/linked-data/hydrolocation`,
+        params: {
+            //in style POINT(longitude, latitude)
+            coords: null,
+        },
+        methods: {
+            type: "json",
+            method: "GET",
+        },
     },
-    "daily-summaries": {
-      paramFormat: {
-        locationid: "String - Location identifier",
-        stationid: "String - Station identifier (e.g., 'GHCND:USW00014895')",
-        startdate: "String - Start date (YYYY-MM-DD format)",
-        enddate: "String - End date (YYYY-MM-DD format)",
-        units: "String - 'standard' or 'metric'",
-        limit: "Number - Limit of results returned (default 25, max 1000)",
-        offset: "Number - Offset for pagination",
-        datatypeid: "String - Data type identifier (e.g., 'TMAX' for max temperature)",
-        includemetadata: "Boolean - Include metadata in response"
-      },
-      infoSource: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#data",
-      example: {
-        datasetid: "GHCND",
-        stationid: "GHCND:USW00014895",
-        startdate: "2020-01-01",
-        enddate: "2020-01-31",
-        datatypeid: "TMAX,TMIN,PRCP",
-        limit: 1000,
-        token: "YOUR_TOKEN",
-        exampleRequest: "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=GHCND&amp;stationid=GHCND:USW00014895&amp;startdate=2020-01-01&amp;enddate=2020-01-31&amp;datatypeid=TMAX,TMIN,PRCP&amp;limit=1000&amp;token=YOUR_TOKEN"
-      }
+
+    getFlowlines: {
+        endpoint: `${baseEndpoint}/linked-data/comid/{comid}/navigation/{navigationMode}/flowlines`,
+        params: {
+            comid: null,
+            //values UM, UT, DM, DD
+            navigationMode: null,
+            distance: null,
+        },
+        methods: {
+            type: "json",
+            method: "GET",
+        },
     },
-    "global-summary": {
-      paramFormat: {
-        locationid: "String - Location identifier",
-        stationid: "String - Station identifier",
-        startdate: "String - Start date (YYYY-MM-DD format)",
-        enddate: "String - End date (YYYY-MM-DD format)",
-        units: "String - 'standard' or 'metric'",
-        limit: "Number - Limit of results returned (default 25, max 1000)",
-        offset: "Number - Offset for pagination",
-        datatypeid: "String - Data type identifier (e.g., 'TAVG' for average temperature)",
-        includemetadata: "Boolean - Include metadata in response"
-      },
-      infoSource: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#datasets",
-      example: {
-        datasetid: "GSOM",
-        stationid: "GHCND:USW00014895",
-        startdate: "2020-01-01",
-        enddate: "2020-12-31",
-        datatypeid: "TAVG,TMAX,TMIN",
-        limit: 1000,
-        token: "YOUR_TOKEN",
-        exampleRequest: "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=GSOM&amp;stationid=GHCND:USW00014895&amp;startdate=2020-01-01&amp;enddate=2020-12-31&amp;datatypeid=TAVG,TMAX,TMIN&amp;limit=1000&amp;token=YOUR_TOKEN"
-      }
+
+    //set of requirements from the source. If different methods for dat retrieval can be used, then "GET" is default.
+    requirements: {
+        needProxy: true,
+        requireskey: false,
     },
-    "weather-radar-imagery": {
-      paramFormat: {
-        id: "String - NEXRAD station ID (e.g., 'KDMX' for Des Moines, IA)",
-        datetime: "String - Date and time in ISO format",
-        product: "String - Product type (e.g., 'N0R' for base reflectivity)",
-        year: "String - Year for data retrieval",
-        month: "String - Month for data retrieval",
-        day: "String - Day for data retrieval"
-      },
-      infoSource: "https://www.ncdc.noaa.gov/nexradinv/",
-      example: {
-        id: "KDMX",
-        datetime: "2020-01-01T12:00:00Z",
-        product: "N0R",
-        exampleRequest: "https://www.ncdc.noaa.gov/nexradinv/rest-api.jsp?id=KDMX&amp;datetime=2020-01-01T12:00:00Z&amp;product=N0R"
-      }
+    info: {
+        returnFormats: "json",
+        MoreInfo: "https://waterdata.usgs.gov/blog/nldi-intro/",
+        About: "USGS National Land Data Interoperability (NLDI) API that allows access to hydrological data including basin boundaries, navigation features, and watershed characteristics."
+    },
+    "endpoint-info": {
+        lookups: {
+            paramFormat: {},
+            infoSource: "https://waterdata.usgs.gov/blog/nldi-intro/",
+            example: {
+                exampleRequest: "https://api.water.usgs.gov/nldi/lookups"
+            }
+        },
+        characteristics: {
+            paramFormat: {
+                characteristicType: "String - Type of characteristic (e.g., 'local', 'total')"
+            },
+            infoSource: "https://waterdata.usgs.gov/blog/nldi-intro/",
+            example: {
+                characteristicType: "local",
+                exampleRequest: "https://api.water.usgs.gov/nldi/lookups/local/characteristics"
+            }
+        },
+        linkedData: {
+            paramFormat: {},
+            infoSource: "https://waterdata.usgs.gov/blog/nldi-intro/",
+            example: {
+                exampleRequest: "https://api.water.usgs.gov/nldi/linked-data"
+            }
+        },
+        features: {
+            paramFormat: {
+                featureSource: "String - Feature source identifier (e.g., 'comid', 'huc12pp', 'nwissite')"
+            },
+            infoSource: "https://waterdata.usgs.gov/blog/nldi-intro/",
+            example: {
+                featureSource: "comid",
+                exampleRequest: "https://api.water.usgs.gov/nldi/linked-data/comid"
+            }
+        },
+        getBasin: {
+            paramFormat: {
+                featureSource: "String - Feature source identifier (e.g., 'comid')",
+                featureId: "String - Feature identifier"
+            },
+            infoSource: "https://waterdata.usgs.gov/blog/nldi-intro/",
+            example: {
+                featureSource: "comid",
+                featureId: "13297246",
+                exampleRequest: "https://api.water.usgs.gov/nldi/linked-data/comid/13297246/basin"
+            }
+        },
+        getNavigationTypes: {
+            paramFormat: {
+                featureSource: "String - Feature source identifier (e.g., 'comid')",
+                featureId: "String - Feature identifier"
+            },
+            infoSource: "https://waterdata.usgs.gov/blog/nldi-intro/",
+            example: {
+                featureSource: "comid",
+                featureId: "13297246",
+                exampleRequest: "https://api.water.usgs.gov/nldi/linked-data/comid/13297246/navigation-types"
+            }
+        },
+        getNavigationFeatures: {
+            paramFormat: {
+                featureSource: "String - Feature source identifier (e.g., 'comid')",
+                featureId: "String - Feature identifier",
+                navigationMode: "String - Navigation mode (e.g., 'UM', 'UT', 'DM', 'DD')",
+                dataSource: "String - Data source for navigation",
+                distance: "Number - Distance in kilometers"
+            },
+            infoSource: "https://waterdata.usgs.gov/blog/nldi-intro/",
+            example: {
+                featureSource: "comid",
+                featureId: "13297246",
+                navigationMode: "UM",
+                dataSource: "flowlines",
+                distance: 10,
+                exampleRequest: "https://api.water.usgs.gov/nldi/linked-data/comid/13297246/navigation/UM/flowlines/10"
+            }
+        },
+        getComid: {
+            paramFormat: {
+                comid: "String - COMID identifier"
+            },
+            infoSource: "https://waterdata.usgs.gov/blog/nldi-intro/",
+            example: {
+                comid: "13297246",
+                exampleRequest: "https://api.water.usgs.gov/nldi/linked-data/13297246"
+            }
+        },
+        getFeatureByCoordinates: {
+            paramFormat: {
+                coords: "String - Point coordinates in format 'POINT(longitude latitude)'"
+            },
+            infoSource: "https://waterdata.usgs.gov/blog/nldi-intro/",
+            example: {
+                coords: "POINT(-89.509 43.087)",
+                exampleRequest: "https://api.water.usgs.gov/nldi/linked-data/comid/position?coords=POINT(-89.509 43.087)"
+            }
+        },
+        getHydrologicLocation: {
+            paramFormat: {
+                coords: "String - Point coordinates in format 'POINT(longitude latitude)'"
+            },
+            infoSource: "https://waterdata.usgs.gov/blog/nldi-intro/",
+            example: {
+                coords: "POINT(-89.509 43.087)",
+                exampleRequest: "https://api.water.usgs.gov/nldi/linked-data/hydrolocation?coords=POINT(-89.509 43.087)"
+            }
+        },
+        getFlowlines: {
+            paramFormat: {
+                comid: "String - COMID identifier",
+                navigationMode: "String - Navigation mode (UM, UT, DM, DD)",
+                distance: "Number - Distance in kilometers"
+            },
+            infoSource: "https://waterdata.usgs.gov/blog/nldi-intro/",
+            example: {
+                comid: "13297246",
+                navigationMode: "UM",
+                distance: 10,
+                exampleRequest: "https://api.water.usgs.gov/nldi/linked-data/comid/13297246/navigation/UM/flowlines?distance=10"
+            }
+        }
     }
-  }
 };
 </code></pre>
         </article>

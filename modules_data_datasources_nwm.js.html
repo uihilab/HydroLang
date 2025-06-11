@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>modules/data/datasources/noaa.js - Documentation</title>
+    <title>modules/data/datasources/nwm.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -28,7 +28,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">modules/data/datasources/noaa.js</h1>
+    <h1 class="page-title">modules/data/datasources/nwm.js</h1>
     
     
 
@@ -38,284 +38,200 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * NOAA API for data retrieval, different application types.
+ * National Water Model API. Returns short term, middle term, and long term forecasts for the US.
+ * For more information about the service, please visit:
+ * https://docs.ciroh.org/docs/products/Data%20Management%20and%20Access%20Tools/bigquery-api/
  * Note: Different data sources may have different limitations
- * -> E.g., they may limit the # of queries per unit time
- * NOAA requires registration to get TOKEN and must be included in parameters.
- * https://www.ncdc.noaa.gov/cdo-web/webservices/v2#data
- * Must requests must be less than 1 year.
+ * The service requires the creation of an account and the generation of a
+ * API key.
+ * For more information on the historical flooding data, visit:
+ * http://api.meteonetwork.it/docs/
  * Dates in format YYYY-MM-DDThh:mm:ss
- * IMPORTANT: for retrieving more than 25 lines of data, include limit = required number.
  * @type {Object}
- * @name NOAA
+ * @name MeteoIT
  * @memberof datasources
  */
+const baseURL = "'https://nwm-api.ciroh.org/"
 
 export default {
-  // These are only written to aid users to know
-  // what parameters are available
-
-  datasets: {
-    endpoint: "https://www.ncdc.noaa.gov/cdo-web/api/v2/datasets",
-    params: {
-      //No parameters required for calling the endpoint.
-    },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
-
-  availablestations: {
-    endpoint: "https://www.ncdc.noaa.gov/cdo-web/api/v2/stations",
-    params: {
-      locationid: null,
-      extent: null,
-      limit: null,
-    },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
-  "prec-15min": {
-    endpoint:
-      "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=PRECIP_15",
-    params: {
-      locationid: null,
-      stationid: null,
-      startdate: null,
-      enddate: null,
-      units: null,
-      limit: null,
-      offset: null,
-      includemetadata: false,
-    },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
-
-  "prec-hourly": {
-    endpoint:
-      "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=PRECIP_HLY",
-    params: {
-      locationid: null,
-      stationid: null,
-      startdate: null,
-      enddate: null,
-      units: null,
-      limit: null,
-      offset: null,
-      includemetadata: false,
-      // and more...
-    },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
-
-  "daily-summaries": {
-    endpoint: "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=GHCND",
-    params: {
-      locationid: null,
-      stationid: null,
-      startdate: null,
-      enddate: null,
-      units: null,
-      limit: null,
-      offset: null,
-      datatypeid: null,
-      includemetadata: false,
-    },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
-
-  "global-summary": {
-    endpoint: "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=GSOM",
-    params: {
-      locationid: null,
-      stationid: null,
-      startdate: null,
-      enddate: null,
-      units: null,
-      limit: null,
-      offset: null,
-      datatypeid: null,
-      includemetadata: false,
-    },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
-
-  "weather-radar-imagery": {
-    endpoint: "https://www.ncdc.noaa.gov/nexradinv/",
-    params: {
-      id: null,
-      datetime: null,
-      product: null,
-      year: null,
-      month: null,
-      day: null
-    },
-    methods: {
-      type: "json",
-      method: "GET",
-    },
-  },
-
-  requirements: {
-    needProxy: false,
-    requireskey: true,
-    keyname: "token",
-  },
-  info: {
-    returnFormats: "json",
-    MoreInfo: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#data",
-    About: "NOAA API for data retrieval, different application types. Requires registration to get TOKEN and must be included in parameters. Must requests must be less than 1 year."
-  },
-  "endpoint-info": {
-    datasets: {
-      paramFormat: {},
-      infoSource: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#datasets",
-      example: {
-        token: "YOUR_TOKEN",
-        exampleRequest: "https://www.ncdc.noaa.gov/cdo-web/api/v2/datasets?token=YOUR_TOKEN"
+    //obtain information about the last day
+    "station-daily": {
+      endpoint: "https://api.meteonetwork.it/v3/data-daily",
+      params: {
+        station_code: null,
+        observation_date: null,
+        data_quality: null,
+      },
+      methods:{
+        type: "json",
+        method: "POST",
       }
     },
-    availablestations: {
-      paramFormat: {
-        locationid: "String - Location identifier (e.g., 'FIPS:37')",
-        extent: "String - Bounding box (e.g., '-90,30,-80,40')",
-        limit: "Number - Limit of results returned (default 25, max 1000)"
+  
+    //return last data available on station.
+    "stations-lastdays": {
+      endpoint:
+        "http://api.meteonetwork.it/xml_rpc/public/jsonrpc/getDailyStationLastDays",
+      params: {
+        username: null,
+        token: null,
+        stationCode: null,
+        stationValidity: null,
       },
-      infoSource: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#stations",
-      example: {
-        locationid: "FIPS:37",
-        limit: 100,
-        token: "YOUR_TOKEN",
-        exampleRequest: "https://www.ncdc.noaa.gov/cdo-web/api/v2/stations?locationid=FIPS:37&amp;limit=100&amp;token=YOUR_TOKEN"
+      methods:{
+        type: "json",
+        method: "POST",
       }
     },
-    "prec-15min": {
-      paramFormat: {
-        locationid: "String - Location identifier",
-        stationid: "String - Station identifier (e.g., 'GHCND:USW00014895')",
-        startdate: "String - Start date (YYYY-MM-DD format)",
-        enddate: "String - End date (YYYY-MM-DD format)",
-        units: "String - 'standard' or 'metric'",
-        limit: "Number - Limit of results returned (default 25, max 1000)",
-        offset: "Number - Offset for pagination",
-        includemetadata: "Boolean - Include metadata in response"
+  
+    //obtain data of a single date for a single station.
+    "station-singledate": {
+      endpoint:
+        "http://api.meteonetwork.it/xml_rpc/public/jsonrpc/getDailyStationSingleDate",
+      params: {
+        username: null,
+        token: null,
+        stationCode: null,
+        date: null,
+        stationValidity: null,
       },
-      infoSource: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#data",
-      example: {
-        datasetid: "PRECIP_15",
-        stationid: "GHCND:USW00014895",
-        startdate: "2020-01-01",
-        enddate: "2020-01-07",
-        limit: 100,
-        token: "YOUR_TOKEN",
-        exampleRequest: "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=PRECIP_15&amp;stationid=GHCND:USW00014895&amp;startdate=2020-01-01&amp;enddate=2020-01-07&amp;limit=100&amp;token=YOUR_TOKEN"
+      methods:{
+        type: "json",
+        method: "POST",
       }
     },
-    "prec-hourly": {
-      paramFormat: {
-        locationid: "String - Location identifier",
-        stationid: "String - Station identifier (e.g., 'GHCND:USW00014895')",
-        startdate: "String - Start date (YYYY-MM-DD format)",
-        enddate: "String - End date (YYYY-MM-DD format)",
-        units: "String - 'standard' or 'metric'",
-        limit: "Number - Limit of results returned (default 25, max 1000)",
-        offset: "Number - Offset for pagination",
-        includemetadata: "Boolean - Include metadata in response"
+  
+    //obtain data for multiple stations for a single data
+    "stations-singledate": {
+      endpoint:
+        "http://api.meteonetwork.it/xml_rpc/public/jsonrpc/getDailyStationsSingleDate",
+      params: {
+        username: null,
+        token: null,
+        date: null,
+        stationValidity: null,
       },
-      infoSource: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#data",
-      example: {
-        datasetid: "PRECIP_HLY",
-        stationid: "GHCND:USW00014895",
-        startdate: "2020-01-01",
-        enddate: "2020-01-07",
-        limit: 100,
-        token: "YOUR_TOKEN",
-        exampleRequest: "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=PRECIP_HLY&amp;stationid=GHCND:USW00014895&amp;startdate=2020-01-01&amp;enddate=2020-01-07&amp;limit=100&amp;token=YOUR_TOKEN"
+      methods:{
+        type: "json",
+        method: "POST",
       }
     },
-    "daily-summaries": {
-      paramFormat: {
-        locationid: "String - Location identifier",
-        stationid: "String - Station identifier (e.g., 'GHCND:USW00014895')",
-        startdate: "String - Start date (YYYY-MM-DD format)",
-        enddate: "String - End date (YYYY-MM-DD format)",
-        units: "String - 'standard' or 'metric'",
-        limit: "Number - Limit of results returned (default 25, max 1000)",
-        offset: "Number - Offset for pagination",
-        datatypeid: "String - Data type identifier (e.g., 'TMAX' for max temperature)",
-        includemetadata: "Boolean - Include metadata in response"
+  
+    //obtain data for multiple stations for a single date by country
+    "stations-singledate-country": {
+      endpoint:
+        "http://api.meteonetwork.it/xml_rpc/public/jsonrpc/getDailyStationsSingleDateByCountry",
+      params: {
+        username: null,
+        token: null,
+        date: null,
+        countryCode: null,
+        stationValidity: null,
       },
-      infoSource: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#data",
-      example: {
-        datasetid: "GHCND",
-        stationid: "GHCND:USW00014895",
-        startdate: "2020-01-01",
-        enddate: "2020-01-31",
-        datatypeid: "TMAX,TMIN,PRCP",
-        limit: 1000,
-        token: "YOUR_TOKEN",
-        exampleRequest: "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=GHCND&amp;stationid=GHCND:USW00014895&amp;startdate=2020-01-01&amp;enddate=2020-01-31&amp;datatypeid=TMAX,TMIN,PRCP&amp;limit=1000&amp;token=YOUR_TOKEN"
+      methods:{
+        type: "json",
+        method: "POST",
       }
     },
-    "global-summary": {
-      paramFormat: {
-        locationid: "String - Location identifier",
-        stationid: "String - Station identifier",
-        startdate: "String - Start date (YYYY-MM-DD format)",
-        enddate: "String - End date (YYYY-MM-DD format)",
-        units: "String - 'standard' or 'metric'",
-        limit: "Number - Limit of results returned (default 25, max 1000)",
-        offset: "Number - Offset for pagination",
-        datatypeid: "String - Data type identifier (e.g., 'TAVG' for average temperature)",
-        includemetadata: "Boolean - Include metadata in response"
+  
+    //obtain nearby stations given locations in lat and long.
+    NearStations: {
+      endpoint:
+        "http://api.meteonetwork.it/xml_rpc/public/jsonrpc/getNearStations",
+      params: {
+        username: null,
+        token: null,
+        lat: null,
+        lon: null,
+        range: null,
+        stationValidity: null,
       },
-      infoSource: "https://www.ncdc.noaa.gov/cdo-web/webservices/v2#datasets",
-      example: {
-        datasetid: "GSOM",
-        stationid: "GHCND:USW00014895",
-        startdate: "2020-01-01",
-        enddate: "2020-12-31",
-        datatypeid: "TAVG,TMAX,TMIN",
-        limit: 1000,
-        token: "YOUR_TOKEN",
-        exampleRequest: "https://www.ncdc.noaa.gov/cdo-web/api/v2/data?datasetid=GSOM&amp;stationid=GHCND:USW00014895&amp;startdate=2020-01-01&amp;enddate=2020-12-31&amp;datatypeid=TAVG,TMAX,TMIN&amp;limit=1000&amp;token=YOUR_TOKEN"
+      methods:{
+        type: "json",
+        method: "POST",
       }
     },
-    "weather-radar-imagery": {
-      paramFormat: {
-        id: "String - NEXRAD station ID (e.g., 'KDMX' for Des Moines, IA)",
-        datetime: "String - Date and time in ISO format",
-        product: "String - Product type (e.g., 'N0R' for base reflectivity)",
-        year: "String - Year for data retrieval",
-        month: "String - Month for data retrieval",
-        day: "String - Day for data retrieval"
+  
+    // MORE API POINTS AVAILABLE
+  
+    //set of requirements from the source. If different methods for dat retrieval can be used, then "GET" is default.
+    requirements: {
+      needProxy: true,
+      requireskey: true,
+      keyname: "token",
+    },
+    info: {
+      returnFormats: "json",
+      MoreInfo: "http://api.meteonetwork.it/docs/",
+      About: "MeteoNetwork API: free datasets from Italy and some surrounding places. The service requires the creation of an account and the generation of a new token."
+    },
+    "endpoint-info": {
+      "station-daily": {
+        paramFormat: {
+          station_code: "String - Station code",
+          observation_date: "String - Observation date (YYYY-MM-DD format)",
+          data_quality: "String - Data quality filter"
+        },
+        infoSource: "http://api.meteonetwork.it/docs/",
+        example: "POST to https://api.meteonetwork.it/v3/data-daily with body: {\"station_code\":\"1\",\"observation_date\":\"2020-01-01\"}"
       },
-      infoSource: "https://www.ncdc.noaa.gov/nexradinv/",
-      example: {
-        id: "KDMX",
-        datetime: "2020-01-01T12:00:00Z",
-        product: "N0R",
-        exampleRequest: "https://www.ncdc.noaa.gov/nexradinv/rest-api.jsp?id=KDMX&amp;datetime=2020-01-01T12:00:00Z&amp;product=N0R"
+      "stations-lastdays": {
+        paramFormat: {
+          username: "String - Your username",
+          token: "String - Your API token",
+          stationCode: "String - Station code",
+          stationValidity: "String - Station validity status"
+        },
+        infoSource: "http://api.meteonetwork.it/docs/",
+        example: "POST to http://api.meteonetwork.it/xml_rpc/public/jsonrpc/getDailyStationLastDays with body: {\"username\":\"yourusername\",\"token\":\"yourtoken\",\"stationCode\":\"1\"}"
+      },
+      "station-singledate": {
+        paramFormat: {
+          username: "String - Your username",
+          token: "String - Your API token",
+          stationCode: "String - Station code",
+          date: "String - Date (YYYY-MM-DD format)",
+          stationValidity: "String - Station validity status"
+        },
+        infoSource: "http://api.meteonetwork.it/docs/",
+        example: "POST to http://api.meteonetwork.it/xml_rpc/public/jsonrpc/getDailyStationSingleDate with body: {\"username\":\"yourusername\",\"token\":\"yourtoken\",\"stationCode\":\"1\",\"date\":\"2020-01-01\"}"
+      },
+      "stations-singledate": {
+        paramFormat: {
+          username: "String - Your username",
+          token: "String - Your API token",
+          date: "String - Date (YYYY-MM-DD format)",
+          stationValidity: "String - Station validity status"
+        },
+        infoSource: "http://api.meteonetwork.it/docs/",
+        example: "POST to http://api.meteonetwork.it/xml_rpc/public/jsonrpc/getDailyStationsSingleDate with body: {\"username\":\"yourusername\",\"token\":\"yourtoken\",\"date\":\"2020-01-01\"}"
+      },
+      "stations-singledate-country": {
+        paramFormat: {
+          username: "String - Your username",
+          token: "String - Your API token",
+          date: "String - Date (YYYY-MM-DD format)",
+          countryCode: "String - Country code (e.g., 'IT')",
+          stationValidity: "String - Station validity status"
+        },
+        infoSource: "http://api.meteonetwork.it/docs/",
+        example: "POST to http://api.meteonetwork.it/xml_rpc/public/jsonrpc/getDailyStationsSingleDateByCountry with body: {\"username\":\"yourusername\",\"token\":\"yourtoken\",\"date\":\"2020-01-01\",\"countryCode\":\"IT\"}"
+      },
+      "NearStations": {
+        paramFormat: {
+          username: "String - Your username",
+          token: "String - Your API token",
+          lat: "Number - Latitude coordinate",
+          lon: "Number - Longitude coordinate",
+          range: "Number - Search radius in kilometers",
+          stationValidity: "String - Station validity status"
+        },
+        infoSource: "http://api.meteonetwork.it/docs/",
+        example: "POST to http://api.meteonetwork.it/xml_rpc/public/jsonrpc/getNearStations with body: {\"username\":\"yourusername\",\"token\":\"yourtoken\",\"lat\":45.4642,\"lon\":9.1900,\"range\":10}"
       }
     }
-  }
-};
-</code></pre>
+  };
+  </code></pre>
         </article>
     </section>
 
