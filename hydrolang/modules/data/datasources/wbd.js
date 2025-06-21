@@ -23,7 +23,8 @@ export default {
       propertyName: null,
     },
     methods: {
-      type: "json, geojson, xml",
+      type: "json",
+      method: "GET",
     },
   },
 
@@ -41,7 +42,8 @@ export default {
       propertyName: null,
     },
     methods: {
-      type: "json, geojson, xml",
+      type: "json",
+      method: "GET",
     },
   },
 
@@ -59,7 +61,8 @@ export default {
       propertyName: null,
     },
     methods: {
-      type: "json, geojson, xml",
+      type: "json",
+      method: "GET",
     },
   },
 
@@ -77,7 +80,8 @@ export default {
       propertyName: null,
     },
     methods: {
-      type: "json, geojson, xml",
+      type: "json",
+      method: "GET",
     },
   },
 
@@ -95,7 +99,8 @@ export default {
       propertyName: null,
     },
     methods: {
-      type: "json, geojson, xml",
+      type: "json",
+      method: "GET",
     },
   },
 
@@ -113,7 +118,8 @@ export default {
       propertyName: null,
     },
     methods: {
-      type: "json, geojson, xml",
+      type: "json",
+      method: "GET",
     },
   },
 
