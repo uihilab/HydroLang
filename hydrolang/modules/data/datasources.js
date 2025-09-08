@@ -26,6 +26,8 @@ import ECMWF from "./datasources/ecmwf.js"
 import drought from "./datasources/drought.js"
 import nasapower from "./datasources/nasapower.js"
 import nldi from "./datasources/nldi.js"
+import aorc from "./datasources/aorc.js"
+import nwm from "./datasources/nwm.js"
 
 export {
   usgs,
@@ -52,5 +54,7 @@ export {
   ECMWF,
   drought,
   nasapower,
-  nldi
+  nldi,
+  nwm,
+  aorc
 };

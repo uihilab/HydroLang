@@ -1,5 +1,45 @@
 import * as datasources from "./datasources.js";
 import stats from "../analyze/components/stats.js";
+import {
+  findNearestIndex,
+  extractTimeSeries,
+  extractGridData,
+  createSlice,
+  applyScalingToValue,
+  constructNWMFileURL,
+  getNWMTemporalInfo,
+  generateNWMDateRange,
+  extractNWMData,
+  convertNWMValue,
+  applyDataScaling,
+  convertDataUnits,
+  aggregateTemporal,
+  expandSpatialBounds,
+  applyQualityControl,
+  calculateStatistics,
+  formatData,
+  loadSciDataLibrary,
+  isSciDataLibraryLoaded,
+  aggregateTime,
+  isValidCoordinate,
+  isValidBoundingBox
+} from "./utils/index.js";
+
+// Import AORC and NWM utility functions
+import {
+  processAORCPointData,
+  processAORCGridData,
+  processAORCTimeSeriesData,
+  processAORCDatasetInfo
+} from "./utils/aorc-utils.js";
+
+import {
+  processNWMPointData,
+  processNWMGridData,
+  processNWMTimeSeriesData,
+  processNWMDatasetInfo,
+  processNWMBulkExtraction
+} from "./utils/nwm-utils.js";
 //import fxparserMin from "./fxparser.min.js";
 
 //import XMLParser from './fxparser.min.js'
@@ -169,6 +209,132 @@ async function retrieve({ params, args, data } = {}) {
     return Promise.reject(new Error("No data source found for the given specifications."));
   }
 
+  // Special handling for AORC datasource (Zarr format on S3)
+  if (source === "aorc") {
+    return processAORCData({ params, args, dataType }).catch(async (error) => {
+      // If the error is related to missing libraries, try to load them automatically
+      if (error.message.includes('not available') || error.message.includes('not loaded')) {
+        console.log('Attempting to load required scientific data libraries...');
+
+        try {
+          // Load Zarr library automatically
+          await loadSciDataLibrary('zarr');
+          // Retry the operation
+          return processAORCData({ params, args, dataType });
+        } catch (loadError) {
+          throw new Error(`Failed to load required libraries: ${loadError.message}`);
+        }
+      }
+      throw error;
+    });
+  }
+
+  // Special handling for NWM datasource (Zarr format on S3)
+  if (source === "nwm") {
+    // Handle NLDI COMID lookup for different data types
+    if (dataType === "point-data" && !args.comid && args.latitude && args.longitude) {
+      // Single location COMID lookup for point data
+      try {
+        console.log('No COMID provided, looking up using NLDI...');
+        const nldiResult = await retrieve({
+          params: { source: "nldi", datatype: "getFeatureByCoordinates" },
+          args: { coords: `POINT(${args.longitude} ${args.latitude})` }
+        });
+
+        if (nldiResult && nldiResult.features && nldiResult.features.length > 0) {
+          const feature = nldiResult.features[0];
+          const comid = feature.properties?.comid || feature.properties?.COMID;
+
+          if (comid) {
+            args.comid = comid.toString();
+            console.log(`Found COMID: ${args.comid} for coordinates (${args.latitude}, ${args.longitude})`);
+          } else {
+            throw new Error(`No COMID found for coordinates (${args.latitude}, ${args.longitude})`);
+          }
+        } else {
+          throw new Error(`No features found for coordinates (${args.latitude}, ${args.longitude})`);
+        }
+      } catch (nldiError) {
+        console.error('NLDI COMID lookup failed:', nldiError.message);
+        throw new Error(`Could not find COMID for coordinates (${args.latitude}, ${args.longitude}). ${nldiError.message}`);
+      }
+    } else if (dataType === "timeseries-data" && args.locations && Array.isArray(args.locations)) {
+      // Multiple location COMID lookup for timeseries data
+      console.log(`Looking up COMIDs for ${args.locations.length} locations using NLDI...`);
+
+      // Process each location to find COMIDs
+      const processedLocations = [];
+      for (let i = 0; i < args.locations.length; i++) {
+        const [latitude, longitude] = args.locations[i];
+        try {
+          const nldiResult = await retrieve({
+            params: { source: "nldi", datatype: "getFeatureByCoordinates" },
+            args: { coords: `POINT(${longitude} ${latitude})` }
+          });
+
+          if (nldiResult && nldiResult.features && nldiResult.features.length > 0) {
+            const feature = nldiResult.features[0];
+            const comid = feature.properties?.comid || feature.properties?.COMID;
+
+            if (comid) {
+              processedLocations.push({
+                latitude,
+                longitude,
+                comid: comid.toString()
+              });
+              console.log(`Found COMID: ${comid} for location ${i + 1}/${args.locations.length} (${latitude}, ${longitude})`);
+            } else {
+              console.warn(`No COMID found for location ${i + 1}/${args.locations.length} (${latitude}, ${longitude})`);
+              processedLocations.push({
+                latitude,
+                longitude,
+                comid: null,
+                error: 'No COMID found'
+              });
+            }
+          } else {
+            console.warn(`No features found for location ${i + 1}/${args.locations.length} (${latitude}, ${longitude})`);
+            processedLocations.push({
+              latitude,
+              longitude,
+              comid: null,
+              error: 'No features found'
+            });
+          }
+        } catch (locationError) {
+          console.error(`Error looking up COMID for location ${i + 1}/${args.locations.length}:`, locationError.message);
+          processedLocations.push({
+            latitude,
+            longitude,
+            comid: null,
+            error: locationError.message
+          });
+        }
+      }
+
+      // Store the processed locations in args for the timeseries processing
+      args.processedLocations = processedLocations;
+      console.log(`Completed COMID lookup for ${processedLocations.length} locations`);
+    }
+
+    return processNWMData({ params, args, dataType }).catch(async (error) => {
+      // If the error is related to missing libraries, try to load them automatically
+      if (error.message.includes('not available') || error.message.includes('not loaded')) {
+        console.log('Attempting to load required scientific data libraries...');
+
+        try {
+          // Load Zarr library automatically
+          await loadSciDataLibrary('zarr');
+          // Retry the operation
+          return processNWMData({ params, args, dataType });
+        } catch (loadError) {
+          throw new Error(`Failed to load required libraries: ${loadError.message}`);
+        }
+      }
+      throw error;
+    });
+  }
+
   let endpoint =
     source === "waterOneFlow" || source === "hisCentral" || source === "mitigation_dt" || source === "flooddamage_dt"
       ? datasources[source].sourceType(args.sourceType, dataType)
@@ -284,6 +450,148 @@ async function retrieve({ params, args, data } = {}) {
       }
     });
 }
+
+/**
+ * Process AORC (NOAA Analysis of Record for Calibration) data from Zarr format on S3
+ * Handles multiple variables, spatial regions, and time periods with comprehensive manipulation
+ *
+ * @function processAORCData
+ * @memberof data
+ * @async
+ * @param {Object} options - Configuration object for AORC data processing
+ * @param {Object} options.params - Parameters including source, datatype, etc.
+ * @param {Object} options.args - Arguments specific to AORC data extraction
+ * @param {string} options.dataType - Type of AORC operation (point-data, grid-data, etc.)
+ * @returns {Promise<Object>} Processed AORC data in requested format
+ */
+async function processAORCData({ params, args, dataType }) {
+  const { dataset = "aorc-v1.1" } = args;
+
+  console.log(`Processing AORC data: ${dataType} from ${dataset}`);
+
+  // Get dataset configuration and merge with variables
+  const datasetConfig = datasources.aorc.datasets[dataset];
+  if (!datasetConfig) {
+    throw new Error(`Unknown AORC dataset: ${dataset}`);
+  }
+
+  // Merge dataset config with variables from datasource
+  const fullDatasetConfig = {
+    ...datasetConfig,
+    variables: datasources.aorc.variables
+  };
+
+  try {
+    switch (dataType) {
+      case "point-data":
+        return await processAORCPointData(args, fullDatasetConfig);
+      case "grid-data":
+        return await processAORCGridData(args, fullDatasetConfig);
+      case "timeseries-data":
+        return await processAORCTimeSeriesData(args, fullDatasetConfig);
+      case "dataset-info":
+        return await processAORCDatasetInfo(args, fullDatasetConfig);
+      case "bulk-extraction":
+        throw new Error('AORC bulk data extraction not implemented');
+      default:
+        throw new Error(`Unsupported AORC data type: ${dataType}`);
+    }
+  } catch (error) {
+    console.error(`AORC processing error: ${error.message}`);
+    throw new Error(`AORC data processing failed: ${error.message}`);
+  }
+}
+
+
+
+/**
+ * Transform AORC (NOAA Analysis of Record for Calibration) data with comprehensive manipulation capabilities
+ * Handles scaling, unit conversion, temporal/spatial aggregation, and various output formats
+ *
+ * @function transformAORCData
+ * @memberof data
+ * @param {Object} options - Configuration object for AORC transformation
+ * @param {Object} [options.params] - Parameters for transformation type
+ * @param {Object} [options.args] - Arguments for transformation options
+ * @param {Object|Array} options.data - AORC data to transform
+ * @returns {Object|Array|string} Transformed AORC data
+ */
+  const transformScientificData = ({ params, args, data }) => {
+    console.log('[transform] Processing scientific data transformation');
+
+    // Detect data source and apply appropriate transformations
+    const source = params?.source || 'generic';
+
+    // Detect if this is a single variable or multi-variable dataset
+    const isMultiVariable = data && typeof data === 'object' && !data.variable && !Array.isArray(data);
+
+    if (isMultiVariable) {
+      // Handle multiple variables
+      const results = {};
+      for (const [variableName, variableData] of Object.entries(data)) {
+        try {
+          results[variableName] = transformVariable(variableName, variableData, source, params, args);
+        } catch (error) {
+          console.warn(`Failed to transform ${variableName}: ${error.message}`);
+          results[variableName] = { error: error.message };
+        }
+      }
+      return results;
+    } else {
+      // Handle single variable
+      const variableName = data.variable || Object.keys(data)[0];
+      return transformVariable(variableName, data, source, params, args);
+    }
+  };
+
+/**
+ * Transform a single AORC variable with comprehensive manipulations
+ */
+  const transformVariable = (variableName, variableData, source, params, args) => {
+    let processedData = deepClone(variableData);
+
+    // Apply source-specific scaling
+    if (source === 'aorc') {
+      processedData = applyDataScaling(processedData, variableName, datasources, 'aorc');
+    } else if (source === 'nwm') {
+      processedData = applyDataScaling(processedData, variableName, datasources, 'nwm');
+    }
+
+    // Apply unit conversions if requested
+    if (args?.units) {
+      processedData = convertDataUnits(processedData, variableName, args.units, source, datasources);
+    }
+
+    // Apply temporal aggregations
+    if (args?.temporalAggregation) {
+      processedData = aggregateTemporal(processedData, args.temporalAggregation);
+    }
+
+    // Apply spatial aggregations
+    if (args?.spatialAggregation) {
+      processedData = aggregateSpatial(processedData, args.spatialAggregation);
+    }
+
+    // Apply quality control filters
+    if (args?.qualityControl) {
+      processedData = applyQualityControl(processedData, args.qualityControl);
+    }
+
+    // Apply statistical transformations
+    if (args?.statistics) {
+      processedData = calculateStatistics(processedData, args.statistics);
+    }
+
+    // Apply format transformations
+    if (args?.type) {
+      return formatData(processedData, args, source, datasources);
+    }
+
+    return processedData;
+  };
+
+
+
 
 
 /**
@@ -440,9 +748,39 @@ function transform({ params, args, data } = {}) {
     return result;
   };
 
+  // === AORC-SPECIFIC HELPER FUNCTIONS ===
+  const findNearestIndex = (coordSystem, targetValue) => {
+    const { min, resolution } = coordSystem;
+    const index = Math.round((targetValue - min) / resolution);
+    return Math.max(0, Math.min(index, Math.floor((coordSystem.max - min) / resolution)));
+  };
+
+  const aggregateTime = (date, timeStep, direction) => {
+    const dateObj = new Date(date);
+    const hours = timeStep === '1D' ? 24 : parseInt(timeStep) || 1;
+
+    if (direction === 'start') {
+      const startOfPeriod = new Date(dateObj);
+      startOfPeriod.setHours(Math.floor(dateObj.getHours() / hours) * hours, 0, 0, 0);
+      return startOfPeriod.toISOString();
+    } else {
+      const endOfPeriod = new Date(dateObj);
+      endOfPeriod.setHours(Math.ceil((dateObj.getHours() + 1) / hours) * hours, 0, 0, 0);
+      return endOfPeriod.toISOString();
+    }
+  };
+
+
+
   // Start transforming
   console.log('[transform] Original input data:', data);
   data = deepClone(data);
+
+  // === SCIENTIFIC DATA TRANSFORMATIONS ===
+  if (params?.source === 'aorc' || params?.source === 'nwm' ||
+      (data && typeof data === 'object' && data.variable)) {
+    return transformScientificData({ params, args, data });
+  }
 
   // === PARAMS & ARGS LOGIC ===
   if (!params) {
@@ -1035,6 +1373,41 @@ function generateDateString() {
   const minutes = now.getMinutes().toString().padStart(2, '0');
   return `${year}.${month}.${day}.${hours}:${minutes}`;
 }
+
+/**********************************/
+/*** NWM Processing Functions ****/
+/**********************************/
+
+/**
+ * Process NWM data requests
+ */
+async function processNWMData({ params, args, dataType }) {
+  const { dataset = "nwm-retrospective-2-1-zarr-pds" } = args;
+  console.log(`Processing NWM data: ${dataType} from ${dataset}`);
+
+  const datasetConfig = datasources.nwm.datasets[dataset];
+  if (!datasetConfig) {
+    throw new Error(`Unknown NWM dataset: ${dataset}`);
+  }
+
+  switch (dataType) {
+    case "point-data":
+      return processNWMPointData(args, datasetConfig, datasources);
+    case "grid-data":
+      throw new Error('NWM grid data extraction not implemented');
+    case "timeseries-data":
+      return processNWMTimeSeriesData(args, datasetConfig, datasources);
+    case "dataset-info":
+      return processNWMDatasetInfo(args, datasetConfig);
+    case "bulk-extraction":
+      throw new Error('NWM bulk data extraction not implemented');
+    default:
+      throw new Error(`Unsupported NWM data type: ${dataType}`);
+  }
+}
+
+
+
 
 /**********************************/
 /*** End of Helper functions **/

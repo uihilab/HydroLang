@@ -314,8 +314,8 @@ function chart({ params, args, data } = {}) {
     const next = document.createElement("button");
     const info = document.createElement("span");
 
-    prev.innerText = "◀";
-    next.innerText = "▶";
+    prev.innerText = "Previous";
+    next.innerText = "Next";
     nav.append(prev, info, next);
     container.appendChild(nav);
 
