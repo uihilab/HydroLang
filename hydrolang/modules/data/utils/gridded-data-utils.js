@@ -1,6 +1,6 @@
 /**
  * Gridded data format utilities
- * Handles lazy loading and management of gridded scientific data libraries (Zarr, NetCDF, HDF5)
+ * Handles lazy loading and management of gridded data libraries (Zarr, NetCDF, HDF5, GeoTIFF)
  */
 
 // Import the external libraries dynamically
@@ -11,9 +11,9 @@ let hdf5Library = null;
 let geospatialLibrary = null;
 
 /**
- * Load scientific data libraries dynamically
+ * Load gridded data libraries dynamically
  */
-export async function loadSciDataLibrary(format) {
+export async function loadGridDataLibrary(format) {
   try {
     switch (format) {
       case 'zarr':
@@ -57,7 +57,7 @@ export async function loadSciDataLibrary(format) {
         return geospatialLibrary;
 
       default:
-        throw new Error(`Unsupported scientific data format: ${format}`);
+        throw new Error(`Unsupported gridded data format: ${format}`);
     }
   } catch (error) {
     throw new Error(`Failed to load ${format} library: ${error.message}`);
@@ -65,9 +65,9 @@ export async function loadSciDataLibrary(format) {
 }
 
 /**
- * Check if a scientific data library is loaded
+ * Check if a gridded data library is loaded
  */
-export function isSciDataLibraryLoaded(format) {
+export function isGridDataLibraryLoaded(format) {
   switch (format) {
     case 'zarr':
       return zarrLibrary && zarrLibrary.isLoaded() && zarrLoadedLibraries !== null;
@@ -85,7 +85,7 @@ export function isSciDataLibraryLoaded(format) {
 /**
  * Get loaded library instance
  */
-export function getSciDataLibrary(format) {
+export function getGridDataLibrary(format) {
   switch (format) {
     case 'zarr':
       return zarrLoadedLibraries;

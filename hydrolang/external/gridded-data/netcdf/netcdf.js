@@ -112,7 +112,7 @@ function isLoaded() {
 function getInfo() {
   return {
     name: 'NetCDF',
-    description: 'Network Common Data Form for scientific data',
+    description: 'Network Common Data Form for gridded data',
     version: '4.0+',
     features: [
       'Multi-dimensional arrays',

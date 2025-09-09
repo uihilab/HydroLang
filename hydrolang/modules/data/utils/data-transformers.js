@@ -195,9 +195,9 @@ function convertToCSV(data, source, datasources) {
  */
 function convertToNetCDF(data, source, datasources) {
   // Load NetCDF library if needed
-  if (!window.hydro?.external?.sciData?.isLoaded({ format: 'netcdf' })) {
+  if (!window.hydro?.external?.griddedData?.isLoaded({ format: 'netcdf' })) {
     // Note: This would need to be awaited in an async context
-    console.warn('NetCDF library not loaded. Use await window.hydro.external.sciData.loadLibrary({ format: "netcdf" }) first.');
+    console.warn('NetCDF library not loaded. Use await window.hydro.external.griddedData.loadLibrary({ format: "netcdf" }) first.');
   }
 
   const sourceConfig = datasources[source];

@@ -56,7 +56,7 @@ async function load(options = {}) {
       // Load GeoTIFF for geospatial TIFF files
       const geotiff = divisors.createScript({
         params: {
-          src: "https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist/geotiff.min.js",
+          src: "https://cdn.jsdelivr.net/npm/geotiff@2.0.7/dist-browser/geotiff.js",
           name: "geotiff"
         }
       });

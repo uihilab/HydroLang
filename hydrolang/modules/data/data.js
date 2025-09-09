@@ -40,6 +40,12 @@ import {
   processNWMDatasetInfo,
   processNWMBulkExtraction
 } from "./utils/nwm-utils.js";
+
+import {
+  fetchDEMData,
+  fetchPointElevation,
+  validate3DEPParams
+} from "./utils/threedep-utils.js";
 //import fxparserMin from "./fxparser.min.js";
 
 //import XMLParser from './fxparser.min.js'
@@ -214,11 +220,11 @@ async function retrieve({ params, args, data } = {}) {
     return processAORCData({ params, args, dataType }).catch(async (error) => {
       // If the error is related to missing libraries, try to load them automatically
       if (error.message.includes('not available') || error.message.includes('not loaded')) {
-        console.log('Attempting to load required scientific data libraries...');
+        console.log('Attempting to load required gridded data libraries...');
 
         try {
           // Load Zarr library automatically
-          await loadSciDataLibrary('zarr');
+          await loadGridDataLibrary('zarr');
           // Retry the operation
           return processAORCData({ params, args, dataType });
         } catch (loadError) {
@@ -320,13 +326,33 @@ async function retrieve({ params, args, data } = {}) {
     return processNWMData({ params, args, dataType }).catch(async (error) => {
       // If the error is related to missing libraries, try to load them automatically
       if (error.message.includes('not available') || error.message.includes('not loaded')) {
-        console.log('Attempting to load required scientific data libraries...');
+        console.log('Attempting to load required gridded data libraries...');
 
         try {
           // Load Zarr library automatically
-          await loadSciDataLibrary('zarr');
+          await loadGridDataLibrary('zarr');
           // Retry the operation
           return processNWMData({ params, args, dataType });
+        } catch (loadError) {
+          throw new Error(`Failed to load required libraries: ${loadError.message}`);
+        }
+      }
+      throw error;
+    });
+  }
+
+  // Special handling for 3DEP datasource (GeoTIFF format from USGS)
+  if (source === "threedep") {
+    return process3DEPData({ params, args, dataType }).catch(async (error) => {
+      // If the error is related to missing libraries, try to load them automatically
+      if (error.message.includes('not available') || error.message.includes('not loaded')) {
+        console.log('Attempting to load required geospatial libraries...');
+
+        try {
+          // Load GeoTIFF and proj4 libraries automatically
+          await loadGridDataLibrary('geospatial');
+          // Retry the operation
+          return process3DEPData({ params, args, dataType });
         } catch (loadError) {
           throw new Error(`Failed to load required libraries: ${loadError.message}`);
         }
@@ -516,8 +542,8 @@ async function processAORCData({ params, args, dataType }) {
  * @param {Object|Array} options.data - AORC data to transform
  * @returns {Object|Array|string} Transformed AORC data
  */
-  const transformScientificData = ({ params, args, data }) => {
-    console.log('[transform] Processing scientific data transformation');
+  const transformGriddedData = ({ params, args, data }) => {
+    console.log('[transform] Processing gridded data transformation');
 
     // Detect data source and apply appropriate transformations
     const source = params?.source || 'generic';
@@ -545,7 +571,7 @@ async function processAORCData({ params, args, dataType }) {
   };
 
 /**
- * Transform a single AORC variable with comprehensive manipulations
+ * Transform a single gridded data variable with comprehensive manipulations
  */
   const transformVariable = (variableName, variableData, source, params, args) => {
     let processedData = deepClone(variableData);
@@ -555,6 +581,8 @@ async function processAORCData({ params, args, dataType }) {
       processedData = applyDataScaling(processedData, variableName, datasources, 'aorc');
     } else if (source === 'nwm') {
       processedData = applyDataScaling(processedData, variableName, datasources, 'nwm');
+    } else if (source === 'threedep') {
+      processedData = applyDataScaling(processedData, variableName, datasources, 'threedep');
     }
 
     // Apply unit conversions if requested
@@ -776,10 +804,10 @@ function transform({ params, args, data } = {}) {
   console.log('[transform] Original input data:', data);
   data = deepClone(data);
 
-  // === SCIENTIFIC DATA TRANSFORMATIONS ===
-  if (params?.source === 'aorc' || params?.source === 'nwm' ||
+  // === GRIDDED DATA TRANSFORMATIONS ===
+  if (params?.source === 'aorc' || params?.source === 'nwm' || params?.source === 'threedep' ||
       (data && typeof data === 'object' && data.variable)) {
-    return transformScientificData({ params, args, data });
+    return transformGriddedData({ params, args, data });
   }
 
   // === PARAMS & ARGS LOGIC ===
@@ -1406,6 +1434,182 @@ async function processNWMData({ params, args, dataType }) {
   }
 }
 
+/**
+ * Process 3DEP (3D Elevation Program) data requests
+ * @function process3DEPData
+ * @memberof data
+ * @async
+ * @param {Object} options - Configuration object for 3DEP data processing
+ * @param {Object} options.params - Parameters including source, datatype, etc.
+ * @param {Object} options.args - Arguments specific to 3DEP data extraction
+ * @param {string} options.dataType - Type of 3DEP operation (point-data, grid-data, etc.)
+ * @returns {Promise<Object>} Processed 3DEP data in requested format
+ */
+async function process3DEPData({ params, args, dataType }) {
+  const { dataset = "3dep-dem" } = args;
+
+  console.log(`Processing 3DEP data: ${dataType} from ${dataset}`);
+
+  // Get dataset configuration and merge with variables
+  const datasetConfig = datasources.threedep.datasets[dataset];
+  if (!datasetConfig) {
+    throw new Error(`Unknown 3DEP dataset: ${dataset}`);
+  }
+
+  // Merge dataset config with variables from datasource
+  const fullDatasetConfig = {
+    ...datasetConfig,
+    variables: datasources.threedep.variables
+  };
+
+  // Validate 3DEP parameters
+  const validation = validate3DEPParams(args);
+  if (!validation.isValid) {
+    throw new Error(`Invalid 3DEP parameters: ${validation.errors.join(', ')}`);
+  }
+
+  try {
+    switch (dataType) {
+      case "point-data":
+        return await process3DEPPointData(args, fullDatasetConfig);
+      case "grid-data":
+        return await process3DEPGridData(args, fullDatasetConfig);
+      case "dataset-info":
+        return await process3DEPDatasetInfo(args, fullDatasetConfig);
+      default:
+        throw new Error(`Unsupported 3DEP data type: ${dataType}`);
+    }
+  } catch (error) {
+    console.error(`3DEP processing error: ${error.message}`);
+    throw new Error(`3DEP data processing failed: ${error.message}`);
+  }
+}
+
+/**
+ * Process 3DEP point elevation data
+ * @param {Object} args - Request arguments
+ * @param {Object} datasetConfig - Dataset configuration
+ * @returns {Promise<Object>} Point elevation data
+ */
+async function process3DEPPointData(args, datasetConfig) {
+  const { latitude, longitude, format = "json" } = args;
+
+  console.log(`Fetching 3DEP elevation for point: (${latitude}, ${longitude})`);
+
+  try {
+    const elevationData = await fetchPointElevation(latitude, longitude);
+
+    if (format === "json") {
+      return {
+        source: "3DEP",
+        datatype: "point-data",
+        latitude: elevationData.latitude,
+        longitude: elevationData.longitude,
+        elevation: elevationData.elevation,
+        units: elevationData.units,
+        verticalDatum: elevationData.verticalDatum,
+        timestamp: new Date().toISOString(),
+        metadata: elevationData.metadata
+      };
+    }
+
+    return elevationData;
+  } catch (error) {
+    throw new Error(`Failed to fetch 3DEP point elevation: ${error.message}`);
+  }
+}
+
+/**
+ * Process 3DEP grid elevation data
+ * @param {Object} args - Request arguments
+ * @param {Object} datasetConfig - Dataset configuration
+ * @returns {Promise<Object>} Grid elevation data
+ */
+async function process3DEPGridData(args, datasetConfig) {
+  const { bbox, resolution = 10, format = "georaster" } = args;
+
+  console.log(`Fetching 3DEP elevation grid for bbox: ${bbox.join(', ')} at ${resolution}m resolution`);
+
+  try {
+    const progressCallback = (progress, message) => {
+      console.log(`3DEP Progress: ${progress}% - ${message}`);
+    };
+
+    const demData = await fetchDEMData({ bbox, resolution }, progressCallback);
+
+    if (format === "georaster") {
+      return {
+        source: "3DEP",
+        datatype: "grid-data",
+        georaster: demData.georaster,
+        bbox: demData.bbox,
+        resolution: demData.resolution,
+        units: demData.units,
+        verticalDatum: demData.verticalDatum,
+        timestamp: new Date().toISOString(),
+        metadata: demData.metadata
+      };
+    } else if (format === "json") {
+      // Convert georaster to JSON format
+      const values = demData.georaster.values[0];
+      return {
+        source: "3DEP",
+        datatype: "grid-data",
+        bbox: demData.bbox,
+        resolution: demData.resolution,
+        units: demData.units,
+        verticalDatum: demData.verticalDatum,
+        dimensions: {
+          width: demData.georaster.width,
+          height: demData.georaster.height
+        },
+        elevation: values, // 2D array of elevation values
+        timestamp: new Date().toISOString(),
+        metadata: demData.metadata
+      };
+    }
+
+    return demData;
+  } catch (error) {
+    throw new Error(`Failed to fetch 3DEP grid data: ${error.message}`);
+  }
+}
+
+/**
+ * Process 3DEP dataset information
+ * @param {Object} args - Request arguments
+ * @param {Object} datasetConfig - Dataset configuration
+ * @returns {Object} Dataset information
+ */
+function process3DEPDatasetInfo(args, datasetConfig) {
+  const { info = "metadata" } = args;
+
+  console.log(`Fetching 3DEP dataset info: ${info}`);
+
+  switch (info) {
+    case "variables":
+      return {
+        source: "3DEP",
+        variables: datasetConfig.variables
+      };
+    case "spatial":
+      return {
+        source: "3DEP",
+        spatial: datasetConfig.spatial
+      };
+    case "temporal":
+      return {
+        source: "3DEP",
+        temporal: datasetConfig.temporal
+      };
+    case "metadata":
+    default:
+      return {
+        source: "3DEP",
+        dataset: datasetConfig
+      };
+  }
+}
 
 
 

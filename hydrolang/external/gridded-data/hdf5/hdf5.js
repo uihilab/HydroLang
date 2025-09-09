@@ -103,7 +103,7 @@ function isLoaded() {
 function getInfo() {
   return {
     name: 'HDF5',
-    description: 'Hierarchical Data Format 5 for large scientific datasets',
+    description: 'Hierarchical Data Format 5 for large gridded datasets',
     version: '1.12+',
     features: [
       'Hierarchical data structure',

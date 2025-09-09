@@ -28,6 +28,7 @@ import nasapower from "./datasources/nasapower.js"
 import nldi from "./datasources/nldi.js"
 import aorc from "./datasources/aorc.js"
 import nwm from "./datasources/nwm.js"
+import threedep from "./datasources/threedep.js"
 
 export {
   usgs,
@@ -56,5 +57,6 @@ export {
   nasapower,
   nldi,
   nwm,
-  aorc
+  aorc,
+  threedep
 };

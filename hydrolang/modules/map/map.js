@@ -100,17 +100,18 @@ function reinitializeController(mapType) {
 }
 
 /**
- * Layer function for appending tiles, geodata, markers, kml or drawing tools to a map.
+ * Layer function for appending tiles, geodata, markers, kml, georaster, or drawing tools to a map.
  * @function Layers
  * @memberof map
- * @param {Object} args - Contains: type (tile, geodata, markers, kml, draw, removelayers), name (name of layer)
- * @param {Object} data - Contains: data as a JS array.
+ * @param {Object} args - Contains: type (tile, geodata, markers, kml, georaster, draw, removelayers), name (name of layer)
+ * @param {Object} data - Contains: data as a JS array or georaster object.
  * @returns {Element} Layer appended to a map div that has already been created. The layer is added into the global
  * layer object.
  * @example
  * hydro.map.Layers({args: {type: 'tile', name: 'someName'}, data: [data1, data2...]})
  * hydro.map.Layers({args: {type: 'geodata', name: 'someName'}, data: {somegeoJSON}})
  * hydro.map.Layers({args: {type: 'marker', name: 'someName'}, data: [markerLat, marketLon]})
+ * hydro.map.Layers({args: {type: 'georaster', name: 'DEM'}, data: georasterObj})
  */
 
 async function Layers({ params, args, data } = {}) {
@@ -263,6 +264,12 @@ async function Layers({ params, args, data } = {}) {
         layer.setMap(osmap);
         baselayers[layername] = layer;
         addLayerToGMapController(layer, layername)
+      // Caller for georaster data renderer
+      } else if (type === "georaster") {
+        layer = addGeoRasterLayer({ params: mapconfig, args: layertype });
+        layer.setMap(osmap);
+        baselayers[layername] = layer;
+        addLayerToGMapController(layer, layername)
       // Caller for removing layers using layer name
       } else if (type === "removelayers") {
         if (baselayers.hasOwnProperty(layername)) {
@@ -323,6 +330,28 @@ async function Layers({ params, args, data } = {}) {
         layer = kml({ params: mapconfig, data: data });
         Object.assign(overlayers, { [layername]: layer });
         layercontroller.addOverlay(layer, layername);
+        //osmap.fitBounds(layer.getBounds());
+      } else if (type === "georaster") {
+        //Caller for the georaster data renderer.
+        console.log('Layers: Creating georaster layer');
+        layer = await addGeoRasterLayer({ params: mapconfig, args: layertype });
+        console.log('Layers: Georaster layer created:', typeof layer);
+
+        Object.assign(overlayers, { [layername]: layer });
+
+        // Add georaster layer directly to map (not through layer controller)
+        console.log('Layers: Adding layer to map');
+        osmap.addLayer(layer);
+
+        // Try to add to layer controller if possible, otherwise just add to map
+        try {
+          if (layercontroller && typeof layercontroller.addOverlay === 'function') {
+            console.log('Layers: Adding to layer controller');
+            layercontroller.addOverlay(layer, layername);
+          }
+        } catch (controllerError) {
+          console.log('Layer controller not compatible with georaster layer, added directly to map:', controllerError.message);
+        }
         //osmap.fitBounds(layer.getBounds());
       } else if (type === "draw") {
         if (!isDrawToolAdded) {
@@ -945,6 +974,496 @@ function makeInfoWindowEvent(map, infowindow, contentString, marker) {
 }
 
 /**
+ * Adds a georaster layer to the map for elevation/terrain visualization
+ * @function addGeoRasterLayer
+ * @memberof map
+ * @param {Object} params - Contains: maptype (google, leaflet)
+ * @param {Object} args - Contains: data (georaster object), name (layer name), style options
+ * @returns {Object} Georaster layer object
+ * @example
+ * hydro.map.addGeoRasterLayer({params: {maptype: 'leaflet'}, args: {data: georasterObj, name: 'DEM'}})
+ */
+async function addGeoRasterLayer({ params, args, data } = {}) {
+  const { data: georaster, name: layerName, styleOptions = {} } = args;
+
+  console.log('addGeoRasterLayer called with:', {
+    maptype: params.maptype,
+    hasGeoraster: !!georaster,
+    georasterKeys: georaster ? Object.keys(georaster) : null
+  });
+
+  if (!georaster) {
+    throw new Error("Georaster data is required for georaster layer");
+  }
+
+  if (params.maptype === "google") {
+    // For Google Maps, we'll create a custom overlay using canvas
+    console.log('Creating Google Maps georaster layer');
+    return createGoogleMapsGeoRasterLayer(georaster, styleOptions);
+  } else if (params.maptype === "leaflet") {
+    // For Leaflet, we'll use GeoRasterLayer if available, otherwise create a custom implementation
+    console.log('Creating Leaflet georaster layer');
+    const layer = await createLeafletGeoRasterLayer(georaster, styleOptions);
+    console.log('Leaflet georaster layer created:', {
+      layerType: typeof layer,
+      hasAddTo: typeof layer.addTo === 'function',
+      hasOn: typeof layer.on === 'function'
+    });
+    return layer;
+  } else {
+    throw new Error(`Unsupported map type for georaster: ${params.maptype}`);
+  }
+}
+
+/**
+ * Creates a georaster layer for Google Maps using canvas overlay
+ * @param {Object} georaster - Georaster object with elevation data
+ * @param {Object} styleOptions - Styling options for the layer
+ * @returns {Object} Google Maps overlay object
+ */
+function createGoogleMapsGeoRasterLayer(georaster, styleOptions = {}) {
+  const {
+    opacity = 0.7,
+    colorScheme = 'terrain' // 'terrain', 'grayscale', 'viridis', etc.
+  } = styleOptions;
+
+  // Create a custom overlay class for Google Maps
+  class GeoRasterOverlay extends google.maps.OverlayView {
+    constructor(georaster, options = {}) {
+      super();
+      this.georaster = georaster;
+      this.opacity = options.opacity || 0.7;
+      this.colorScheme = options.colorScheme || 'terrain';
+      this.canvas = null;
+    }
+
+    onAdd() {
+      this.canvas = document.createElement('canvas');
+      this.canvas.style.position = 'absolute';
+      this.canvas.style.opacity = this.opacity;
+
+      const panes = this.getPanes();
+      panes.overlayLayer.appendChild(this.canvas);
+
+      this.draw();
+    }
+
+    draw() {
+      if (!this.canvas) return;
+
+      const overlayProjection = this.getProjection();
+      if (!overlayProjection) return;
+
+      const bounds = new google.maps.LatLngBounds(
+        new google.maps.LatLng(this.georaster.ymin, this.georaster.xmin),
+        new google.maps.LatLng(this.georaster.ymax, this.georaster.xmax)
+      );
+
+      const sw = overlayProjection.fromLatLngToDivPixel(bounds.getSouthWest());
+      const ne = overlayProjection.fromLatLngToDivPixel(bounds.getNorthEast());
+
+      this.canvas.style.left = sw.x + 'px';
+      this.canvas.style.top = ne.y + 'px';
+      this.canvas.style.width = (ne.x - sw.x) + 'px';
+      this.canvas.style.height = (sw.y - ne.y) + 'px';
+
+      this.canvas.width = ne.x - sw.x;
+      this.canvas.height = sw.y - ne.y;
+
+      // Render elevation data to canvas
+      this.renderElevationData();
+    }
+
+    renderElevationData() {
+      const ctx = this.canvas.getContext('2d');
+      const imageData = ctx.createImageData(this.canvas.width, this.canvas.height);
+      const data = imageData.data;
+
+      const { values, mins, maxs, noDataValue } = this.georaster;
+      const elevationData = values[0];
+      const minValue = mins[0];
+      const maxValue = maxs[0];
+
+      for (let y = 0; y < this.canvas.height; y++) {
+        for (let x = 0; x < this.canvas.width; x++) {
+          const pixelIndex = (y * this.canvas.width + x) * 4;
+
+          // Scale coordinates to georaster dimensions
+          const geoX = Math.floor((x / this.canvas.width) * this.georaster.width);
+          const geoY = Math.floor((y / this.canvas.height) * this.georaster.height);
+
+          const elevation = elevationData[geoY]?.[geoX];
+
+          if (elevation === noDataValue || !Number.isFinite(elevation)) {
+            // Transparent for no-data
+            data[pixelIndex] = 0;
+            data[pixelIndex + 1] = 0;
+            data[pixelIndex + 2] = 0;
+            data[pixelIndex + 3] = 0;
+          } else {
+            // Color based on elevation
+            const normalizedElevation = (elevation - minValue) / (maxValue - minValue);
+            const color = this.getColorForElevation(normalizedElevation);
+
+            data[pixelIndex] = color.r;
+            data[pixelIndex + 1] = color.g;
+            data[pixelIndex + 2] = color.b;
+            data[pixelIndex + 3] = 255; // Alpha
+          }
+        }
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    getColorForElevation(normalizedValue) {
+      // Terrain color scheme
+      if (this.colorScheme === 'terrain') {
+        if (normalizedValue < 0.2) return { r: 0, g: 100, b: 0 };      // Dark green (low)
+        if (normalizedValue < 0.4) return { r: 34, g: 139, b: 34 };   // Green
+        if (normalizedValue < 0.6) return { r: 255, g: 255, b: 0 };   // Yellow
+        if (normalizedValue < 0.8) return { r: 255, g: 165, b: 0 };   // Orange
+        return { r: 139, g: 69, b: 19 };                             // Brown (high)
+      }
+
+      // Grayscale fallback
+      const gray = Math.floor(normalizedValue * 255);
+      return { r: gray, g: gray, b: gray };
+    }
+
+    onRemove() {
+      if (this.canvas && this.canvas.parentNode) {
+        this.canvas.parentNode.removeChild(this.canvas);
+        this.canvas = null;
+      }
+    }
+  }
+
+  return new GeoRasterOverlay(georaster, { opacity, colorScheme });
+}
+
+/**
+ * Creates a georaster layer for Leaflet
+ * @param {Object} georaster - Georaster object with elevation data
+ * @param {Object} styleOptions - Styling options for the layer
+ * @returns {Object} Leaflet layer object
+ */
+async function createLeafletGeoRasterLayer(georaster, styleOptions = {}) {
+  const {
+    opacity = 0.7,
+    colorScheme = 'terrain'
+  } = styleOptions;
+
+  // Try to use GeoRasterLayer if available (from georaster-layer-for-leaflet)
+  if (typeof L.GeoRasterLayer !== 'undefined') {
+    console.log('Using GeoRasterLayer plugin');
+    return new L.GeoRasterLayer({
+      georaster: georaster,
+      opacity: opacity,
+      resolution: 256,
+      pixelValuesToColorFn: function(pixelValues) {
+        const elevation = pixelValues[0];
+        const { mins, maxs, noDataValue } = georaster;
+
+        if (elevation === noDataValue || !Number.isFinite(elevation)) {
+          return null; // Transparent
+        }
+
+        const normalizedValue = (elevation - mins[0]) / (maxs[0] - mins[0]);
+        return getLeafletColorForElevation(normalizedValue, colorScheme);
+      }
+    });
+  }
+
+  // Try to load GeoRasterLayer plugin dynamically
+  try {
+    console.log('Attempting to load GeoRasterLayer plugin...');
+    await loadGeoRasterLayerPlugin();
+    if (typeof L.GeoRasterLayer !== 'undefined') {
+      console.log('GeoRasterLayer plugin loaded successfully');
+      return new L.GeoRasterLayer({
+        georaster: georaster,
+        opacity: opacity,
+        resolution: 256,
+        pixelValuesToColorFn: function(pixelValues) {
+          const elevation = pixelValues[0];
+          const { mins, maxs, noDataValue } = georaster;
+
+          if (elevation === noDataValue || !Number.isFinite(elevation)) {
+            return null; // Transparent
+          }
+
+          const normalizedValue = (elevation - mins[0]) / (maxs[0] - mins[0]);
+          return getLeafletColorForElevation(normalizedValue, colorScheme);
+        }
+      });
+    }
+  } catch (error) {
+    console.log('GeoRasterLayer plugin not available, using canvas fallback:', error.message);
+  }
+
+  // Fallback 1: Try simple image overlay approach
+  try {
+    console.log('Trying simple image overlay approach');
+    return createSimpleGeoRasterOverlay(georaster, { opacity, colorScheme });
+  } catch (error) {
+    console.log('Simple overlay failed, using canvas fallback:', error.message);
+  }
+
+  // Fallback 2: Create custom canvas-based layer
+  console.log('Using custom canvas-based georaster layer');
+  return createLeafletCanvasGeoRasterLayer(georaster, { opacity, colorScheme });
+}
+
+/**
+ * Creates a simple image overlay from georaster data
+ * @param {Object} georaster - Georaster object with elevation data
+ * @param {Object} options - Layer options
+ * @returns {Object} Leaflet image overlay
+ */
+function createSimpleGeoRasterOverlay(georaster, options = {}) {
+  const { opacity = 0.7, colorScheme = 'terrain' } = options;
+
+  console.log('Creating simple overlay with georaster:', {
+    width: georaster.width,
+    height: georaster.height,
+    xmin: georaster.xmin,
+    xmax: georaster.xmax,
+    ymin: georaster.ymin,
+    ymax: georaster.ymax,
+    hasValues: !!georaster.values,
+    valuesLength: georaster.values ? georaster.values.length : 0
+  });
+
+  // Create a canvas to render the georaster data
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  // Set canvas size to match georaster dimensions
+  canvas.width = georaster.width;
+  canvas.height = georaster.height;
+
+  // Render elevation data to canvas
+  const imageData = ctx.createImageData(georaster.width, georaster.height);
+  const data = imageData.data;
+
+  // Access elevation data - handle different possible structures
+  let elevationData;
+  if (georaster.values && georaster.values[0]) {
+    elevationData = georaster.values[0];
+  } else if (georaster.values && Array.isArray(georaster.values)) {
+    elevationData = georaster.values;
+  } else {
+    throw new Error('Georaster values not found or in unexpected format');
+  }
+
+  const { mins, maxs, noDataValue } = georaster;
+
+  console.log('Elevation data details:', {
+    elevationDataType: typeof elevationData,
+    elevationDataLength: elevationData ? elevationData.length : 0,
+    mins: mins,
+    maxs: maxs,
+    noDataValue: noDataValue
+  });
+
+  for (let y = 0; y < georaster.height; y++) {
+    for (let x = 0; x < georaster.width; x++) {
+      const pixelIndex = (y * georaster.width + x) * 4;
+      const elevation = elevationData[y][x];
+
+      if (elevation === noDataValue || !Number.isFinite(elevation)) {
+        // Transparent for no-data
+        data[pixelIndex] = 0;
+        data[pixelIndex + 1] = 0;
+        data[pixelIndex + 2] = 0;
+        data[pixelIndex + 3] = 0;
+      } else {
+        // Color based on elevation
+        const normalizedValue = (elevation - mins[0]) / (maxs[0] - mins[0]);
+        const color = getLeafletColorForElevation(normalizedValue, colorScheme);
+
+        data[pixelIndex] = color.r;
+        data[pixelIndex + 1] = color.g;
+        data[pixelIndex + 2] = color.b;
+        data[pixelIndex + 3] = Math.floor(opacity * 255);
+      }
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  // Convert canvas to data URL
+  const imageUrl = canvas.toDataURL();
+
+  // Create bounds for the image overlay (Leaflet format: [[lat, lng], [lat, lng]])
+  // Ensure proper ordering: southwest to northeast
+  const bounds = [
+    [Math.min(georaster.ymin, georaster.ymax), Math.min(georaster.xmin, georaster.xmax)],
+    [Math.max(georaster.ymin, georaster.ymax), Math.max(georaster.xmin, georaster.xmax)]
+  ];
+
+  // Validate bounds
+  if (!bounds || bounds.length !== 2 ||
+      !Array.isArray(bounds[0]) || !Array.isArray(bounds[1]) ||
+      bounds[0].length !== 2 || bounds[1].length !== 2) {
+    throw new Error('Invalid georaster bounds');
+  }
+
+  // Check for valid coordinate values
+  const [lat1, lng1] = bounds[0];
+  const [lat2, lng2] = bounds[1];
+
+  if (isNaN(lat1) || isNaN(lng1) || isNaN(lat2) || isNaN(lng2)) {
+    throw new Error('Georaster bounds contain invalid coordinate values');
+  }
+
+  if (lat1 < -90 || lat1 > 90 || lat2 < -90 || lat2 > 90 ||
+      lng1 < -180 || lng1 > 180 || lng2 < -180 || lng2 > 180) {
+    throw new Error('Georaster bounds contain out-of-range coordinate values');
+  }
+
+  // Create Leaflet image overlay
+  const imageOverlay = L.imageOverlay(imageUrl, bounds, {
+    opacity: opacity,
+    interactive: false
+  });
+
+  console.log('Created simple image overlay:', {
+    bounds: bounds,
+    imageUrlLength: imageUrl.length,
+    hasBounds: !!bounds,
+    georasterBounds: [georaster.ymin, georaster.xmin, georaster.ymax, georaster.xmax]
+  });
+
+  return imageOverlay;
+}
+
+/**
+ * Creates a canvas-based georaster layer for Leaflet (fallback)
+ * @param {Object} georaster - Georaster object with elevation data
+ * @param {Object} options - Layer options
+ * @returns {Object} Leaflet canvas layer
+ */
+function createLeafletCanvasGeoRasterLayer(georaster, options = {}) {
+  const { opacity = 0.7, colorScheme = 'terrain' } = options;
+
+  // Create the layer class
+  const GeoRasterCanvasLayer = L.GridLayer.extend({
+    options: {
+      opacity: opacity,
+      colorScheme: colorScheme
+    },
+
+    initialize: function(georaster, options) {
+      this.georaster = georaster;
+      L.GridLayer.prototype.initialize.call(this, options);
+    },
+
+    createTile: function(coords, done) {
+      const tile = document.createElement('canvas');
+      const ctx = tile.getContext('2d');
+      tile.width = tile.height = 256;
+
+      // Calculate tile bounds in georaster coordinates
+      const tileSize = this.getTileSize();
+      const pixelBounds = this._getTiledPixelBounds(coords);
+      const { values, mins, maxs, noDataValue } = this.georaster;
+      const elevationData = values[0];
+
+      const imageData = ctx.createImageData(tile.width, tile.height);
+      const data = imageData.data;
+
+      for (let y = 0; y < tile.height; y++) {
+        for (let x = 0; x < tile.width; x++) {
+          const pixelIndex = (y * tile.width + x) * 4;
+
+          // Convert tile pixel to georaster coordinates
+          const geoX = Math.floor(((pixelBounds.min.x + x) / pixelBounds.max.x) * this.georaster.width);
+          const geoY = Math.floor(((pixelBounds.min.y + y) / pixelBounds.max.y) * this.georaster.height);
+
+          const elevation = elevationData[geoY]?.[geoX];
+
+          if (elevation === noDataValue || !Number.isFinite(elevation)) {
+            // Transparent for no-data
+            data[pixelIndex] = 0;
+            data[pixelIndex + 1] = 0;
+            data[pixelIndex + 2] = 0;
+            data[pixelIndex + 3] = 0;
+          } else {
+            // Color based on elevation
+            const normalizedElevation = (elevation - mins[0]) / (maxs[0] - mins[0]);
+            const color = getLeafletColorForElevation(normalizedElevation, this.options.colorScheme);
+
+            data[pixelIndex] = color.r;
+            data[pixelIndex + 1] = color.g;
+            data[pixelIndex + 2] = color.b;
+            data[pixelIndex + 3] = Math.floor(opacity * 255);
+          }
+        }
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+      done(null, tile);
+      return tile;
+    }
+  });
+
+  // Return instantiated layer
+  return new GeoRasterCanvasLayer(georaster, options);
+}
+
+/**
+ * Gets color for elevation value in Leaflet format
+ * @param {number} normalizedValue - Normalized elevation (0-1)
+ * @param {string} colorScheme - Color scheme name
+ * @returns {Object} RGB color object
+ */
+function getLeafletColorForElevation(normalizedValue, colorScheme) {
+  if (colorScheme === 'terrain') {
+    if (normalizedValue < 0.2) return { r: 0, g: 100, b: 0 };      // Dark green
+    if (normalizedValue < 0.4) return { r: 34, g: 139, b: 34 };   // Green
+    if (normalizedValue < 0.6) return { r: 255, g: 255, b: 0 };   // Yellow
+    if (normalizedValue < 0.8) return { r: 255, g: 165, b: 0 };   // Orange
+    return { r: 139, g: 69, b: 19 };                             // Brown
+  }
+
+  // Grayscale fallback
+  const gray = Math.floor(normalizedValue * 255);
+  return { r: gray, g: gray, b: gray };
+}
+
+/**
+ * Attempts to load the GeoRasterLayer plugin for Leaflet
+ * @returns {Promise<void>}
+ */
+async function loadGeoRasterLayerPlugin() {
+  if (typeof L.GeoRasterLayer !== 'undefined') {
+    return; // Already loaded
+  }
+
+  try {
+    // Try to load the georaster-layer-for-leaflet plugin
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/georaster-layer-for-leaflet@3.5.0/dist/georaster-layer-for-leaflet.min.js';
+    script.type = 'text/javascript';
+
+    return new Promise((resolve, reject) => {
+      script.onload = () => {
+        console.log('GeoRasterLayer plugin loaded');
+        resolve();
+      };
+      script.onerror = () => {
+        reject(new Error('Failed to load GeoRasterLayer plugin'));
+      };
+      document.head.appendChild(script);
+    });
+  } catch (error) {
+    throw new Error(`GeoRasterLayer plugin loading failed: ${error.message}`);
+  }
+}
+
+/**
  * Adds a custom legend to the map based on the map type and position specified.
  * @param {Object} param0 - Object containing the map type and position for the legend.
  * @param {string} param0.position - The position for the legend (top, top left, left, bottom left, bottom, bottom right, right, top right).
@@ -1251,4 +1770,4 @@ function generateColors () {
 /*** End of Supporting functions **/
 /**********************************/
 
-export { loader, Layers, renderMap, recenter, addCustomLegend, removeMap, reinitializeController  };
+export { loader, Layers, renderMap, recenter, addCustomLegend, addGeoRasterLayer, removeMap, reinitializeController  };

@@ -5,29 +5,29 @@ import hdf5Loader from "./hdf5/hdf5.js";
 import geospatialLoader from "./geospatial/geospatial.js";
 
 /**
- * Scientific Data Format Loader
- * Provides lazy loading capabilities for various scientific data formats
+ * Gridded Data Format Loader
+ * Provides lazy loading capabilities for various gridded data formats
  * including Zarr, NetCDF, HDF5, and geospatial libraries
- * @external SciData
+ * @external GriddedData
  */
 
 /**
- * Loads scientific data format libraries based on the requested format
+ * Loads gridded data format libraries based on the requested format
  * @method loadLibrary
- * @memberof SciData
+ * @memberof GriddedData
  * @param {Object} params - Configuration object
  * @param {string} params.format - Data format ('zarr', 'netcdf', 'hdf5', 'geospatial')
  * @param {Object} [params.options] - Format-specific options
  * @returns {Promise} Promise resolving to loaded library
  * @example
  * // Load Zarr library
- * hydro.external.sciData.loadLibrary({
+ * hydro.external.griddedData.loadLibrary({
  *   format: 'zarr',
  *   options: { version: 'v2' }
  * });
  *
  * // Load NetCDF library
- * hydro.external.sciData.loadLibrary({
+ * hydro.external.griddedData.loadLibrary({
  *   format: 'netcdf',
  *   options: { compression: true }
  * });
@@ -45,19 +45,19 @@ async function loadLibrary({ params, args, data } = {}) {
     case 'geospatial':
       return await geospatialLoader.load(options);
     default:
-      throw new Error(`Unsupported scientific data format: ${format}`);
+      throw new Error(`Unsupported gridded data format: ${format}`);
   }
 }
 
 /**
- * Checks if a scientific data format library is already loaded
+ * Checks if a gridded data format library is already loaded
  * @method isLoaded
- * @memberof SciData
+ * @memberof GriddedData
  * @param {Object} params - Configuration object
  * @param {string} params.format - Data format to check
  * @returns {boolean} True if library is loaded
  * @example
- * hydro.external.sciData.isLoaded({ format: 'zarr' });
+ * hydro.external.griddedData.isLoaded({ format: 'zarr' });
  */
 function isLoaded({ params, args, data } = {}) {
   const { format } = params;
@@ -77,12 +77,12 @@ function isLoaded({ params, args, data } = {}) {
 }
 
 /**
- * Gets information about supported scientific data formats
+ * Gets information about supported gridded data formats
  * @method getSupportedFormats
- * @memberof SciData
+ * @memberof GriddedData
  * @returns {Array} Array of supported format names
  * @example
- * hydro.external.sciData.getSupportedFormats();
+ * hydro.external.griddedData.getSupportedFormats();
  */
 function getSupportedFormats() {
   return ['zarr', 'netcdf', 'hdf5', 'geospatial'];
@@ -91,12 +91,12 @@ function getSupportedFormats() {
 /**
  * Gets detailed information about a specific format
  * @method getFormatInfo
- * @memberof SciData
+ * @memberof GriddedData
  * @param {Object} params - Configuration object
  * @param {string} params.format - Format to get info about
  * @returns {Object} Format information
  * @example
- * hydro.external.sciData.getFormatInfo({ format: 'zarr' });
+ * hydro.external.griddedData.getFormatInfo({ format: 'zarr' });
  */
 function getFormatInfo({ params, args, data } = {}) {
   const { format } = params;
