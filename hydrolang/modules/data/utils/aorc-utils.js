@@ -206,7 +206,7 @@ export async function extractAORCVariableAtPoint(variable, latitude, longitude, 
     const compressedData = await fetchBinary(`${datasetConfig.baseUrl}/${chunkPath}`);
 
     // Decompress using the Zarr library
-    const decompressedData = decompressData(compressedData, zarrLib);
+    const decompressedData = await decompressData(compressedData, zarrLib);
 
     // Extract the specific point from the chunk
     // The decompressed data is a 3D array: [timeChunkSize, latChunkSize, lonChunkSize]
@@ -371,7 +371,7 @@ export async function extractAORCVariableInGrid(variable, bbox, startDate, endDa
       // Fetch the chunk
       const chunkPath = `${year}.zarr/${variable}/${timeChunkIndex}.${targetLatChunk}.${targetLonChunk}`;
       const compressedData = await fetchBinary(`${datasetConfig.baseUrl}/${chunkPath}`);
-      const decompressedData = decompressData(compressedData, zarrLib);
+      const decompressedData = await decompressData(compressedData, zarrLib);
 
       console.log(`Chunk data dimensions: time=${timeChunkSize}, lat=${latChunkSize}, lon=${lonChunkSize}`);
 
@@ -490,7 +490,7 @@ async function fetchBinary(url) {
 /**
  * Decompress data using available libraries
  */
-function decompressData(compressedData, zarrLib) {
+async function decompressData(compressedData, zarrLib) {
   console.log('Attempting to decompress data...', {
     compressedDataSize: compressedData.byteLength,
     zarrLibKeys: zarrLib ? Object.keys(zarrLib) : 'null',
@@ -502,7 +502,35 @@ function decompressData(compressedData, zarrLib) {
 
   try {
     // Try to use fzstd if available (from zarrLib or window)
-    const fzstd = (zarrLib && zarrLib.fzstd) || (window && window.fzstd);
+    let fzstd = (zarrLib && zarrLib.fzstd) || (window && window.fzstd);
+
+    // If fzstd is not available, try to load it dynamically
+    if (!fzstd || typeof fzstd.decompress !== 'function') {
+      console.log('fzstd not available, attempting dynamic load...');
+      try {
+        // Load fzstd dynamically
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/fzstd@0.1.1/umd/index.js';
+          script.onload = () => {
+            console.log('fzstd script loaded dynamically');
+            if (window.fzstd && typeof window.fzstd.decompress === 'function') {
+              fzstd = window.fzstd;
+              console.log('fzstd is now available for decompression');
+            }
+            resolve();
+          };
+          script.onerror = () => {
+            console.error('fzstd dynamic script loading failed');
+            reject(new Error('fzstd script load failed'));
+          };
+          document.head.appendChild(script);
+        });
+      } catch (loadError) {
+        console.error('Dynamic fzstd loading failed:', loadError.message);
+      }
+    }
+
     if (fzstd && typeof fzstd.decompress === 'function') {
       console.log('Using fzstd for decompression');
       const decompressed = fzstd.decompress(new Uint8Array(compressedData));
@@ -741,14 +769,41 @@ export async function processAORCPointData(args, datasetConfig) {
  * Process AORC grid data extraction
  */
 export async function processAORCGridData(args, datasetConfig) {
-  const { bbox, startDate, endDate, variables = ["APCP_surface"], format = "json" } = args;
+  const { bbox, latitude, longitude, startDate, endDate, variables = ["APCP_surface"], format = "json" } = args;
 
-  console.log(`Processing AORC grid data for bbox: [${bbox}]`);
+  // Convert latitude/longitude arrays to bbox format if provided
+  let gridBbox = bbox;
+  if (!gridBbox && latitude && longitude) {
+    // latitude and longitude should be arrays: [minLat, maxLat] and [minLon, maxLon]
+    if (Array.isArray(latitude) && Array.isArray(longitude) && latitude.length === 2 && longitude.length === 2) {
+      gridBbox = [longitude[0], latitude[0], longitude[1], latitude[1]]; // [west, south, east, north]
+      console.log(`Converted lat/lon arrays to bbox: [${gridBbox}]`);
+    } else {
+      throw new Error('For grid data, latitude and longitude must be arrays of [min, max] values, or provide bbox as [west, south, east, north]');
+    }
+  }
+
+  if (!gridBbox) {
+    throw new Error('bbox parameter is required for grid data. Provide either bbox as [west, south, east, north] or latitude/longitude arrays.');
+  }
+
+  // Validate bbox coordinates are within AORC domain
+  const [west, south, east, north] = gridBbox;
+  const domainWest = datasetConfig.spatial.longitude.min;
+  const domainEast = datasetConfig.spatial.longitude.max;
+  const domainSouth = datasetConfig.spatial.latitude.min;
+  const domainNorth = datasetConfig.spatial.latitude.max;
+
+  if (west < domainWest || east > domainEast || south < domainSouth || north > domainNorth) {
+    throw new Error(`bbox coordinates [${gridBbox}] are outside AORC domain [${domainWest}, ${domainSouth}, ${domainEast}, ${domainNorth}]`);
+  }
+
+  console.log(`Processing AORC grid data for bbox: [${gridBbox}]`);
 
   const results = {};
   for (const variable of variables) {
     try {
-      const data = await extractAORCVariableInGrid(variable, bbox, startDate, endDate, datasetConfig);
+      const data = await extractAORCVariableInGrid(variable, gridBbox, startDate, endDate, datasetConfig);
       results[variable] = data;
     } catch (error) {
       console.error(`Failed to process ${variable}:`, error);

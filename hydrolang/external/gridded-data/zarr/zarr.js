@@ -126,9 +126,12 @@ async function load(options = {}) {
           await loadViaScript('fzstd', "https://cdn.jsdelivr.net/npm/fzstd@0.1.1/umd/index.js");
           if (window.fzstd && typeof window.fzstd.decompress === 'function') {
             window.zstdDecompress = window.fzstd.decompress;
+            console.log('fzstd loaded successfully via script');
+          } else {
+            console.warn('fzstd script loaded but decompress function not available');
           }
         } catch (scriptError) {
-          console.error('fzstd script loading also failed:', scriptError.message);
+          console.error('fzstd script loading failed:', scriptError.message);
         }
       }));
 
@@ -169,6 +172,26 @@ async function load(options = {}) {
     }
 
     isZarrLoaded = true;
+
+    console.log('Zarr library interface created:', {
+      hasZarr: !!zarrLibraries.zarr,
+      hasFzstd: !!zarrLibraries.fzstd,
+      hasPako: !!zarrLibraries.pako,
+      zarrType: typeof zarrLibraries.zarr,
+      fzstdType: typeof zarrLibraries.fzstd,
+      pakoType: typeof zarrLibraries.pako,
+      windowFzstd: !!(window && window.fzstd),
+      windowFzstdType: typeof (window && window.fzstd)
+    });
+
+    // Additional check for fzstd functionality
+    if (zarrLibraries.fzstd && typeof zarrLibraries.fzstd.decompress === 'function') {
+      console.log('fzstd decompress function is available');
+    } else if (zarrLibraries.fzstd) {
+      console.warn('fzstd is loaded but decompress function not available:', Object.keys(zarrLibraries.fzstd));
+    } else {
+      console.warn('fzstd is not loaded');
+    }
 
     return zarrLibraries;
 

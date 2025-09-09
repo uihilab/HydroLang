@@ -106,7 +106,7 @@ const result = await hydro.data.retrieve({
 ### Grid Data Extraction
 
 ```javascript
-// Extract data for a rectangular region
+// Extract data for a rectangular region using latitude/longitude arrays
 const result = await hydro.data.retrieve({
   params: {
     source: "aorc",
@@ -117,6 +117,21 @@ const result = await hydro.data.retrieve({
     variables: ["APCP_surface"],
     latitude: [39.0, 40.0],    // [minLat, maxLat]
     longitude: [-105.0, -104.0], // [minLon, maxLon]
+    startDate: "2020-07-01T12:00:00Z",
+    endDate: "2020-07-01T12:00:00Z"
+  }
+});
+
+// Alternative: Extract data using bbox array directly
+const result2 = await hydro.data.retrieve({
+  params: {
+    source: "aorc",
+    datatype: "grid-data"
+  },
+  args: {
+    dataset: "aorc-v1.1",
+    variables: ["APCP_surface"],
+    bbox: [-105.0, 39.0, -104.0, 40.0], // [west, south, east, north]
     startDate: "2020-07-01T12:00:00Z",
     endDate: "2020-07-01T12:00:00Z"
   }
