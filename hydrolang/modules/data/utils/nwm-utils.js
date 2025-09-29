@@ -3,7 +3,7 @@
  * Contains NWM-specific data manipulation functions
  */
 
-import { aggregateTime, expandSpatialBounds, loadSciDataLibrary } from './gridded-data-utils.js';
+import { aggregateTime, expandSpatialBounds, loadGridDataLibrary } from './gridded-data-utils.js';
 
 
 
@@ -101,7 +101,7 @@ async function extractNWMNetCDFData(datasetConfig, variable, comid, startDate, e
   const results = [];
 
   // Load NetCDF library for parsing
-  const netcdfLib = await loadSciDataLibrary('netcdf');
+  const netcdfLib = await loadGridDataLibrary('netcdf');
   if (!netcdfLib || !netcdfLib.netcdfjs) {
     throw new Error('NetCDF library not available for parsing');
   }
@@ -229,7 +229,7 @@ async function extractNWMNetCDFData(datasetConfig, variable, comid, startDate, e
 async function extractNWMZarrData(datasetConfig, variable, comid, startDate, endDate) {
   try {
     // Load Zarr library for parsing
-    const zarrLib = await loadSciDataLibrary('zarr');
+    const zarrLib = await loadGridDataLibrary('zarr');
     if (!zarrLib) {
       throw new Error('Zarr library not available for parsing');
     }

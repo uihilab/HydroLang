@@ -18,8 +18,8 @@ import {
   applyQualityControl,
   calculateStatistics,
   formatData,
-  loadSciDataLibrary,
-  isSciDataLibraryLoaded,
+  loadGridDataLibrary,
+  isGridDataLibraryLoaded,
   aggregateTime,
   isValidCoordinate,
   isValidBoundingBox
@@ -46,6 +46,42 @@ import {
   fetchPointElevation,
   validate3DEPParams
 } from "./utils/threedep-utils.js";
+
+import {
+  extractMRMSPointData,
+  extractMRMSGridData,
+  extractMRMSTimeSeries,
+  getMRMSDatasetInfo,
+  getAvailableMRMSProducts,
+  validateMRMSConfig
+} from "./utils/mrms-utils.js";
+
+import {
+  extractHRRRPointData,
+  extractHRRRGridData,
+  extractHRRRTimeSeries,
+  getHRRRDatasetInfo,
+  getAvailableHRRRVariables,
+  validateHRRRConfig
+} from "./utils/hrrr-utils.js";
+
+import {
+  extractERA5PointData,
+  extractERA5GridData,
+  extractERA5TimeSeries,
+  getAvailableERA5Variables,
+  validateERA5Config
+} from "./utils/ecmwf-utils.js";
+
+import {
+  extractPRISMPointData,
+  extractPRISMGridData,
+  extractPRISMTimeSeries,
+  getPRISMDatasetInfo,
+  getAvailablePRISMVariables,
+  validatePRISMConfig
+} from "./utils/prism-utils.js";
+
 //import fxparserMin from "./fxparser.min.js";
 
 //import XMLParser from './fxparser.min.js'
@@ -207,13 +243,8 @@ async function retrieve({ params, args, data } = {}) {
   let dataType = params.datatype;
   let placeHolder = params.placeHolder || false;
   let trans = params.transform || false;
-  let dataSource = datasources[source]?.[dataType];
 
   console.log(params)
-
-  if (!dataSource) {
-    return Promise.reject(new Error("No data source found for the given specifications."));
-  }
 
   // Special handling for AORC datasource (Zarr format on S3)
   if (source === "aorc") {
@@ -233,6 +264,93 @@ async function retrieve({ params, args, data } = {}) {
       }
       throw error;
     });
+  }
+
+  // Special handling for MRMS datasource (GRIB2 format)
+  if (source === "mrms") {
+    return processMRMSData({ params, args, dataType }).catch(async (error) => {
+      // If the error is related to missing libraries, try to load them automatically
+      if (error.message.includes('not available') || error.message.includes('not loaded')) {
+        console.log('Attempting to load required GRIB2 libraries...');
+
+        try {
+          // Load GRIB2 library automatically
+          await loadGridDataLibrary('grib2');
+          // Retry the operation
+          return processMRMSData({ params, args, dataType });
+        } catch (loadError) {
+          throw new Error(`Failed to load required GRIB2 libraries: ${loadError.message}`);
+        }
+      }
+      throw error;
+    });
+  }
+
+  // Special handling for HRRR datasource (GRIB2 format)
+  if (source === "hrrr") {
+    return processHRRRData({ params, args, dataType }).catch(async (error) => {
+      // If the error is related to missing libraries, try to load them automatically
+      if (error.message.includes('not available') || error.message.includes('not loaded')) {
+        console.log('Attempting to load required GRIB2 libraries...');
+
+        try {
+          // Load GRIB2 library automatically
+          await loadGridDataLibrary('grib2');
+          // Retry the operation
+          return processHRRRData({ params, args, dataType });
+        } catch (loadError) {
+          throw new Error(`Failed to load required GRIB2 libraries: ${loadError.message}`);
+        }
+      }
+      throw error;
+    });
+  }
+
+  // Special handling for ECMWF datasource (ERA5 GRIB2 format)
+  if (source === "ecmwf") {
+    return processECMWFData({ params, args, dataType }).catch(async (error) => {
+      // If the error is related to missing libraries, try to load them automatically
+      if (error.message.includes('not available') || error.message.includes('not loaded')) {
+        console.log('Attempting to load required GRIB2 libraries...');
+
+        try {
+          // Load GRIB2 library automatically
+          await loadGridDataLibrary('grib2');
+          // Retry the operation
+          return processECMWFData({ params, args, dataType });
+        } catch (loadError) {
+          throw new Error(`Failed to load required GRIB2 libraries: ${loadError.message}`);
+        }
+      }
+      throw error;
+    });
+  }
+
+  // Special handling for PRISM datasource (GeoTIFF/BIL format)
+  if (source === "prism") {
+    return processPRISMData({ params, args, dataType }).catch(async (error) => {
+      // If the error is related to missing libraries, try to load them automatically
+      if (error.message.includes('not available') || error.message.includes('not loaded')) {
+        console.log('Attempting to load required geospatial libraries...');
+
+        try {
+          // Load geospatial library automatically
+          await loadGridDataLibrary('geospatial');
+          // Retry the operation
+          return processPRISMData({ params, args, dataType });
+        } catch (loadError) {
+          throw new Error(`Failed to load required geospatial libraries: ${loadError.message}`);
+        }
+      }
+      throw error;
+    });
+  }
+
+  // For other datasources, check if they exist
+  let dataSource = datasources[source]?.[dataType];
+
+  if (!dataSource) {
+    return Promise.reject(new Error("No data source found for the given specifications."));
   }
 
   // Special handling for NWM datasource (Zarr format on S3)
@@ -528,7 +646,309 @@ async function processAORCData({ params, args, dataType }) {
   }
 }
 
+/**
+ * Process MRMS (Multi-Radar Multi-Sensor) data with GRIB2 format support
+ * Handles point data, grid data, time series, and dataset information extraction
+ *
+ * @function processMRMSData
+ * @memberof data
+ * @async
+ * @param {Object} options - Configuration object for MRMS data processing
+ * @param {Object} options.params - Parameters including source, datatype, etc.
+ * @param {Object} options.args - Arguments specific to MRMS data extraction
+ * @param {string} options.dataType - Type of MRMS operation (point-data, grid-data, etc.)
+ * @returns {Promise<Object>} Processed MRMS data in requested format
+ */
+async function processMRMSData({ params, args, dataType }) {
+  const { dataset = "mrms-radar", product, variable, latitude, longitude, bbox, startDate, endDate } = args;
 
+  console.log(`Processing MRMS data: ${dataType} from ${dataset}`);
+
+  // Get dataset configuration
+  const datasetConfig = datasources.mrms.datasets[dataset];
+  if (!datasetConfig) {
+    throw new Error(`Unknown MRMS dataset: ${dataset}`);
+  }
+
+  // Validate dataset configuration
+  if (!validateMRMSConfig(datasetConfig)) {
+    throw new Error(`Invalid MRMS dataset configuration for ${dataset}`);
+  }
+
+  // Merge dataset config with variables from datasource
+  const fullDatasetConfig = {
+    ...datasetConfig,
+    variables: datasources.mrms.variables
+  };
+
+  try {
+    switch (dataType) {
+      case "point-data": {
+        if (!latitude || !longitude || !startDate) {
+          throw new Error('Point data requires latitude, longitude, and startDate');
+        }
+        const timestamp = new Date(startDate);
+        const variableName = variable || args.variables?.[0] || 'APCP'; // Default to precipitation
+        return await extractMRMSPointData(variableName, latitude, longitude, timestamp, fullDatasetConfig, product);
+      }
+
+      case "grid-data": {
+        if (!bbox || !startDate) {
+          throw new Error('Grid data requires bbox and startDate');
+        }
+        const timestamp = new Date(startDate);
+        const variableName = variable || args.variables?.[0] || 'APCP';
+        return await extractMRMSGridData(variableName, bbox, timestamp, fullDatasetConfig, product);
+      }
+
+      case "timeseries-data": {
+        if (!latitude || !longitude || !startDate || !endDate) {
+          throw new Error('Time series data requires latitude, longitude, startDate, and endDate');
+        }
+        const startTime = new Date(startDate);
+        const endTime = new Date(endDate);
+        const variableName = variable || args.variables?.[0] || 'APCP';
+        return await extractMRMSTimeSeries(variableName, latitude, longitude, startTime, endTime, fullDatasetConfig, product);
+      }
+
+      case "dataset-info": {
+        const infoType = args.info || 'metadata';
+        return await getMRMSDatasetInfo(fullDatasetConfig, infoType);
+      }
+
+      case "available-products": {
+        const date = args.date ? new Date(args.date) : new Date();
+        return await getAvailableMRMSProducts(fullDatasetConfig, date);
+      }
+
+      default:
+        throw new Error(`Unsupported MRMS data type: ${dataType}`);
+    }
+  } catch (error) {
+    console.error(`MRMS processing error: ${error.message}`);
+    throw new Error(`MRMS data processing failed: ${error.message}`);
+  }
+}
+
+/**
+ * Process HRRR (High Resolution Rapid Refresh) data requests
+ * @param {Object} options - Processing options
+ * @param {Object} options.params - Request parameters
+ * @param {Object} options.args - Request arguments including parse flag
+ * @param {string} options.dataType - Type of data requested
+ * @param {boolean} options.args.parse - Whether to parse GRIB2 data (default: true). If false, returns raw buffer
+ * @returns {Promise<Object>} Processed HRRR data or raw buffer if parse=false
+ */
+async function processHRRRData({ params, args, dataType }) {
+  const { dataset = "hrrr-operational", product, variable, latitude, longitude, bbox, startDate, endDate, forecastHour = 0, parse = true } = args;
+
+  console.log(`Processing HRRR data: ${dataType} from ${dataset}`);
+
+  // Get dataset configuration
+  const datasetConfig = datasources.hrrr.datasets[dataset];
+  if (!datasetConfig) {
+    throw new Error(`Unknown HRRR dataset: ${dataset}`);
+  }
+
+  // Validate dataset configuration
+  if (!validateHRRRConfig(datasetConfig)) {
+    throw new Error(`Invalid HRRR dataset configuration for ${dataset}`);
+  }
+
+  // Get variables from datasource
+  const hrrrVariables = datasources.hrrr.variables;
+
+  try {
+    switch (dataType) {
+      case "point-data": {
+        if (!latitude || !longitude || !startDate) {
+          throw new Error('Point data requires latitude, longitude, and startDate');
+        }
+        const timestamp = new Date(startDate);
+        const variableName = variable || args.variables?.[0] || 'TMP'; // Default to temperature
+        return await extractHRRRPointData(variableName, latitude, longitude, timestamp, datasetConfig, hrrrVariables, product, forecastHour);
+      }
+
+      case "grid-data": {
+        if (!bbox || !startDate) {
+          throw new Error('Grid data requires bbox and startDate');
+        }
+        const timestamp = new Date(startDate);
+        const variableName = variable || args.variables?.[0] || 'TMP';
+        const options = { parse };
+        return await extractHRRRGridData(variableName, bbox, timestamp, datasetConfig, hrrrVariables, product, forecastHour, options);
+      }
+
+      case "timeseries-data": {
+        if (!latitude || !longitude || !startDate || !endDate) {
+          throw new Error('Time series data requires latitude, longitude, startDate, and endDate');
+        }
+        const startTime = new Date(startDate);
+        const endTime = new Date(endDate);
+        const variableName = variable || args.variables?.[0] || 'TMP';
+        return await extractHRRRTimeSeries(variableName, latitude, longitude, startTime, endTime, datasetConfig, hrrrVariables, product);
+      }
+
+      case "dataset-info": {
+        const infoType = args.info || 'metadata';
+        return await getHRRRDatasetInfo(datasetConfig, infoType, hrrrVariables);
+      }
+
+      case "available-products": {
+        const date = args.date ? new Date(args.date) : new Date();
+        return await getAvailableHRRRVariables();
+      }
+
+      default:
+        throw new Error(`Unsupported HRRR data type: ${dataType}`);
+    }
+  } catch (error) {
+    console.error(`HRRR processing error: ${error.message}`);
+    throw new Error(`HRRR data processing failed: ${error.message}`);
+  }
+}
+
+/**
+ * Process ECMWF (European Centre for Medium-Range Weather Forecasts) data requests
+ * @param {Object} options - Processing options
+ * @param {Object} options.params - Request parameters
+ * @param {Object} options.args - Request arguments
+ * @param {string} options.dataType - Type of data requested
+ * @returns {Promise<Object>} Processed ECMWF data
+ */
+async function processECMWFData({ params, args, dataType }) {
+  const { dataset = "era5", product, variable, latitude, longitude, bbox, startDate, endDate } = args;
+
+  console.log(`Processing ECMWF data: ${dataType} from ${dataset}`);
+
+  // Get dataset configuration
+  const datasetConfig = datasources.ECMWF[dataset];
+  if (!datasetConfig) {
+    throw new Error(`Unknown ECMWF dataset: ${dataset}`);
+  }
+
+  // Validate dataset configuration
+  if (!validateERA5Config(datasetConfig)) {
+    throw new Error(`Invalid ECMWF dataset configuration for ${dataset}`);
+  }
+
+  try {
+    switch (dataType) {
+      case "point-data": {
+        if (!latitude || !longitude || !startDate) {
+          throw new Error('Point data requires latitude, longitude, and startDate');
+        }
+        const timestamp = new Date(startDate);
+        const variableName = variable || args.variables?.[0] || '2m_temperature'; // Default to temperature
+        return await extractERA5PointData(variableName, latitude, longitude, timestamp, datasetConfig);
+      }
+
+      case "grid-data": {
+        if (!bbox || !startDate) {
+          throw new Error('Grid data requires bbox and startDate');
+        }
+        const timestamp = new Date(startDate);
+        const variableName = variable || args.variables?.[0] || '2m_temperature';
+        return await extractERA5GridData(variableName, bbox, timestamp, datasetConfig);
+      }
+
+      case "timeseries-data": {
+        if (!latitude || !longitude || !startDate || !endDate) {
+          throw new Error('Time series data requires latitude, longitude, startDate, and endDate');
+        }
+        const startTime = new Date(startDate);
+        const endTime = new Date(endDate);
+        const variableName = variable || args.variables?.[0] || '2m_temperature';
+        return await extractERA5TimeSeries(variableName, latitude, longitude, startTime, endTime, datasetConfig);
+      }
+
+      case "available-variables": {
+        return getAvailableERA5Variables();
+      }
+
+      default:
+        throw new Error(`Unsupported ECMWF data type: ${dataType}`);
+    }
+  } catch (error) {
+    console.error(`ECMWF processing error: ${error.message}`);
+    throw new Error(`ECMWF data processing failed: ${error.message}`);
+  }
+}
+
+/**
+ * Process PRISM (Parameter-elevation Relationships on Independent Slopes Model) data requests
+ * @param {Object} options - Processing options
+ * @param {Object} options.params - Request parameters
+ * @param {Object} options.args - Request arguments
+ * @param {string} options.dataType - Type of data requested
+ * @returns {Promise<Object>} Processed PRISM data
+ */
+async function processPRISMData({ params, args, dataType }) {
+  const { dataset = "prism-current", variable, latitude, longitude, bbox, startDate, endDate, dataTypeOverride = "daily", region, resolution } = args;
+
+  console.log(`Processing PRISM data: ${dataType} from ${dataset}`);
+
+  // Get dataset configuration
+  const datasetConfig = datasources.prism.datasets[dataset];
+  if (!datasetConfig) {
+    throw new Error(`Unknown PRISM dataset: ${dataset}`);
+  }
+
+  // Validate dataset configuration
+  if (!validatePRISMConfig(datasetConfig)) {
+    throw new Error(`Invalid PRISM dataset configuration for ${dataset}`);
+  }
+
+  // Get variables from datasource
+  const prismVariables = datasources.prism.variables;
+
+  try {
+    switch (dataType) {
+      case "point-data": {
+        if (!latitude || !longitude || !startDate) {
+          throw new Error('Point data requires latitude, longitude, and startDate');
+        }
+        const timestamp = new Date(startDate);
+        const variableName = variable || args.variables?.[0] || 'ppt'; // Default to precipitation
+        return await extractPRISMPointData(variableName, latitude, longitude, timestamp, datasetConfig, prismVariables, dataTypeOverride, region, resolution);
+      }
+
+      case "grid-data": {
+        if (!bbox || !startDate) {
+          throw new Error('Grid data requires bbox and startDate');
+        }
+        const timestamp = new Date(startDate);
+        const variableName = variable || args.variables?.[0] || 'ppt';
+        return await extractPRISMGridData(variableName, bbox, timestamp, datasetConfig, prismVariables, dataTypeOverride, region, resolution);
+      }
+
+      case "timeseries-data": {
+        if (!latitude || !longitude || !startDate || !endDate) {
+          throw new Error('Time series data requires latitude, longitude, startDate, and endDate');
+        }
+        const startTime = new Date(startDate);
+        const endTime = new Date(endDate);
+        const variableName = variable || args.variables?.[0] || 'ppt';
+        return await extractPRISMTimeSeries(variableName, latitude, longitude, startTime, endTime, datasetConfig, prismVariables, dataTypeOverride, region, resolution);
+      }
+
+      case "available-variables": {
+        const targetDataType = args.availabilityType || dataTypeOverride;
+        return getAvailablePRISMVariables(targetDataType);
+      }
+
+      case "dataset-info": {
+        return await getPRISMDatasetInfo(datasetConfig, args.infoType || 'metadata', prismVariables);
+      }
+
+      default:
+        throw new Error(`Unsupported PRISM data type: ${dataType}`);
+    }
+  } catch (error) {
+    console.error(`PRISM processing error: ${error.message}`);
+    throw new Error(`PRISM data processing failed: ${error.message}`);
+  }
+}
 
 /**
  * Transform AORC (NOAA Analysis of Record for Calibration) data with comprehensive manipulation capabilities
@@ -583,6 +1003,8 @@ async function processAORCData({ params, args, dataType }) {
       processedData = applyDataScaling(processedData, variableName, datasources, 'nwm');
     } else if (source === 'threedep') {
       processedData = applyDataScaling(processedData, variableName, datasources, 'threedep');
+    } else if (source === 'prism') {
+      processedData = applyDataScaling(processedData, variableName, datasources, 'prism');
     }
 
     // Apply unit conversions if requested
@@ -805,7 +1227,7 @@ function transform({ params, args, data } = {}) {
   data = deepClone(data);
 
   // === GRIDDED DATA TRANSFORMATIONS ===
-  if (params?.source === 'aorc' || params?.source === 'nwm' || params?.source === 'threedep' ||
+  if (params?.source === 'aorc' || params?.source === 'nwm' || params?.source === 'threedep' || params?.source === 'prism' ||
       (data && typeof data === 'object' && data.variable)) {
     return transformGriddedData({ params, args, data });
   }

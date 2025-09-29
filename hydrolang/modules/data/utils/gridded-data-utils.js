@@ -9,6 +9,7 @@ let zarrLoadedLibraries = null;
 let netcdfLibrary = null;
 let hdf5Library = null;
 let geospatialLibrary = null;
+let grib2Library = null;
 
 /**
  * Load gridded data libraries dynamically
@@ -56,6 +57,58 @@ export async function loadGridDataLibrary(format) {
         }
         return geospatialLibrary;
 
+      case 'grib2':
+        if (!grib2Library) {
+          try {
+            // Import our standalone GRIB2 parser (doesn't modify research files)
+            const grib2Parser = await import('../../../external/gridded-data/grib2/hydrolang-grib2-parser.js');
+
+            // Create library object using our standalone implementation
+            grib2Library = {
+              // Core parsing functions from our standalone parser
+              parse: grib2Parser.parseGRIB2,
+              parseGRIB2: grib2Parser.parseGRIB2,
+
+              // Data extraction from our standalone parser
+              extractData: grib2Parser.extractGRIB2Data,
+              extractGRIB2Data: grib2Parser.extractGRIB2Data,
+
+              // Utility functions
+              getParameterInfo: (param) => {
+                // Simple parameter info lookup
+                const paramMap = {
+                  '0,1,8': { name: 'Total Precipitation', units: 'kg/m²', longName: 'Total Precipitation' },
+                  '0,1,7': { name: 'Precipitation Rate', units: 'kg/m²/s', longName: 'Precipitation Rate' },
+                  '0,0,0': { name: 'Temperature', units: 'K', longName: 'Temperature' }
+                };
+                return paramMap[param] || { name: 'Unknown', units: 'unknown', longName: 'Unknown Parameter' };
+              },
+
+              // Compatibility functions
+              load: async () => grib2Library,
+              isLoaded: () => true,
+              getInfo: () => ({ version: '2.0', format: 'GRIB2' }),
+              getGridInfo: () => ({ type: 'regular' }),
+              transformCoordinates: (coords) => coords
+            };
+
+            // Verify that required functions exist
+            if (!grib2Library.parse) {
+              throw new Error('GRIB2 parse function not found in standalone parser');
+            }
+            if (!grib2Library.extractGRIB2Data) {
+              throw new Error('GRIB2 extractGRIB2Data function not found in standalone parser');
+            }
+
+            console.log('GRIB2 library loaded successfully with standalone parser');
+
+          } catch (importError) {
+            console.error('Failed to import standalone GRIB2 parser:', importError);
+            throw new Error(`GRIB2 module import failed: ${importError.message}`);
+          }
+        }
+        return grib2Library;
+
       default:
         throw new Error(`Unsupported gridded data format: ${format}`);
     }
@@ -63,6 +116,7 @@ export async function loadGridDataLibrary(format) {
     throw new Error(`Failed to load ${format} library: ${error.message}`);
   }
 }
+
 
 /**
  * Check if a gridded data library is loaded
@@ -77,6 +131,8 @@ export function isGridDataLibraryLoaded(format) {
       return hdf5Library && hdf5Library.isLoaded();
     case 'geospatial':
       return geospatialLibrary && geospatialLibrary.isLoaded();
+    case 'grib2':
+      return grib2Library !== null;
     default:
       return false;
   }
@@ -95,6 +151,8 @@ export function getGridDataLibrary(format) {
       return hdf5Library;
     case 'geospatial':
       return geospatialLibrary;
+    case 'grib2':
+      return grib2Library;
     default:
       return null;
   }

@@ -3,7 +3,7 @@
  * Contains all AORC-specific data manipulation functions
  */
 
-import { aggregateTime, expandSpatialBounds, loadSciDataLibrary } from './gridded-data-utils.js';
+import { aggregateTime, expandSpatialBounds, loadGridDataLibrary } from './gridded-data-utils.js';
 
 /**
  * Find the nearest index in a coordinate array
@@ -125,7 +125,7 @@ export async function extractAORCVariableAtPoint(variable, latitude, longitude, 
     }
 
     // Load Zarr library for parsing
-    const zarrLib = await loadSciDataLibrary('zarr');
+    const zarrLib = await loadGridDataLibrary('zarr');
     if (!zarrLib) {
       throw new Error('Zarr library not available for parsing');
     }
@@ -294,7 +294,7 @@ export async function extractAORCVariableInGrid(variable, bbox, startDate, endDa
     }
 
     // Load Zarr library for parsing
-    const zarrLib = await loadSciDataLibrary('zarr');
+    const zarrLib = await loadGridDataLibrary('zarr');
     if (!zarrLib) {
       throw new Error('Zarr library not available for parsing');
     }
@@ -592,30 +592,8 @@ async function fetchAORCDataBasic(variable, latitude, longitude, startDate, endD
     const startTimeIndex = Math.floor((startTime.getTime() - referenceTime.getTime()) / (1000 * 60 * 60));
     const endTimeIndex = Math.floor((endTime.getTime() - referenceTime.getTime()) / (1000 * 60 * 60));
 
-    // For now, return a basic structure with placeholder data
-    // In a production system, this could fetch actual chunks or use a different data source
-    const dataLength = Math.min(endTimeIndex - startTimeIndex + 1, 24); // Limit to reasonable size
-    const data = [];
-
-    for (let i = 0; i < dataLength; i++) {
-      // Generate placeholder data based on variable type
-      let value;
-      if (variable.includes('APCP')) {
-        value = Math.random() * 10; // Precipitation in mm
-      } else if (variable.includes('TMP')) {
-        value = 273 + Math.random() * 30; // Temperature in K
-      } else if (variable.includes('PRES')) {
-        value = 101325 + (Math.random() - 0.5) * 10000; // Pressure in Pa
-      } else {
-        value = Math.random() * 100; // Generic value
-      }
-
-      // Apply scaling
-      const scaledValue = applyScalingToValue(value, variableMeta);
-      data.push(scaledValue);
-    }
-
-    console.log(`Generated ${data.length} data points using HTTP fallback`);
+    // HTTP fallback not implemented - requires actual AORC data source
+    throw new Error('HTTP fallback for AORC time series data not implemented');
 
     return {
       variable: variable,
@@ -687,28 +665,15 @@ async function fetchAORCGridDataBasic(variable, bbox, startDate, endDate, datase
       for (let lat = 0; lat < latSteps; lat++) {
         const latSlice = [];
         for (let lon = 0; lon < lonSteps; lon++) {
-          // Generate placeholder data based on variable type
-          let value;
-          if (variable.includes('APCP')) {
-            value = Math.random() * 5; // Precipitation in mm
-          } else if (variable.includes('TMP')) {
-            value = 273 + Math.random() * 20; // Temperature in K
-          } else if (variable.includes('PRES')) {
-            value = 101325 + (Math.random() - 0.5) * 5000; // Pressure in Pa
-          } else {
-            value = Math.random() * 50; // Generic value
-          }
-
-          // Apply scaling
-          const scaledValue = applyScalingToValue(value, variableMeta);
-          latSlice.push(scaledValue);
+          // HTTP fallback grid generation not implemented
+          latSlice.push(0); // Placeholder - actual implementation needed
         }
         timeSlice.push(latSlice);
       }
       gridData.push(timeSlice);
     }
 
-    console.log(`Generated ${timeSteps}x${latSteps}x${lonSteps} grid data using HTTP fallback`);
+    console.log(`Created ${timeSteps}x${latSteps}x${lonSteps} grid structure - HTTP fallback not fully implemented`);
 
     return {
       variable: variable,

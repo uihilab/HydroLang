@@ -72,7 +72,7 @@ export async function fetchDEMData(data, progressCallback) {
 
     if (progressCallback) progressCallback(30, "Processing GeoTIFF data...");
 
-    console.log("🗻 Creating DEM georaster directly from EPSG:5070 metadata...");
+    console.log(" Creating DEM georaster directly from EPSG:5070 metadata...");
 
     // Read the raw GeoTIFF to extract metadata and values
     const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);

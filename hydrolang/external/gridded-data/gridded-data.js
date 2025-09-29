@@ -3,6 +3,7 @@ import zarrLoader from "./zarr/zarr.js";
 import netcdfLoader from "./netcdf/netcdf.js";
 import hdf5Loader from "./hdf5/hdf5.js";
 import geospatialLoader from "./geospatial/geospatial.js";
+import grib2Loader from "./grib2/grib2.js";
 
 /**
  * Gridded Data Format Loader
@@ -44,6 +45,8 @@ async function loadLibrary({ params, args, data } = {}) {
       return await hdf5Loader.load(options);
     case 'geospatial':
       return await geospatialLoader.load(options);
+    case 'grib2':
+      return await grib2Loader.load(options);
     default:
       throw new Error(`Unsupported gridded data format: ${format}`);
   }
@@ -71,6 +74,8 @@ function isLoaded({ params, args, data } = {}) {
       return hdf5Loader.isLoaded();
     case 'geospatial':
       return geospatialLoader.isLoaded();
+    case 'grib2':
+      return grib2Loader.isLoaded();
     default:
       return false;
   }
@@ -85,7 +90,7 @@ function isLoaded({ params, args, data } = {}) {
  * hydro.external.griddedData.getSupportedFormats();
  */
 function getSupportedFormats() {
-  return ['zarr', 'netcdf', 'hdf5', 'geospatial'];
+  return ['zarr', 'netcdf', 'hdf5', 'geospatial', 'grib2'];
 }
 
 /**
@@ -110,6 +115,8 @@ function getFormatInfo({ params, args, data } = {}) {
       return hdf5Loader.getInfo();
     case 'geospatial':
       return geospatialLoader.getInfo();
+    case 'grib2':
+      return grib2Loader.getInfo();
     default:
       throw new Error(`Unknown format: ${format}`);
   }

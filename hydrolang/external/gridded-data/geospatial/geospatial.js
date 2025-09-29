@@ -61,6 +61,24 @@ async function load(options = {}) {
         }
       });
       libraries.push(geotiff);
+
+      // Load Tiff.js as alternative TIFF parser
+      const tiff = divisors.createScript({
+        params: {
+          src: "https://cdn.jsdelivr.net/npm/tiff@5.0.3/dist/tiff.min.js",
+          name: "tiff"
+        }
+      });
+      libraries.push(tiff);
+
+      // Load pako for gzip decompression fallback
+      const pako = divisors.createScript({
+        params: {
+          src: "https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js",
+          name: "pako"
+        }
+      });
+      libraries.push(pako);
     }
 
     if (includeTurf) {
@@ -95,6 +113,8 @@ async function load(options = {}) {
     geospatialLibraries = {
       proj4: window.proj4 || null,
       GeoTIFF: window.GeoTIFF || null,
+      Tiff: window.Tiff || null,
+      pako: window.pako || null,
       turf: window.turf || null,
       geolib: window.geolib || null,
       loadedAt: new Date()
@@ -138,6 +158,8 @@ function getInfo() {
     features: [
       'Coordinate transformations',
       'GeoTIFF support',
+      'Generic TIFF support (fallback)',
+      'Gzip decompression',
       'Geospatial operations',
       'Distance calculations',
       'Geometry processing'
@@ -145,6 +167,8 @@ function getInfo() {
     dependencies: [
       'proj4 (Coordinate transformations)',
       'geotiff (GeoTIFF support)',
+      'tiff (Generic TIFF support)',
+      'pako (Gzip decompression)',
       'turf (Geospatial operations)',
       'geolib (Geospatial utilities)'
     ]
@@ -206,16 +230,66 @@ function calculateDistance(point1, point2, unit = 'meters') {
 }
 
 /**
- * Loads a GeoTIFF file from URL
+ * Decompresses gzip data
+ * @param {ArrayBuffer} compressedData - Gzipped data
+ * @returns {Promise<ArrayBuffer>} Decompressed data
+ */
+async function decompressGzip(compressedData) {
+  // Use browser's built-in decompression if available
+  if (typeof DecompressionStream !== 'undefined') {
+    const decompressedStream = new Response(compressedData).body
+      .pipeThrough(new DecompressionStream('gzip'));
+    return new Response(decompressedStream).arrayBuffer();
+  }
+
+  // Fallback: try to use pako if available
+  if (typeof window.pako !== 'undefined') {
+    return window.pako.ungzip(compressedData);
+  }
+
+  throw new Error('No gzip decompression available');
+}
+
+/**
+ * Loads GeoTIFF from array buffer directly
+ * @param {ArrayBuffer} arrayBuffer - Raw TIFF data
+ * @returns {Promise<Object>} Parsed TIFF data
+ */
+async function loadGeoTIFFFromBuffer(arrayBuffer) {
+  // Try GeoTIFF first
+  if (geospatialLibraries.GeoTIFF) {
+    try {
+      const geotiff = await geospatialLibraries.GeoTIFF.fromArrayBuffer(arrayBuffer);
+      return { type: 'geotiff', data: geotiff };
+    } catch (geotiffError) {
+      console.warn('GeoTIFF buffer parsing failed:', geotiffError.message);
+    }
+  }
+
+  // Fallback to Tiff.js
+  if (geospatialLibraries.Tiff) {
+    try {
+      const tiff = new geospatialLibraries.Tiff({ buffer: arrayBuffer });
+      return { type: 'tiff', data: tiff };
+    } catch (tiffError) {
+      console.warn('Tiff.js buffer parsing failed:', tiffError.message);
+    }
+  }
+
+  throw new Error('No TIFF parser could handle the buffer');
+}
+
+/**
+ * Loads a GeoTIFF file from URL with fallback to Tiff.js
  * @method loadGeoTIFF
  * @memberof GeospatialLoader
  * @param {string} url - URL to GeoTIFF file
- * @returns {Promise} Promise resolving to GeoTIFF object
+ * @returns {Promise} Promise resolving to GeoTIFF/TIFF object
  * @example
  * const geotiff = await geospatialLoader.loadGeoTIFF('https://example.com/data.tif');
  */
 async function loadGeoTIFF(url) {
-  if (!isLoaded() || !geospatialLibraries.GeoTIFF) {
+  if (!isLoaded()) {
     throw new Error('Geospatial libraries not loaded');
   }
 
@@ -226,10 +300,91 @@ async function loadGeoTIFF(url) {
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    const tiff = await geospatialLibraries.GeoTIFF.fromArrayBuffer(arrayBuffer);
-    return tiff;
+
+    // Debug: Check file signature
+    const uint8Array = new Uint8Array(arrayBuffer);
+    const signature = Array.from(uint8Array.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+    console.log('File signature (first 16 bytes):', signature);
+
+    // Check for common signatures
+    if (signature.startsWith('49 49') || signature.startsWith('4d 4d')) {
+      console.log('File appears to be a standard TIFF');
+    } else if (signature.startsWith('47 52 49 42')) {
+      console.log('File appears to be a GRIB file (not TIFF)');
+      throw new Error('File is actually a GRIB file, not TIFF');
+    } else if (signature.startsWith('1f 8b')) {
+      console.log('File is still gzipped, decompressing manually...');
+
+      // Try manual decompression first (more reliable for MRMS files)
+      try {
+        console.log('Attempting manual gzip decompression...');
+        // Use pako for more reliable decompression
+        if (typeof window.pako !== 'undefined') {
+          const decompressed = window.pako.ungzip(new Uint8Array(arrayBuffer));
+          console.log(`Decompressed from ${arrayBuffer.byteLength} to ${decompressed.length} bytes`);
+
+          // Convert back to ArrayBuffer for GeoTIFF
+          const decompressedBuffer = decompressed.buffer.slice(
+            decompressed.byteOffset,
+            decompressed.byteOffset + decompressed.byteLength
+          );
+
+          return loadGeoTIFFFromBuffer(decompressedBuffer);
+        } else {
+          throw new Error('Pako library not available for decompression');
+        }
+      } catch (manualError) {
+        console.warn('Manual decompression failed:', manualError.message);
+
+        // Fallback to built-in decompression
+        try {
+          console.log('Trying built-in decompression...');
+          const decompressed = await decompressGzip(arrayBuffer);
+          return loadGeoTIFFFromBuffer(decompressed);
+        } catch (builtinError) {
+          console.warn('Built-in decompression also failed:', builtinError.message);
+        }
+      }
+    } else {
+      console.log('Unknown file signature, might be a proprietary format');
+      console.log('Full signature:', signature);
+    }
+
+    // Try GeoTIFF first
+    if (geospatialLibraries.GeoTIFF) {
+      try {
+        const geotiff = await geospatialLibraries.GeoTIFF.fromArrayBuffer(arrayBuffer);
+        return { type: 'geotiff', data: geotiff };
+      } catch (geotiffError) {
+        console.warn('GeoTIFF parsing failed:', geotiffError.message);
+      }
+    }
+
+    // Fallback to Tiff.js
+    if (geospatialLibraries.Tiff) {
+      try {
+        const tiff = new geospatialLibraries.Tiff({ buffer: arrayBuffer });
+        return { type: 'tiff', data: tiff };
+      } catch (tiffError) {
+        console.warn('Tiff.js parsing failed:', tiffError.message);
+      }
+    }
+
+    // Last resort: try with raw buffer if it's still compressed
+    if (typeof window.pako !== 'undefined') {
+      try {
+        console.log('Trying pako decompression...');
+        const decompressed = window.pako.ungzip(arrayBuffer);
+        return await loadGeoTIFFFromBuffer(decompressed);
+      } catch (pakoError) {
+        console.warn('Pako decompression failed:', pakoError.message);
+      }
+    }
+
+    throw new Error('No TIFF parser could handle the file');
+
   } catch (error) {
-    throw new Error(`Failed to load GeoTIFF: ${error.message}`);
+    throw new Error(`Failed to load TIFF file: ${error.message}`);
   }
 }
 
