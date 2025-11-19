@@ -4,17 +4,17 @@
 
 //fetch('COSMODE_single_level_elements_PS_2018020500_000.grib2')
 //fetch('COSMODE_single_level_elements_ASWDIR_S_2018011803_006.grib2')
-    //fetch('gdas.t00z.pgrb2.0p25.f000.grib2') // temperature in kelvins
-    //fetch('gdas.t00z.pgrb2.1p00.f000.grib2') // winds
-    //fetch('winds.grb')
+//fetch('gdas.t00z.pgrb2.0p25.f000.grib2') // temperature in kelvins
+//fetch('gdas.t00z.pgrb2.1p00.f000.grib2') // winds
+//fetch('winds.grb')
 //   .then(response => response.arrayBuffer())
 //    .then(buffer => decodeGRIB2File(buffer))
 //    .catch(error => console.log(error));
 
-import GRIB2 from './grib2.js';
+import { GRIB2 } from './grib2.js';
 
 
-export const decodeGRIB2File = function (buffer) {
+export const decodeGRIB2File = function (buffer, options = {}) {
 
 
     let gribByteIndex = 0;
@@ -33,10 +33,10 @@ export const decodeGRIB2File = function (buffer) {
     // Iterate over GRIB buffers
     for (let i = 0; i < gribFileBuffers.length; i++) {
         gribFiles[i] = new GRIB2(gribFileBuffers[i]);
-        decodeGRIB2Buffer(gribFileBuffers[i], gribFiles[i]);
+        decodeGRIB2Buffer(gribFileBuffers[i], gribFiles[i], options);
         gribFiles[i].imgEl = getImgElement(gribFiles[i].data);
     }
-    
+
     return gribFiles;
 }
 
@@ -53,7 +53,7 @@ const getImgElement = function (data) {
     var max = -Infinity;
     var min = Infinity;
     for (let i = 1; i < data.values.length; i++) {
-        if (!isNaN(data.values[i])){
+        if (!isNaN(data.values[i])) {
             max = Math.max(max, data.values[i]);
             min = Math.min(min, data.values[i]);
         }
@@ -91,29 +91,29 @@ const getImgElement = function (data) {
 
 
 
-export const decodeGRIB2Buffer = function (buffer, myGrib) {
+export const decodeGRIB2Buffer = function (buffer, grib2, options = {}) {
 
 
     // Section 0 - Indicator Section
     let sectionHeader = buffer.slice(0, 16);
-    decodeSection(sectionHeader, myGrib.dataTemplate[0]);
+    decodeSection(sectionHeader, grib2.dataTemplate[0]);
 
     // Check if it is GRIB2
-    if (myGrib.dataTemplate[0][3].content !== 2){
-        console.error("This is not a GRIB2. File edition number: " + myGrib.dataTemplate[0][3].content);
+    if (grib2.dataTemplate[0][3].content !== 2) {
+        console.error("This is not a GRIB2. File edition number: " + grib2.dataTemplate[0][3].content);
         let str = '** Section 0 <info>: <content> ** \n';
-        for (let i = 0; i < myGrib.dataTemplate[0].length; i++)
-            str += myGrib.dataTemplate[0][i].info + ": " + myGrib.dataTemplate[0][i].content + "\n";
+        for (let i = 0; i < grib2.dataTemplate[0].length; i++)
+            str += grib2.dataTemplate[0][i].info + ": " + grib2.dataTemplate[0][i].content + "\n";
         console.error(str);
         return;
     }
 
     // Discipline
-    console.log(myGrib.dataTemplate[0][2].info + ": " + myGrib.dataTemplate[0][2].contentRef + "(" + myGrib.dataTemplate[0][2].content + ")");
+    console.log(grib2.dataTemplate[0][2].info + ": " + grib2.dataTemplate[0][2].contentRef + "(" + grib2.dataTemplate[0][2].content + ")");
 
     // Separate section buffers
     let sectionByteIndex = 16;
-    let sectionBuffers = myGrib.sectionBuffers;
+    let sectionBuffers = grib2.sectionBuffers;
 
     while (sectionByteIndex < buffer.byteLength) {
         // Get Total GRIB length from buffer
@@ -129,7 +129,7 @@ export const decodeGRIB2Buffer = function (buffer, myGrib) {
     let usedSectionNumbers = [];
     for (let i = 0; i < sectionBuffers.length - 1; i++) { // (length - 1) because of end section has 4 bytes only (7777)
         let sectionNumber = new DataView(sectionBuffers[i].slice(4, 5)).getInt8();
-        myGrib.dataTemplate[sectionNumber] = decodeSection(sectionBuffers[i], myGrib.dataTemplate[sectionNumber]);
+        grib2.dataTemplate[sectionNumber] = decodeSection(sectionBuffers[i], grib2.dataTemplate[sectionNumber]);
 
         // TODO: sections can be repeated
         if (usedSectionNumbers.includes(sectionNumber))
@@ -137,19 +137,19 @@ export const decodeGRIB2Buffer = function (buffer, myGrib) {
         usedSectionNumbers.push(sectionNumber);
     }
     // Section 8 data template does not contain the section number
-    myGrib.dataTemplate[8] = decodeSection(sectionBuffers[sectionBuffers.length-1], myGrib.dataTemplate[8]);
+    grib2.dataTemplate[8] = decodeSection(sectionBuffers[sectionBuffers.length - 1], grib2.dataTemplate[8]);
 
 
-    console.log(myGrib.dataTemplate);
+    console.log(grib2.dataTemplate);
     // Transform from binary to JSON
-    myGrib.data = parseData(myGrib.dataTemplate);
+    grib2.data = parseData(grib2.dataTemplate, options);
 
 }
 
 
 
 // Parse data
-const parseData = function (decodedGrib) {
+const parseData = function (decodedGrib, options = {}) {
 
     let data = {};
 
@@ -158,11 +158,13 @@ const parseData = function (decodedGrib) {
     grid.numPoints = getContentByInfo(decodedGrib[3], 'Number of data points');
 
     // Check which grid definition template is being used
-    let templateNumber = getContentByInfo(decodedGrib[3], 'Grid definition template number (See Table 3.1)');
-    
+    let templateNumber = getContentByInfo(decodedGrib[3], 'Grid definition template number (= N) (See Table 3.1)');
+
     // Debug: log what we actually found
     console.log('Grid template number found:', templateNumber);
     console.log('Section 3 contents:', decodedGrib[3]);
+
+    grid.template = templateNumber;
 
     if (templateNumber == 0) {
         // Template 3.0: Latitude-longitude (regular grid)
@@ -177,6 +179,40 @@ const parseData = function (decodedGrib) {
 
         grid.incI = getContentByInfo(decodedGrib[3], 'Di — i direction increment (see Notes 1 and 5)') / 1e6;
         grid.incJ = getContentByInfo(decodedGrib[3], 'Dj — j direction increment (see Note 1 and 5)') / 1e6;
+
+        // Generate full lat/lon arrays
+        grid.latitudes = [];
+        grid.longitudes = [];
+
+        // Note: GRIB2 usually scans from top-left (North-West)
+        // Check scanning mode flag if needed, but for MRMS it's typically:
+        // Lat decreases (starts at North), Lon increases (starts at West)
+        // However, latStart/latEnd values tell the direction.
+
+        // Simple generation based on start/end/inc
+        // Assuming standard scanning mode for now (adjust if needed based on Flag Table 3.4)
+
+        for (let j = 0; j < grid.numLatPoints; j++) {
+            // Calculate lat based on start and increment
+            // If latStart > latEnd, we subtract increment (or increment is negative?)
+            // Usually incJ is positive, so we need to check direction
+            let lat;
+            if (grid.latStart > grid.latEnd) {
+                lat = grid.latStart - (j * grid.incJ);
+            } else {
+                lat = grid.latStart + (j * grid.incJ);
+            }
+
+            for (let i = 0; i < grid.numLongPoints; i++) {
+                let lon = grid.lonStart + (i * grid.incI);
+                // Normalize lon to -180 to 180 if needed
+                if (lon > 180) lon -= 360;
+
+                grid.latitudes.push(lat);
+                grid.longitudes.push(lon);
+            }
+        }
+        console.log(`[grib2utils] Generated lat/lon arrays. Latitudes: ${grid.latitudes.length}, Longitudes: ${grid.longitudes.length}`);
 
     } else if (templateNumber == 30) {
         // Template 3.30: Lambert Conformal (used by HRRR)
@@ -247,23 +283,35 @@ const parseData = function (decodedGrib) {
     let productDefInfo = decodedGrib[4][3].info;
     product[productDefInfo] = decodedGrib[4][3].contentRef;
     // Discipline is defined
-    if (decodedGrib[0][2].content != 255){ // 255: Missing
+    if (decodedGrib[0][2].content != 255) { // 255: Missing
         let paramCatInfo = decodedGrib[4][4].info; // Parameter category (see Code table 4.1)
         let paramNumInfo = decodedGrib[4][5].info; // Parameter number (see Code table 4.2)
         let paramCat = decodedGrib[4][4].content;
         let paramNum = decodedGrib[4][5].content;
-        
+
+        console.log(`[grib2utils] Discipline: ${disciplineNum}, Category: ${paramCat}, Parameter: ${paramNum}`);
+
         product[paramCatInfo] = paramCat; // TODO: table missing
         let parameterCategoryTable = GRIB2.tables['4.2-' + disciplineNum + '-' + paramCat];
-        if (parameterCategoryTable == undefined){
+        if (parameterCategoryTable == undefined) {
             console.warn("GRIB2 table 4.2-" + disciplineNum + '-' + paramCat + " not defined.")
-        } else
-            product[paramNumInfo] = parameterCategoryTable[paramNum];
+        } else {
+            const paramDef = parameterCategoryTable[paramNum];
+            product[paramNumInfo] = paramDef;
+
+            // Add normalized fields for easier access
+            if (paramDef) {
+                data.parameterName = paramDef.parameter;
+                data.shortName = paramDef.abbreviation;
+                data.units = paramDef.units;
+                console.log(`[grib2utils] Identified variable: ${data.shortName} (${data.parameterName})`);
+            }
+        }
 
     } else {
         console.warn('Discipline not defined, therefore no interpretation of product category, paramater, and units.');
     }
-    
+
 
     // if (decodedGrib[0][2].contentRef)
     // let productDef = decodedGrib[4][3].info; // Product definition template number (See Table 4.0)
@@ -407,7 +455,7 @@ const parseData = function (decodedGrib) {
         let wwIndex = fieldWidth * (diffOrder + 1);
         let unpackedArray = unpackComplexPacking(decodedGrib, rawData, compression, wwIndex);
 
-        
+
 
         // At decoding time, after bit string unpacking, the original scaled values are recovered by adding the overall minimum and summing up recursively.
         // https://apps.ecmwf.int/codes/grib/format/grib2/templates/5/3
@@ -420,7 +468,7 @@ const parseData = function (decodedGrib) {
         // Spatial differencing - Sum up recursively (f - original, g - first derivative, h - second derivative)
         // https://apps.ecmwf.int/codes/grib/format/grib2/templates/5/3
         let f = [];
-        if (diffOrder == 2){
+        if (diffOrder == 2) {
             let h = unpackedArray;
             // Remove first n (one/two) values (they will be h1 and h2)
             // (1) At decoding time, after bit string unpacking, the original scaled values are recovered by adding the overall minimum and summing up recursively.
@@ -436,14 +484,14 @@ const parseData = function (decodedGrib) {
             // is removed.At decoding time, after bit string unpacking, the original scaled values are recovered by adding 
             // the overall minimum and summing up recursively.
             let g = [h1, h2 - h1]; // Second order
-            for (let i = 2; i < h.length; i++){
-                g[i] = h[i] + g[i-1];
+            for (let i = 2; i < h.length; i++) {
+                g[i] = h[i] + g[i - 1];
             }
             f = [h1]; // First order
-            for (let i = 1; i < g.length; i++){
-                f[i] = g[i] + f[i-1];
+            for (let i = 1; i < g.length; i++) {
+                f[i] = g[i] + f[i - 1];
             }
-        } else if (diffOrder == 1){
+        } else if (diffOrder == 1) {
             let g = unpackedArray;
             g[0] = h1;
             f = [h1]; // First order
@@ -493,17 +541,44 @@ const parseData = function (decodedGrib) {
             values[i] = decodeByte(rawData.slice(i * byteSize, i * byteSize + byteSize), type);
         }
     }
+    // Grid point data - PNG Compression
+    // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_temp5-41.shtml
+    else if (template == '5.41') {
+        values = unpackPNG(decodedGrib, rawData, options.pako);
+    }
 
 
 
     // TODO maybe this should be below Bitmap code
     data.values = values;
-    
+
+    // Debug output for the first message only (without printing the entire array)
     // Debug output for the first message only (without printing the entire array)
     if (values && values.length > 0) {
-        const nonZeroCount = values.filter(v => v !== 0 && v !== null && !isNaN(v)).length;
-        console.log(`Values stats: Total=${values.length}, NonZero=${nonZeroCount}, Min=${Math.min(...values)}, Max=${Math.max(...values)}`);
-        console.log(`Sample values: [${values.slice(0, 10).join(', ')}...]`);
+        let min = Infinity;
+        let max = -Infinity;
+        let nonZeroCount = 0;
+
+        // Use a loop to avoid stack overflow with spread operator on large arrays
+        const len = values.length;
+        for (let i = 0; i < len; i++) {
+            const v = values[i];
+            if (v !== 0 && v !== null && !isNaN(v)) {
+                nonZeroCount++;
+            }
+            if (v < min) min = v;
+            if (v > max) max = v;
+        }
+
+        if (min === Infinity) min = 0;
+        if (max === -Infinity) max = 0;
+
+        console.log(`Values stats: Total=${values.length}, NonZero=${nonZeroCount}, Min=${min}, Max=${max}`);
+        // Safe slice for logging
+        const sampleSize = Math.min(10, values.length);
+        const sample = [];
+        for (let i = 0; i < sampleSize; i++) sample.push(values[i]);
+        console.log(`Sample values: [${sample.join(', ')}...]`);
     }
 
     // Bitmap
@@ -625,7 +700,7 @@ const unpackComplexPacking = function (decodedGrib, rawData, compression, inwwIn
     // NG scaled group lengths, each of which is encoded using the number of bits specified in octet 47 of Data Representation Template 5.2.
     // Bits set to zero shall be appended as necessary to ensure this sequence of numbers ends on an octet boundary. (see Note 14 of Data Representation Template 5.2)
     let bitsPerValueScaledGL = getContentByInfo(decodedGrib[5], 'Number of bits used for the scaled group lengths (after subtraction of the reference value given in octets 38-41 and division by the length increment given in octet 42)');
-    let zzIndex = Math.ceil(NG * bitsPerValueScaledGL / 8) + yyIndex; 
+    let zzIndex = Math.ceil(NG * bitsPerValueScaledGL / 8) + yyIndex;
     let scaledGroupLengths = readValuesFromBuffer(rawData.slice(yyIndex, zzIndex), bitsPerValueScaledGL, NG);
 
     // Group lengths (The group length (L) is the number of values in a group.)
@@ -635,7 +710,7 @@ const unpackComplexPacking = function (decodedGrib, rawData, compression, inwwIn
     let groupSplittingMethod = getContentByInfo(decodedGrib[5], 'Group splitting method used (see Code Table 5.4)');
     if (groupSplittingMethod != 1)
         console.error('Group splitting method not implemented. See: https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-4.shtml');
-    
+
     let groupLengths = [];
     let refGroupLength = getContentByInfo(decodedGrib[5], 'Reference for group lengths (see Note 13)');
     let lengthInc = getContentByInfo(decodedGrib[5], 'Length increment for the group lengths (see Note 14)');
@@ -648,7 +723,6 @@ const unpackComplexPacking = function (decodedGrib, rawData, compression, inwwIn
         console.warn("True length of last group is not the same as the last value in the gruop length array. " + lengthLastGroup + " vs " + groupLengths[groupLengths.length - 1]);
         groupLengths[groupLengths.length - 1] = lengthLastGroup;
     }
-
     // Calculate total number of bytes
     // Warnings
     let totalNumBytes = 0;
@@ -662,7 +736,7 @@ const unpackComplexPacking = function (decodedGrib, rawData, compression, inwwIn
     if (totalNumPoints != section3NumPoints) console.warn("Total number of points: " + totalNumPoints + ", Section 3 num of points: " + section3NumPoints);
     if ((totalNumBits / 8) - rawData.slice(zzIndex, rawData.byteLength).byteLength > 1)
         console.warn("Total number of required bytes: " + totalNumBits / 8 + ", Available bytes: " + rawData.slice(zzIndex, rawData.byteLength).byteLength);
-    
+
 
     // Substitute values for missing data
     let primarySubstitute = getContentByInfo(decodedGrib[5], 'Primary missing value substitute');
@@ -698,14 +772,14 @@ const unpackComplexPacking = function (decodedGrib, rawData, compression, inwwIn
         else {
             X2[i] = readValuesFromBuffer(rawData.slice(lastByteIndex, lastByteIndex + numBytes), bitsPerValuePerGroup, numValuesPerGroup, lastBitIndex); // Because X2 are consecutive, we keep lastBitIndex
             lastBitIndex = ((numValuesPerGroup * bitsPerValuePerGroup) + lastBitIndex) % 8; // LastBitIndex goes from 0 to 7, as every iteration we send the specific bytes to read.
-            lastByteIndex = lastByteIndex + numBytes - Math.ceil(lastBitIndex/8); // Total num bits + shift amount, but stays in the current byte unless lastBitIndex is 0, meaning that the whole byte was read
+            lastByteIndex = lastByteIndex + numBytes - Math.ceil(lastBitIndex / 8); // Total num bits + shift amount, but stays in the current byte unless lastBitIndex is 0, meaning that the whole byte was read
         }
-        
+
         // Warn if the last byte index is not at the end of the data buffer
-        if (i == NG-1 && (lastByteIndex - rawData.byteLength) > 1) console.warn("LastByteIndex: " + lastByteIndex + ". Available bytes: " + rawData.byteLength);
-        
-        
-        
+        if (i == NG - 1 && (lastByteIndex - rawData.byteLength) > 1) console.warn("LastByteIndex: " + lastByteIndex + ". Available bytes: " + rawData.byteLength);
+
+
+
         // Unpack values
         // Add ref value (X1) to packed values (X2)
         for (let j = 0; j < numValuesPerGroup; j++) {
@@ -729,6 +803,169 @@ const calcMaxMin = function (array) {
         min = array[i] < min ? array[i] : min;
     }
     console.log("Max: " + max + ", Min: " + min);
+}
+
+// Unpack PNG (Template 5.41)
+const unpackPNG = function (decodedGrib, rawData, pako) {
+    // Get scaling parameters from Section 5 (Template 5.41)
+    const R = getContentByInfo(decodedGrib[5], 'Reference value (R) (IEEE 32-bit floating-point value)');
+    const E = getContentByInfo(decodedGrib[5], 'Binary scale factor (E)');
+    const D = getContentByInfo(decodedGrib[5], 'Decimal scale factor (D)');
+    const nbits = getContentByInfo(decodedGrib[5], 'Number of bits required to hold the resulting scaled and referenced data values. (i.e. The depth of the grayscale image.) (see Note 2)');
+
+    // Calculate scaling factors
+    const ref = R;
+    const binScale = Math.pow(2, E);
+    const decScale = Math.pow(10, D);
+
+    // Extract PNG data from Section 7
+    // Section 7 structure: [Length (4), Number (1), Data (N-5)]
+    // But rawData passed here is usually the data part?
+    // In parseData, data.values = unpackPNG(decodedGrib, decodedGrib[7][2].content);
+    // decodedGrib[7][2] is the data.
+
+    // The content of Section 7 is the PNG stream.
+    // We need to parse PNG chunks to find IDAT.
+    // PNG Signature: 89 50 4E 47 0D 0A 1A 0A
+
+    let pngBuffer = rawData;
+    if (Array.isArray(pngBuffer)) {
+        pngBuffer = new Uint8Array(pngBuffer).buffer;
+    } else if (pngBuffer instanceof Uint8Array) {
+        pngBuffer = pngBuffer.buffer;
+    }
+
+    // Simple PNG parser to extract IDAT
+    const view = new DataView(pngBuffer);
+    let offset = 8; // Skip signature
+    let idatChunks = [];
+    let totalIdatLength = 0;
+    let width = 0;
+    let height = 0;
+    let bitDepth = 0;
+    let colorType = 0;
+    let compressionMethod = 0;
+    let filterMethod = 0;
+    let interlaceMethod = 0;
+
+    while (offset < pngBuffer.byteLength) {
+        const length = view.getUint32(offset);
+        const type = String.fromCharCode(
+            view.getUint8(offset + 4),
+            view.getUint8(offset + 5),
+            view.getUint8(offset + 6),
+            view.getUint8(offset + 7)
+        );
+
+        if (type === 'IHDR') {
+            width = view.getUint32(offset + 8);
+            height = view.getUint32(offset + 12);
+            bitDepth = view.getUint8(offset + 16);
+            colorType = view.getUint8(offset + 17);
+            compressionMethod = view.getUint8(offset + 18);
+            filterMethod = view.getUint8(offset + 19);
+            interlaceMethod = view.getUint8(offset + 20);
+        } else if (type === 'IDAT') {
+            const chunkData = new Uint8Array(pngBuffer, offset + 8, length);
+            idatChunks.push(chunkData);
+            totalIdatLength += length;
+        } else if (type === 'IEND') {
+            break;
+        }
+
+        offset += 12 + length; // Length + Type + Data + CRC
+    }
+
+    // Concatenate IDAT chunks
+    const compressedData = new Uint8Array(totalIdatLength);
+    let pos = 0;
+    for (const chunk of idatChunks) {
+        compressedData.set(chunk, pos);
+        pos += chunk.length;
+    }
+
+    // Decompress using pako
+    let decompressedData;
+    try {
+        decompressedData = pako.inflate(compressedData);
+    } catch (e) {
+        console.error("PNG decompression failed:", e);
+        return [];
+    }
+
+    // Apply PNG unfiltering (reconstruct)
+    // For grayscale (Color Type 0), each scanline starts with a filter byte (0-4)
+    // Scanline length = 1 (filter) + ceil(width * bitDepth / 8)
+    // But here, bitDepth from IHDR should match nbits from GRIB2.
+
+    const bytesPerPixel = Math.ceil(bitDepth / 8);
+    const scanlineLength = 1 + Math.ceil(width * bitDepth / 8);
+    const reconData = new Uint8Array(height * (scanlineLength - 1));
+
+    let reconPos = 0;
+    let scanlinePos = 0;
+    let prevScanline = new Uint8Array(scanlineLength - 1); // Initialize with zeros
+
+    for (let y = 0; y < height; y++) {
+        const filterType = decompressedData[scanlinePos];
+        const scanline = decompressedData.slice(scanlinePos + 1, scanlinePos + scanlineLength);
+        const reconScanline = new Uint8Array(scanline.length);
+
+        for (let i = 0; i < scanline.length; i++) {
+            const x = scanline[i];
+            const a = i >= bytesPerPixel ? reconScanline[i - bytesPerPixel] : 0;
+            const b = prevScanline[i];
+            const c = i >= bytesPerPixel ? prevScanline[i - bytesPerPixel] : 0;
+
+            let val = x;
+            if (filterType === 1) { // Sub
+                val = (x + a) & 0xFF;
+            } else if (filterType === 2) { // Up
+                val = (x + b) & 0xFF;
+            } else if (filterType === 3) { // Average
+                val = (x + Math.floor((a + b) / 2)) & 0xFF;
+            } else if (filterType === 4) { // Paeth
+                const p = a + b - c;
+                const pa = Math.abs(p - a);
+                const pb = Math.abs(p - b);
+                const pc = Math.abs(p - c);
+                let pr;
+                if (pa <= pb && pa <= pc) pr = a;
+                else if (pb <= pc) pr = b;
+                else pr = c;
+                val = (x + pr) & 0xFF;
+            }
+            reconScanline[i] = val;
+        }
+
+        reconData.set(reconScanline, reconPos);
+        prevScanline = reconScanline;
+        reconPos += reconScanline.length;
+        scanlinePos += scanlineLength;
+    }
+
+    // Convert reconstructed bytes to values
+    // Assuming 8-bit or 16-bit grayscale
+    const values = [];
+    const dataView = new DataView(reconData.buffer);
+
+    for (let i = 0; i < reconData.length; i += bytesPerPixel) {
+        let rawVal;
+        if (bitDepth === 8) {
+            rawVal = dataView.getUint8(i);
+        } else if (bitDepth === 16) {
+            rawVal = dataView.getUint16(i, false); // Big-endian
+        } else {
+            // Handle other bit depths if needed
+            rawVal = 0;
+        }
+
+        // Apply GRIB2 scaling: Y = (R + X * 2^E) / 10^D
+        const val = (ref + rawVal * binScale) / decScale;
+        values.push(val);
+    }
+
+    return values;
 }
 
 
@@ -827,13 +1064,14 @@ const decodeSection = function (buffer, section) {
                 // Store template id - find a safe place to store it
                 if (section.length > 0) {
                     // Store on the last element before concatenation (the original element at position i-1)
-                    if (i > 0 && section[i-1]) {
-                        section[i-1]["template"] = templateId;
+                    if (i > 0 && section[i - 1]) {
+                        section[i - 1]["template"] = templateId;
                     }
                     console.log("Using template: " + templateId + " (applied to section)");
                 } else {
                     console.log("Warning: Template concatenation resulted in empty section");
                 }
+                i--; // Decrement i to process the first item of the template in the next iteration
             }
             catch (error) {
                 console.log(templateId + " is not defined.")
@@ -875,7 +1113,7 @@ const decodeSection = function (buffer, section) {
         // Decode bytes
         let byteContentBuffer = buffer.slice(prop.startIndex - 1, prop.startIndex - 1 + prop.size);
         let tempPropContent = decodeByte(byteContentBuffer, prop.type);
-        
+
         // Store raw bytes (for debugging purposes)
         prop.bytes = byteContentBuffer;
 

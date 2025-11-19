@@ -22,7 +22,7 @@
 // MRMS Dataset configurations - GRIB2 format on NOAA servers
 const MRMS_DATASETS = {
   "mrms-radar": {
-    baseUrl: "https://mrms.ncep.noaa.gov/data",
+    baseUrl: "https://mrms.ncep.noaa.gov",
     format: "grib2",
     description: "MRMS Radar Products - Real-time operational radar data in GRIB2 format. Provides current weather radar data with 2-minute updates.",
     spatial: {
@@ -450,7 +450,7 @@ export default {
   variables: MRMS_VARIABLES,
 
   // URL generation helper
-  generateURL: function(product, timestamp, dataset = 'mrms-radar') {
+  generateURL: function (product, timestamp, dataset = 'mrms-radar') {
     const datasetConfig = MRMS_DATASETS[dataset];
     if (!datasetConfig) {
       throw new Error(`Unknown MRMS dataset: ${dataset}`);

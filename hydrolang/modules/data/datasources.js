@@ -27,8 +27,10 @@ import hrrr from "./datasources/hrrr.js"
 import drought from "./datasources/drought.js"
 import nasapower from "./datasources/nasapower.js"
 import nldi from "./datasources/nldi.js"
+import nldas from "./datasources/nldas.js"
 import aorc from "./datasources/aorc.js"
 import nwm from "./datasources/nwm.js"
+import nhdplus from "./datasources/nhdplus.js";
 import mrms from "./datasources/mrms.js"
 import threedep from "./datasources/threedep.js"
 import prism from "./datasources/prism.js"
@@ -60,9 +62,11 @@ export {
   drought,
   nasapower,
   nldi,
+  nldas,
   nwm,
   mrms,
   aorc,
   threedep,
-  prism
+  prism,
+  nhdplus
 };

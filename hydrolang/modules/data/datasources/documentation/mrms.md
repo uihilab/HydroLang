@@ -52,19 +52,20 @@ The MRMS data source provides high-resolution, real-time precipitation and radar
 
 ```javascript
 // Get current precipitation rate for Dallas, TX
-const result = await hydro.data.retrieve({
-  params: {
-    source: "mrms",
-    datatype: "point-data"
-  },
-  args: {
-    dataset: "mrms-operational",
-    product: "PrecipRate",
-    latitude: 32.7767,
-    longitude: -96.7970,
-    startDate: "2025-09-24T14:30:00Z" // Most recent available
-  }
-});
+  const result = await hydro.data.retrieve({
+    params: {
+      source: "mrms",
+      datatype: "point-data"
+    },
+    args: {
+      dataset: "mrms-radar",
+      product: "PrecipRate",
+      // variable: "PRATE", // Optional: inferred from product
+      latitude: 32.7767,
+      longitude: -96.7970,
+      startDate: "2025-09-24T14:30:00Z" // Most recent available
+    }
+  });
 
 // Result structure
 {
@@ -97,8 +98,9 @@ const result = await hydro.data.retrieve({
     datatype: "grid-data"
   },
   args: {
-    dataset: "mrms-operational",
+    dataset: "mrms-qpe",
     product: "MultiSensor_QPE_01H",
+    // variable: "APCP", // Optional: inferred from product
     bbox: [-103.0, 33.5, -94.0, 37.0], // Oklahoma bounds
     startDate: "2025-09-24T14:00:00Z"
   }
@@ -148,8 +150,9 @@ const result = await hydro.data.retrieve({
     datatype: "grid-data"
   },
   args: {
-    dataset: "mrms-operational",
-    product: "SeamlessHSR",
+    dataset: "mrms-radar",
+    product: "MergedReflectivityQC", // Use actual product name
+    // variable: "REF", // Optional: inferred from product
     bbox: [-98.0, 30.0, -94.0, 34.0], // Central Texas
     startDate: "2025-09-24T15:00:00Z"
   }
@@ -235,7 +238,7 @@ const result = await hydro.data.retrieve({
 // Result includes categorical threat levels:
 // 0: No threat
 // 1: Low threat
-// 2: Moderate threat  
+// 2: Moderate threat
 // 3: High threat
 // 4: Extreme threat
 ```
@@ -351,7 +354,7 @@ args: {
 
 ### Accuracy by Product Type
 - **Real-time QPE**: ±20-30% for moderate precipitation
-- **Gauge-corrected**: ±10-20% for moderate precipitation  
+- **Gauge-corrected**: ±10-20% for moderate precipitation
 - **Light precipitation**: Higher relative errors
 - **Heavy precipitation**: Better absolute accuracy
 
@@ -477,3 +480,4 @@ Example: 2025/09/24/PrecipRate/PrecipRate_20250924-143000.grib2.gz
 - **Domain**: 20°N to 55°N, 130°W to 60°W
 - **Dimensions**: 3500 × 7000 (lat × lon)
 - **Total Points**: 24,500,000
+

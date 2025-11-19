@@ -20,7 +20,7 @@ class HydroLangGRIB2Parser {
      */
     async parseBuffer(buffer, options = {}) {
         const { maxMessages = 50, targetVariable = null, memoryLimit = 500 * 1024 * 1024 } = options; // 500MB default limit
-        
+
         console.log(`Parsing GRIB2 file with research implementation (${(buffer.byteLength / 1024 / 1024).toFixed(1)} MB)...`);
         console.log(`Memory limits: maxMessages=${maxMessages}, memoryLimit=${(memoryLimit / 1024 / 1024).toFixed(1)}MB`);
 
@@ -39,17 +39,17 @@ class HydroLangGRIB2Parser {
 
             console.log('GRIB2 file format validated');
 
-             // Check if buffer is too large and needs partitioning
-             if (buffer.byteLength > memoryLimit) {
-                 console.warn(`Large GRIB2 file detected (${(buffer.byteLength / 1024 / 1024).toFixed(1)} MB). Using streaming parser...`);
-                 return await this.parseBufferStreaming(buffer, options);
-             }
+            // Check if buffer is too large and needs partitioning
+            if (buffer.byteLength > memoryLimit) {
+                console.warn(`Large GRIB2 file detected (${(buffer.byteLength / 1024 / 1024).toFixed(1)} MB). Using streaming parser...`);
+                return await this.parseBufferStreaming(buffer, options);
+            }
 
-             // For files larger than 100MB, use streaming even if under memory limit
-             if (buffer.byteLength > 100 * 1024 * 1024) {
-                 console.warn(`Large GRIB2 file (${(buffer.byteLength / 1024 / 1024).toFixed(1)} MB). Using streaming to prevent stack overflow...`);
-                 return await this.parseBufferStreaming(buffer, options);
-             }
+            // For files larger than 100MB, use streaming even if under memory limit
+            if (buffer.byteLength > 100 * 1024 * 1024) {
+                console.warn(`Large GRIB2 file (${(buffer.byteLength / 1024 / 1024).toFixed(1)} MB). Using streaming to prevent stack overflow...`);
+                return await this.parseBufferStreaming(buffer, options);
+            }
 
             // Use the research implementation's decodeGRIB2File function
             console.log('Decoding GRIB2 messages...');
@@ -64,37 +64,37 @@ class HydroLangGRIB2Parser {
             // Limit the number of messages to prevent memory issues
             const limitedData = decodedData.slice(0, maxMessages);
 
-             // If looking for specific variable, find first matching message and stop
-             let filteredData = limitedData;
-             if (targetVariable) {
-                 filteredData = [];
-                 for (let index = 0; index < limitedData.length; index++) {
-                     try {
-                         const msg = limitedData[index];
-                         
-                         // Check if this message contains precipitation data
-                         if (msg && msg.data && msg.data.values) {
-                             // Check only first 1000 values to avoid stack overflow
-                             const sampleSize = Math.min(1000, msg.data.values.length);
-                             const sampleValues = msg.data.values.slice(0, sampleSize);
-                             const hasNonZeroValues = sampleValues.some(v => v !== null && v !== 0 && !isNaN(v));
-                             
-                             console.log(`Message ${index}: Has ${msg.data.values.length} values, sample non-zero: ${hasNonZeroValues}`);
-                             
-                             if (hasNonZeroValues) {
-                                 console.log(`Found message with actual data in message ${index} - STOPPING SEARCH`);
-                                 filteredData.push(msg);
-                                 break; // Stop after finding first message with real data
-                             }
-                         } else {
-                             console.log(`Message ${index}: No data values found`);
-                         }
-                     } catch (e) {
-                         console.warn(`Could not check data in message ${index}:`, e.message);
-                     }
-                 }
-                 console.log(`Found ${filteredData.length} messages with actual meteorological data`);
-             }
+            // If looking for specific variable, find first matching message and stop
+            let filteredData = limitedData;
+            if (targetVariable) {
+                filteredData = [];
+                for (let index = 0; index < limitedData.length; index++) {
+                    try {
+                        const msg = limitedData[index];
+
+                        // Check if this message contains precipitation data
+                        if (msg && msg.data && msg.data.values) {
+                            // Check only first 1000 values to avoid stack overflow
+                            const sampleSize = Math.min(1000, msg.data.values.length);
+                            const sampleValues = msg.data.values.slice(0, sampleSize);
+                            const hasNonZeroValues = sampleValues.some(v => v !== null && v !== 0 && !isNaN(v));
+
+                            console.log(`Message ${index}: Has ${msg.data.values.length} values, sample non-zero: ${hasNonZeroValues}`);
+
+                            if (hasNonZeroValues) {
+                                console.log(`Found message with actual data in message ${index} - STOPPING SEARCH`);
+                                filteredData.push(msg);
+                                break; // Stop after finding first message with real data
+                            }
+                        } else {
+                            console.log(`Message ${index}: No data values found`);
+                        }
+                    } catch (e) {
+                        console.warn(`Could not check data in message ${index}:`, e.message);
+                    }
+                }
+                console.log(`Found ${filteredData.length} messages with actual meteorological data`);
+            }
 
             if (filteredData.length === 0) {
                 console.warn('No messages found matching criteria');
@@ -121,7 +121,7 @@ class HydroLangGRIB2Parser {
                     memoryOptimized: filteredData.length < decodedData.length,
                     parsingImplemented: true,
                     parserUsed: 'Research Implementation (Gerard Llorach)',
-                    warning: filteredData.length < decodedData.length ? 
+                    warning: filteredData.length < decodedData.length ?
                         `Loaded ${filteredData.length}/${decodedData.length} messages to prevent memory issues` : null
                 }
             };
@@ -139,43 +139,43 @@ class HydroLangGRIB2Parser {
         try {
             // Create a minimal GRIB2 parser that stops before decoding data values
             const view = new DataView(messageBuffer);
-            
+
             // Basic GRIB2 validation
             const identifier = new TextDecoder().decode(messageBuffer.slice(0, 4));
             if (identifier !== 'GRIB') {
                 throw new Error('Not a valid GRIB file');
             }
-            
+
             // Find section boundaries
             let offset = 16; // Skip GRIB header (sections 0)
             const sections = {};
-            
+
             while (offset < messageBuffer.byteLength - 4) {
                 const sectionLength = view.getUint32(offset, false);
                 const sectionNumber = view.getUint8(offset + 4);
-                
+
                 if (sectionLength === 0 || sectionLength > messageBuffer.byteLength) break;
-                
+
                 sections[sectionNumber] = {
                     start: offset,
                     length: sectionLength,
                     data: messageBuffer.slice(offset, offset + sectionLength)
                 };
-                
+
                 offset += sectionLength;
-                
+
                 // Stop after we have sections 3 (grid) and 4 (product) - we don't need section 7 (data)
                 if (sections[3] && sections[4]) {
                     break;
                 }
             }
-            
+
             // Extract grid information from Section 3
             const gridInfo = this.parseGridSection(sections[3]);
-            
+
             // Extract parameter information from Section 4  
             const paramInfo = this.parseProductSection(sections[4]);
-            
+
             return {
                 data: {
                     grid: gridInfo,
@@ -194,7 +194,7 @@ class HydroLangGRIB2Parser {
                 bounds: this.calculateGridBounds(gridInfo),
                 metadataOnly: true
             };
-            
+
         } catch (error) {
             console.warn('Failed to extract GRIB metadata:', error.message);
             return null;
@@ -206,23 +206,23 @@ class HydroLangGRIB2Parser {
      */
     parseGridSection(section3) {
         if (!section3) return {};
-        
+
         const view = new DataView(section3.data);
         let offset = 5; // Skip section header
-        
+
         const sourceGridDef = view.getUint8(offset); offset += 1;
         const numPoints = view.getUint32(offset, false); offset += 4;
         const gridDefTemplateNum = view.getUint16(offset + 7, false); // Template number
-        
+
         // Simplified logging
         console.log(`GRIB2 metadata: ${Math.round(Math.sqrt(numPoints))} x ${Math.round(Math.sqrt(numPoints))} grid`);
-        
+
         let gridInfo = {
             numPoints: numPoints,
             templateNumber: gridDefTemplateNum,
             sourceGridDef: sourceGridDef
         };
-        
+
         // Simplified grid handling - use basic approximation to avoid parsing errors
         // Calculate approximate grid dimensions from total points
         const approxGridSize = Math.sqrt(numPoints);
@@ -230,7 +230,7 @@ class HydroLangGRIB2Parser {
         gridInfo.numLatPoints = Math.round(approxGridSize);
         gridInfo.latStart = 21.0;
         gridInfo.lonStart = -130.0;
-        
+
         return gridInfo;
     }
 
@@ -239,32 +239,32 @@ class HydroLangGRIB2Parser {
      */
     parseProductSection(section4) {
         if (!section4) return {};
-        
+
         const view = new DataView(section4.data);
         let offset = 5; // Skip section header
-        
+
         const numCoords = view.getUint16(offset, false); offset += 2;
         const productDefTemplateNum = view.getUint16(offset, false); offset += 2;
-        
+
         let paramInfo = {
             templateNumber: productDefTemplateNum,
             numCoords: numCoords
         };
-        
+
         // Template 4.0 - Analysis/forecast at horizontal level
         if (productDefTemplateNum === 0) {
             const paramCategory = view.getUint8(offset); offset += 1;
             const paramNumber = view.getUint8(offset); offset += 1;
             const processType = view.getUint8(offset); offset += 1;
-            
+
             paramInfo.category = paramCategory;
             paramInfo.number = paramNumber;
             paramInfo.processType = processType;
             paramInfo.parameter = `${paramCategory},${paramNumber}`;
-            
+
             // Store parameter info without excessive logging
         }
-        
+
         return paramInfo;
     }
 
@@ -273,7 +273,7 @@ class HydroLangGRIB2Parser {
      */
     getParameterName(paramInfo) {
         if (!paramInfo.category && !paramInfo.number) return 'Unknown';
-        
+
         // Common HRRR parameters (expanded mapping)
         const paramMap = {
             // Meteorological Products (Category 0)
@@ -285,51 +285,51 @@ class HydroLangGRIB2Parser {
             '0,10': 'TCDC',  // Total cloud cover
             '0,11': 'SNOD',  // Snow depth
             '0,22': 'CLWMR', // Cloud mixing ratio
-            
+
             // Hydrological Products (Category 1)
             '1,0': 'RH',     // Relative humidity
             '1,1': 'SPFH',   // Specific humidity
             '1,8': 'APCPsfc', // Total precipitation rate
-            
+
             // Momentum (Category 2)
             '2,2': 'UGRD',   // U-component of wind
             '2,3': 'VGRD',   // V-component of wind
             '2,22': 'GUST',  // Wind speed (gust)
-            
+
             // Mass (Category 3)
             '3,0': 'PRES',   // Pressure
             '3,1': 'PRMSL',  // Pressure reduced to MSL
             '3,5': 'HGT',    // Geopotential height
-            
+
             // Short-wave Radiation (Category 4)
             '4,7': 'DSWRF',  // Downward short-wave rad. flux
-            
+
             // Long-wave Radiation (Category 5)  
             '5,3': 'DLWRF',  // Downward long-wave rad. flux
-            
+
             // Cloud (Category 6)
             '6,1': 'TCDC',   // Total cloud cover
             '6,22': 'CDCON', // Cloud condensation nuclei concentration
-            
+
             // Thermodynamic Stability indices (Category 7)
             '7,6': 'CAPE',   // Convective available potential energy
             '7,7': 'CIN',    // Convective inhibition
-            
+
             // Atmospheric Chemistry (Category 14)
             '14,192': 'PMTF', // Particulate matter (fine)
-            
+
             // Forecast Radar Imagery (Category 16)
             '16,195': 'REFD', // Reflectivity
             '16,196': 'REFC', // Composite reflectivity
-            
+
             // Electrodynamics (Category 17)
             '17,192': 'LTNG', // Lightning
-            
+
             // Physical Properties of Atmosphere (Category 19)
             '19,0': 'VIS',   // Visibility
             '19,1': 'ALBDO', // Albedo
         };
-        
+
         const key = `${paramInfo.category},${paramInfo.number}`;
         return paramMap[key] || `PARAM_${key}`;
     }
@@ -339,19 +339,19 @@ class HydroLangGRIB2Parser {
      */
     calculateGridBounds(gridInfo) {
         if (!gridInfo.templateNumber) return null;
-        
+
         // For Lambert Conformal (HRRR), use approximate CONUS bounds
         if (gridInfo.templateNumber === 30) {
             return {
                 north: 47.8,
-                south: 21.0, 
+                south: 21.0,
                 east: -60.9,
                 west: -134.1,
                 approximation: true,
                 projection: 'Lambert Conformal'
             };
         }
-        
+
         // For regular lat-lon grid (template 0)
         if (gridInfo.templateNumber === 0 && gridInfo.La1 !== undefined && gridInfo.Lo1 !== undefined) {
             // Use actual grid bounds from GRIB2 file
@@ -365,7 +365,7 @@ class HydroLangGRIB2Parser {
                 actualBounds: true
             };
         }
-        
+
         return null;
     }
 
@@ -375,27 +375,27 @@ class HydroLangGRIB2Parser {
     generateBasicCoordinates(grid, bbox) {
         const numLat = grid.numLatPoints || 1381;
         const numLon = grid.numLongPoints || 1381;
-        
+
         // HRRR CONUS approximate bounds
         const latStart = 21.0;
         const latEnd = 47.8;
         const lonStart = -134.1;
         const lonEnd = -60.9;
-        
+
         // Generate coordinate arrays
         const latitudes = [];
         const longitudes = [];
-        
+
         for (let i = 0; i < numLat; i++) {
             const lat = latStart + (i / (numLat - 1)) * (latEnd - latStart);
             latitudes.push(lat);
         }
-        
+
         for (let j = 0; j < numLon; j++) {
             const lon = lonStart + (j / (numLon - 1)) * (lonEnd - lonStart);
             longitudes.push(lon);
         }
-        
+
         return {
             latitude: latitudes,
             longitude: longitudes
@@ -408,15 +408,15 @@ class HydroLangGRIB2Parser {
     createGridMetadataResponse(data, bbox) {
         const grid = data.grid;
         const bounds = data.bounds || this.calculateGridBounds(grid);
-        
+
         // Check if requested bbox intersects with grid bounds
         let intersects = true;
         if (bbox && bounds && !bounds.approximation) {
             const [west, south, east, north] = bbox;
-            intersects = !(east < bounds.west || west > bounds.east || 
-                          north < bounds.south || south > bounds.north);
+            intersects = !(east < bounds.west || west > bounds.east ||
+                north < bounds.south || south > bounds.north);
         }
-        
+
         return {
             success: true,
             data: {
@@ -463,9 +463,9 @@ class HydroLangGRIB2Parser {
      */
     async parseBufferStreaming(buffer, options = {}) {
         const { maxMessages = 20, targetVariable = null } = options; // Increased from 10 to 20
-        
+
         console.log('Using streaming parser for large GRIB2 file...');
-        
+
         try {
             // Parse GRIB headers first to identify messages
             const messageHeaders = this.parseGRIBHeaders(buffer);
@@ -476,12 +476,12 @@ class HydroLangGRIB2Parser {
             console.log(`Searching ${messagesToProcess} messages for precipitation data (APCP)`);
 
             const processedMessages = [];
-            
+
             for (let i = 0; i < messagesToProcess; i++) {
                 try {
                     const header = messageHeaders[i];
                     const messageBuffer = buffer.slice(header.start, header.end);
-                    
+
                     // METADATA-ONLY: Extract grid info without decoding massive data arrays
                     const metadata = await this.extractGRIBMetadataOnly(messageBuffer);
                     if (metadata) {
@@ -491,7 +491,7 @@ class HydroLangGRIB2Parser {
                         processedMessages.push(metadata);
                         // Minimal logging
                     }
-                    
+
                     // Break if we found our target variable
                     if (targetVariable && processedMessages.length > 0) {
                         const lastMsg = processedMessages[processedMessages.length - 1];
@@ -510,22 +510,22 @@ class HydroLangGRIB2Parser {
             }
 
             // Check for precipitation data and log findings
-            const precipitationMessages = processedMessages.filter(msg => 
-                msg.parameterName === 'APCP' || 
+            const precipitationMessages = processedMessages.filter(msg =>
+                msg.parameterName === 'APCP' ||
                 (msg.parameter?.category === 0 && msg.parameter?.number === 1) ||
                 (msg.parameter?.category === 0 && msg.parameter?.number === 8)
             );
-            
+
             console.log(`Found ${precipitationMessages.length} precipitation message(s) stored as ArrayBuffer(s)`);
             if (precipitationMessages.length > 0) {
                 precipitationMessages.forEach((msg, idx) => {
                     console.log(`APCP message ${idx + 1}: ${msg.rawDataBuffer?.byteLength || 0} bytes at index ${msg.messageIndex}`);
                 });
             }
-            
+
             // If no precipitation found, log some found parameters for debugging
             if (precipitationMessages.length === 0 && processedMessages.length > 0) {
-                const sampleParams = processedMessages.slice(0, 10).map(msg => 
+                const sampleParams = processedMessages.slice(0, 10).map(msg =>
                     `${msg.parameterName}(${msg.parameter?.category},${msg.parameter?.number})`
                 ).join(', ');
                 console.log(`No precipitation found. Sample parameters: ${sampleParams}...`);
@@ -576,7 +576,7 @@ class HydroLangGRIB2Parser {
             try {
                 const view = new DataView(buffer, offset);
                 const magic = String.fromCharCode(view.getUint8(0), view.getUint8(1), view.getUint8(2), view.getUint8(3));
-                
+
                 if (magic === 'GRIB') {
                     const messageLength = view.getUint32(12, false); // Big-endian
                     headers.push({
@@ -636,77 +636,77 @@ class HydroLangGRIB2Parser {
             throw new Error('GRIB2 research parser did not provide meteorological values array');
         }
 
-         // Handle metadata-only parsing (prevents stack overflow)
-         if (data.metadataOnly) {
-             const isPrecipitation = data.parameterName === 'APCP' || 
-                                   (data.parameter?.category === 0 && data.parameter?.number === 1) ||
-                                   (data.parameter?.category === 0 && data.parameter?.number === 8);
-             
-             // Return metadata structure with ArrayBuffer preserved
-             return {
-                 success: true,
-                 data: {
-                     parameter: data.parameterName || 'Unknown',
-                     values: [], // Empty - data stored as ArrayBuffer for on-demand parsing
-                     coordinates: this.generateBasicCoordinates(data.grid, options.bbox),
-                     rawDataBuffer: data.rawDataBuffer, // ArrayBuffer preserved for targeted extraction
-                     messageIndex: data.messageIndex,
-                     isPrecipitation: isPrecipitation,
-                     shape: [data.grid.numLatPoints || 1381, data.grid.numLongPoints || 1381],
-                     grid: {
-                         Nx: data.grid.numLongPoints || 1381,
-                         Ny: data.grid.numLatPoints || 1381,
-                         totalPoints: data.grid.numPoints
-                     },
-                     bbox: options.bbox,
-                     metadata: {
-                         source: 'HRRR GRIB2',
-                         format: 'GRIB2',
-                         metadataOnly: true,
-                         dataStoredAs: 'ArrayBuffer',
-                         bufferSize: data.rawDataBuffer?.byteLength || 0,
-                         canExtractOnDemand: true,
-                         extractionMethod: 'Parse specific locations/steps when requested',
-                         gridDefinition: {
-                             Nx: data.grid.numLongPoints || 1381,
-                             Ny: data.grid.numLatPoints || 1381,
-                             projection: 'HRRR CONUS'
-                         }
-                     }
-                 }
-             };
-         }
+        // Handle metadata-only parsing (prevents stack overflow)
+        if (data.metadataOnly) {
+            const isPrecipitation = data.parameterName === 'APCP' ||
+                (data.parameter?.category === 0 && data.parameter?.number === 1) ||
+                (data.parameter?.category === 0 && data.parameter?.number === 8);
 
-         // Legacy full parsing (only for small files)
-         const hasValues = data.values && data.values.length > 0;
-         let validValues = [];
-         let minValue = 'N/A';
-         let maxValue = 'N/A';
-         
-         if (hasValues) {
-             // Sample only first 10000 values to avoid stack overflow
-             const sampleSize = Math.min(10000, data.values.length);
-             const sampleValues = data.values.slice(0, sampleSize);
-             validValues = sampleValues.filter(v => v !== null && !isNaN(v));
-             
-             if (validValues.length > 0) {
-                 minValue = Math.min(...validValues);
-                 maxValue = Math.max(...validValues);
-             }
-         }
-         
-         console.log('Extracting GRIB2 data from research parser:', {
-             gridPoints: data.grid.numPoints,
-             latPoints: data.grid.numLatPoints,
-             lonPoints: data.grid.numLongPoints,
-             valueCount: hasValues ? data.values.length : 0,
-             sampleValues: hasValues ? data.values.slice(0, 5) : [],
-             validValueCount: validValues.length,
-             minValue: minValue,
-             maxValue: maxValue,
-             hasData: hasValues,
-             sampled: hasValues && data.values.length > 10000
-         });
+            // Return metadata structure with ArrayBuffer preserved
+            return {
+                success: true,
+                data: {
+                    parameter: data.parameterName || 'Unknown',
+                    values: [], // Empty - data stored as ArrayBuffer for on-demand parsing
+                    coordinates: this.generateBasicCoordinates(data.grid, options.bbox),
+                    rawDataBuffer: data.rawDataBuffer, // ArrayBuffer preserved for targeted extraction
+                    messageIndex: data.messageIndex,
+                    isPrecipitation: isPrecipitation,
+                    shape: [data.grid.numLatPoints || 1381, data.grid.numLongPoints || 1381],
+                    grid: {
+                        Nx: data.grid.numLongPoints || 1381,
+                        Ny: data.grid.numLatPoints || 1381,
+                        totalPoints: data.grid.numPoints
+                    },
+                    bbox: options.bbox,
+                    metadata: {
+                        source: 'HRRR GRIB2',
+                        format: 'GRIB2',
+                        metadataOnly: true,
+                        dataStoredAs: 'ArrayBuffer',
+                        bufferSize: data.rawDataBuffer?.byteLength || 0,
+                        canExtractOnDemand: true,
+                        extractionMethod: 'Parse specific locations/steps when requested',
+                        gridDefinition: {
+                            Nx: data.grid.numLongPoints || 1381,
+                            Ny: data.grid.numLatPoints || 1381,
+                            projection: 'HRRR CONUS'
+                        }
+                    }
+                }
+            };
+        }
+
+        // Legacy full parsing (only for small files)
+        const hasValues = data.values && data.values.length > 0;
+        let validValues = [];
+        let minValue = 'N/A';
+        let maxValue = 'N/A';
+
+        if (hasValues) {
+            // Sample only first 10000 values to avoid stack overflow
+            const sampleSize = Math.min(10000, data.values.length);
+            const sampleValues = data.values.slice(0, sampleSize);
+            validValues = sampleValues.filter(v => v !== null && !isNaN(v));
+
+            if (validValues.length > 0) {
+                minValue = Math.min(...validValues);
+                maxValue = Math.max(...validValues);
+            }
+        }
+
+        console.log('Extracting GRIB2 data from research parser:', {
+            gridPoints: data.grid.numPoints,
+            latPoints: data.grid.numLatPoints,
+            lonPoints: data.grid.numLongPoints,
+            valueCount: hasValues ? data.values.length : 0,
+            sampleValues: hasValues ? data.values.slice(0, 5) : [],
+            validValueCount: validValues.length,
+            minValue: minValue,
+            maxValue: maxValue,
+            hasData: hasValues,
+            sampled: hasValues && data.values.length > 10000
+        });
 
         // Convert linear values array to 2D grid (research parser stores as 1D array)
         const gridValues = [];
@@ -766,14 +766,14 @@ class HydroLangGRIB2Parser {
                 source: 'GRIB2 Research Parser',
                 parsingMethod: 'Gerard Llorach Research Implementation',
                 compression: data.compression || null,
-                 dataStats: {
-                     minValue: minValue !== 'N/A' ? minValue : null,
-                     maxValue: maxValue !== 'N/A' ? maxValue : null,
-                     validPoints: validValues.length,
-                     totalPoints: hasValues ? data.values.length : 0,
-                     dataAvailable: hasValues,
-                     sampled: hasValues && data.values.length > 10000
-                 }
+                dataStats: {
+                    minValue: minValue !== 'N/A' ? minValue : null,
+                    maxValue: maxValue !== 'N/A' ? maxValue : null,
+                    validPoints: validValues.length,
+                    totalPoints: hasValues ? data.values.length : 0,
+                    dataAvailable: hasValues,
+                    sampled: hasValues && data.values.length > 10000
+                }
             }
         };
 

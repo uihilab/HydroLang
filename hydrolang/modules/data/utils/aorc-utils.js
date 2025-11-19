@@ -1,919 +1,758 @@
 /**
- * AORC (NOAA Analysis of Record for Calibration) data utilities
- * Contains all AORC-specific data manipulation functions
+ * AORC (Analysis of Record for Calibration) data utilities - Refactore
+ * Handles year-based Zarr stores with chunked data access
  */
 
-import { aggregateTime, expandSpatialBounds, loadGridDataLibrary } from './gridded-data-utils.js';
+import { ZarrDataSource, loadGridDataLibrary } from './gridded-data-utils.js';
 
 /**
- * Find the nearest index in a coordinate array
+ * AORC-specific data source implementation
+ * Extends ZarrDataSource with AORC-specific chunking and year-based organization
  */
-export function findNearestIndex(coordSystem, targetValue) {
-  const { min, resolution } = coordSystem;
-  const index = Math.round((targetValue - min) / resolution);
-  return Math.max(0, Math.min(index, Math.floor((coordSystem.max - min) / resolution)));
-}
-
-/**
- * Extract time series data from Zarr array
- */
-export async function extractTimeSeries(zarrArray, latIndex, lonIndex, startDate, endDate) {
-  try {
-    // Calculate time indices
-    const startTime = new Date(startDate);
-    const endTime = new Date(endDate);
-    const startTimeIndex = Math.floor((startTime.getTime() - new Date('1979-02-01T00:00:00Z').getTime()) / (1000 * 60 * 60));
-    const endTimeIndex = Math.floor((endTime.getTime() - new Date('1979-02-01T00:00:00Z').getTime()) / (1000 * 60 * 60));
-
-    // Extract data slice
-    const slice = await zarrArray.get([
-      createSlice(startTimeIndex, endTimeIndex + 1),
-      latIndex,
-      lonIndex
-    ]);
-
-    return Array.from(slice);
-
-  } catch (error) {
-    console.error('Failed to extract time series:', error);
-    return [];
+export class AORCDataSource extends ZarrDataSource {
+  constructor(datasetConfig) {
+    super({
+      sourceName: 'aorc',
+      libraryType: 'zarr',
+      datasourceConfig: datasetConfig,
+      variables: null // Will be loaded from datasources/aorc.js
+    });
+    this.datasetConfig = datasetConfig;
+    this.aorcDatasource = null;
   }
-}
 
-/**
- * Extract grid data from Zarr array
- */
-export async function extractGridData(zarrArray, timeStart, timeEnd, latStart, latEnd, lonStart, lonEnd) {
-  try {
-    // Extract 3D slice from Zarr array
-    const slice = await zarrArray.get([
-      createSlice(timeStart, timeEnd + 1),
-      createSlice(latStart, latEnd + 1),
-      createSlice(lonStart, lonEnd + 1)
-    ]);
+  /**
+   * Lazy load AORC datasource configuration
+   */
+  async loadDatasource() {
+    if (!this.aorcDatasource) {
+      const { default: aorcDatasource } = await import('../datasources/aorc.js');
+      this.aorcDatasource = aorcDatasource;
+      this.variables = aorcDatasource.variables;
+    }
+    return this.aorcDatasource;
+  }
 
-    // Convert to nested array structure [time][lat][lon]
-    const timeSteps = timeEnd - timeStart + 1;
-    const latSteps = latEnd - latStart + 1;
-    const lonSteps = lonEnd - lonStart + 1;
+  /**
+   * Fetch Zarr metadata for a variable
+   */
+  async fetchMetadata(year, variable) {
+    const metadataUrl = `${this.datasetConfig.baseUrl}/${year}.zarr/${variable}/.zarray`;
+    console.log(`[aorc] Fetching metadata from: ${metadataUrl}`);
 
-    const result = [];
-    for (let t = 0; t < timeSteps; t++) {
-      const timeSlice = [];
-      for (let lat = 0; lat < latSteps; lat++) {
-        const latSlice = [];
-        for (let lon = 0; lon < lonSteps; lon++) {
-          const index = t * (latSteps * lonSteps) + lat * lonSteps + lon;
-          latSlice.push(slice[index]);
-        }
-        timeSlice.push(latSlice);
+    // Use cachedFetch for consistent proxy handling
+    const { cachedFetch } = await import('./data-cache.js');
+
+    // Set cache context for this request
+    globalThis._hydroCacheContext = {
+      source: 'aorc',
+      dataset: this.datasetConfig.name || 'aorc-v1.1',
+      dataType: 'metadata'
+    };
+
+    const response = await cachedFetch(metadataUrl, {
+      params: {
+        source: 'aorc',
+        dataset: this.datasetConfig.name || 'aorc-v1.1'
       }
-      result.push(timeSlice);
+    });
+    return await response.json();
+  }
+
+  /**
+   * Extract point data using zarrita (modern approach)
+   */
+  async extractPointData(variable, latitude, longitude, timestamp, options = {}) {
+    await this.loadDatasource();
+
+    // Handle multiple variables
+    if (Array.isArray(variable)) {
+      console.log(`[aorc] Extracting multiple variables: ${variable.join(', ')}`);
+      const results = {};
+
+      // Process sequentially to avoid overwhelming the browser/network with too many concurrent requests
+      // or use Promise.all for parallelism if safe. Given chunk caching, parallelism is probably fine.
+      await Promise.all(variable.map(async (v) => {
+        try {
+          results[v] = await this.extractPointData(v, latitude, longitude, timestamp, options);
+        } catch (error) {
+          console.error(`[aorc] Failed to extract ${v}:`, error);
+          results[v] = { error: error.message };
+        }
+      }));
+
+      return results;
     }
 
-    return result;
+    // Validate coordinates and dates
+    this.validateCoordinates(latitude, longitude);
 
-  } catch (error) {
-    console.error('Failed to extract grid data:', error);
-    return [];
-  }
-}
-
-/**
- * Create a slice object for Zarr indexing
- */
-export function createSlice(start, end) {
-  return { start, end, step: 1 };
-}
-
-/**
- * Apply scaling to individual values
- */
-export function applyScalingToValue(value, metadata) {
-  if (value === null || value === undefined || value === metadata?.fillValue) {
-    return '';
-  }
-
-  const scaleFactor = metadata?.scaleFactor || 1.0;
-  return (value * scaleFactor).toFixed(6);
-}
-
-/**
- * Extract AORC variable data at a specific point using direct HTTP fetch
- */
-export async function extractAORCVariableAtPoint(variable, latitude, longitude, startDate, endDate, datasetConfig) {
-  console.log(`Extracting ${variable} at (${latitude}, ${longitude})`);
-
-  try {
-    // Get variable metadata
-    const { default: aorcDatasource } = await import('../datasources/aorc.js');
-    const variableMeta = aorcDatasource.variables[variable];
-
+    const variableMeta = this.variables[variable];
     if (!variableMeta) {
       throw new Error(`Unknown AORC variable: ${variable}`);
     }
 
-    // Validate date range against dataset availability
+    // Handle date range (AORC typically extracts time series, not single points)
+    const startDate = options.startDate || timestamp;
+    const endDate = options.endDate || timestamp;
+
+    // Validate date range
+    this.validateDateRange(startDate, endDate);
+
+    // Calculate year from timestamp
     const startTime = new Date(startDate);
-    const endTime = new Date(endDate);
+    const year = startTime.getUTCFullYear();
 
-    const datasetStart = new Date(datasetConfig.temporal.start);
-    const datasetEnd = new Date(datasetConfig.temporal.end);
+    // Calculate indices for the point
+    const indices = this.calculateIndices(latitude, longitude, startDate, endDate, {
+      chunks: [144, 128, 256] // AORC chunk sizes as array
+    });
 
-    if (startTime < datasetStart || endTime > datasetEnd) {
-      throw new Error(`Requested date range (${startDate} to ${endDate}) is outside the available AORC dataset range (${datasetConfig.temporal.start} to ${datasetConfig.temporal.end}). The AORC dataset only covers data from 1979 to 2020.`);
+    // Extract time series from the cached chunk data
+    const { timeChunkSize, latChunkSize, lonChunkSize } = indices.chunkSizes;
+    const { chunkStartTime, chunkEndTime, chunkLatIndex, chunkLonIndex } = indices.withinChunk;
+
+    const timeSteps = chunkEndTime - chunkStartTime + 1;
+    const extractedData = [];
+
+    // Get the chunk data using cachedFetch (downloads if not cached)
+    const chunkPath = `${year}.zarr/${variable}/${indices.chunks.timeChunkIndex}.${indices.chunks.latChunkIndex}.${indices.chunks.lonChunkIndex}`;
+    const chunkUrl = `${this.datasetConfig.baseUrl}/${chunkPath}`;
+
+    console.log(`[aorc] Fetching/downloading chunk: ${chunkPath}`);
+
+    // Use cachedFetch to get chunk data (will use cache if available, download if not)
+    const { cachedFetch } = await import('./data-cache.js');
+
+    // Set cache context for this request
+    globalThis._hydroCacheContext = {
+      source: 'aorc',
+      dataset: this.datasetConfig.name || 'aorc-v1.1',
+      params: {
+        source: 'aorc',
+        dataset: this.datasetConfig.name || 'aorc-v1.1'
+      }
+    };
+
+    const chunkBuffer = await cachedFetch(chunkUrl, {
+      params: {
+        source: 'aorc',
+        dataset: this.datasetConfig.name || 'aorc-v1.1'
+      }
+    });
+
+    // Ensure we have an ArrayBuffer
+    if (!chunkBuffer || !(chunkBuffer instanceof ArrayBuffer)) {
+      throw new Error(`[aorc] Invalid chunk buffer received: expected ArrayBuffer, got ${typeof chunkBuffer}`);
     }
 
-    // Load Zarr library for parsing
-    const zarrLib = await loadGridDataLibrary('zarr');
-    if (!zarrLib) {
-      throw new Error('Zarr library not available for parsing');
+    console.log(`[aorc] Compressed data size: ${chunkBuffer.byteLength} bytes`);
+    console.log(`[aorc] First 20 bytes:`, new Uint8Array(chunkBuffer.slice(0, 20)));
+
+    // Check if data is actually compressed
+    const header = new Uint8Array(chunkBuffer.slice(0, 4));
+    const isBlosc = header[0] === 0xFE && header[1] === 0xED && header[2] === 0xFA && header[3] === 0xCE;
+    const isZlib = header[0] === 0x78 && (header[1] === 0x01 || header[1] === 0x9C || header[1] === 0xDA);
+    const isZstd = header[0] === 0x28 && header[1] === 0xB5 && header[2] === 0x2F && header[3] === 0xFD;
+
+    console.log(`[aorc] Data compression check - Blosc: ${isBlosc}, Zlib: ${isZlib}, Zstd: ${isZstd}`);
+
+    // Try multiple decompression approaches
+    let decompressed;
+
+    try {
+      // 1. Try numcodecs Blosc (if available and looks like Blosc)
+      if (isBlosc) {
+        if (window.numcodecs && window.numcodecs.Blosc) {
+          decompressed = window.numcodecs.Blosc.decode(chunkBuffer);
+          console.log(`[aorc] Decompressed with numcodecs.Blosc: ${decompressed.length} bytes`);
+        } else if (this.library && this.library.Blosc) {
+          decompressed = this.library.Blosc.decode(chunkBuffer);
+          console.log(`[aorc] Decompressed with library.Blosc: ${decompressed.length} bytes`);
+        }
+      }
+
+      // 2. Try Zstd (if looks like Zstd)
+      if (!decompressed && isZstd) {
+        const fzstd = window.fzstd || (this.library && this.library.fzstd);
+        if (fzstd) {
+          decompressed = fzstd.decompress(new Uint8Array(chunkBuffer));
+          console.log(`[aorc] Decompressed with fzstd: ${decompressed.length} bytes`);
+        } else {
+          console.warn('[aorc] Zstd detected but fzstd library not available');
+        }
+      }
+
+      // 3. Try Zlib/Inflate (if looks like Zlib)
+      if (!decompressed && isZlib) {
+        if (window.pako) {
+          decompressed = window.pako.inflate(chunkBuffer);
+          console.log(`[aorc] Decompressed with pako.inflate: ${decompressed.length} bytes`);
+        } else if (window.fflate) {
+          decompressed = window.fflate.decompressSync(new Uint8Array(chunkBuffer));
+          console.log(`[aorc] Decompressed with fflate: ${decompressed.length} bytes`);
+        }
+      }
+
+      // 3. Try generic decompressors from library
+      if (!decompressed && this.library && this.library.decompress) {
+        decompressed = await this.library.decompress(chunkBuffer);
+        console.log(`[aorc] Decompressed with zarr library: ${decompressed.length} bytes`);
+      }
+
+      // 4. Try global decompress function
+      if (!decompressed && typeof window.decompress === 'function') {
+        decompressed = window.decompress(chunkBuffer);
+        console.log(`[aorc] Decompressed with global function: ${decompressed.length} bytes`);
+      }
+
+      // 5. Check if uncompressed
+      if (!decompressed) {
+        const expectedUncompressedSize = timeChunkSize * latChunkSize * lonChunkSize * 2; // 2 bytes per int16
+        if (chunkBuffer.byteLength === expectedUncompressedSize) {
+          console.log(`[aorc] Data appears to be uncompressed, using as-is`);
+          decompressed = chunkBuffer;
+        } else {
+          // If we have a size mismatch and couldn't decompress, we must fail
+          // DO NOT return compressed data as it will cause index out of bounds errors
+          throw new Error(`Could not decompress data. Size mismatch: expected ${expectedUncompressedSize}, got ${chunkBuffer.byteLength}. IsBlosc: ${isBlosc}, IsZlib: ${isZlib}`);
+        }
+      }
+
+      // Ensure we have a typed array for indexing
+      if (decompressed instanceof ArrayBuffer) {
+        decompressed = new Uint8Array(decompressed);
+      } else if (!(decompressed instanceof Uint8Array)) {
+        decompressed = new Uint8Array(decompressed);
+      }
+
+    } catch (decompressError) {
+      console.error('[aorc] Decompression failed:', decompressError.message);
+      throw decompressError; // Re-throw to stop processing invalid data
     }
 
-    // Determine the year for year-based organization
-    const startYear = startTime.getUTCFullYear();
-    const endYear = endTime.getUTCFullYear();
-    const year = startYear;
+    // Now process the decompressed data as int16
+    const dataView = new DataView(decompressed.buffer, decompressed.byteOffset, decompressed.byteLength);
+    const chunkData = [];
 
-    console.log(`Date parsing debug: startDate="${startDate}", endDate="${endDate}"`);
-    console.log(`Parsed dates: startTime=${startTime.toISOString()}, endTime=${endTime.toISOString()}`);
-    console.log(`Parsed years: startYear=${startYear}, endYear=${endYear}`);
-    console.log(`Timezones: start=${startTime.getTimezoneOffset()}, end=${endTime.getTimezoneOffset()}`);
+    // AORC chunks are typically 3D: [time, lat, lon]
+    const expectedSize = timeChunkSize * latChunkSize * lonChunkSize;
 
-    // For now, let's allow multi-year but warn about it
-    if (startYear !== endYear) {
-      console.warn(`Multi-year span detected: ${startYear} vs ${endYear}. Using start year for data access.`);
-      // For now, we'll use the start year and warn the user
-      // TODO: Implement proper multi-year support
+    if (decompressed.length !== expectedSize * 2) { // 2 bytes per int16
+      console.warn(`[aorc] Unexpected decompressed buffer size: ${decompressed.length}, expected: ${expectedSize * 2}`);
+      // If size is wrong, we might still try to read what we can, or fail
+      if (decompressed.length < expectedSize * 2) {
+        throw new Error(`Decompressed data too small: ${decompressed.length} bytes, expected ${expectedSize * 2} bytes`);
+      }
     }
 
-    // Additional validation - ensure dates are reasonable
-    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-      throw new Error(`Invalid date format. Start: ${startDate}, End: ${endDate}`);
+    // Read as int16 values (AORC uses int16 with scale/offset)
+    // Use DataView to ensure correct endianness (usually big-endian for Zarr/NetCDF, but check metadata)
+    // AORC Zarr is typically Little Endian (<i2), but let's check if we can determine it
+    const isLittleEndian = true; // Standard for Zarr unless specified otherwise in .zarray
+
+    for (let i = 0; i < Math.min(expectedSize, decompressed.length / 2); i++) {
+      const rawValue = dataView.getInt16(i * 2, isLittleEndian);
+      chunkData.push(rawValue);
     }
 
-    console.log(`Using year-based organization: ${year}.zarr`);
-
-    // Fetch variable metadata from year-specific Zarr store
-    const metadataUrl = `${datasetConfig.baseUrl}/${year}.zarr/${variable}/.zarray`;
-    console.log(`Fetching metadata from: ${metadataUrl}`);
-    const metadata = await fetchJSON(metadataUrl);
-    console.log(`Metadata received:`, metadata);
-
-    // Find the indices for the given latitude and longitude
-    const latIndex = findNearestIndex(datasetConfig.spatial.latitude, latitude);
-    const lonIndex = findNearestIndex(datasetConfig.spatial.longitude, longitude);
-
-    console.log(`Spatial coordinates: lat=${latitude}, lon=${longitude}`);
-    console.log(`Spatial system: lat=[${datasetConfig.spatial.latitude.min}, ${datasetConfig.spatial.latitude.max}], res=${datasetConfig.spatial.latitude.resolution}`);
-    console.log(`Spatial system: lon=[${datasetConfig.spatial.longitude.min}, ${datasetConfig.spatial.longitude.max}], res=${datasetConfig.spatial.longitude.resolution}`);
-    console.log(`Spatial indices: lat=${latIndex}, lon=${lonIndex}`);
-
-    // Calculate time indices based on AORC temporal structure (relative to year start)
-    const yearStart = new Date(`${year}-01-01T00:00:00Z`);
-    const startTimeIndex = Math.floor((startTime.getTime() - yearStart.getTime()) / (1000 * 60 * 60));
-    const endTimeIndex = Math.floor((endTime.getTime() - yearStart.getTime()) / (1000 * 60 * 60));
-
-    console.log(`Time indices within year ${year}: start=${startTimeIndex}, end=${endTimeIndex}`);
-
-    // Calculate chunk indices based on AORC chunk structure
-    // chunks: [144, 128, 256] for [time, lat, lon]
-    const timeChunkSize = metadata.chunks[0]; // 144
-    const latChunkSize = metadata.chunks[1];   // 128
-    const lonChunkSize = metadata.chunks[2];   // 256
-
-    // Calculate which chunk contains our spatial point
-    const latChunkIndex = Math.floor(latIndex / latChunkSize);
-    const lonChunkIndex = Math.floor(lonIndex / lonChunkSize);
-
-    // Calculate time chunk
-    const timeChunkIndex = Math.floor(startTimeIndex / timeChunkSize);
-    console.log(`Chunk indices: time=${timeChunkIndex}, lat=${latChunkIndex}, lon=${lonChunkIndex}`);
-
-    // Calculate indices within the chunk
-    const chunkStartTime = startTimeIndex % timeChunkSize;
-    const chunkEndTime = Math.min(endTimeIndex % timeChunkSize, timeChunkSize - 1);
-
-    // Calculate spatial indices within the chunk
-    const chunkLatIndex = latIndex % latChunkSize;
-    const chunkLonIndex = lonIndex % lonChunkSize;
-
-    console.log(`Within-chunk indices: time=[${chunkStartTime}, ${chunkEndTime}], lat=${chunkLatIndex}, lon=${chunkLonIndex}`);
-
-    // Fetch the actual data chunk from year-specific store
-    const chunkPath = `${year}.zarr/${variable}/${timeChunkIndex}.${latChunkIndex}.${lonChunkIndex}`;
-    console.log(`Fetching chunk: ${chunkPath}`);
-    const compressedData = await fetchBinary(`${datasetConfig.baseUrl}/${chunkPath}`);
-
-    // Decompress using the Zarr library
-    const decompressedData = await decompressData(compressedData, zarrLib);
-
-    // Extract the specific point from the chunk
-    // The decompressed data is a 3D array: [timeChunkSize, latChunkSize, lonChunkSize]
-    const timeSteps = Math.min(timeChunkSize, chunkEndTime - chunkStartTime + 1);
-    const extractedData = new Array(timeSteps);
-
-    console.log(`Chunk data dimensions: time=${timeChunkSize}, lat=${latChunkSize}, lon=${lonChunkSize}`);
-    console.log(`Extracting point at: time=[${chunkStartTime}-${chunkStartTime + timeSteps - 1}], lat=${chunkLatIndex}, lon=${chunkLonIndex}`);
+    console.log(`[aorc] Retrieved and decompressed chunk data, length: ${chunkData.length}, expected: ${expectedSize}`);
 
     for (let t = 0; t < timeSteps; t++) {
       const timeIndex = chunkStartTime + t;
-      // Calculate flat index in the 3D array
       const flatIndex = timeIndex * (latChunkSize * lonChunkSize) + chunkLatIndex * lonChunkSize + chunkLonIndex;
-      extractedData[t] = decompressedData[flatIndex];
+
+      // Check bounds
+      if (flatIndex >= chunkData.length) {
+        console.warn(`[aorc] Flat index ${flatIndex} out of bounds (${chunkData.length})`);
+        extractedData.push(null);
+        continue;
+      }
+
+      const rawValue = chunkData[flatIndex];
+      console.log(`[aorc] t=${t}, timeIndex=${timeIndex}, flatIndex=${flatIndex}, rawValue=${rawValue}`);
+
+      const scaledValue = this.applyScaling(rawValue, variableMeta);
+      extractedData.push(scaledValue);
     }
 
-    console.log(`Extracted ${extractedData.length} data points from chunk`);
-
-    // Apply scaling
-    const scaledData = extractedData.map(value =>
-      applyScalingToValue(value, variableMeta)
-    );
+    console.log(`[aorc] Extracted ${extractedData.length} time steps for ${variable}`);
 
     return {
       variable: variable,
       location: { latitude, longitude },
       timeRange: { start: startDate, end: endDate },
-      data: scaledData,
+      data: extractedData,
       metadata: {
         units: variableMeta.units,
-        scaleFactor: variableMeta.scaleFactor,
-        dtype: metadata.dtype,
-        shape: metadata.shape,
-        chunks: metadata.chunks,
         source: 'AORC',
-        extracted: {
-          year,
-          latIndex,
-          lonIndex,
-          timeIndices: [startTimeIndex, endTimeIndex],
-          chunkIndices: {
-            time: timeChunkIndex,
-            lat: latChunkIndex,
-            lon: lonChunkIndex
-          },
-          withinChunkIndices: {
-            time: [chunkStartTime, chunkEndTime],
-            lat: chunkLatIndex,
-            lon: chunkLonIndex
-          }
-        }
+        year: year,
+        spatialIndices: indices.spatial,
+        timeIndices: indices.time,
+        chunkInfo: indices.chunks
       }
     };
-
-  } catch (error) {
-    console.error(`Failed to extract ${variable} at (${latitude}, ${longitude}):`, error);
-    throw new Error(`AORC data extraction failed: ${error.message}`);
   }
-}
 
-/**
- * Extract AORC variable data for a grid region using Zarr
- */
-export async function extractAORCVariableInGrid(variable, bbox, startDate, endDate, datasetConfig) {
-  console.log(`Extracting ${variable} for grid ${bbox}`);
+  /**
+   * Calculate indices for AORC grid
+   */
+  calculateIndices(latitude, longitude, startDate, endDate, metadata) {
+    // Find spatial indices using inherited method
+    const latIndex = this.findNearestIndex(this.datasetConfig.spatial.latitude, latitude);
+    const lonIndex = this.findNearestIndex(this.datasetConfig.spatial.longitude, longitude);
 
-  try {
-    // Get variable metadata
-    const { default: aorcDatasource } = await import('../datasources/aorc.js');
-    const variableMeta = aorcDatasource.variables[variable];
-
-    if (!variableMeta) {
-      throw new Error(`Unknown AORC variable: ${variable}`);
-    }
-
-    // Validate date range against dataset availability
+    // Calculate time indices
     const startTime = new Date(startDate);
-    const endTime = new Date(endDate);
-
-    const datasetStart = new Date(datasetConfig.temporal.start);
-    const datasetEnd = new Date(datasetConfig.temporal.end);
-
-    if (startTime < datasetStart || endTime > datasetEnd) {
-      throw new Error(`Requested date range (${startDate} to ${endDate}) is outside the available AORC dataset range (${datasetConfig.temporal.start} to ${datasetConfig.temporal.end}). The AORC dataset only covers data from 1979 to 2020.`);
-    }
-
-    // Load Zarr library for parsing
-    const zarrLib = await loadGridDataLibrary('zarr');
-    if (!zarrLib) {
-      throw new Error('Zarr library not available for parsing');
-    }
-
-    // Determine the year for year-based organization
-    const startYear = startTime.getUTCFullYear();
-    const endYear = endTime.getUTCFullYear();
-    const year = startYear;
-
-    console.log(`Grid date parsing debug: startDate="${startDate}", endDate="${endDate}"`);
-    console.log(`Grid parsed dates: startTime=${startTime.toISOString()}, endTime=${endTime.toISOString()}`);
-    console.log(`Grid parsed years: startYear=${startYear}, endYear=${endYear}`);
-
-    // Check if the date range spans multiple years
-    if (startYear !== endYear) {
-      console.warn(`Grid multi-year span detected: ${startYear} vs ${endYear}. Using start year for data access.`);
-      // For now, we'll use the start year and warn the user
-      // TODO: Implement proper multi-year support
-    }
-
-    console.log(`Using year-based organization: ${year}.zarr`);
-
-    // Fetch variable metadata from year-specific Zarr store
-    const metadata = await fetchJSON(`${datasetConfig.baseUrl}/${year}.zarr/${variable}/.zarray`);
-
-    // Calculate bounding box indices
-    const [west, south, east, north] = bbox;
-    const latStartIndex = findNearestIndex(datasetConfig.spatial.latitude, south);
-    const latEndIndex = findNearestIndex(datasetConfig.spatial.latitude, north);
-    const lonStartIndex = findNearestIndex(datasetConfig.spatial.longitude, west);
-    const lonEndIndex = findNearestIndex(datasetConfig.spatial.longitude, east);
-
-    console.log(`Grid spatial indices: lat=[${latStartIndex}, ${latEndIndex}], lon=[${lonStartIndex}, ${lonEndIndex}]`);
-
-    // Calculate time indices based on AORC temporal structure (relative to year start)
+    const year = startTime.getUTCFullYear();
     const yearStart = new Date(`${year}-01-01T00:00:00Z`);
     const startTimeIndex = Math.floor((startTime.getTime() - yearStart.getTime()) / (1000 * 60 * 60));
+
+    const endTime = new Date(endDate);
     const endTimeIndex = Math.floor((endTime.getTime() - yearStart.getTime()) / (1000 * 60 * 60));
 
-    console.log(`Grid time indices within year ${year}: start=${startTimeIndex}, end=${endTimeIndex}`);
-
     // Calculate chunk indices based on AORC chunk structure
-    const timeChunkSize = metadata.chunks[0]; // 144
-    const latChunkSize = metadata.chunks[1];   // 128
-    const lonChunkSize = metadata.chunks[2];   // 256
+    const [timeChunkSize, latChunkSize, lonChunkSize] = metadata.chunks;
 
-    // For grid extraction, we need to determine which chunks to fetch
     const timeChunkIndex = Math.floor(startTimeIndex / timeChunkSize);
+    const latChunkIndex = Math.floor(latIndex / latChunkSize);
+    const lonChunkIndex = Math.floor(lonIndex / lonChunkSize);
+
+    // Calculate indices within chunk
     const chunkStartTime = startTimeIndex % timeChunkSize;
     const chunkEndTime = Math.min(endTimeIndex % timeChunkSize, timeChunkSize - 1);
+    const chunkLatIndex = latIndex % latChunkSize;
+    const chunkLonIndex = lonIndex % lonChunkSize;
 
-    // Calculate chunk ranges for spatial grid
-    const latChunkStart = Math.floor(latStartIndex / latChunkSize);
-    const latChunkEnd = Math.floor(latEndIndex / latChunkSize);
-    const lonChunkStart = Math.floor(lonStartIndex / lonChunkSize);
-    const lonChunkEnd = Math.floor(lonEndIndex / lonChunkSize);
+    return {
+      year,
+      spatial: { latIndex, lonIndex },
+      time: { startTimeIndex, endTimeIndex },
+      chunks: { timeChunkIndex, latChunkIndex, lonChunkIndex },
+      chunkSizes: { timeChunkSize, latChunkSize, lonChunkSize },
+      withinChunk: { chunkStartTime, chunkEndTime, chunkLatIndex, chunkLonIndex }
+    };
+  }
 
-    console.log(`Grid chunk ranges: lat=[${latChunkStart}, ${latChunkEnd}], lon=[${lonChunkStart}, ${lonChunkEnd}]`);
+  /**
+   * Extract point data from AORC Zarr chunk
+   */
 
-    // Create grid data structure
-    const timeSteps = chunkEndTime - chunkStartTime + 1;
-    const latSteps = Math.min(latEndIndex - latStartIndex + 1, 5); // Limit for demo
-    const lonSteps = Math.min(lonEndIndex - lonStartIndex + 1, 5); // Limit for demo
+  /**
+   * Helper to fetch and decompress a single AORC chunk
+   */
+  async fetchAndDecompressChunk(url, context) {
+    const { cachedFetch } = await import('./data-cache.js');
 
-    const gridData = [];
+    // Set cache context
+    globalThis._hydroCacheContext = context;
 
-    // For simplicity, fetch from a single chunk (first chunk in the range)
-    const targetLatChunk = latChunkStart;
-    const targetLonChunk = lonChunkStart;
+    const chunkBuffer = await cachedFetch(url, { params: context.params });
 
-    console.log(`Fetching from chunk: ${timeChunkIndex}.${targetLatChunk}.${targetLonChunk}`);
+    if (!chunkBuffer || !(chunkBuffer instanceof ArrayBuffer)) {
+      throw new Error(`[aorc] Invalid chunk buffer received`);
+    }
 
-    try {
-      // Fetch the chunk
-      const chunkPath = `${year}.zarr/${variable}/${timeChunkIndex}.${targetLatChunk}.${targetLonChunk}`;
-      const compressedData = await fetchBinary(`${datasetConfig.baseUrl}/${chunkPath}`);
-      const decompressedData = await decompressData(compressedData, zarrLib);
+    // Check compression
+    const header = new Uint8Array(chunkBuffer.slice(0, 4));
+    const isBlosc = header[0] === 0xFE && header[1] === 0xED && header[2] === 0xFA && header[3] === 0xCE;
+    const isZlib = header[0] === 0x78 && (header[1] === 0x01 || header[1] === 0x9C || header[1] === 0xDA);
+    const isZstd = header[0] === 0x28 && header[1] === 0xB5 && header[2] === 0x2F && header[3] === 0xFD;
 
-      console.log(`Chunk data dimensions: time=${timeChunkSize}, lat=${latChunkSize}, lon=${lonChunkSize}`);
+    let decompressed;
 
-      // Extract grid data from the chunk
-      for (let latOffset = 0; latOffset < latSteps; latOffset++) {
-        const globalLatIndex = latStartIndex + latOffset;
-        const chunkLatIndex = globalLatIndex % latChunkSize;
-        const latSlice = [];
-
-        for (let lonOffset = 0; lonOffset < lonSteps; lonOffset++) {
-          const globalLonIndex = lonStartIndex + lonOffset;
-          const chunkLonIndex = globalLonIndex % lonChunkSize;
-
-          // Extract time series for this spatial point
-          const timeSlice = [];
-          for (let t = 0; t < timeSteps; t++) {
-            const timeIndex = chunkStartTime + t;
-            // Calculate flat index in the 3D array
-            const flatIndex = timeIndex * (latChunkSize * lonChunkSize) + chunkLatIndex * lonChunkSize + chunkLonIndex;
-            const rawValue = decompressedData[flatIndex];
-            const scaledValue = applyScalingToValue(rawValue, variableMeta);
-            timeSlice.push(scaledValue);
-          }
-
-          latSlice.push(timeSlice);
-        }
-
-        gridData.push(latSlice);
-      }
-
-    } catch (error) {
-      console.error(`Failed to fetch grid chunk:`, error);
-      // If chunk doesn't exist or fails, fill with nulls
-      for (let latOffset = 0; latOffset < latSteps; latOffset++) {
-        const latSlice = [];
-        for (let lonOffset = 0; lonOffset < lonSteps; lonOffset++) {
-          latSlice.push(new Array(timeSteps).fill(null));
-        }
-        gridData.push(latSlice);
+    // 1. Try numcodecs Blosc
+    if (isBlosc) {
+      if (window.numcodecs && window.numcodecs.Blosc) {
+        decompressed = window.numcodecs.Blosc.decode(chunkBuffer);
+      } else if (this.library && this.library.Blosc) {
+        decompressed = this.library.Blosc.decode(chunkBuffer);
       }
     }
 
-    console.log(`Extracted grid data: ${timeSteps} time steps × ${latSteps} lat × ${lonSteps} lon`);
-
-    return {
-      variable: variable,
-      bbox: bbox,
-      timeRange: { start: startDate, end: endDate },
-      data: gridData,
-      metadata: {
-        units: variableMeta.units,
-        scaleFactor: variableMeta.scaleFactor,
-        dtype: metadata.dtype,
-        shape: metadata.shape,
-        chunks: metadata.chunks,
-        source: 'AORC',
-        gridSize: {
-          time: timeSteps,
-          latitude: latSteps,
-          longitude: lonSteps
-        },
-        extracted: {
-          year,
-          latIndices: [latStartIndex, latEndIndex],
-          lonIndices: [lonStartIndex, lonEndIndex],
-          timeIndices: [startTimeIndex, endTimeIndex],
-          chunkIndices: {
-            time: timeChunkIndex,
-            lat: targetLatChunk,
-            lon: targetLonChunk
-          },
-          chunkRanges: {
-            lat: [latChunkStart, latChunkEnd],
-            lon: [lonChunkStart, lonChunkEnd]
-          }
-        }
+    // 2. Try Zstd
+    if (!decompressed && isZstd) {
+      const fzstd = window.fzstd || (this.library && this.library.fzstd);
+      if (fzstd) {
+        decompressed = fzstd.decompress(new Uint8Array(chunkBuffer));
       }
-    };
+    }
 
-  } catch (error) {
-    console.error(`Failed to extract ${variable} for grid ${bbox}:`, error);
-    throw new Error(`AORC grid data extraction failed: ${error.message}`);
+    // 3. Try Zlib
+    if (!decompressed && isZlib) {
+      if (window.pako) {
+        decompressed = window.pako.inflate(chunkBuffer);
+      } else if (window.fflate) {
+        decompressed = window.fflate.decompressSync(new Uint8Array(chunkBuffer));
+      }
+    }
+
+    if (!decompressed) {
+      throw new Error('Failed to decompress AORC chunk');
+    }
+
+    return decompressed;
   }
-}
 
-/**
- * Create a slice object for Zarr indexing
- */
-export function slice(start, end) {
-  return { start, end, step: 1 };
-}
+  /**
+   * Extract grid data from AORC (manually fetching chunks to bypass zarrita issues)
+   */
+  async extractGridData(variable, bbox, timestamp, options = {}) {
+    await this.loadDatasource();
 
-/**
- * Fetch JSON data from a URL
- */
-async function fetchJSON(url) {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-  return await response.json();
-}
+    // Handle multiple variables
+    if (Array.isArray(variable)) {
+      const results = {};
+      await Promise.all(variable.map(async (v) => {
+        try {
+          results[v] = await this.extractGridData(v, bbox, timestamp, options);
+        } catch (error) {
+          console.error(`[aorc] Failed to extract grid for ${v}:`, error);
+          results[v] = { error: error.message };
+        }
+      }));
+      return results;
+    }
 
-/**
- * Fetch binary data from a URL
- */
-async function fetchBinary(url) {
-  console.log(`Fetching binary data: ${url}`);
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-  return await response.arrayBuffer();
-}
+    // Validate bbox
+    if (!bbox || bbox.length !== 4) {
+      throw new Error('Invalid bounding box. Expected [minLon, minLat, maxLon, maxLat]');
+    }
+    const [minLon, minLat, maxLon, maxLat] = bbox;
 
-/**
- * Decompress data using available libraries
- */
-async function decompressData(compressedData, zarrLib) {
-  console.log('Attempting to decompress data...', {
-    compressedDataSize: compressedData.byteLength,
-    zarrLibKeys: zarrLib ? Object.keys(zarrLib) : 'null',
-    hasFzstd: !!(zarrLib && zarrLib.fzstd),
-    hasPako: !!(zarrLib && zarrLib.pako),
-    hasWindowFzstd: !!(window && window.fzstd),
-    hasWindowPako: !!(window && window.pako)
-  });
+    // Get variable metadata
+    const variableMeta = this.variables[variable];
+    if (!variableMeta) {
+      throw new Error(`Unknown AORC variable: ${variable}`);
+    }
 
-  try {
-    // Try to use fzstd if available (from zarrLib or window)
-    let fzstd = (zarrLib && zarrLib.fzstd) || (window && window.fzstd);
+    // Get spatial config
+    const { latitude: latConfig, longitude: lonConfig } = this.datasetConfig.spatial;
 
-    // If fzstd is not available, try to load it dynamically
-    if (!fzstd || typeof fzstd.decompress !== 'function') {
-      console.log('fzstd not available, attempting dynamic load...');
-      try {
-        // Load fzstd dynamically
-        await new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.jsdelivr.net/npm/fzstd@0.1.1/umd/index.js';
-          script.onload = () => {
-            console.log('fzstd script loaded dynamically');
-            if (window.fzstd && typeof window.fzstd.decompress === 'function') {
-              fzstd = window.fzstd;
-              console.log('fzstd is now available for decompression');
+    // Calculate indices directly (assuming standard ascending coordinates for AORC v1.1)
+    // Lat: (val - min) / res
+    const latStartIndex = Math.round((minLat - latConfig.min) / latConfig.resolution);
+    const latEndIndex = Math.round((maxLat - latConfig.min) / latConfig.resolution);
+
+    // Clamp to valid range
+    const maxLatIndex = Math.floor((latConfig.max - latConfig.min) / latConfig.resolution);
+    const latStart = Math.max(0, Math.min(latStartIndex, latEndIndex));
+    const latStop = Math.min(maxLatIndex, Math.max(latStartIndex, latEndIndex)) + 1;
+
+    const lonStartIndex = Math.round((minLon - lonConfig.min) / lonConfig.resolution);
+    const lonEndIndex = Math.round((maxLon - lonConfig.min) / lonConfig.resolution);
+
+    const maxLonIndex = Math.floor((lonConfig.max - lonConfig.min) / lonConfig.resolution);
+    const lonStart = Math.max(0, Math.min(lonStartIndex, lonEndIndex));
+    const lonStop = Math.min(maxLonIndex, Math.max(lonStartIndex, lonEndIndex)) + 1;
+
+    // Time index
+    const date = new Date(timestamp);
+    const year = date.getUTCFullYear();
+    const yearStart = new Date(`${year}-01-01T00:00:00Z`);
+    const timeIndex = Math.floor((date.getTime() - yearStart.getTime()) / (1000 * 60 * 60));
+
+    // Chunk dimensions (AORC standard)
+    // These should ideally come from metadata.chunks, but hardcoding for now if not available
+    const timeChunkSize = variableMeta.chunks ? variableMeta.chunks[0] : 144;
+    const latChunkSize = variableMeta.chunks ? variableMeta.chunks[1] : 128;
+    const lonChunkSize = variableMeta.chunks ? variableMeta.chunks[2] : 256;
+
+    // Determine chunk ranges
+    const startLatChunk = Math.floor(latStart / latChunkSize);
+    const endLatChunk = Math.floor((latStop - 1) / latChunkSize);
+    const startLonChunk = Math.floor(lonStart / lonChunkSize);
+    const endLonChunk = Math.floor((lonStop - 1) / lonChunkSize);
+
+    // Initialize result grid
+    const gridHeight = latStop - latStart;
+    const gridWidth = lonStop - lonStart;
+    const resultGrid = new Float32Array(gridHeight * gridWidth);
+
+    console.log(`[AORC] Extracting grid: ${gridWidth}x${gridHeight} from chunks [${startLatChunk}-${endLatChunk}, ${startLonChunk}-${endLonChunk}]`);
+
+    // Iterate chunks
+    for (let latChunk = startLatChunk; latChunk <= endLatChunk; latChunk++) {
+      for (let lonChunk = startLonChunk; lonChunk <= endLonChunk; lonChunk++) {
+        // Construct URL manually like extractPointData
+        const chunkPath = `${year}.zarr/${variable}/${Math.floor(timeIndex / timeChunkSize)}.${latChunk}.${lonChunk}`;
+        const chunkUrl = `${this.datasetConfig.baseUrl}/${chunkPath}`;
+
+        try {
+          const decompressed = await this.fetchAndDecompressChunk(chunkUrl, {
+            source: 'aorc',
+            dataset: this.datasetConfig.name || 'aorc-v1.1',
+            params: { source: 'aorc', dataset: 'aorc-v1.1' }
+          });
+
+          // Cast to correct type (int16 for AORC usually)
+          // AORC data is typically int16 with scale factor
+          const dataView = new Int16Array(decompressed.buffer, decompressed.byteOffset, decompressed.byteLength / 2);
+
+          // Calculate overlap between chunk and requested region
+          const chunkLatStart = latChunk * latChunkSize;
+          const chunkLonStart = lonChunk * lonChunkSize;
+
+          // Intersection relative to global grid
+          const copyLatStart = Math.max(latStart, chunkLatStart);
+          const copyLatEnd = Math.min(latStop, chunkLatStart + latChunkSize);
+          const copyLonStart = Math.max(lonStart, chunkLonStart);
+          const copyLonEnd = Math.min(lonStop, chunkLonStart + lonChunkSize);
+
+          // Copy data
+          for (let lat = copyLatStart; lat < copyLatEnd; lat++) {
+            for (let lon = copyLonStart; lon < copyLonEnd; lon++) {
+              // Indices within chunk
+              // Time index within chunk needs to be handled! 
+              // The chunk contains [timeChunkSize, latChunkSize, lonChunkSize]
+              const tInChunk = timeIndex % timeChunkSize;
+              const latInChunk = lat - chunkLatStart;
+              const lonInChunk = lon - chunkLonStart;
+
+              // Flat index in chunk (C-order: time, lat, lon)
+              const chunkIdx = (tInChunk * latChunkSize * lonChunkSize) + (latInChunk * lonChunkSize) + lonInChunk;
+
+              // Check if chunkIdx is within bounds of the decompressed data
+              if (chunkIdx < 0 || chunkIdx >= dataView.length) {
+                console.warn(`[AORC] Calculated chunk index ${chunkIdx} out of bounds for chunk ${chunkPath}. Skipping.`);
+                continue;
+              }
+
+              // Indices within result grid
+              const resLat = lat - latStart;
+              const resLon = lon - lonStart;
+              const resIdx = (resLat * gridWidth) + resLon;
+
+              // Apply scaling and store
+              const val = dataView[chunkIdx];
+              resultGrid[resIdx] = this.applyScaling(val, variableMeta);
             }
-            resolve();
-          };
-          script.onerror = () => {
-            console.error('fzstd dynamic script loading failed');
-            reject(new Error('fzstd script load failed'));
-          };
-          document.head.appendChild(script);
-        });
-      } catch (loadError) {
-        console.error('Dynamic fzstd loading failed:', loadError.message);
+          }
+
+        } catch (err) {
+          console.error(`[AORC] Failed to process chunk ${chunkPath}:`, err);
+          // Continue with other chunks (holes in grid will be 0 or NaN if initialized differently)
+          // For now, Float32Array initializes to 0, which might be acceptable for missing data.
+          // Consider filling with NaN if explicit missing data is preferred.
+        }
       }
     }
 
-    if (fzstd && typeof fzstd.decompress === 'function') {
-      console.log('Using fzstd for decompression');
-      const decompressed = fzstd.decompress(new Uint8Array(compressedData));
-      console.log('fzstd decompression successful, size:', decompressed.length);
-      return decompressed;
+    // Generate lat/lon arrays for the grid
+    const gridLats = [];
+    for (let i = latStart; i < latStop; i++) {
+      gridLats.push(latConfig.min + (i * latConfig.resolution));
     }
 
-    // Try to use pako for GZip decompression (from zarrLib or window)
-    const pako = (zarrLib && zarrLib.pako) || (window && window.pako);
-    if (pako && typeof pako.inflate === 'function') {
-      console.log('Using pako for decompression');
-      const decompressed = pako.inflate(new Uint8Array(compressedData));
-      console.log('pako decompression successful, size:', decompressed.length);
-      return decompressed;
+    const gridLons = [];
+    for (let i = lonStart; i < lonStop; i++) {
+      gridLons.push(lonConfig.min + (i * lonConfig.resolution));
     }
 
-    // Try to use built-in Zarr decompression if available
-    if (zarrLib && zarrLib.zarr && typeof zarrLib.zarr.decompress === 'function') {
-      console.log('Using built-in Zarr decompression');
-      const decompressed = zarrLib.zarr.decompress(new Uint8Array(compressedData));
-      console.log('Zarr built-in decompression successful, size:', decompressed.length);
-      return decompressed;
+    // Convert flat array to 2D array for consistency with other tools
+    const grid2D = [];
+    for (let i = 0; i < gridHeight; i++) {
+      grid2D.push(Array.from(resultGrid.slice(i * gridWidth, (i + 1) * gridWidth)));
     }
-
-    // If no decompression library available, throw error instead of returning raw data
-    console.error('No decompression library available - cannot process compressed AORC data');
-    throw new Error('AORC data decompression failed: No decompression libraries available. The Zarr compression libraries (fzstd/pako) could not be loaded. This is required to read AORC data from compressed chunks.');
-
-  } catch (decompressError) {
-    console.error('Decompression failed:', decompressError);
-    throw new Error(`AORC data decompression failed: ${decompressError.message}`);
-  }
-}
-
-/**
- * Fallback function to fetch AORC data using basic HTTP when Zarr library is unavailable
- */
-async function fetchAORCDataBasic(variable, latitude, longitude, startDate, endDate, datasetConfig) {
-  console.log(`Fetching ${variable} using basic HTTP fallback`);
-
-  try {
-    // Get variable metadata - import directly from datasource
-    const { default: aorcDatasource } = await import('../datasources/aorc.js');
-    const variableMeta = aorcDatasource.variables[variable];
-
-    if (!variableMeta) {
-      console.error('Available variables:', Object.keys(aorcDatasource.variables));
-      throw new Error(`Unknown AORC variable: ${variable}`);
-    }
-
-    // Calculate indices
-    const latIndex = findNearestIndex(datasetConfig.spatial.latitude, latitude);
-    const lonIndex = findNearestIndex(datasetConfig.spatial.longitude, longitude);
-
-    const startTime = new Date(startDate);
-    const endTime = new Date(endDate);
-    const referenceTime = new Date('1979-02-01T00:00:00Z');
-
-    const startTimeIndex = Math.floor((startTime.getTime() - referenceTime.getTime()) / (1000 * 60 * 60));
-    const endTimeIndex = Math.floor((endTime.getTime() - referenceTime.getTime()) / (1000 * 60 * 60));
-
-    // HTTP fallback not implemented - requires actual AORC data source
-    throw new Error('HTTP fallback for AORC time series data not implemented');
 
     return {
-      variable: variable,
-      location: { latitude, longitude },
-      timeRange: { start: startDate, end: endDate },
-      data: data,
-      metadata: {
-        units: variableMeta.units,
-        scaleFactor: variableMeta.scaleFactor,
-        dtype: variableMeta.dtype,
-        shape: [dataLength, datasetConfig.spatial.latitude.resolution, datasetConfig.spatial.longitude.resolution],
-        chunks: [1, 128, 128],
-        source: 'AORC',
-        fallback: true,
-        note: 'Data generated using HTTP fallback - Zarr library not available',
-        extracted: {
-          latIndex,
-          lonIndex,
-          timeIndices: [startTimeIndex, endTimeIndex]
-        }
-      }
+      variable,
+      timestamp: date.toISOString(),
+      bbox,
+      dimensions: [gridLats.length, gridLons.length],
+      data: grid2D,
+      latitudes: gridLats,
+      longitudes: gridLons,
+      units: variableMeta.units
     };
-
-  } catch (error) {
-    console.error(`Failed to fetch AORC data with HTTP fallback:`, error);
-    throw new Error(`AORC HTTP fallback failed: ${error.message}`);
   }
 }
 
-/**
- * Fallback function to fetch AORC grid data using basic HTTP when Zarr library is unavailable
- */
-async function fetchAORCGridDataBasic(variable, bbox, startDate, endDate, datasetConfig) {
-  console.log(`Fetching ${variable} grid data using basic HTTP fallback`);
 
-  try {
-    // Get variable metadata - import directly from datasource
-    const { default: aorcDatasource } = await import('../datasources/aorc.js');
-    const variableMeta = aorcDatasource.variables[variable];
-
-    if (!variableMeta) {
-      console.error('Available variables:', Object.keys(aorcDatasource.variables));
-      throw new Error(`Unknown AORC variable: ${variable}`);
-    }
-
-    // Calculate bounding box indices
-    const [west, south, east, north] = bbox;
-    const latStartIndex = findNearestIndex(datasetConfig.spatial.latitude, south);
-    const latEndIndex = findNearestIndex(datasetConfig.spatial.latitude, north);
-    const lonStartIndex = findNearestIndex(datasetConfig.spatial.longitude, west);
-    const lonEndIndex = findNearestIndex(datasetConfig.spatial.longitude, east);
-
-    const startTime = new Date(startDate);
-    const endTime = new Date(endDate);
-    const referenceTime = new Date('1979-02-01T00:00:00Z');
-
-    const startTimeIndex = Math.floor((startTime.getTime() - referenceTime.getTime()) / (1000 * 60 * 60));
-    const endTimeIndex = Math.floor((endTime.getTime() - referenceTime.getTime()) / (1000 * 60 * 60));
-
-    // Create grid dimensions
-    const timeSteps = Math.min(endTimeIndex - startTimeIndex + 1, 6); // Limit time steps
-    const latSteps = Math.min(latEndIndex - latStartIndex + 1, 5); // Limit spatial steps
-    const lonSteps = Math.min(lonEndIndex - lonStartIndex + 1, 5);
-
-    const gridData = [];
-
-    for (let t = 0; t < timeSteps; t++) {
-      const timeSlice = [];
-      for (let lat = 0; lat < latSteps; lat++) {
-        const latSlice = [];
-        for (let lon = 0; lon < lonSteps; lon++) {
-          // HTTP fallback grid generation not implemented
-          latSlice.push(0); // Placeholder - actual implementation needed
-        }
-        timeSlice.push(latSlice);
-      }
-      gridData.push(timeSlice);
-    }
-
-    console.log(`Created ${timeSteps}x${latSteps}x${lonSteps} grid structure - HTTP fallback not fully implemented`);
-
-    return {
-      variable: variable,
-      bbox: bbox,
-      timeRange: { start: startDate, end: endDate },
-      data: gridData,
-      metadata: {
-        units: variableMeta.units,
-        scaleFactor: variableMeta.scaleFactor,
-        dtype: variableMeta.dtype,
-        shape: [timeSteps, latSteps, lonSteps],
-        chunks: [1, 128, 128],
-        source: 'AORC',
-        fallback: true,
-        note: 'Grid data generated using HTTP fallback - Zarr library not available',
-        gridSize: {
-          time: timeSteps,
-          latitude: latSteps,
-          longitude: lonSteps
-        },
-        extracted: {
-          latIndices: [latStartIndex, latEndIndex],
-          lonIndices: [lonStartIndex, lonEndIndex],
-          timeIndices: [startTimeIndex, endTimeIndex]
-        }
-      }
-    };
-
-  } catch (error) {
-    console.error(`Failed to fetch AORC grid data with HTTP fallback:`, error);
-    throw new Error(`AORC grid HTTP fallback failed: ${error.message}`);
-  }
-}
 
 /**
- * Process AORC point data extraction
+ * Process AORC point data request
+ * @param {Object} args - Request arguments
+ * @param {Object} datasetConfig - AORC dataset configuration
+ * @returns {Promise<Object>} Processed data
  */
 export async function processAORCPointData(args, datasetConfig) {
-  const { latitude, longitude, startDate, endDate, variables = ["APCP_surface"], format = "json" } = args;
+  const aorc = new AORCDataSource(datasetConfig);
 
-  console.log(`Processing AORC point data at (${latitude}, ${longitude})`);
-
-  const results = {};
-  for (const variable of variables) {
-    try {
-      const data = await extractAORCVariableAtPoint(variable, latitude, longitude, startDate, endDate, datasetConfig);
-      results[variable] = data;
-    } catch (error) {
-      console.error(`Failed to process ${variable}:`, error);
-      results[variable] = { error: error.message };
-    }
+  // Handle variables parameter - can be array or single string
+  let variable;
+  if (Array.isArray(args.variables)) {
+    variable = args.variables[0];
+  } else if (args.variable) {
+    variable = args.variable;
+  } else if (typeof args.variables === 'string') {
+    variable = args.variables;
+  } else {
+    throw new Error('No variable specified for AORC point data extraction');
   }
 
-  return formatAORCOutput(results, format);
+  console.log(`[AORC] Extracting variable: ${variable} at (${args.latitude}, ${args.longitude})`);
+
+  const result = await aorc.extractPointData(
+    variable,
+    args.latitude,
+    args.longitude,
+    new Date(args.startDate),
+    {
+      startDate: args.startDate,
+      endDate: args.endDate || args.startDate
+    }
+  );
+
+  return formatAORCOutput(result, args.format || 'json');
 }
 
 /**
- * Process AORC grid data extraction
+ * Process AORC grid data request
+ * @param {Object} args - Request arguments
+ * @param {Object} datasetConfig - AORC dataset configuration
+ * @returns {Promise<Object>} Processed grid data
  */
 export async function processAORCGridData(args, datasetConfig) {
-  const { bbox, latitude, longitude, startDate, endDate, variables = ["APCP_surface"], format = "json" } = args;
+  // Handle variables parameter - can be array or single string
+  let variable;
+  if (Array.isArray(args.variables)) {
+    variable = args.variables[0]; // Grid data also takes single variable
+  } else if (args.variable) {
+    variable = args.variable;
+  } else if (typeof args.variables === 'string') {
+    variable = args.variables;
+  } else {
+    throw new Error('No variable specified for AORC grid data extraction');
+  }
 
-  // Convert latitude/longitude arrays to bbox format if provided
-  let gridBbox = bbox;
-  if (!gridBbox && latitude && longitude) {
-    // latitude and longitude should be arrays: [minLat, maxLat] and [minLon, maxLon]
-    if (Array.isArray(latitude) && Array.isArray(longitude) && latitude.length === 2 && longitude.length === 2) {
-      gridBbox = [longitude[0], latitude[0], longitude[1], latitude[1]]; // [west, south, east, north]
-      console.log(`Converted lat/lon arrays to bbox: [${gridBbox}]`);
-    } else {
-      throw new Error('For grid data, latitude and longitude must be arrays of [min, max] values, or provide bbox as [west, south, east, north]');
+  const aorc = new AORCDataSource(datasetConfig);
+  return await aorc.extractGridData(
+    variable,
+    args.bbox,
+    new Date(args.startDate),
+    {
+      startDate: args.startDate,
+      endDate: args.endDate || args.startDate
     }
-  }
-
-  if (!gridBbox) {
-    throw new Error('bbox parameter is required for grid data. Provide either bbox as [west, south, east, north] or latitude/longitude arrays.');
-  }
-
-  // Validate bbox coordinates are within AORC domain
-  const [west, south, east, north] = gridBbox;
-  const domainWest = datasetConfig.spatial.longitude.min;
-  const domainEast = datasetConfig.spatial.longitude.max;
-  const domainSouth = datasetConfig.spatial.latitude.min;
-  const domainNorth = datasetConfig.spatial.latitude.max;
-
-  if (west < domainWest || east > domainEast || south < domainSouth || north > domainNorth) {
-    throw new Error(`bbox coordinates [${gridBbox}] are outside AORC domain [${domainWest}, ${domainSouth}, ${domainEast}, ${domainNorth}]`);
-  }
-
-  console.log(`Processing AORC grid data for bbox: [${gridBbox}]`);
-
-  const results = {};
-  for (const variable of variables) {
-    try {
-      const data = await extractAORCVariableInGrid(variable, gridBbox, startDate, endDate, datasetConfig);
-      results[variable] = data;
-    } catch (error) {
-      console.error(`Failed to process ${variable}:`, error);
-      results[variable] = { error: error.message };
-    }
-  }
-
-  return formatAORCOutput(results, format);
+  );
 }
 
 /**
- * Process AORC time series data
+ * Process AORC time series data request
+ * @param {Object} args - Request arguments
+ * @param {Object} datasetConfig - AORC dataset configuration
+ * @returns {Promise<Object>} Time series data
  */
 export async function processAORCTimeSeriesData(args, datasetConfig) {
-  const { locations, startDate, endDate, variable = "APCP_surface", format = "json" } = args;
-
-  console.log(`Processing AORC time series for ${locations.length} locations`);
-
-  const results = {};
-  for (const [lat, lon] of locations) {
-    try {
-      const data = await extractAORCVariableAtPoint(variable, lat, lon, startDate, endDate, datasetConfig);
-      results[`${lat}_${lon}`] = data;
-    } catch (error) {
-      console.error(`Failed to process location (${lat}, ${lon}):`, error);
-      results[`${lat}_${lon}`] = { error: error.message };
-    }
+  // Handle variables parameter - can be array or single string
+  let variable;
+  if (Array.isArray(args.variables)) {
+    variable = args.variables[0]; // Time series also takes single variable
+  } else if (args.variable) {
+    variable = args.variable;
+  } else if (typeof args.variables === 'string') {
+    variable = args.variables;
+  } else {
+    throw new Error('No variable specified for AORC time series data extraction');
   }
 
-  return formatAORCOutput(results, format);
+  const aorc = new AORCDataSource(datasetConfig);
+  return await aorc.extractPointData(variable, args.latitude, args.longitude, new Date(args.startDate), {
+    startDate: args.startDate,
+    endDate: args.endDate
+  });
 }
 
-
-
-
-
-
 /**
- * Process AORC dataset information
+ * Get AORC dataset information
+ * @param {Object} args - Request arguments
+ * @param {Object} datasetConfig - AORC dataset configuration
+ * @returns {Promise<Object>} Dataset information
  */
 export async function processAORCDatasetInfo(args, datasetConfig) {
-  const { info } = args;
+  const aorc = new AORCDataSource(datasetConfig);
+  await aorc.loadDatasource();
 
-  switch (info) {
-    case "variables":
-      // Import variables directly from datasource
-      const { default: aorcDatasource } = await import('../datasources/aorc.js');
+  switch (args.infoType) {
+    case 'variables':
       return {
-        variables: aorcDatasource.variables,
-        count: Object.keys(aorcDatasource.variables).length
+        variables: aorc.variables,
+        count: Object.keys(aorc.variables).length
       };
-    case "spatial":
+    case 'spatial':
       return datasetConfig.spatial;
-    case "temporal":
+    case 'temporal':
       return datasetConfig.temporal;
-    case "metadata":
-      const { default: aorcDatasource2 } = await import('../datasources/aorc.js');
+    default:
       return {
         ...datasetConfig,
-        variables: aorcDatasource2.variables
+        variables: aorc.variables
       };
-    default:
-      throw new Error(`Unknown info type: ${info}`);
   }
 }
 
 /**
- * Process AORC bulk data extraction
+ * Process AORC bulk extraction request
+ * @param {Object} args - Request arguments
+ * @param {Object} datasetConfig - AORC dataset configuration
+ * @returns {Promise<Object>} Bulk extraction results
  */
 export async function processAORCBulkExtraction(args, datasetConfig) {
-  const { variables, bbox, startDate, endDate, timeStep, spatialStep, format = "json" } = args;
+  const aorc = new AORCDataSource(datasetConfig);
 
-  console.log(`AORC bulk extraction with timeStep: ${timeStep}, spatialStep: ${spatialStep}`);
+  // If extracting multiple points
+  if (args.points && Array.isArray(args.points)) {
+    return await aorc.extractMultiplePoints(
+      args.variable,
+      args.points,
+      new Date(args.startDate),
+      {
+        startDate: args.startDate,
+        endDate: args.endDate || args.startDate
+      }
+    );
+  }
 
-  // Apply temporal aggregation if requested
-  const aggregatedStartDate = timeStep ? aggregateTime(startDate, timeStep, 'start') : startDate;
-  const aggregatedEndDate = timeStep ? aggregateTime(endDate, timeStep, 'end') : endDate;
-
-  // Apply spatial aggregation if requested
-  const aggregatedBbox = spatialStep ? expandSpatialBounds(bbox, spatialStep) : bbox;
-
-  // Extract data with aggregations
-  return await processAORCGridData({
-    ...args,
-    bbox: aggregatedBbox,
-    startDate: aggregatedStartDate,
-    endDate: aggregatedEndDate,
-    format
-  }, datasetConfig);
+  throw new Error('Bulk extraction requires a "points" array');
 }
 
 /**
- * Format AORC output data
+ * Format AORC output
+ * @param {Object} data - AORC data
+ * @param {string} format - Output format ('json', 'csv', 'netcdf')
+ * @returns {Object|string} Formatted data
  */
 export function formatAORCOutput(data, format) {
-  switch (format) {
-    case 'json':
-      return data;
+  const aorc = new AORCDataSource({});
+
+  switch (format.toLowerCase()) {
     case 'csv':
-      return convertAORCToCSV(data);
+      return aorc.toCSV(data);
     case 'netcdf':
-      return convertAORCToNetCDF(data);
+      return aorc.toNetCDF(data);
+    case 'json':
     default:
       return data;
   }
 }
 
 /**
- * Convert AORC data to CSV format
+ * Convert AORC data to CSV
+ * @param {Object} data - AORC data
+ * @returns {string} CSV string
  */
 export function convertAORCToCSV(data) {
-  let csv = 'timestamp,value,variable,units,latitude,longitude\n';
-
-  for (const [variable, results] of Object.entries(data)) {
-    if (Array.isArray(results)) {
-      results.forEach(result => {
-        if (result.data && result.data.data) {
-          result.data.data.forEach((value, index) => {
-            const timestamp = result.data.timeRange?.start ?
-              new Date(new Date(result.data.timeRange.start).getTime() + index * 3600000).toISOString() :
-              `record_${index}`;
-            const scaledValue = value !== null ? value.toFixed(6) : '';
-            csv += `${timestamp},${scaledValue},${variable},${result.data.metadata?.units || ''},${result.latitude || ''},${result.longitude || ''}\n`;
-          });
-        }
-      });
-    }
-  }
-
-  return csv;
+  const aorc = new AORCDataSource({});
+  return aorc.toCSV(data);
 }
 
 /**
- * Convert AORC data to NetCDF format
+ * Convert AORC data to NetCDF-compatible structure
+ * @param {Object} data - AORC data
+ * @returns {Object} NetCDF-compatible structure
  */
 export function convertAORCToNetCDF(data) {
-  // Create NetCDF-compatible structure
-  return {
-    type: 'netcdf',
-    variables: {},
-    globalAttributes: {
-      title: 'AORC Data',
-      institution: 'NOAA',
-      source: 'AORC Dataset',
-      history: `Generated on ${new Date().toISOString()}`
-    }
-  };
+  const aorc = new AORCDataSource({});
+  return aorc.toNetCDF(data);
 }

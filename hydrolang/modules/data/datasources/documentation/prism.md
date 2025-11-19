@@ -15,9 +15,9 @@ The PRISM data source provides high-resolution climate and weather data for the 
 
 ### Spatial Coverage
 - **Geographic Extent**: United States (CONUS, Alaska, Hawaii, Puerto Rico)
-- **Spatial Resolution**: 
+- **Spatial Resolution**:
   - 400m (15 arc-seconds)
-  - 800m (30 arc-seconds) 
+  - 800m (30 arc-seconds)
   - 4km (2.5 arc-minutes)
 - **Coordinate System**: Geographic NAD83 (EPSG:4269)
 - **File Format**: Cloud Optimized GeoTIFF (new format), BIL (legacy format)
@@ -261,7 +261,7 @@ const variables = await hydro.data.retrieve({
 // Manual resolution override
 args: {
   resolution: "15s", // 400m resolution
-  // resolution: "30s", // 800m resolution  
+  // resolution: "30s", // 800m resolution
   // resolution: "25m"  // 4km resolution
 }
 ```
@@ -412,3 +412,4 @@ prism_ppt_us_25m_20250915.zip
 ├── prism_ppt_us_25m_20250915.info.txt # Creation info
 └── prism_ppt_us_25m_20250915.stn.csv # Contributing stations
 ```
+

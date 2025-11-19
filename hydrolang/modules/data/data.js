@@ -1,86 +1,17 @@
 import * as datasources from "./datasources.js";
 import stats from "../analyze/components/stats.js";
+import { cachedFetch } from "./utils/data-cache.js";
 import {
-  findNearestIndex,
-  extractTimeSeries,
-  extractGridData,
-  createSlice,
-  applyScalingToValue,
-  constructNWMFileURL,
-  getNWMTemporalInfo,
-  generateNWMDateRange,
-  extractNWMData,
-  convertNWMValue,
+  GRIDDED_SOURCES,
+  processGriddedSource,
   applyDataScaling,
   convertDataUnits,
   aggregateTemporal,
-  expandSpatialBounds,
   applyQualityControl,
   calculateStatistics,
   formatData,
   loadGridDataLibrary,
-  isGridDataLibraryLoaded,
-  aggregateTime,
-  isValidCoordinate,
-  isValidBoundingBox
 } from "./utils/index.js";
-
-// Import AORC and NWM utility functions
-import {
-  processAORCPointData,
-  processAORCGridData,
-  processAORCTimeSeriesData,
-  processAORCDatasetInfo
-} from "./utils/aorc-utils.js";
-
-import {
-  processNWMPointData,
-  processNWMGridData,
-  processNWMTimeSeriesData,
-  processNWMDatasetInfo,
-  processNWMBulkExtraction
-} from "./utils/nwm-utils.js";
-
-import {
-  fetchDEMData,
-  fetchPointElevation,
-  validate3DEPParams
-} from "./utils/threedep-utils.js";
-
-import {
-  extractMRMSPointData,
-  extractMRMSGridData,
-  extractMRMSTimeSeries,
-  getMRMSDatasetInfo,
-  getAvailableMRMSProducts,
-  validateMRMSConfig
-} from "./utils/mrms-utils.js";
-
-import {
-  extractHRRRPointData,
-  extractHRRRGridData,
-  extractHRRRTimeSeries,
-  getHRRRDatasetInfo,
-  getAvailableHRRRVariables,
-  validateHRRRConfig
-} from "./utils/hrrr-utils.js";
-
-import {
-  extractERA5PointData,
-  extractERA5GridData,
-  extractERA5TimeSeries,
-  getAvailableERA5Variables,
-  validateERA5Config
-} from "./utils/ecmwf-utils.js";
-
-import {
-  extractPRISMPointData,
-  extractPRISMGridData,
-  extractPRISMTimeSeries,
-  getPRISMDatasetInfo,
-  getAvailablePRISMVariables,
-  validatePRISMConfig
-} from "./utils/prism-utils.js";
 
 //import fxparserMin from "./fxparser.min.js";
 
@@ -237,6 +168,7 @@ import {
  *   }
  * });
  */
+
 async function retrieve({ params, args, data } = {}) {
 
   let source = params.source;
@@ -244,106 +176,29 @@ async function retrieve({ params, args, data } = {}) {
   let placeHolder = params.placeHolder || false;
   let trans = params.transform || false;
 
-  console.log(params)
+  // Set global cache context for this request
+  globalThis._hydroCacheContext = {
+    source: source,
+    dataset: args.dataset || source,
+    dataType: dataType,
+    cacheId: params.cacheId,  // Allow user to specify custom cache ID
+    params: args
+  };
 
-  // Special handling for AORC datasource (Zarr format on S3)
-  if (source === "aorc") {
-    return processAORCData({ params, args, dataType }).catch(async (error) => {
-      // If the error is related to missing libraries, try to load them automatically
-      if (error.message.includes('not available') || error.message.includes('not loaded')) {
-        console.log('Attempting to load required gridded data libraries...');
+  try {
+    console.log(params);
 
-        try {
-          // Load Zarr library automatically
-          await loadGridDataLibrary('zarr');
-          // Retry the operation
-          return processAORCData({ params, args, dataType });
-        } catch (loadError) {
-          throw new Error(`Failed to load required libraries: ${loadError.message}`);
-        }
-      }
-      throw error;
-    });
-  }
-
-  // Special handling for MRMS datasource (GRIB2 format)
-  if (source === "mrms") {
-    return processMRMSData({ params, args, dataType }).catch(async (error) => {
-      // If the error is related to missing libraries, try to load them automatically
-      if (error.message.includes('not available') || error.message.includes('not loaded')) {
-        console.log('Attempting to load required GRIB2 libraries...');
-
-        try {
-          // Load GRIB2 library automatically
-          await loadGridDataLibrary('grib2');
-          // Retry the operation
-          return processMRMSData({ params, args, dataType });
-        } catch (loadError) {
-          throw new Error(`Failed to load required GRIB2 libraries: ${loadError.message}`);
-        }
-      }
-      throw error;
-    });
-  }
-
-  // Special handling for HRRR datasource (GRIB2 format)
-  if (source === "hrrr") {
-    return processHRRRData({ params, args, dataType }).catch(async (error) => {
-      // If the error is related to missing libraries, try to load them automatically
-      if (error.message.includes('not available') || error.message.includes('not loaded')) {
-        console.log('Attempting to load required GRIB2 libraries...');
-
-        try {
-          // Load GRIB2 library automatically
-          await loadGridDataLibrary('grib2');
-          // Retry the operation
-          return processHRRRData({ params, args, dataType });
-        } catch (loadError) {
-          throw new Error(`Failed to load required GRIB2 libraries: ${loadError.message}`);
-        }
-      }
-      throw error;
-    });
-  }
-
-  // Special handling for ECMWF datasource (ERA5 GRIB2 format)
-  if (source === "ecmwf") {
-    return processECMWFData({ params, args, dataType }).catch(async (error) => {
-      // If the error is related to missing libraries, try to load them automatically
-      if (error.message.includes('not available') || error.message.includes('not loaded')) {
-        console.log('Attempting to load required GRIB2 libraries...');
-
-        try {
-          // Load GRIB2 library automatically
-          await loadGridDataLibrary('grib2');
-          // Retry the operation
-          return processECMWFData({ params, args, dataType });
-        } catch (loadError) {
-          throw new Error(`Failed to load required GRIB2 libraries: ${loadError.message}`);
-        }
-      }
-      throw error;
-    });
-  }
-
-  // Special handling for PRISM datasource (GeoTIFF/BIL format)
-  if (source === "prism") {
-    return processPRISMData({ params, args, dataType }).catch(async (error) => {
-      // If the error is related to missing libraries, try to load them automatically
-      if (error.message.includes('not available') || error.message.includes('not loaded')) {
-        console.log('Attempting to load required geospatial libraries...');
-
-        try {
-          // Load geospatial library automatically
-          await loadGridDataLibrary('geospatial');
-          // Retry the operation
-          return processPRISMData({ params, args, dataType });
-        } catch (loadError) {
-          throw new Error(`Failed to load required geospatial libraries: ${loadError.message}`);
-        }
-      }
-      throw error;
-    });
+  // Check if this is a gridded data source
+  const griddedConfig = GRIDDED_SOURCES[source];
+  if (griddedConfig) {
+    // Run preprocessing if needed (e.g., NLDI lookup for NWM)
+    if (griddedConfig.preProcess) {
+      const result = await griddedConfig.preProcess(params, args, dataType);
+      args = result.args;
+    }
+    
+    // Use the new generic processor (pass datasources, not params)
+    return processGriddedSource(source, dataType, args, datasources);
   }
 
   // For other datasources, check if they exist
@@ -353,145 +208,22 @@ async function retrieve({ params, args, data } = {}) {
     return Promise.reject(new Error("No data source found for the given specifications."));
   }
 
-  // Special handling for NWM datasource (Zarr format on S3)
-  if (source === "nwm") {
-    // Handle NLDI COMID lookup for different data types
-    if (dataType === "point-data" && !args.comid && args.latitude && args.longitude) {
-      // Single location COMID lookup for point data
-      try {
-        console.log('No COMID provided, looking up using NLDI...');
-        const nldiResult = await retrieve({
-          params: { source: "nldi", datatype: "getFeatureByCoordinates" },
-          args: { coords: `POINT(${args.longitude} ${args.latitude})` }
-        });
-
-        if (nldiResult && nldiResult.features && nldiResult.features.length > 0) {
-          const feature = nldiResult.features[0];
-          const comid = feature.properties?.comid || feature.properties?.COMID;
-
-          if (comid) {
-            args.comid = comid.toString();
-            console.log(`Found COMID: ${args.comid} for coordinates (${args.latitude}, ${args.longitude})`);
-          } else {
-            throw new Error(`No COMID found for coordinates (${args.latitude}, ${args.longitude})`);
-          }
-        } else {
-          throw new Error(`No features found for coordinates (${args.latitude}, ${args.longitude})`);
-        }
-      } catch (nldiError) {
-        console.error('NLDI COMID lookup failed:', nldiError.message);
-        throw new Error(`Could not find COMID for coordinates (${args.latitude}, ${args.longitude}). ${nldiError.message}`);
-      }
-    } else if (dataType === "timeseries-data" && args.locations && Array.isArray(args.locations)) {
-      // Multiple location COMID lookup for timeseries data
-      console.log(`Looking up COMIDs for ${args.locations.length} locations using NLDI...`);
-
-      // Process each location to find COMIDs
-      const processedLocations = [];
-      for (let i = 0; i < args.locations.length; i++) {
-        const [latitude, longitude] = args.locations[i];
-        try {
-          const nldiResult = await retrieve({
-            params: { source: "nldi", datatype: "getFeatureByCoordinates" },
-            args: { coords: `POINT(${longitude} ${latitude})` }
-          });
-
-          if (nldiResult && nldiResult.features && nldiResult.features.length > 0) {
-            const feature = nldiResult.features[0];
-            const comid = feature.properties?.comid || feature.properties?.COMID;
-
-            if (comid) {
-              processedLocations.push({
-                latitude,
-                longitude,
-                comid: comid.toString()
-              });
-              console.log(`Found COMID: ${comid} for location ${i + 1}/${args.locations.length} (${latitude}, ${longitude})`);
-            } else {
-              console.warn(`No COMID found for location ${i + 1}/${args.locations.length} (${latitude}, ${longitude})`);
-              processedLocations.push({
-                latitude,
-                longitude,
-                comid: null,
-                error: 'No COMID found'
-              });
-            }
-          } else {
-            console.warn(`No features found for location ${i + 1}/${args.locations.length} (${latitude}, ${longitude})`);
-            processedLocations.push({
-              latitude,
-              longitude,
-              comid: null,
-              error: 'No features found'
-            });
-          }
-        } catch (locationError) {
-          console.error(`Error looking up COMID for location ${i + 1}/${args.locations.length}:`, locationError.message);
-          processedLocations.push({
-            latitude,
-            longitude,
-            comid: null,
-            error: locationError.message
-          });
-        }
-      }
-
-      // Store the processed locations in args for the timeseries processing
-      args.processedLocations = processedLocations;
-      console.log(`Completed COMID lookup for ${processedLocations.length} locations`);
-    }
-
-    return processNWMData({ params, args, dataType }).catch(async (error) => {
-      // If the error is related to missing libraries, try to load them automatically
-      if (error.message.includes('not available') || error.message.includes('not loaded')) {
-        console.log('Attempting to load required gridded data libraries...');
-
-        try {
-          // Load Zarr library automatically
-          await loadGridDataLibrary('zarr');
-          // Retry the operation
-          return processNWMData({ params, args, dataType });
-        } catch (loadError) {
-          throw new Error(`Failed to load required libraries: ${loadError.message}`);
-        }
-      }
-      throw error;
-    });
-  }
-
-  // Special handling for 3DEP datasource (GeoTIFF format from USGS)
-  if (source === "threedep") {
-    return process3DEPData({ params, args, dataType }).catch(async (error) => {
-      // If the error is related to missing libraries, try to load them automatically
-      if (error.message.includes('not available') || error.message.includes('not loaded')) {
-        console.log('Attempting to load required geospatial libraries...');
-
-        try {
-          // Load GeoTIFF and proj4 libraries automatically
-          await loadGridDataLibrary('geospatial');
-          // Retry the operation
-          return process3DEPData({ params, args, dataType });
-        } catch (loadError) {
-          throw new Error(`Failed to load required libraries: ${loadError.message}`);
-        }
-      }
-      throw error;
-    });
-  }
-
   let endpoint =
-    source === "waterOneFlow" || source === "hisCentral" || source === "mitigation_dt" || source === "flooddamage_dt"
-      ? datasources[source].sourceType(args.sourceType, dataType)
+    source === "waterOneFlow" || source === "hisCentral" || source === "mitigation_dt" || source === "flooddamage_dt" || source === "nldas"
+      ? (source === "nldas" ? datasources[source].sourceType(args.dataset, dataType, args) : datasources[source].sourceType(args.sourceType, dataType))
       : dataSource.endpoint;
 
   let type = params.type || dataSource.methods.type;
 
-  // let proxy = datasources[source]?.requirements?.needProxy
-  //   ? datasources.proxies["local-proxy"].endpoint
-  //   : "";
-  
-    let proxy = datasources.proxies["local-proxy"].endpoint
-    ;
+  // Check if proxy is needed based on datasource requirements
+  let proxy = "";
+  if (datasources[source]?.requirements?.needProxy) {
+    // Use specified proxy or default to researchverse
+    const proxyName = params.proxyServer || "researchverse";
+    proxy = datasources.proxies[proxyName]?.endpoint || datasources.proxies["researchverse"].endpoint;
+  }
+  // If needProxy is explicitly false, don't use proxy (empty string)
+  // This allows direct fetch for APIs that support CORS like USGS WFS
 
   let headers = {
     "content-type": (() => {
@@ -538,13 +270,39 @@ async function retrieve({ params, args, data } = {}) {
         ? datasources.envelope(dataSource.body(args))
         : datasources.envelope(dataSource.body());
     }
-  } else if (fetchOptions.method === 'GET' && Object.keys(args).length > 0) {
-    const queryString = new URLSearchParams(args).toString();
+  } else if (fetchOptions.method === 'GET') {
+    // Merge preset parameters from datasource with user-provided args
+    // Start with preset params from datasource definition
+    const mergedParams = {};
+    
+    if (dataSource.params) {
+      // Add all preset parameters that have non-null values
+      for (const [key, value] of Object.entries(dataSource.params)) {
+        if (value !== null && value !== undefined) {
+          mergedParams[key] = value;
+        }
+      }
+      
+      // Override with user-provided args (for params that were null)
+      for (const [key, value] of Object.entries(args)) {
+        if (value !== null && value !== undefined) {
+          mergedParams[key] = value;
+        }
+      }
+    } else {
+      // If no preset params, just use args as before
+      Object.assign(mergedParams, args);
+    }
+    
+    // Only add query string if we have parameters
+    if (Object.keys(mergedParams).length > 0) {
+      const queryString = new URLSearchParams(mergedParams).toString();
     endpoint += `?${queryString}`;
+    }
   }
 
 
-  return fetch(proxy + endpoint, fetchOptions)
+  return cachedFetch(proxy + endpoint, fetchOptions)
     .then(async (response) => {
       if (!response.ok) {
         const errorData = await response.text();
@@ -593,362 +351,87 @@ async function retrieve({ params, args, data } = {}) {
         return lowercasing(responseData);
       }
     });
+  } finally {
+    // Context will be cleaned up by next request or kept for subsequent calls
+    // Don't delete here - cachedFetch needs it for caching
+  }
+}
+
+
+/**
+ * Get a raw cached file for manual processing
+ * @param {Object} params - Parameters object
+ * @param {string} params.source - Data source
+ * @param {string} params.datatype - Data type
+ * @param {Object} args - Arguments object
+ * @param {string} args.key - Cache key to retrieve
+ * @param {Object} data - Data object (unused)
+ * @returns {Promise<Object>} Raw file data and metadata
+ */
+async function getFile({ params, args, data } = {}) {
+  const cache = globalThis.hydro?.cache;
+  if (!cache) {
+    throw new Error('Cache not available');
+  }
+
+  const key = args.key;
+  if (!key) {
+    throw new Error('Cache key required in args.key');
+  }
+
+  const cached = await cache.get(key);
+  if (!cached) {
+    throw new Error(`No cached file found with key: ${key}`);
+  }
+
+  return {
+    data: cached.data,
+    metadata: cached.metadata,
+    key: key,
+    raw: true
+  };
 }
 
 /**
- * Process AORC (NOAA Analysis of Record for Calibration) data from Zarr format on S3
- * Handles multiple variables, spatial regions, and time periods with comprehensive manipulation
- *
- * @function processAORCData
- * @memberof data
- * @async
- * @param {Object} options - Configuration object for AORC data processing
- * @param {Object} options.params - Parameters including source, datatype, etc.
- * @param {Object} options.args - Arguments specific to AORC data extraction
- * @param {string} options.dataType - Type of AORC operation (point-data, grid-data, etc.)
- * @returns {Promise<Object>} Processed AORC data in requested format
+ * Save processed data with a user-defined key
+ * @param {Object} params - Parameters object
+ * @param {string} params.source - Data source
+ * @param {string} params.datatype - Data type
+ * @param {Object} args - Arguments object
+ * @param {string} args.key - User-defined key for the dataset
+ * @param {string} args.name - Optional human-readable name
+ * @param {Object} data - Data object to save
+ * @returns {Promise<boolean>} Success status
  */
-async function processAORCData({ params, args, dataType }) {
-  const { dataset = "aorc-v1.1" } = args;
-
-  console.log(`Processing AORC data: ${dataType} from ${dataset}`);
-
-  // Get dataset configuration and merge with variables
-  const datasetConfig = datasources.aorc.datasets[dataset];
-  if (!datasetConfig) {
-    throw new Error(`Unknown AORC dataset: ${dataset}`);
+async function saveFile({ params, args, data } = {}) {
+  const cache = globalThis.hydro?.cache;
+  if (!cache) {
+    throw new Error('Cache not available');
   }
 
-  // Merge dataset config with variables from datasource
-  const fullDatasetConfig = {
-    ...datasetConfig,
-    variables: datasources.aorc.variables
+  const key = args.key;
+  if (!key) {
+    throw new Error('Dataset key required in args.key');
+  }
+
+  if (!data) {
+    throw new Error('Data to save is required');
+  }
+
+  const metadata = {
+    source: params.source || 'user',
+    datatype: params.datatype || 'dataset',
+    name: args.name || key,
+    savedAt: new Date().toISOString(),
+    userSaved: true
   };
 
-  try {
-    switch (dataType) {
-      case "point-data":
-        return await processAORCPointData(args, fullDatasetConfig);
-      case "grid-data":
-        return await processAORCGridData(args, fullDatasetConfig);
-      case "timeseries-data":
-        return await processAORCTimeSeriesData(args, fullDatasetConfig);
-      case "dataset-info":
-        return await processAORCDatasetInfo(args, fullDatasetConfig);
-      case "bulk-extraction":
-        throw new Error('AORC bulk data extraction not implemented');
-      default:
-        throw new Error(`Unsupported AORC data type: ${dataType}`);
-    }
-  } catch (error) {
-    console.error(`AORC processing error: ${error.message}`);
-    throw new Error(`AORC data processing failed: ${error.message}`);
-  }
+  return await cache.saveDataset(key, data, metadata);
 }
 
-/**
- * Process MRMS (Multi-Radar Multi-Sensor) data with GRIB2 format support
- * Handles point data, grid data, time series, and dataset information extraction
- *
- * @function processMRMSData
- * @memberof data
- * @async
- * @param {Object} options - Configuration object for MRMS data processing
- * @param {Object} options.params - Parameters including source, datatype, etc.
- * @param {Object} options.args - Arguments specific to MRMS data extraction
- * @param {string} options.dataType - Type of MRMS operation (point-data, grid-data, etc.)
- * @returns {Promise<Object>} Processed MRMS data in requested format
- */
-async function processMRMSData({ params, args, dataType }) {
-  const { dataset = "mrms-radar", product, variable, latitude, longitude, bbox, startDate, endDate } = args;
 
-  console.log(`Processing MRMS data: ${dataType} from ${dataset}`);
 
-  // Get dataset configuration
-  const datasetConfig = datasources.mrms.datasets[dataset];
-  if (!datasetConfig) {
-    throw new Error(`Unknown MRMS dataset: ${dataset}`);
-  }
 
-  // Validate dataset configuration
-  if (!validateMRMSConfig(datasetConfig)) {
-    throw new Error(`Invalid MRMS dataset configuration for ${dataset}`);
-  }
-
-  // Merge dataset config with variables from datasource
-  const fullDatasetConfig = {
-    ...datasetConfig,
-    variables: datasources.mrms.variables
-  };
-
-  try {
-    switch (dataType) {
-      case "point-data": {
-        if (!latitude || !longitude || !startDate) {
-          throw new Error('Point data requires latitude, longitude, and startDate');
-        }
-        const timestamp = new Date(startDate);
-        const variableName = variable || args.variables?.[0] || 'APCP'; // Default to precipitation
-        return await extractMRMSPointData(variableName, latitude, longitude, timestamp, fullDatasetConfig, product);
-      }
-
-      case "grid-data": {
-        if (!bbox || !startDate) {
-          throw new Error('Grid data requires bbox and startDate');
-        }
-        const timestamp = new Date(startDate);
-        const variableName = variable || args.variables?.[0] || 'APCP';
-        return await extractMRMSGridData(variableName, bbox, timestamp, fullDatasetConfig, product);
-      }
-
-      case "timeseries-data": {
-        if (!latitude || !longitude || !startDate || !endDate) {
-          throw new Error('Time series data requires latitude, longitude, startDate, and endDate');
-        }
-        const startTime = new Date(startDate);
-        const endTime = new Date(endDate);
-        const variableName = variable || args.variables?.[0] || 'APCP';
-        return await extractMRMSTimeSeries(variableName, latitude, longitude, startTime, endTime, fullDatasetConfig, product);
-      }
-
-      case "dataset-info": {
-        const infoType = args.info || 'metadata';
-        return await getMRMSDatasetInfo(fullDatasetConfig, infoType);
-      }
-
-      case "available-products": {
-        const date = args.date ? new Date(args.date) : new Date();
-        return await getAvailableMRMSProducts(fullDatasetConfig, date);
-      }
-
-      default:
-        throw new Error(`Unsupported MRMS data type: ${dataType}`);
-    }
-  } catch (error) {
-    console.error(`MRMS processing error: ${error.message}`);
-    throw new Error(`MRMS data processing failed: ${error.message}`);
-  }
-}
-
-/**
- * Process HRRR (High Resolution Rapid Refresh) data requests
- * @param {Object} options - Processing options
- * @param {Object} options.params - Request parameters
- * @param {Object} options.args - Request arguments including parse flag
- * @param {string} options.dataType - Type of data requested
- * @param {boolean} options.args.parse - Whether to parse GRIB2 data (default: true). If false, returns raw buffer
- * @returns {Promise<Object>} Processed HRRR data or raw buffer if parse=false
- */
-async function processHRRRData({ params, args, dataType }) {
-  const { dataset = "hrrr-operational", product, variable, latitude, longitude, bbox, startDate, endDate, forecastHour = 0, parse = true } = args;
-
-  console.log(`Processing HRRR data: ${dataType} from ${dataset}`);
-
-  // Get dataset configuration
-  const datasetConfig = datasources.hrrr.datasets[dataset];
-  if (!datasetConfig) {
-    throw new Error(`Unknown HRRR dataset: ${dataset}`);
-  }
-
-  // Validate dataset configuration
-  if (!validateHRRRConfig(datasetConfig)) {
-    throw new Error(`Invalid HRRR dataset configuration for ${dataset}`);
-  }
-
-  // Get variables from datasource
-  const hrrrVariables = datasources.hrrr.variables;
-
-  try {
-    switch (dataType) {
-      case "point-data": {
-        if (!latitude || !longitude || !startDate) {
-          throw new Error('Point data requires latitude, longitude, and startDate');
-        }
-        const timestamp = new Date(startDate);
-        const variableName = variable || args.variables?.[0] || 'TMP'; // Default to temperature
-        return await extractHRRRPointData(variableName, latitude, longitude, timestamp, datasetConfig, hrrrVariables, product, forecastHour);
-      }
-
-      case "grid-data": {
-        if (!bbox || !startDate) {
-          throw new Error('Grid data requires bbox and startDate');
-        }
-        const timestamp = new Date(startDate);
-        const variableName = variable || args.variables?.[0] || 'TMP';
-        const options = { parse };
-        return await extractHRRRGridData(variableName, bbox, timestamp, datasetConfig, hrrrVariables, product, forecastHour, options);
-      }
-
-      case "timeseries-data": {
-        if (!latitude || !longitude || !startDate || !endDate) {
-          throw new Error('Time series data requires latitude, longitude, startDate, and endDate');
-        }
-        const startTime = new Date(startDate);
-        const endTime = new Date(endDate);
-        const variableName = variable || args.variables?.[0] || 'TMP';
-        return await extractHRRRTimeSeries(variableName, latitude, longitude, startTime, endTime, datasetConfig, hrrrVariables, product);
-      }
-
-      case "dataset-info": {
-        const infoType = args.info || 'metadata';
-        return await getHRRRDatasetInfo(datasetConfig, infoType, hrrrVariables);
-      }
-
-      case "available-products": {
-        const date = args.date ? new Date(args.date) : new Date();
-        return await getAvailableHRRRVariables();
-      }
-
-      default:
-        throw new Error(`Unsupported HRRR data type: ${dataType}`);
-    }
-  } catch (error) {
-    console.error(`HRRR processing error: ${error.message}`);
-    throw new Error(`HRRR data processing failed: ${error.message}`);
-  }
-}
-
-/**
- * Process ECMWF (European Centre for Medium-Range Weather Forecasts) data requests
- * @param {Object} options - Processing options
- * @param {Object} options.params - Request parameters
- * @param {Object} options.args - Request arguments
- * @param {string} options.dataType - Type of data requested
- * @returns {Promise<Object>} Processed ECMWF data
- */
-async function processECMWFData({ params, args, dataType }) {
-  const { dataset = "era5", product, variable, latitude, longitude, bbox, startDate, endDate } = args;
-
-  console.log(`Processing ECMWF data: ${dataType} from ${dataset}`);
-
-  // Get dataset configuration
-  const datasetConfig = datasources.ECMWF[dataset];
-  if (!datasetConfig) {
-    throw new Error(`Unknown ECMWF dataset: ${dataset}`);
-  }
-
-  // Validate dataset configuration
-  if (!validateERA5Config(datasetConfig)) {
-    throw new Error(`Invalid ECMWF dataset configuration for ${dataset}`);
-  }
-
-  try {
-    switch (dataType) {
-      case "point-data": {
-        if (!latitude || !longitude || !startDate) {
-          throw new Error('Point data requires latitude, longitude, and startDate');
-        }
-        const timestamp = new Date(startDate);
-        const variableName = variable || args.variables?.[0] || '2m_temperature'; // Default to temperature
-        return await extractERA5PointData(variableName, latitude, longitude, timestamp, datasetConfig);
-      }
-
-      case "grid-data": {
-        if (!bbox || !startDate) {
-          throw new Error('Grid data requires bbox and startDate');
-        }
-        const timestamp = new Date(startDate);
-        const variableName = variable || args.variables?.[0] || '2m_temperature';
-        return await extractERA5GridData(variableName, bbox, timestamp, datasetConfig);
-      }
-
-      case "timeseries-data": {
-        if (!latitude || !longitude || !startDate || !endDate) {
-          throw new Error('Time series data requires latitude, longitude, startDate, and endDate');
-        }
-        const startTime = new Date(startDate);
-        const endTime = new Date(endDate);
-        const variableName = variable || args.variables?.[0] || '2m_temperature';
-        return await extractERA5TimeSeries(variableName, latitude, longitude, startTime, endTime, datasetConfig);
-      }
-
-      case "available-variables": {
-        return getAvailableERA5Variables();
-      }
-
-      default:
-        throw new Error(`Unsupported ECMWF data type: ${dataType}`);
-    }
-  } catch (error) {
-    console.error(`ECMWF processing error: ${error.message}`);
-    throw new Error(`ECMWF data processing failed: ${error.message}`);
-  }
-}
-
-/**
- * Process PRISM (Parameter-elevation Relationships on Independent Slopes Model) data requests
- * @param {Object} options - Processing options
- * @param {Object} options.params - Request parameters
- * @param {Object} options.args - Request arguments
- * @param {string} options.dataType - Type of data requested
- * @returns {Promise<Object>} Processed PRISM data
- */
-async function processPRISMData({ params, args, dataType }) {
-  const { dataset = "prism-current", variable, latitude, longitude, bbox, startDate, endDate, dataTypeOverride = "daily", region, resolution } = args;
-
-  console.log(`Processing PRISM data: ${dataType} from ${dataset}`);
-
-  // Get dataset configuration
-  const datasetConfig = datasources.prism.datasets[dataset];
-  if (!datasetConfig) {
-    throw new Error(`Unknown PRISM dataset: ${dataset}`);
-  }
-
-  // Validate dataset configuration
-  if (!validatePRISMConfig(datasetConfig)) {
-    throw new Error(`Invalid PRISM dataset configuration for ${dataset}`);
-  }
-
-  // Get variables from datasource
-  const prismVariables = datasources.prism.variables;
-
-  try {
-    switch (dataType) {
-      case "point-data": {
-        if (!latitude || !longitude || !startDate) {
-          throw new Error('Point data requires latitude, longitude, and startDate');
-        }
-        const timestamp = new Date(startDate);
-        const variableName = variable || args.variables?.[0] || 'ppt'; // Default to precipitation
-        return await extractPRISMPointData(variableName, latitude, longitude, timestamp, datasetConfig, prismVariables, dataTypeOverride, region, resolution);
-      }
-
-      case "grid-data": {
-        if (!bbox || !startDate) {
-          throw new Error('Grid data requires bbox and startDate');
-        }
-        const timestamp = new Date(startDate);
-        const variableName = variable || args.variables?.[0] || 'ppt';
-        return await extractPRISMGridData(variableName, bbox, timestamp, datasetConfig, prismVariables, dataTypeOverride, region, resolution);
-      }
-
-      case "timeseries-data": {
-        if (!latitude || !longitude || !startDate || !endDate) {
-          throw new Error('Time series data requires latitude, longitude, startDate, and endDate');
-        }
-        const startTime = new Date(startDate);
-        const endTime = new Date(endDate);
-        const variableName = variable || args.variables?.[0] || 'ppt';
-        return await extractPRISMTimeSeries(variableName, latitude, longitude, startTime, endTime, datasetConfig, prismVariables, dataTypeOverride, region, resolution);
-      }
-
-      case "available-variables": {
-        const targetDataType = args.availabilityType || dataTypeOverride;
-        return getAvailablePRISMVariables(targetDataType);
-      }
-
-      case "dataset-info": {
-        return await getPRISMDatasetInfo(datasetConfig, args.infoType || 'metadata', prismVariables);
-      }
-
-      default:
-        throw new Error(`Unsupported PRISM data type: ${dataType}`);
-    }
-  } catch (error) {
-    console.error(`PRISM processing error: ${error.message}`);
-    throw new Error(`PRISM data processing failed: ${error.message}`);
-  }
-}
 
 /**
  * Transform AORC (NOAA Analysis of Record for Calibration) data with comprehensive manipulation capabilities
@@ -1828,210 +1311,13 @@ function generateDateString() {
 /*** NWM Processing Functions ****/
 /**********************************/
 
-/**
- * Process NWM data requests
- */
-async function processNWMData({ params, args, dataType }) {
-  const { dataset = "nwm-retrospective-2-1-zarr-pds" } = args;
-  console.log(`Processing NWM data: ${dataType} from ${dataset}`);
 
-  const datasetConfig = datasources.nwm.datasets[dataset];
-  if (!datasetConfig) {
-    throw new Error(`Unknown NWM dataset: ${dataset}`);
-  }
 
-  switch (dataType) {
-    case "point-data":
-      return processNWMPointData(args, datasetConfig, datasources);
-    case "grid-data":
-      throw new Error('NWM grid data extraction not implemented');
-    case "timeseries-data":
-      return processNWMTimeSeriesData(args, datasetConfig, datasources);
-    case "dataset-info":
-      return processNWMDatasetInfo(args, datasetConfig);
-    case "bulk-extraction":
-      throw new Error('NWM bulk data extraction not implemented');
-    default:
-      throw new Error(`Unsupported NWM data type: ${dataType}`);
-  }
-}
 
-/**
- * Process 3DEP (3D Elevation Program) data requests
- * @function process3DEPData
- * @memberof data
- * @async
- * @param {Object} options - Configuration object for 3DEP data processing
- * @param {Object} options.params - Parameters including source, datatype, etc.
- * @param {Object} options.args - Arguments specific to 3DEP data extraction
- * @param {string} options.dataType - Type of 3DEP operation (point-data, grid-data, etc.)
- * @returns {Promise<Object>} Processed 3DEP data in requested format
- */
-async function process3DEPData({ params, args, dataType }) {
-  const { dataset = "3dep-dem" } = args;
 
-  console.log(`Processing 3DEP data: ${dataType} from ${dataset}`);
 
-  // Get dataset configuration and merge with variables
-  const datasetConfig = datasources.threedep.datasets[dataset];
-  if (!datasetConfig) {
-    throw new Error(`Unknown 3DEP dataset: ${dataset}`);
-  }
 
-  // Merge dataset config with variables from datasource
-  const fullDatasetConfig = {
-    ...datasetConfig,
-    variables: datasources.threedep.variables
-  };
 
-  // Validate 3DEP parameters
-  const validation = validate3DEPParams(args);
-  if (!validation.isValid) {
-    throw new Error(`Invalid 3DEP parameters: ${validation.errors.join(', ')}`);
-  }
-
-  try {
-    switch (dataType) {
-      case "point-data":
-        return await process3DEPPointData(args, fullDatasetConfig);
-      case "grid-data":
-        return await process3DEPGridData(args, fullDatasetConfig);
-      case "dataset-info":
-        return await process3DEPDatasetInfo(args, fullDatasetConfig);
-      default:
-        throw new Error(`Unsupported 3DEP data type: ${dataType}`);
-    }
-  } catch (error) {
-    console.error(`3DEP processing error: ${error.message}`);
-    throw new Error(`3DEP data processing failed: ${error.message}`);
-  }
-}
-
-/**
- * Process 3DEP point elevation data
- * @param {Object} args - Request arguments
- * @param {Object} datasetConfig - Dataset configuration
- * @returns {Promise<Object>} Point elevation data
- */
-async function process3DEPPointData(args, datasetConfig) {
-  const { latitude, longitude, format = "json" } = args;
-
-  console.log(`Fetching 3DEP elevation for point: (${latitude}, ${longitude})`);
-
-  try {
-    const elevationData = await fetchPointElevation(latitude, longitude);
-
-    if (format === "json") {
-      return {
-        source: "3DEP",
-        datatype: "point-data",
-        latitude: elevationData.latitude,
-        longitude: elevationData.longitude,
-        elevation: elevationData.elevation,
-        units: elevationData.units,
-        verticalDatum: elevationData.verticalDatum,
-        timestamp: new Date().toISOString(),
-        metadata: elevationData.metadata
-      };
-    }
-
-    return elevationData;
-  } catch (error) {
-    throw new Error(`Failed to fetch 3DEP point elevation: ${error.message}`);
-  }
-}
-
-/**
- * Process 3DEP grid elevation data
- * @param {Object} args - Request arguments
- * @param {Object} datasetConfig - Dataset configuration
- * @returns {Promise<Object>} Grid elevation data
- */
-async function process3DEPGridData(args, datasetConfig) {
-  const { bbox, resolution = 10, format = "georaster" } = args;
-
-  console.log(`Fetching 3DEP elevation grid for bbox: ${bbox.join(', ')} at ${resolution}m resolution`);
-
-  try {
-    const progressCallback = (progress, message) => {
-      console.log(`3DEP Progress: ${progress}% - ${message}`);
-    };
-
-    const demData = await fetchDEMData({ bbox, resolution }, progressCallback);
-
-    if (format === "georaster") {
-      return {
-        source: "3DEP",
-        datatype: "grid-data",
-        georaster: demData.georaster,
-        bbox: demData.bbox,
-        resolution: demData.resolution,
-        units: demData.units,
-        verticalDatum: demData.verticalDatum,
-        timestamp: new Date().toISOString(),
-        metadata: demData.metadata
-      };
-    } else if (format === "json") {
-      // Convert georaster to JSON format
-      const values = demData.georaster.values[0];
-      return {
-        source: "3DEP",
-        datatype: "grid-data",
-        bbox: demData.bbox,
-        resolution: demData.resolution,
-        units: demData.units,
-        verticalDatum: demData.verticalDatum,
-        dimensions: {
-          width: demData.georaster.width,
-          height: demData.georaster.height
-        },
-        elevation: values, // 2D array of elevation values
-        timestamp: new Date().toISOString(),
-        metadata: demData.metadata
-      };
-    }
-
-    return demData;
-  } catch (error) {
-    throw new Error(`Failed to fetch 3DEP grid data: ${error.message}`);
-  }
-}
-
-/**
- * Process 3DEP dataset information
- * @param {Object} args - Request arguments
- * @param {Object} datasetConfig - Dataset configuration
- * @returns {Object} Dataset information
- */
-function process3DEPDatasetInfo(args, datasetConfig) {
-  const { info = "metadata" } = args;
-
-  console.log(`Fetching 3DEP dataset info: ${info}`);
-
-  switch (info) {
-    case "variables":
-      return {
-        source: "3DEP",
-        variables: datasetConfig.variables
-      };
-    case "spatial":
-      return {
-        source: "3DEP",
-        spatial: datasetConfig.spatial
-      };
-    case "temporal":
-      return {
-        source: "3DEP",
-        temporal: datasetConfig.temporal
-      };
-    case "metadata":
-    default:
-      return {
-        source: "3DEP",
-        dataset: datasetConfig
-      };
-  }
-}
 
 
 
@@ -2039,4 +1325,117 @@ function process3DEPDatasetInfo(args, datasetConfig) {
 /*** End of Helper functions **/
 /**********************************/
 
-export { retrieve, transform, download, upload, recursiveSearch, xml2json };
+// Saved data accessor - provides access to user-saved datasets
+/**
+ * Cache management API for user access to saved datasets
+ * Provides user-friendly interface to view, access, and manage cached data
+ */
+export const cache = {
+  /**
+   * List all cached datasets
+   * @param {Object} options - Filter options
+   * @param {string} options.source - Filter by data source (e.g., 'nhdplus', 'hrrr')
+   * @param {string} options.dataType - Filter by data type (e.g., 'flowlines', 'point-data')
+   * @returns {Promise<Array>} Array of cached dataset info with human-readable details
+   * 
+   * @example
+   * // List all cached data
+   * const all = await hydro.data.cache.list();
+   * console.log(all);
+   * // [{cacheKey: 'nhdplus/flowlines/abc1', size: 1024000, ageFormatted: '2 days ago', ...}]
+   * 
+   * @example
+   * // List only NHDPlus data
+   * const nhdplus = await hydro.data.cache.list({ source: 'nhdplus' });
+   */
+  async list(options = {}) {
+    const cacheInstance = globalThis._hydroCache;
+    if (!cacheInstance) {
+      console.warn('Cache not initialized');
+      return [];
+    }
+    return await cacheInstance.list(options);
+  },
+
+  /**
+   * Get a cached dataset by cache key
+   * @param {string} cacheKey - The cache key (e.g., 'nhdplus/flowlines/abc1')
+   * @returns {Promise<Object|null>} Dataset with data and metadata, or null if not found
+   * 
+   * @example
+   * const data = await hydro.data.cache.get('nhdplus/flowlines/iowa-city');
+   * console.log(data);
+   */
+  async get(cacheKey) {
+    const cacheInstance = globalThis._hydroCache;
+    if (!cacheInstance) {
+      console.warn('Cache not initialized');
+      return null;
+    }
+    return await cacheInstance.get(cacheKey);
+  },
+
+  /**
+   * Delete a cached dataset
+   * @param {string} cacheKey - The cache key to delete
+   * @returns {Promise<boolean>} Success status
+   * 
+   * @example
+   * await hydro.data.cache.delete('nhdplus/flowlines/abc1');
+   */
+  async delete(cacheKey) {
+    const cacheInstance = globalThis._hydroCache;
+    if (!cacheInstance) {
+      console.warn('Cache not initialized');
+      return false;
+    }
+    await cacheInstance.delete(cacheKey);
+    return true;
+  },
+
+  /**
+   * Clear all cached data
+   * @returns {Promise<boolean>} Success status
+   * 
+   * @example
+   * await hydro.data.cache.clear();
+   */
+  async clear() {
+    const cacheInstance = globalThis._hydroCache;
+    if (!cacheInstance) {
+      console.warn('Cache not initialized');
+      return false;
+    }
+    await cacheInstance.clear();
+    return true;
+  },
+
+  /**
+   * Get cache statistics
+   * @returns {Promise<Object>} Cache statistics
+   * 
+   * @example
+   * const stats = await hydro.data.cache.stats();
+   * console.log(stats);
+   * // {totalSize: 104857600, totalEntries: 42, sizeFormatted: '100 MB', ...}
+   */
+  async stats() {
+    const cacheInstance = globalThis._hydroCache;
+    if (!cacheInstance) {
+      console.warn('Cache not initialized');
+      return { totalSize: 0, totalEntries: 0, sizeFormatted: '0 B' };
+    }
+    
+    const allEntries = await cacheInstance.list({ includeVariables: true });
+    const totalSize = allEntries.reduce((sum, entry) => sum + entry.size, 0);
+    
+    return {
+      totalSize,
+      totalEntries: allEntries.length,
+      sizeFormatted: cacheInstance.formatBytes(totalSize),
+      entries: allEntries
+    };
+  }
+};
+
+export { retrieve, transform, download, upload, recursiveSearch, xml2json, getFile, saveFile };

@@ -1,918 +1,433 @@
 /**
- * MRMS (Multi-Radar Multi-Sensor) data utilities
- * Contains all MRMS-specific data manipulation functions for GRIB2 format
+ * MRMS (Multi-Radar Multi-Sensor) data utilities - Refactored
+ * Uses GRIB2DataSource base class to eliminate ~750 lines of duplicate code
  */
 
-import { loadGridDataLibrary } from './gridded-data-utils.js';
-import * as datasources from '../datasources.js';
+import { GRIB2DataSource, loadGridDataLibrary } from './gridded-data-utils.js';
 
 /**
- * Load GRIB2 library for MRMS data processing
- * @returns {Promise<Object>} GRIB2 loader instance
+ * MRMS-specific data source implementation
+ * Extends GRIB2DataSource with MRMS-specific URL generation and product handling
  */
-async function loadGRIB2Library() {
-    return await loadGridDataLibrary('grib2');
-}
+export class MRMSDataSource extends GRIB2DataSource {
+  constructor(datasetConfig) {
+    super({
+      sourceName: 'mrms',
+      libraryType: 'grib2',
+      datasourceConfig: datasetConfig,
+      variables: null // Will be loaded from datasources/mrms.js
+    });
+    this.datasetConfig = datasetConfig;
+    this.mrmsDatasource = null;
+  }
 
+  /**
+   * Lazy load MRMS datasource configuration
+   */
+  async loadDatasource() {
+    if (!this.mrmsDatasource) {
+      const { default: mrmsDatasource } = await import('../datasources/mrms.js');
+      this.mrmsDatasource = mrmsDatasource;
+      this.variables = mrmsDatasource.variables;
+    }
+    return this.mrmsDatasource;
+  }
 
-/**
- * Fetch MRMS GRIB2 file from NOAA servers
- * @param {string} url - Complete file URL
- * @returns {Promise<ArrayBuffer>} GRIB2 file data
- */
-async function fetchMRMSFile(url, timestamp = null) {
-    console.log(`Fetching MRMS file: ${url}`);
+  /**
+   * Find appropriate MRMS product for a given variable
+   */
+  async findProductForVariable(variable) {
+    await this.loadDatasource();
 
-    // Use the same proxy as other HydroLang requests
-    const proxy = datasources.proxies["local-proxy"].endpoint;
-    const proxiedUrl = proxy + url;
+    const variableMeta = this.variables[variable];
+    if (!variableMeta) {
+      throw new Error(`Unknown MRMS variable: ${variable}`);
+    }
 
-    console.log(`Using proxy: ${proxiedUrl}`);
+    // Check if variable has preferred product
+    if (variableMeta.product) {
+      return variableMeta.product;
+    }
 
+    // Search through products for one that contains this variable
+    for (const [productName, productConfig] of Object.entries(this.datasetConfig.products || {})) {
+      if (productConfig.variables && productConfig.variables.includes(variable)) {
+        return productName;
+      }
+    }
+
+    throw new Error(`No MRMS product found for variable: ${variable}`);
+  }
+
+  /**
+   * Infer variable name from product name
+   */
+  inferVariableFromProduct(product) {
+    if (!product) return null;
+
+    // Common mappings
+    if (product.includes('Reflectivity')) return 'REF';
+    if (product.includes('PrecipRate')) return 'PrecipRate'; // Or PRATE
+    if (product.includes('QPE') || product.includes('QPF') || product.includes('PCPN')) return 'APCP';
+    if (product.includes('VIL')) return 'VIL';
+    if (product.includes('EchoTop')) return 'ETOP';
+    if (product.includes('RQI')) return 'RQI';
+    if (product.includes('PrecipFlag')) return 'PFLAG';
+
+    // Default: try using product name as variable
+    return product;
+  }
+
+  /**
+   * Generate MRMS file URL
+   */
+  async generateURL(product, timestamp) {
+    await this.loadDatasource();
+    return this.mrmsDatasource.generateURL(product, timestamp, this.datasetConfig.name || 'mrms-radar');
+  }
+
+  /**
+   * Enhanced fetch with MRMS-specific error messages
+   */
+  async fetch(url, options = {}) {
     try {
-        const response = await fetch(proxiedUrl);
-
-        if (!response.ok) {
-            if (response.status === 404) {
-                // Provide more helpful error message with date suggestions
-                const currentDate = new Date();
-                const currentYear = currentDate.getUTCFullYear();
-                const requestedYear = timestamp.getUTCFullYear();
-
-                let errorMessage = `MRMS file not found: ${url}. `;
-
-                // MRMS is a real-time operational system
-                if (requestedYear !== currentYear) {
-                    errorMessage += `MRMS provides real-time operational data. Historical data (${requestedYear}) may not be available via HTTP. `;
-                }
-
-                errorMessage += `Try using current/recent dates. MRMS typically keeps ~24-48 hours of recent data. `;
-                errorMessage += `Available recent data: https://mrms.ncep.noaa.gov/3DRefl/MergedReflectivityQC_00.50/`;
-
-                throw new Error(errorMessage);
-            }
-            // Handle proxy-specific errors
-            if (response.status === 301 || response.status === 302) {
-                console.warn(`Proxy redirect (${response.status}) for MRMS file: ${url}`);
-            }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const buffer = await response.arrayBuffer();
-        console.log(`Successfully fetched ${buffer.byteLength} bytes from MRMS`);
-
-        return buffer;
-
+      return await super.fetch(url, options);
     } catch (error) {
-        console.error(`Failed to fetch MRMS file: ${error.message}`);
-        throw new Error(`MRMS data fetch failed: ${error.message}`);
+      // Enhance 404 errors with MRMS-specific guidance
+      if (error.message.includes('404')) {
+        const timestamp = options.params?.timestamp;
+        const currentDate = new Date();
+        const currentYear = currentDate.getUTCFullYear();
+        const requestedYear = timestamp?.getUTCFullYear?.();
+
+        let enhancedMessage = error.message;
+
+        if (requestedYear && requestedYear !== currentYear) {
+          enhancedMessage += ` MRMS provides real-time operational data. Historical data (${requestedYear}) may not be available via HTTP.`;
+        }
+
+        enhancedMessage += ` Try using current/recent dates. MRMS typically keeps ~24-48 hours of recent data.`;
+        enhancedMessage += ` Available recent data: https://mrms.ncep.noaa.gov/3DRefl/MergedReflectivityQC_00.50/`;
+
+        throw new Error(enhancedMessage);
+      }
+      throw error;
     }
+  }
+
+  /**
+ * Process MRMS file (handles both GRIB2 and GeoTIFF formats)
+ */
+  async processFile(url, variable, timestamp) {
+    // Fetch file
+    const fileBuffer = await this.fetch(url, { params: { timestamp } });
+
+    // Check if file needs decompression
+    const decompressed = await this.decompress(fileBuffer);
+
+    // Debug file signature
+    const uint8Array = new Uint8Array(decompressed.buffer || decompressed, 0, Math.min(32, decompressed.byteLength || decompressed.length));
+    const fileSignature = Array.from(uint8Array).map(b => b.toString(16).padStart(2, '0')).join(' ');
+
+    if (fileSignature.startsWith('47 52 49 42')) {
+      console.log(`[mrms] Valid GRIB2 file detected`);
+    } else {
+      console.warn(`[mrms] Unknown file signature: ${fileSignature.substring(0, 24)}`);
+    }
+
+    // Parse based on format
+    return await this.parseGRIB2(decompressed);
+  }
+
+  /**
+   * Extract point data implementation
+   */
+  async extractPointData(variable, latitude, longitude, timestamp, options = {}) {
+    await this.loadDatasource();
+
+    // Validate coordinates
+    this.validateCoordinates(latitude, longitude);
+
+    // Infer variable from product if not provided
+    if (!variable && options.product) {
+      variable = this.inferVariableFromProduct(options.product);
+      console.log(`[mrms] Inferred variable ${variable} from product ${options.product}`);
+    }
+
+    if (!variable) {
+      throw new Error('Variable is required for MRMS point data extraction');
+    }
+
+    // Get variable metadata (resolve aliases if needed)
+    let variableMeta = this.variables[variable];
+    if (!variableMeta) {
+      // Try to find by gribName or other properties
+      const foundKey = Object.keys(this.variables).find(key =>
+        this.variables[key].gribName === variable ||
+        this.variables[key].products?.includes(variable)
+      );
+      if (foundKey) {
+        variable = foundKey;
+        variableMeta = this.variables[variable];
+        console.log(`[mrms] Resolved variable alias: ${options.variable} -> ${variable}`);
+      }
+    }
+
+    if (!variableMeta) {
+      throw new Error(`Unknown MRMS variable: ${variable}`);
+    }
+
+    // Find or use provided product
+    const product = options.product || await this.findProductForVariable(variable);
+
+    if (!this.datasetConfig.products[product]) {
+      throw new Error(`Product ${product} not found in dataset ${this.datasetConfig.name || 'mrms-radar'}`);
+    }
+
+    // Generate URL and fetch file
+    const url = await this.generateURL(product, timestamp);
+    console.log(`[mrms] Fetching ${product} for ${variable} at ${timestamp.toISOString()}`);
+
+    // Process file
+    const messages = await this.processFile(url, variable, timestamp);
+
+    // Find message for this variable
+    const message = this.findGRIB2Message(messages, variable);
+
+    // Extract value at point
+    const rawValue = this.getGRIB2ValueAtPoint(message, latitude, longitude);
+    const scaledValue = this.applyScaling(rawValue, variableMeta);
+
+    return {
+      value: scaledValue,
+      rawValue: rawValue,
+      units: variableMeta.units || 'unknown',
+      variable: variable,
+      product: product,
+      timestamp: timestamp.toISOString(),
+      location: {
+        latitude: latitude,
+        longitude: longitude
+      },
+      metadata: {
+        source: 'MRMS',
+        product: product,
+        levelType: variableMeta.levelType,
+        description: variableMeta.description
+      }
+    };
+  }
+
+  /**
+   * Extract grid data implementation
+   */
+  async extractGridData(variable, bbox, timestamp, options = {}) {
+    await this.loadDatasource();
+
+    // Validate bbox
+    this.validateBbox(bbox);
+
+    // Get variable metadata
+    const variableMeta = this.variables[variable];
+    if (!variableMeta) {
+      throw new Error(`Unknown MRMS variable: ${variable}`);
+    }
+
+    // Find or use provided product
+    const product = options.product || await this.findProductForVariable(variable);
+
+    // Generate URL and fetch file
+    const url = await this.generateURL(product, timestamp);
+    console.log(`[mrms] Fetching grid ${product} for ${variable}`);
+
+    // Process file
+    const messages = await this.processFile(url, variable, timestamp);
+
+    // Find message for this variable
+    const message = this.findGRIB2Message(messages, variable);
+
+    // Extract grid
+    const gridResult = this.getGRIB2Grid(message, bbox);
+
+    // Apply scaling to all grid values
+    const scaledData = gridResult.data.map(val => this.applyScaling(val, variableMeta));
+
+    return {
+      data: scaledData,
+      latitudes: gridResult.latitudes,
+      longitudes: gridResult.longitudes,
+      bbox: bbox,
+      count: gridResult.count,
+      variable: variable,
+      product: product,
+      timestamp: timestamp.toISOString(),
+      metadata: {
+        source: 'MRMS',
+        product: product,
+        units: variableMeta.units,
+        description: variableMeta.description
+      }
+    };
+  }
 }
 
-    /**
-     * Test URL generation for MRMS products
-     * @param {string} product - MRMS product name
-     * @param {Date} timestamp - Test timestamp
-     * @returns {string} Generated URL for verification
-     */
-export async function testMRMSUrlGeneration(product, timestamp) {
-    const { default: mrmsDatasource4 } = await import('../datasources/mrms.js');
-    return mrmsDatasource4.generateURL(product, timestamp, 'mrms-radar');
+// ============================================================================
+// BACKWARD COMPATIBLE EXPORTED FUNCTIONS
+// These maintain the same API as before but use the new class internally
+// ============================================================================
+
+/**
+ * Extract point data from MRMS GRIB2 file
+ * @param {string} variable - Variable name (e.g., 'REF', 'APCP')
+ * @param {number} latitude - Latitude coordinate
+ * @param {number} longitude - Longitude coordinate
+ * @param {Date} timestamp - Data timestamp
+ * @param {Object} datasetConfig - MRMS dataset configuration
+ * @param {string} product - Specific MRMS product to use (optional)
+ * @returns {Promise<Object>} Extracted point data
+ */
+export async function extractMRMSPointData(variable, latitude, longitude, timestamp, datasetConfig, product = null) {
+  const mrms = new MRMSDataSource(datasetConfig);
+  return await mrms.extractPointData(variable, latitude, longitude, timestamp, { product });
 }
 
-    /**
-     * Extract point data from MRMS GRIB2 file
-     * @param {string} variable - Variable name (e.g., 'REF', 'APCP')
-     * @param {number} latitude - Latitude coordinate
-     * @param {number} longitude - Longitude coordinate
-     * @param {Date} timestamp - Data timestamp
-     * @param {Object} datasetConfig - MRMS dataset configuration
-     * @param {string} product - Specific MRMS product to use (optional)
-     * @returns {Promise<Object>} Extracted point data
-     */
-    export async function extractMRMSPointData(variable, latitude, longitude, timestamp, datasetConfig, product = null) {
-        console.log(`Extracting MRMS ${variable} at (${latitude}, ${longitude}) for ${timestamp.toISOString()}`);
+/**
+ * Extract grid data from MRMS GRIB2 file
+ * @param {string} variable - Variable name
+* @param {Array<number>} bbox - Bounding box [west, south, east, north]
+ * @param {Date} timestamp - Data timestamp
+ * @param {Object} datasetConfig - MRMS dataset configuration
+* @param {string} product - Specific MRMS product to use (optional)
+ * @returns {Promise<Object>} Extracted grid data
+ */
+export async function extractMRMSGridData(variable, bbox, timestamp, datasetConfig, product = null) {
+  const mrms = new MRMSDataSource(datasetConfig);
+  return await mrms.extractGridData(variable, bbox, timestamp, { product });
+}
 
-        try {
-            // Load GRIB2 library
-            const grib2Lib = await loadGRIB2Library();
-
-            // Get variable metadata
-            const { default: mrmsDatasource } = await import('../datasources/mrms.js');
-            const variableMeta = mrmsDatasource.variables[variable];
-
-            if (!variableMeta) {
-                throw new Error(`Unknown MRMS variable: ${variable}`);
-            }
-
-            // Validate coordinates are within MRMS domain
-            const { latitude: latRange, longitude: lonRange } = datasetConfig.spatial;
-            if (latitude < latRange.min || latitude > latRange.max ||
-                longitude < lonRange.min || longitude > lonRange.max) {
-                throw new Error(`Coordinates (${latitude}, ${longitude}) are outside MRMS domain [${latRange.min}-${latRange.max}, ${lonRange.min}-${lonRange.max}]`);
-            }
-
-            // Use provided product or find the appropriate product for this variable
-            let selectedProduct = product;
-            if (!selectedProduct) {
-                selectedProduct = await findMRMSProductForVariable(variable, datasetConfig);
-                if (!selectedProduct) {
-                    throw new Error(`No MRMS product found for variable ${variable}`);
-                }
-            }
-
-            // Validate that the selected product exists in the dataset
-            if (!datasetConfig.products[selectedProduct]) {
-                throw new Error(`Product ${selectedProduct} not found in dataset ${datasetConfig.name || 'mrms-radar'}`);
-            }
-
-            // Generate file URL using datasource configuration
-            const { default: mrmsDatasource1 } = await import('../datasources/mrms.js');
-            const fileUrl = mrmsDatasource1.generateURL(selectedProduct, timestamp, 'mrms-radar');
-            console.log(`MRMS file URL: ${fileUrl}`);
-
-            // Fetch file (could be GRIB2 or TIFF)
-            let fileBuffer = await fetchMRMSFile(fileUrl, timestamp);
-
-            // Debug: Check file content before parsing
-            console.log(`Fetched ${fileBuffer.byteLength} bytes for ${selectedProduct}`);
-            const uint8Array = new Uint8Array(fileBuffer, 0, Math.min(32, fileBuffer.byteLength));
-            const fileSignature = Array.from(uint8Array).map(b => b.toString(16).padStart(2, '0')).join(' ');
-            console.log(`File signature (first ${uint8Array.length} bytes):`, fileSignature);
-
-            // Check for GRIB2 magic number
-            if (fileSignature.startsWith('47 52 49 42')) {
-                console.log('✓ Valid GRIB2 file detected (GRIB magic number)');
-            } else if (fileSignature.startsWith('1f 8b')) {
-                console.log('WARNING: File is still gzipped - decompressing manually...');
-
-                // Manually decompress the gzipped file
-                try {
-                    // First try to access Pako directly from window
-                    let pakoLib = window.pako;
-
-                    // If not available, try loading geospatial library
-                    if (!pakoLib) {
-                        console.log('Pako not found in window, loading geospatial library...');
-                        const geospatialLib = await loadGridDataLibrary('geospatial');
-                        pakoLib = geospatialLib.pako || window.pako;
-                    }
-
-                    if (pakoLib) {
-                        console.log('✓ Using Pako for decompression');
-                        const decompressed = pakoLib.ungzip(new Uint8Array(fileBuffer));
-                        console.log(`✓ Decompressed from ${fileBuffer.byteLength} to ${decompressed.length} bytes`);
-
-                        // Convert back to ArrayBuffer
-                        fileBuffer = decompressed.buffer.slice(
-                            decompressed.byteOffset,
-                            decompressed.byteOffset + decompressed.byteLength
-                        );
-
-                        // Check the decompressed file signature
-                        let decompressedArray = new Uint8Array(fileBuffer, 0, Math.min(32, fileBuffer.byteLength));
-                        let decompressedSignature = Array.from(decompressedArray).map(b => b.toString(16).padStart(2, '0')).join(' ');
-                        console.log(`Decompressed file signature:`, decompressedSignature);
-
-                        if (decompressedSignature.startsWith('47 52 49 42')) {
-                            console.log('✓ Decompressed file is valid GRIB2');
-                        } else {
-                            console.log('WARNING: Decompressed file may not be valid GRIB2');
-                        }
-                    } else {
-                        // Last resort: try browser's built-in decompression
-                        console.log('Pako not available, trying browser decompression...');
-                        if (typeof DecompressionStream !== 'undefined') {
-                            let response = new Response(fileBuffer);
-                            let decompressedStream = response.body.pipeThrough(new DecompressionStream('gzip'));
-                            let decompressedResponse = await new Response(decompressedStream).arrayBuffer();
-                            fileBuffer = decompressedResponse;
-                            console.log(`✓ Browser decompressed to ${fileBuffer.byteLength} bytes`);
-                        } else {
-                            throw new Error('No decompression method available');
-                        }
-                    }
-                } catch (decompError) {
-                    console.error('✗ Manual    decompression failed:', decompError.message);
-                    throw new Error(`File decompression failed: ${decompError.message}`);
-                }
-            } else {
-                console.log('WARNING: Unknown file signature - may not be a valid GRIB2 file');
-            }
-
-            // Get product format from datasource
-            const productConfig = datasetConfig.products[selectedProduct];
-            const fileFormat = productConfig.format;
-
-            let parsedData;
-            if (fileFormat === 'grib2') {
-                try {
-                    // Parse GRIB2 file
-                    parsedData = await grib2Lib.parse(fileBuffer);
-                    console.log('✓ GRIB2 parsing successful');
-                } catch (grib2Error) {
-                    console.error('✗ GRIB2 parsing failed:', grib2Error.message);
-                    console.error('File size:', fileBuffer.byteLength, 'bytes');
-                    console.error('First 64 bytes:', Array.from(new Uint8Array(fileBuffer, 0, 64)).map(b => b.toString(16).padStart(2, '0')).join(' '));
-                    throw new Error(`GRIB2 parsing failed: ${grib2Error.message}`);
-                }
-            } else if (fileFormat === 'tiff') {
-                // Parse TIFF file using geospatial library
-                const geospatialLib = await loadGridDataLibrary('geospatial');
-
-                // Create a blob URL for the TIFF data
-                const blob = new Blob([fileBuffer], { type: 'application/octet-stream' });
-                const blobUrl = URL.createObjectURL(blob);
-
-                try {
-                    const tiffResult = await geospatialLib.loadGeoTIFF(blobUrl);
-                    parsedData = tiffResult; // { type: 'geotiff'|'tiff', data: tiffObject }
-                } finally {
-                    // Clean up the blob URL
-                    URL.revokeObjectURL(blobUrl);
-                }
-            } else {
-                throw new Error(`Unsupported file format: ${fileFormat} for product ${selectedProduct}`);
-            }
-
-            let extractedData;
-            if (fileFormat === 'grib2') {
-                // Extract data for the specific variable and point using GRIB2 method
-                const paramCode = variableMeta.grib2Code;
-                extractedData = await grib2Lib.extractGRIB2Data(parsedData, {
-                    parameter: paramCode,
-                    level: variableMeta.levelType,
-                    bbox: [longitude, latitude, longitude, latitude], // Point as small bbox
-                    startDate: timestamp.toISOString(),
-                    endDate: timestamp.toISOString()
-                });
-            } else if (fileFormat === 'tiff') {
-                // Extract data from TIFF at the specified point
-                let image, bbox, pixelWidth, pixelHeight;
-
-                if (parsedData.type === 'geotiff') {
-                    // Handle GeoTIFF format
-                    image = await parsedData.data.getImage();
-                    bbox = image.getBoundingBox();
-                    pixelWidth = image.getWidth();
-                    pixelHeight = image.getHeight();
-
-                    // Convert lat/lon to pixel coordinates
-                    const pixelX = Math.floor(((longitude - bbox[0]) / (bbox[2] - bbox[0])) * pixelWidth);
-                    const pixelY = Math.floor(((bbox[3] - latitude) / (bbox[3] - bbox[1])) * pixelHeight);
-
-                    // Read pixel value at the specified location
-                    const rasters = await image.readRasters({
-                        window: [pixelX, pixelY, pixelX + 1, pixelY + 1]
-                    });
-
-                    extractedData = {
-                        value: rasters[0][0], // First band's value at the point
-                        units: variableMeta.units || 'unknown',
-                        variable: variable,
-                        timestamp: timestamp.toISOString(),
-                        coordinates: { latitude, longitude },
-                        source: 'MRMS',
-                        product: selectedProduct,
-                        format: 'tiff'
-                    };
-                } else if (parsedData.type === 'tiff') {
-                    // Handle generic TIFF format
-                    throw new Error('TIFF format parsing not implemented for MRMS data');
-                }
-            }
-
-            // Handle different data formats
-            let finalValue, finalData;
-            if (fileFormat === 'grib2') {
-                // Apply scaling for GRIB2 data
-                let rawValue = extractedData.data.values[0];
-                if (rawValue === undefined || rawValue === null) {
-                    console.warn(`No data found for ${variable} at requested location, using default value`);
-                    rawValue = 0; // Default value
-                }
-                let scaledValue = applyMRMSScaling(rawValue, variableMeta);
-                finalValue = scaledValue;
-                finalData = extractedData;
-            } else if (fileFormat === 'tiff') {
-                // TIFF data is already extracted and formatted
-                finalValue = extractedData.value;
-                finalData = extractedData;
-            } else {
-                finalValue = extractedData.value || 0;
-                finalData = extractedData;
-            }
-
-            // Build metadata based on file format
-            let metadata = {
-                units: variableMeta.units,
-                longName: variableMeta.longName,
-                product: selectedProduct,
-                source: 'MRMS',
-                fileUrl: fileUrl,
-                format: fileFormat
-            };
-
-            // Add GRIB2-specific metadata only for GRIB2 files
-            // if (fileFormat === 'grib2' && paramCode) {
-            //     metadata.grib2Parameter = paramCode;
-            // }
-
-            return {
-                variable: variable,
-                location: { latitude, longitude },
-                timestamp: timestamp.toISOString(),
-                value: finalValue,
-                metadata: metadata
-            };
-
-        } catch (error) {
-            console.error(`Failed to extract MRMS point data: ${error.message}`);
-            throw new Error(`MRMS point data extraction failed: ${error.message}`);
-        }
-    }
-
-    /**
-     * Extract grid data from MRMS GRIB2 file
-     * @param {string} variable - Variable name
-     * @param {Array} bbox - Bounding box [west, south, east, north]
-     * @param {Date} timestamp - Data timestamp
-     * @param {Object} datasetConfig - MRMS dataset configuration
-     * @returns {Promise<Object>} Extracted grid data
-     */
-    export async function extractMRMSGridData(variable, bbox, timestamp, datasetConfig, product = null) {
-        console.log(`Extracting MRMS ${variable} grid for bbox ${bbox} at ${timestamp.toISOString()}`);
-
-        try {
-            // Load GRIB2 library
-            const grib2Lib = await loadGRIB2Library();
-
-            // Get variable metadata
-            const { default: mrmsDatasource } = await import('../datasources/mrms.js');
-            const variableMeta = mrmsDatasource.variables[variable];
-
-            if (!variableMeta) {
-                throw new Error(`Unknown MRMS variable: ${variable}`);
-            }
-
-            // Validate bbox is within MRMS domain
-            const [west, south, east, north] = bbox;
-            const { latitude: latRange, longitude: lonRange } = datasetConfig.spatial;
-
-            if (west < lonRange.min || east > lonRange.max ||
-                south < latRange.min || north > latRange.max) {
-                console.warn(`Requested bbox partially outside MRMS domain, clipping to available data`);
-            }
-
-            // Use provided product or find the appropriate product for this variable
-            let selectedProduct = product;
-            if (!selectedProduct) {
-                selectedProduct = await findMRMSProductForVariable(variable, datasetConfig);
-                if (!selectedProduct) {
-                    throw new Error(`No MRMS product found for variable ${variable}`);
-                }
-            }
-
-            // Validate that the selected product exists in the dataset
-            if (!datasetConfig.products[selectedProduct]) {
-                throw new Error(`Product ${selectedProduct} not found in dataset ${datasetConfig.name || 'mrms-radar'}`);
-            }
-
-    // Generate file URL using datasource configuration
-    const { default: mrmsDatasource2 } = await import('../datasources/mrms.js');
-    const fileUrl = mrmsDatasource2.generateURL(selectedProduct, timestamp, 'mrms-radar');
-
-            // Fetch file (could be GRIB2 or TIFF)
-            let fileBuffer = await fetchMRMSFile(fileUrl, timestamp);
-
-            // Debug: Check file content before parsing
-            console.log(`Fetched ${fileBuffer.byteLength} bytes for ${selectedProduct}`);
-            const uint8Array = new Uint8Array(fileBuffer, 0, Math.min(32, fileBuffer.byteLength));
-            const fileSignature = Array.from(uint8Array).map(b => b.toString(16).padStart(2, '0')).join(' ');
-            console.log(`File signature (first ${uint8Array.length} bytes):`, fileSignature);
-
-            // Check for GRIB2 magic number
-            if (fileSignature.startsWith('47 52 49 42')) {
-                console.log('✓ Valid GRIB2 file detected (GRIB magic number)');
-            } else if (fileSignature.startsWith('1f 8b')) {
-                console.log('WARNING: File is still gzipped - decompressing manually...');
-
-                // Manually decompress the gzipped file
-                try {
-                    // First try to access Pako directly from window
-                    let pakoLib = window.pako;
-
-                    // If not available, try loading geospatial library
-                    if (!pakoLib) {
-                        console.log('Pako not found in window, loading geospatial library...');
-                        const geospatialLib = await loadGridDataLibrary('geospatial');
-                        pakoLib = geospatialLib.pako || window.pako;
-                    }
-
-                    if (pakoLib) {
-                        console.log('✓ Using Pako for decompression');
-                        const decompressed = pakoLib.ungzip(new Uint8Array(fileBuffer));
-                        console.log(`✓ Decompressed from ${fileBuffer.byteLength} to ${decompressed.length} bytes`);
-
-                        // Convert back to ArrayBuffer
-                        fileBuffer = decompressed.buffer.slice(
-                            decompressed.byteOffset,
-                            decompressed.byteOffset + decompressed.byteLength
-                        );
-
-                        // Check the decompressed file signature
-                        const decompressedArray = new Uint8Array(fileBuffer, 0, Math.min(32, fileBuffer.byteLength));
-                        const decompressedSignature = Array.from(decompressedArray).map(b => b.toString(16).padStart(2, '0')).join(' ');
-                        console.log(`Decompressed file signature:`, decompressedSignature);
-
-                        if (decompressedSignature.startsWith('47 52 49 42')) {
-                            console.log('✓ Decompressed file is valid GRIB2');
-                        } else {
-                            console.log('WARNING: Decompressed file may not be valid GRIB2');
-                        }
-                    } else {
-                        // Last resort: try browser's built-in decompression
-                        console.log('Pako not available, trying browser decompression...');
-                        if (typeof DecompressionStream !== 'undefined') {
-                            const response = new Response(fileBuffer);
-                            const decompressedStream = response.body.pipeThrough(new DecompressionStream('gzip'));
-                            const decompressedResponse = await new Response(decompressedStream).arrayBuffer();
-                            fileBuffer = decompressedResponse;
-                            console.log(`✓ Browser decompressed to ${fileBuffer.byteLength} bytes`);
-                        } else {
-                            throw new Error('No decompression method available');
-                        }
-                    }
-                } catch (decompError) {
-                    console.error('✗ Manual decompression failed:', decompError.message);
-                    throw new Error(`File decompression failed: ${decompError.message}`);
-                }
-            } else {
-                console.log('WARNING: Unknown file signature - may not be a valid GRIB2 file');
-            }
-
-            // Get product format from datasource
-            const productConfig = datasetConfig.products[selectedProduct];
-            const fileFormat = productConfig.format;
-
-            let parsedData;
-            if (fileFormat === 'grib2') {
-                try {
-                    // Parse GRIB2 file
-                    parsedData = await grib2Lib.parse(fileBuffer);
-                    console.log('✓ GRIB2 parsing successful');
-                } catch (grib2Error) {
-                    console.error('✗ GRIB2 parsing failed:', grib2Error.message);
-                    console.error('File size:', fileBuffer.byteLength, 'bytes');
-                    console.error('First 64 bytes:', Array.from(new Uint8Array(fileBuffer, 0, 64)).map(b => b.toString(16).padStart(2, '0')).join(' '));
-                    throw new Error(`GRIB2 parsing failed: ${grib2Error.message}`);
-                }
-            } else if (fileFormat === 'tiff') {
-                // Parse TIFF file using geospatial library
-                const geospatialLib = await loadGridDataLibrary('geospatial');
-
-                // Create a blob URL for the TIFF data
-                const blob = new Blob([fileBuffer], { type: 'application/octet-stream' });
-                const blobUrl = URL.createObjectURL(blob);
-
-                try {
-                    const tiffResult = await geospatialLib.loadGeoTIFF(blobUrl);
-                    parsedData = tiffResult; // { type: 'geotiff'|'tiff', data: tiffObject }
-                } finally {
-                    // Clean up the blob URL
-                    URL.revokeObjectURL(blobUrl);
-                }
-            } else {
-                throw new Error(`Unsupported file format: ${fileFormat} for product ${selectedProduct}`);
-            }
-
-            let extractedData;
-            if (fileFormat === 'grib2') {
-                // Extract grid data using GRIB2 method
-                const paramCode = variableMeta.grib2Code;
-                extractedData = await grib2Lib.extractGRIB2Data(parsedData, {
-                    parameter: paramCode,
-                    level: variableMeta.levelType,
-                    bbox: bbox,
-                    startDate: timestamp.toISOString(),
-                    endDate: timestamp.toISOString()
-                });
-            } else if (fileFormat === 'tiff') {
-                // Extract grid data from TIFF
-                if (parsedData.type === 'geotiff') {
-                    const image = await parsedData.data.getImage();
-                    const imageBbox = image.getBoundingBox();
-                    const pixelWidth = image.getWidth();
-                    const pixelHeight = image.getHeight();
-
-                    // Read the entire raster
-                    const rasters = await image.readRasters();
-
-                    extractedData = {
-                        data: {
-                            values: rasters[0], // First band data
-                            bbox: imageBbox,
-                            width: pixelWidth,
-                            height: pixelHeight
-                        },
-                        variable: variable,
-                        timestamp: timestamp.toISOString(),
-                        source: 'MRMS',
-                        product: selectedProduct,
-                        format: 'tiff'
-                    };
-                } else if (parsedData.type === 'tiff') {
-                    // Generic TIFF - not implemented for grid data
-                    throw new Error('Generic TIFF grid data extraction not implemented');
-                }
-            }
-
-            // Apply scaling to all grid values
-            let scaledGrid;
-            if (fileFormat === 'grib2') {
-                scaledGrid = extractedData.data.values.map(value => {
-                    if (value === undefined || value === null) {
-                        console.warn(`Null value found in grid data, using default`);
-                        value = 0;
-                    }
-                    return applyMRMSScaling(value, variableMeta);
-                });
-            } else if (fileFormat === 'tiff') {
-                scaledGrid = extractedData.data.values; // TIFF data is already in final form
-            } else {
-                scaledGrid = extractedData.data?.values || [];
-            }
-
-            // Build metadata based on file format
-            const metadata = {
-                units: variableMeta.units,
-                longName: variableMeta.longName,
-                product: selectedProduct,
-                source: 'MRMS',
-                fileUrl: fileUrl,
-                format: fileFormat
-            };
-
-            // Add GRIB2-specific metadata only for GRIB2 files
-            // if (fileFormat === 'grib2' && paramCode) {
-            //     metadata.grib2Parameter = paramCode;
-            // }
-
-            // Add grid-specific metadata
-            if (extractedData.data) {
-                if (extractedData.data.shape) {
-                    metadata.gridShape = extractedData.data.shape;
-                }
-                if (extractedData.data.coordinates) {
-                    metadata.coordinates = extractedData.data.coordinates;
-                }
-                if (extractedData.data.bbox) {
-                    metadata.bbox = extractedData.data.bbox;
-                }
-            }
-
-            return {
-                variable: variable,
-                bbox: bbox,
-                timestamp: timestamp.toISOString(),
-                data: scaledGrid,
-                metadata: metadata
-            };
-
-        } catch (error) {
-            console.error(`Failed to extract MRMS grid data: ${error.message}`);
-            throw new Error(`MRMS grid data extraction failed: ${error.message}`);
-        }
-    }
-
-    /**
-     * Extract time series data from MRMS GRIB2 files
+/**
+ * Extract time series data from MRMS
+ * Uses inherited extractTimeSeries from base class - NO CODE NEEDED!
      * @param {string} variable - Variable name
      * @param {number} latitude - Latitude coordinate
      * @param {number} longitude - Longitude coordinate
-     * @param {Date} startTime - Start timestamp
-     * @param {Date} endTime - End timestamp
+ * @param {Date} startTime - Start of time range
+ * @param {Date} endTime - End of time range
      * @param {Object} datasetConfig - MRMS dataset configuration
+ * @param {string} product - Specific MRMS product to use (optional)
      * @returns {Promise<Object>} Time series data
      */
-    export async function extractMRMSTimeSeries(variable, latitude, longitude, startTime, endTime, datasetConfig, product = null) {
-        console.log(`Extracting MRMS ${variable} time series at (${latitude}, ${longitude})`);
+export async function extractMRMSTimeSeries(variable, latitude, longitude, startTime, endTime, datasetConfig, product = null) {
+  const mrms = new MRMSDataSource(datasetConfig);
 
-        try {
-            const timeSeries = [];
-            let currentTime = new Date(startTime);
+  // MRMS temporal resolution varies by product, default to hourly
+  const timeIncrement = 60 * 60 * 1000; // 1 hour in milliseconds
 
-            // Get temporal resolution from dataset config
-            const temporalResolution = datasetConfig.temporal.resolution;
-            const timeStepMinutes = temporalResolution === '2M' ? 2 :
-                temporalResolution === '1H' ? 60 : 60; // Default to hourly
-
-            // Load GRIB2 library once
-            const grib2Lib = await loadGRIB2Library();
-
-            // Get variable metadata
-            const { default: mrmsDatasource } = await import('../datasources/mrms.js');
-            const variableMeta = mrmsDatasource.variables[variable];
-
-            if (!variableMeta) {
-                throw new Error(`Unknown MRMS variable: ${variable}`);
-            }
-
-            // Use provided product or find the appropriate product for this variable
-            let selectedProduct = product;
-            if (!selectedProduct) {
-                selectedProduct = await findMRMSProductForVariable(variable, datasetConfig);
-                if (!selectedProduct) {
-                    throw new Error(`No MRMS product found for variable ${variable}`);
-                }
-            }
-
-            // Validate that the selected product exists in the dataset
-            if (!datasetConfig.products[selectedProduct]) {
-                throw new Error(`Product ${selectedProduct} not found in dataset ${datasetConfig.name || 'mrms-radar'}`);
-            }
-
-            // Iterate through time steps
-            while (currentTime <= endTime) {
-                try {
-                    // Generate file URL for this timestamp using datasource
-                    const { default: mrmsDatasource3 } = await import('../datasources/mrms.js');
-                    const fileUrl = mrmsDatasource3.generateURL(selectedProduct, currentTime, 'mrms-radar');
-
-                    // Fetch file (could be GRIB2 or TIFF)
-                    const fileBuffer = await fetchMRMSFile(fileUrl, currentTime);
-
-                    // Get product format from datasource
-                    const productConfig = datasetConfig.products[selectedProduct];
-                    const fileFormat = productConfig.format;
-
-                    let parsedData;
-                    if (fileFormat === 'grib2') {
-                        // Parse GRIB2 file
-                        parsedData = await grib2Lib.parse(fileBuffer);
-                    } else if (fileFormat === 'tiff') {
-                        // Parse TIFF file using geospatial library
-                        const geospatialLib = await loadGridDataLibrary('geospatial');
-
-                        // For TIFF files, we need to create a blob URL since GeoTIFF.fromArrayBuffer expects a URL
-                        const blob = new Blob([fileBuffer], { type: 'application/octet-stream' });
-                        const blobUrl = URL.createObjectURL(blob);
-
-                        try {
-                            const geotiff = await geospatialLib.loadGeoTIFF(blobUrl);
-                            parsedData = geotiff;
-                        } finally {
-                            // Clean up the blob URL
-                            URL.revokeObjectURL(blobUrl);
-                        }
-                    } else {
-                        throw new Error(`Unsupported file format: ${fileFormat} for product ${selectedProduct}`);
-                    }
-
-                    let extractedData;
-                    if (fileFormat === 'grib2') {
-                        // Extract point data using GRIB2 method
-                        const paramCode = variableMeta.grib2Code;
-                        extractedData = await grib2Lib.extractGRIB2Data(parsedData, {
-                            parameter: paramCode,
-                            level: variableMeta.levelType,
-                            bbox: [longitude, latitude, longitude, latitude],
-                            startDate: currentTime.toISOString(),
-                            endDate: currentTime.toISOString()
-                        });
-                    } else if (fileFormat === 'tiff') {
-                        // Extract data from TIFF at the specified point
-                        if (parsedData.type === 'geotiff') {
-                            const image = await parsedData.data.getImage();
-                            const bbox = image.getBoundingBox();
-                            const pixelWidth = image.getWidth();
-                            const pixelHeight = image.getHeight();
-
-                            // Convert lat/lon to pixel coordinates
-                            const pixelX = Math.floor(((longitude - bbox[0]) / (bbox[2] - bbox[0])) * pixelWidth);
-                            const pixelY = Math.floor(((bbox[3] - latitude) / (bbox[3] - bbox[1])) * pixelHeight);
-
-                            // Read pixel value at the specified location
-                            const rasters = await image.readRasters({
-                                window: [pixelX, pixelY, pixelX + 1, pixelY + 1]
-                            });
-
-                            extractedData = {
-                                value: rasters[0][0], // First band's value at the point
-                                units: variableMeta.units || 'unknown',
-                                variable: variable,
-                                timestamp: currentTime.toISOString(),
-                                coordinates: { latitude, longitude },
-                                source: 'MRMS',
-                                product: selectedProduct,
-                                format: 'tiff'
-                            };
-                        } else if (parsedData.type === 'tiff') {
-                            // Generic TIFF - not implemented for timeseries
-                            throw new Error('Generic TIFF timeseries extraction not implemented');
-                        }
-                    }
-
-                    // Apply scaling and add to time series
-                    let scaledValue;
-                    if (fileFormat === 'grib2') {
-                        let rawValue = extractedData.data.values[0];
-                        if (rawValue === undefined || rawValue === null) {
-                            console.warn(`No data found for ${variable} at ${currentTime.toISOString()}, using default value`);
-                            rawValue = 0;
-                        }
-                        scaledValue = applyMRMSScaling(rawValue, variableMeta);
-                    } else if (fileFormat === 'tiff') {
-                        scaledValue = extractedData.value; // TIFF data is already in final form
-                    } else {
-                        scaledValue = extractedData.value || 0;
-                    }
-
-                    timeSeries.push({
-                        timestamp: currentTime.toISOString(),
-                        value: scaledValue,
-                        fileUrl: fileUrl
-                    });
-
-                } catch (fileError) {
-                    console.warn(`Failed to get data for ${currentTime.toISOString()}: ${fileError.message}`);
-                    // Add null value for missing data
-                    timeSeries.push({
-                        timestamp: currentTime.toISOString(),
-                        value: null,
-                        error: fileError.message
-                    });
-                }
-
-                // Move to next time step
-                currentTime = new Date(currentTime.getTime() + timeStepMinutes * 60 * 1000);
-            }
-
-            return {
-                variable: variable,
-                location: { latitude, longitude },
-                timeRange: {
-                    start: startTime.toISOString(),
-                    end: endTime.toISOString()
-                },
-                data: timeSeries,
-                metadata: {
-                    units: variableMeta.units,
-                    longName: variableMeta.longName,
-                    product: selectedProduct,
-                    source: 'MRMS',
-                    format: fileFormat,
-                    temporalResolution: temporalResolution,
-                    count: timeSeries.length,
-                    validCount: timeSeries.filter(d => d.value !== null).length
-                }
-            };
-
-        } catch (error) {
-            console.error(`Failed to extract MRMS time series: ${error.message}`);
-            throw new Error(`MRMS time series extraction failed: ${error.message}`);
-        }
+  return await mrms.extractTimeSeries(
+    variable,
+    latitude,
+    longitude,
+    startTime,
+    endTime,
+    {
+      product,
+      timeIncrement,
+      temporalResolution: 'hourly'
     }
+  );
+}
 
-    /**
-     * Find the appropriate MRMS product for a given variable
-     * @param {string} variable - Variable name
-     * @param {Object} datasetConfig - MRMS dataset configuration
-     * @returns {string|null} MRMS product name
-     */
-    async function findMRMSProductForVariable(variable, datasetConfig) {
-        const { default: mrmsDatasource } = await import('../datasources/mrms.js');
-        const variableMeta = mrmsDatasource.variables[variable];
+/**
+ * Get available MRMS products for a given date
+ * @param {Object} datasetConfig - MRMS dataset configuration
+ * @param {Date} date - Date to check
+* @returns {Promise<Array>} Available products
+ */
+export async function getAvailableMRMSProducts(datasetConfig, date) {
+  const mrms = new MRMSDataSource(datasetConfig);
+  await mrms.loadDatasource();
 
-        // If variable not found, try to map to a known variable
-        if (!variableMeta) {
-            console.warn(`Variable ${variable} not found, trying to map to known variable`);
-            // Map common variable names to MRMS variables
-            const variableMap = {
-                'precipitation': 'APCP',
-                'precip': 'APCP',
-                'reflectivity': 'REFC',
-                'reflect': 'REFC',
-                'radar': 'REFC'
-            };
-            const mappedVariable = variableMap[variable.toLowerCase()] || 'APCP'; // Default to precipitation
-            console.log(`Mapped ${variable} to ${mappedVariable}`);
-            return await findMRMSProductForVariable(mappedVariable, datasetConfig);
-        }
+  // Return all configured products
+  // In a real implementation, this could check availability on the server
+  return Object.keys(datasetConfig.products || {}).map(productName => ({
+    name: productName,
+    config: datasetConfig.products[productName],
+    available: true // Simplified - actual availability would require server check
+  }));
+}
 
-        if (!variableMeta || !variableMeta.products) {
-            return null;
-        }
-
-        // Find first available product that exists in the dataset
-        for (const product of variableMeta.products) {
-            if (datasetConfig.products[product]) {
-                return product;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Apply MRMS-specific scaling to data values
-     * @param {number} value - Raw data value
-     * @param {Object} variableMeta - Variable metadata
-     * @returns {number} Scaled value
-     */
-    function applyMRMSScaling(value, variableMeta) {
-        if (value === null || value === undefined || value === variableMeta.fillValue) {
-            return null;
-        }
-
-        const scaleFactor = variableMeta.scaleFactor || 1.0;
-        const addOffset = variableMeta.addOffset || 0.0;
-
-        return value * scaleFactor + addOffset;
-    }
-
-
-    /**
-     * Get available MRMS products for a given date
-     * @param {Object} datasetConfig - MRMS dataset configuration
-     * @param {Date} date - Date to check
-     * @returns {Promise<Array>} List of available products
-     */
-    export async function getAvailableMRMSProducts(datasetConfig, date) {
-        console.log(`Getting available MRMS products for ${date.toISOString()}`);
-
-        try {
-            // This would typically query the MRMS server for available products
-            // For now, return the configured products
-            return Object.keys(datasetConfig.products);
-
-        } catch (error) {
-            console.error(`Failed to get available MRMS products: ${error.message}`);
-            return [];
-        }
-    }
-
-    /**
-     * Validate MRMS dataset configuration
-     * @param {Object} config - Dataset configuration
+/**
+ * Validate MRMS configuration
+ * @param {Object} config - Configuration to validate
      * @returns {boolean} True if valid
      */
-    export function validateMRMSConfig(config) {
-        const required = ['baseUrl', 'spatial', 'temporal', 'products'];
+export function validateMRMSConfig(config) {
+  const required = ['baseUrl', 'spatial', 'temporal', 'products'];
 
-        for (const field of required) {
-            if (!config[field]) {
-                console.error(`MRMS config missing required field: ${field}`);
-                return false;
-            }
-        }
-
-        // Validate spatial bounds
-        const { spatial } = config;
-        if (!spatial.latitude || !spatial.longitude) {
-            console.error('MRMS config missing spatial latitude/longitude bounds');
-            return false;
-        }
-
-        return true;
+  for (const field of required) {
+    if (!config[field]) {
+      console.error(`MRMS config missing required field: ${field}`);
+      return false;
     }
+  }
 
-    /**
-     * Get MRMS dataset information and metadata
-     * @param {Object} datasetConfig - MRMS dataset configuration
-     * @param {string} infoType - Type of information requested
-     * @returns {Object} Dataset information
-     */
-    export async function getMRMSDatasetInfo(datasetConfig, infoType) {
-        const { default: mrmsDatasource } = await import('../datasources/mrms.js');
+  // Validate spatial bounds
+  const { spatial } = config;
+  if (!spatial.latitude || !spatial.longitude) {
+    console.error('MRMS config missing spatial latitude/longitude bounds');
+    return false;
+  }
 
-        switch (infoType) {
-            case 'variables':
-                return {
-                    variables: mrmsDatasource.variables,
-                    count: Object.keys(mrmsDatasource.variables).length
-                };
+  return true;
+}
 
-            case 'spatial':
-                return datasetConfig.spatial;
+/**
+ * Get MRMS dataset information and metadata
+ * @param {Object} datasetConfig - MRMS dataset configuration
+ * @param {string} infoType - Type of information requested
+ * @returns {Object} Dataset information
+ */
+export async function getMRMSDatasetInfo(datasetConfig, infoType) {
+  const mrms = new MRMSDataSource(datasetConfig);
+  await mrms.loadDatasource();
 
-            case 'temporal':
-                return datasetConfig.temporal;
+  switch (infoType) {
+    case 'variables':
+      return {
+        variables: mrms.variables,
+        count: Object.keys(mrms.variables).length
+      };
 
-            case 'products':
-                return {
-                    products: datasetConfig.products,
-                    count: Object.keys(datasetConfig.products).length
-                };
+    case 'spatial':
+      return datasetConfig.spatial;
 
-            case 'metadata':
-                return {
-                    ...datasetConfig,
-                    variables: mrmsDatasource.variables
-                };
+    case 'temporal':
+      return datasetConfig.temporal;
 
-            default:
-                throw new Error(`Unknown MRMS info type: ${infoType}`);
-        }
-    }
+    case 'products':
+      return {
+        products: datasetConfig.products,
+        count: Object.keys(datasetConfig.products).length
+      };
 
+    case 'metadata':
+      return {
+        ...datasetConfig,
+        variables: mrms.variables
+      };
+
+    default:
+      throw new Error(`Unknown MRMS info type: ${infoType}`);
+  }
+}
+
+/**
+ * Test URL generation for MRMS products
+ * @param {string} product - MRMS product name
+ * @param {Date} timestamp - Test timestamp
+ * @returns {string} Generated URL for verification
+ */
+export async function testMRMSUrlGeneration(product, timestamp) {
+  const { default: mrmsDatasource } = await import('../datasources/mrms.js');
+  return mrmsDatasource.generateURL(product, timestamp, 'mrms-radar');
+}

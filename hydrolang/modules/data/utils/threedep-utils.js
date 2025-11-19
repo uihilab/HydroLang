@@ -1,86 +1,105 @@
 /**
- * 3DEP Elevation Data Utilities
- * Handles fetching and processing of 3DEP elevation data
+ * 3DEP Elevation Data Utilities - Refactored
+ * Uses GeoTIFFDataSource base class to eliminate duplicate code
+ * Handles DEM data from USGS 3DEP service
  */
 
-import { loadGridDataLibrary, isGridDataLibraryLoaded, getGridDataLibrary } from "./gridded-data-utils.js";
+import { GeoTIFFDataSource } from './gridded-data-utils.js';
 
 const BASE_URL = "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer";
 const MAX_SIZE = 2048;
 
 /**
- * Fetches DEM data for a specific region from 3DEP Elevation service
- * @service dem
- * @operation fetchDEMData
- * @description Fetches DEM data for a specific region from 3DEP Elevation service
- * @param {Object} data - Data parameters
- * @param {Array|Object} data.bbox - Bounding box coordinates [west, south, east, north]
- * @param {number} data.resolution - Data resolution in meters
- * @param {function} [progressCallback] - Optional progress callback
- * @returns {Promise<Object>} Promise resolving to DEM data with georaster
+ * 3DEP-specific data source implementation
+ * Extends GeoTIFFDataSource with 3DEP-specific elevation handling
  */
-export async function fetchDEMData(data, progressCallback) {
-  const { bbox, resolution } = data;
+export class DEPDataSource extends GeoTIFFDataSource {
+  constructor() {
+    super({
+      sourceName: 'threedep',
+      libraryType: 'geospatial',
+      datasourceConfig: { spatial: {}, temporal: {} },
+      variables: { elevation: { units: 'meters', description: 'Elevation (NAVD88)' } }
+    });
+  }
 
-  // Ensure bbox is an array
-  const [west, south, east, north] = Array.isArray(bbox)
-    ? bbox
-    : Object.values(bbox);
-
-  const { width, height } = calculateSize(
-    [west, south, east, north],
-    resolution
-  );
-
-  const url = generateGeoTiffUrl([west, south, east, north], width, height);
-
-  try {
-    if (progressCallback) progressCallback(10, "Fetching DEM data...");
-
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-
-    if (progressCallback) progressCallback(20, "Loading geospatial libraries...");
-
-    // Ensure geospatial libraries are loaded
-    if (!isGridDataLibraryLoaded('geospatial')) {
-      console.log('Loading geospatial libraries...');
-      await loadGridDataLibrary('geospatial');
-    }
-
-    // Access libraries from global window object (where geospatial loader puts them)
-    const GeoTIFF = window.GeoTIFF || window.geotiff || window.GeoTiff;
-    const proj4 = window.proj4;
-
-    console.log('Library availability check:', {
-      GeoTIFF: !!GeoTIFF,
-      proj4: !!proj4,
-      windowGeoTIFF: typeof window.GeoTIFF,
-      windowGeotiff: typeof window.geotiff,
-      windowGeoTiff: typeof window.GeoTiff,
-      windowProj4: typeof window.proj4,
-      windowKeys: Object.keys(window).filter(key => key.toLowerCase().includes('tiff') || key.toLowerCase().includes('proj'))
+  /**
+   * Generate 3DEP GeoTIFF export URL
+   */
+  generateGeoTiffUrl(bbox, width, height) {
+    const params = new URLSearchParams({
+      f: "image",
+      bbox: bbox.join(","),
+      bboxSR: "4326",
+      imageSR: "5070",
+      size: `${width},${height}`,
+      format: "tiff",
+      pixelType: "F32",
+      noDataInterpretation: "esriNoDataMatchAny",
+      interpolation: "RSP_BilinearInterpolation",
+      compression: "LZ77",
+      compressionQuality: "75",
+      bandIds: "0"
     });
 
-    if (!GeoTIFF || !proj4) {
-      throw new Error(`Failed to load required geospatial libraries. Available: GeoTIFF=${!!GeoTIFF}, proj4=${!!proj4}. Check console for window keys.`);
+    return `${BASE_URL}/exportImage?${params.toString()}`;
+  }
+
+  /**
+   * Calculate optimal image size based on bbox and resolution
+   */
+  calculateSize(bbox, resolution) {
+    const [west, south, east, north] = bbox;
+
+    // Convert degrees to meters approximately
+    const widthMeters = (east - west) * 111319.9 * Math.cos((south * Math.PI) / 180);
+    const heightMeters = (north - south) * 111319.9;
+
+    let width = Math.ceil(widthMeters / resolution);
+    let height = Math.ceil(heightMeters / resolution);
+
+    // Ensure dimensions don't exceed maximum size
+    if (width > MAX_SIZE || height > MAX_SIZE) {
+      const scale = Math.min(MAX_SIZE / width, MAX_SIZE / height);
+      width = Math.floor(width * scale);
+      height = Math.floor(height * scale);
     }
 
+    return { width, height };
+  }
+
+  /**
+   * Transform EPSG:5070 bounds to WGS84
+   */
+  async transformBounds(epsg5070Bounds) {
+    const proj4 = window.proj4;
+    if (!proj4) {
+      throw new Error('proj4 library not available');
+    }
+
+    const sourceProj = "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs";
+    const targetProj = "+proj=longlat +datum=WGS84 +no_defs";
+
+    const [minX, minY, maxX, maxY] = epsg5070Bounds;
+    const bottomLeft = proj4(sourceProj, targetProj, [minX, minY]);
+    const topRight = proj4(sourceProj, targetProj, [maxX, maxY]);
+
+    return {
+      minX: bottomLeft[0],
+      minY: bottomLeft[1],
+      maxX: topRight[0],
+      maxY: topRight[1]
+    };
+  }
+
+  /**
+   * Create georaster object from GeoTIFF
+   */
+  async createGeoRaster(image, progressCallback) {
     if (progressCallback) progressCallback(30, "Processing GeoTIFF data...");
 
-    console.log(" Creating DEM georaster directly from EPSG:5070 metadata...");
-
-    // Read the raw GeoTIFF to extract metadata and values
-    const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
-    const image = await tiff.getImage();
     const rasterData = await image.readRasters();
-
-    // Get original EPSG:5070 metadata
-    const originalMetadata = {
+    const metadata = {
       width: image.getWidth(),
       height: image.getHeight(),
       origin: image.getOrigin(),
@@ -89,47 +108,33 @@ export async function fetchDEMData(data, progressCallback) {
       noDataValue: image.getGDALNoData()
     };
 
-    console.log("DEM original metadata (EPSG:5070):", originalMetadata);
+    console.log(`[threedep] Original metadata (EPSG:5070):`, metadata);
 
     if (progressCallback) progressCallback(50, "Transforming coordinates...");
 
-    // Transform bounds from EPSG:5070 to WGS84 for Leaflet
-    const sourceProj = "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs";
-    const targetProj = "+proj=longlat +datum=WGS84 +no_defs";
-
-    const [minX, minY, maxX, maxY] = originalMetadata.boundingBox;
-    const bottomLeft = proj4(sourceProj, targetProj, [minX, minY]);
-    const topRight = proj4(sourceProj, targetProj, [maxX, maxY]);
-
-    const wgs84BoundingBox = {
-      minX: bottomLeft[0],
-      minY: bottomLeft[1],
-      maxX: topRight[0],
-      maxY: topRight[1]
-    };
-
-    console.log("DEM bounds transformed to WGS84:", wgs84BoundingBox);
+    // Transform bounds to WGS84
+    const wgs84Bounds = await this.transformBounds(metadata.boundingBox);
 
     if (progressCallback) progressCallback(70, "Creating elevation data structure...");
 
-    // Create 2D array structure that GeoRasterLayer expects
-    const elevationData = rasterData[0]; // First (and only) band
+    // Create 2D array structure
+    const elevationData = rasterData[0];
     const values2D = [];
-    for (let row = 0; row < originalMetadata.height; row++) {
+    for (let row = 0; row < metadata.height; row++) {
       const rowData = [];
-      for (let col = 0; col < originalMetadata.width; col++) {
-        const index = row * originalMetadata.width + col;
+      for (let col = 0; col < metadata.width; col++) {
+        const index = row * metadata.width + col;
         rowData.push(elevationData[index]);
       }
       values2D.push(rowData);
     }
 
-    // Calculate min/max for color scaling
+    // Calculate min/max
     let minValue = Infinity;
     let maxValue = -Infinity;
     for (let i = 0; i < elevationData.length; i++) {
       const value = elevationData[i];
-      if (value !== originalMetadata.noDataValue && Number.isFinite(value)) {
+      if (value !== metadata.noDataValue && Number.isFinite(value)) {
         if (value < minValue) minValue = value;
         if (value > maxValue) maxValue = value;
       }
@@ -137,112 +142,153 @@ export async function fetchDEMData(data, progressCallback) {
 
     if (progressCallback) progressCallback(90, "Creating georaster object...");
 
-    // Create georaster object directly (same approach as FIM)
+    // Create georaster object
     const georaster = {
-      projection: 4326, // WGS84
-      height: originalMetadata.height,
-      width: originalMetadata.width,
-      pixelHeight: (wgs84BoundingBox.maxY - wgs84BoundingBox.minY) / originalMetadata.height,
-      pixelWidth: (wgs84BoundingBox.maxX - wgs84BoundingBox.minX) / originalMetadata.width,
-      xmin: wgs84BoundingBox.minX,
-      xmax: wgs84BoundingBox.maxX,
-      ymin: wgs84BoundingBox.minY,
-      ymax: wgs84BoundingBox.maxY,
-      noDataValue: originalMetadata.noDataValue,
+      projection: 4326,
+      height: metadata.height,
+      width: metadata.width,
+      pixelHeight: (wgs84Bounds.maxY - wgs84Bounds.minY) / metadata.height,
+      pixelWidth: (wgs84Bounds.maxX - wgs84Bounds.minX) / metadata.width,
+      xmin: wgs84Bounds.minX,
+      xmax: wgs84Bounds.maxX,
+      ymin: wgs84Bounds.minY,
+      ymax: wgs84Bounds.maxY,
+      noDataValue: metadata.noDataValue,
       numberOfRasters: 1,
-      values: [values2D], // Band 1 as 2D array
+      values: [values2D],
       maxs: [maxValue],
       mins: [minValue],
       ranges: [maxValue - minValue],
-      // Store original EPSG:5070 bounds for reference
-      _originalBounds: originalMetadata.boundingBox,
+      _originalBounds: metadata.boundingBox,
       _originalProjection: "EPSG:5070"
     };
 
-    console.log("DEM georaster created successfully");
-    console.log("DEM bounds:", {
-      wgs84: `${georaster.xmin}, ${georaster.ymin}, ${georaster.xmax}, ${georaster.ymax}`,
-      epsg5070: originalMetadata.boundingBox
-    });
-    console.log("DEM elevation range:", { min: minValue, max: maxValue });
+    console.log(`[threedep] Elevation range: ${minValue}m to ${maxValue}m`);
 
-    if (progressCallback) progressCallback(100, "Complete");
+    return { georaster, metadata, wgs84Bounds, elevationRange: { min: minValue, max: maxValue } };
+  }
 
-    return {
-      bbox: [west, south, east, north],
-      resolution,
-      arrayBuffer,
-      georaster,
-      units: "meters",
-      verticalDatum: "NAVD88",
-      metadata: {
-        originalProjection: "EPSG:5070",
-        originalBounds: originalMetadata.boundingBox,
-        wgs84Bounds: wgs84BoundingBox,
-        elevationRange: { min: minValue, max: maxValue },
-        dimensions: { width: originalMetadata.width, height: originalMetadata.height }
-      },
-      // Add convenience properties for mapping
-      _isGeoraster: true,
-      _bounds: [[wgs84BoundingBox.minY, wgs84BoundingBox.minX], [wgs84BoundingBox.maxY, wgs84BoundingBox.maxX]]
-    };
+  /**
+   * Fetch DEM data (overrides base class)
+   */
+  async fetchDEMData(bbox, resolution, progressCallback) {
+    // Normalize bbox
+    const [west, south, east, north] = Array.isArray(bbox) ? bbox : Object.values(bbox);
 
-  } catch (error) {
-    console.error("Error fetching DEM:", { bbox, resolution, error });
-    throw new Error(`Failed to fetch DEM data: ${error.message}`);
+    // Calculate size
+    const { width, height } = this.calculateSize([west, south, east, north], resolution);
+
+    // Generate URL
+    const url = this.generateGeoTiffUrl([west, south, east, north], width, height);
+
+    console.log(`[threedep] Fetching DEM for bbox [${west}, ${south}, ${east}, ${north}], resolution ${resolution}m`);
+
+    try {
+      if (progressCallback) progressCallback(10, "Fetching DEM data...");
+
+      // Fetch data
+      const arrayBuffer = await this.fetch(url);
+
+      if (progressCallback) progressCallback(20, "Loading geospatial libraries...");
+
+      // Load library
+      await this.loadLibrary();
+
+      // Parse GeoTIFF
+      const { tiff, image } = await this.parseGeoTIFF(arrayBuffer);
+
+      // Create georaster
+      const { georaster, metadata, wgs84Bounds, elevationRange } = await this.createGeoRaster(image, progressCallback);
+
+      if (progressCallback) progressCallback(100, "Complete");
+
+      return {
+        bbox: [west, south, east, north],
+        resolution,
+        arrayBuffer,
+        georaster,
+        units: "meters",
+        verticalDatum: "NAVD88",
+        metadata: {
+          originalProjection: "EPSG:5070",
+          originalBounds: metadata.boundingBox,
+          wgs84Bounds: wgs84Bounds,
+          elevationRange: elevationRange,
+          dimensions: { width: metadata.width, height: metadata.height }
+        },
+        _isGeoraster: true,
+        _bounds: [[wgs84Bounds.minY, wgs84Bounds.minX], [wgs84Bounds.maxY, wgs84Bounds.maxX]]
+      };
+
+    } catch (error) {
+      console.error(`[threedep] Error fetching DEM:`, error);
+      throw new Error(`Failed to fetch DEM data: ${error.message}`);
+    }
+  }
+
+  /**
+   * Fetch point elevation
+   */
+  async fetchPointElevation(latitude, longitude, progressCallback) {
+    // Create small bounding box around point
+    const buffer = 0.001; // ~100m buffer
+    const bbox = [
+      longitude - buffer,
+      latitude - buffer,
+      longitude + buffer,
+      latitude + buffer
+    ];
+
+    try {
+      const result = await this.fetchDEMData(bbox, 1, progressCallback);
+
+      // Find closest pixel
+      const georaster = result.georaster;
+      const pixelX = Math.round((longitude - georaster.xmin) / georaster.pixelWidth);
+      const pixelY = Math.round((georaster.ymax - latitude) / georaster.pixelHeight);
+
+      // Get elevation value
+      let elevation = null;
+      if (pixelX >= 0 && pixelX < georaster.width && pixelY >= 0 && pixelY < georaster.height) {
+        elevation = georaster.values[0][pixelY][pixelX];
+
+        // Check for no-data values
+        if (elevation === georaster.noDataValue || !Number.isFinite(elevation)) {
+          elevation = null;
+        }
+      }
+
+      return {
+        latitude,
+        longitude,
+        elevation,
+        units: "meters",
+        verticalDatum: "NAVD88",
+        metadata: result.metadata
+      };
+
+    } catch (error) {
+      console.error(`[threedep] Error fetching point elevation:`, error);
+      throw new Error(`Failed to fetch elevation data: ${error.message}`);
+    }
   }
 }
 
-/**
- * Calculates optimal image size based on bounding box and resolution
- * @param {Array} bbox - Bounding box [west, south, east, north]
- * @param {number} resolution - Resolution in meters
- * @returns {Object} Object with width and height properties
- */
-function calculateSize(bbox, resolution) {
-  const [west, south, east, north] = bbox;
-
-  // Convert degrees to meters approximately
-  const widthMeters = (east - west) * 111319.9 * Math.cos((south * Math.PI) / 180);
-  const heightMeters = (north - south) * 111319.9;
-
-  let width = Math.ceil(widthMeters / resolution);
-  let height = Math.ceil(heightMeters / resolution);
-
-  // Ensure dimensions don't exceed maximum size
-  if (width > MAX_SIZE || height > MAX_SIZE) {
-    const scale = Math.min(MAX_SIZE / width, MAX_SIZE / height);
-    width = Math.floor(width * scale);
-    height = Math.floor(height * scale);
-  }
-
-  return { width, height };
-}
+// ============================================================================
+// BACKWARD COMPATIBLE EXPORTED FUNCTIONS
+// ============================================================================
 
 /**
- * Generates GeoTIFF export URL for 3DEP service
- * @param {Array} bbox - Bounding box [west, south, east, north]
- * @param {number} width - Image width in pixels
- * @param {number} height - Image height in pixels
- * @returns {string} Complete export URL
+ * Fetches DEM data for a specific region from 3DEP Elevation service
+ * @param {Object} data - Data parameters
+ * @param {Array|Object} data.bbox - Bounding box coordinates [west, south, east, north]
+ * @param {number} data.resolution - Data resolution in meters
+ * @param {function} [progressCallback] - Optional progress callback
+ * @returns {Promise<Object>} Promise resolving to DEM data with georaster
  */
-function generateGeoTiffUrl(bbox, width, height) {
-  const params = new URLSearchParams({
-    f: "image",
-    bbox: bbox.join(","),
-    bboxSR: "4326",
-    imageSR: "5070",
-    size: `${width},${height}`,
-    format: "tiff",
-    pixelType: "F32",
-    noDataInterpretation: "esriNoDataMatchAny",
-    interpolation: "RSP_BilinearInterpolation",
-    compression: "LZ77",
-    compressionQuality: "75",
-    bandIds: "0"
-  });
-
-  return `${BASE_URL}/exportImage?${params.toString()}`;
+export async function fetchDEMData(data, progressCallback) {
+  const dep = new DEPDataSource();
+  return await dep.fetchDEMData(data.bbox, data.resolution, progressCallback);
 }
 
 /**
@@ -253,51 +299,8 @@ function generateGeoTiffUrl(bbox, width, height) {
  * @returns {Promise<Object>} Promise resolving to point elevation data
  */
 export async function fetchPointElevation(latitude, longitude, progressCallback) {
-  // Create a small bounding box around the point
-  const buffer = 0.001; // ~100m buffer
-  const bbox = [
-    longitude - buffer,
-    latitude - buffer,
-    longitude + buffer,
-    latitude + buffer
-  ];
-
-  try {
-    const result = await fetchDEMData({ bbox, resolution: 1 }, progressCallback);
-
-    // Find the closest pixel to the requested point
-    const georaster = result.georaster;
-    const pixelWidth = georaster.pixelWidth;
-    const pixelHeight = georaster.pixelHeight;
-
-    // Calculate pixel coordinates
-    const pixelX = Math.round((longitude - georaster.xmin) / pixelWidth);
-    const pixelY = Math.round((georaster.ymax - latitude) / pixelHeight);
-
-    // Get elevation value
-    let elevation = null;
-    if (pixelX >= 0 && pixelX < georaster.width && pixelY >= 0 && pixelY < georaster.height) {
-      elevation = georaster.values[0][pixelY][pixelX];
-
-      // Check for no-data values
-      if (elevation === georaster.noDataValue || !Number.isFinite(elevation)) {
-        elevation = null;
-      }
-    }
-
-    return {
-      latitude,
-      longitude,
-      elevation,
-      units: "meters",
-      verticalDatum: "NAVD88",
-      metadata: result.metadata
-    };
-
-  } catch (error) {
-    console.error("Error fetching point elevation:", { latitude, longitude, error });
-    throw new Error(`Failed to fetch elevation data: ${error.message}`);
-  }
+  const dep = new DEPDataSource();
+  return await dep.fetchPointElevation(latitude, longitude, progressCallback);
 }
 
 /**

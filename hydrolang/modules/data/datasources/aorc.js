@@ -22,6 +22,7 @@
 const AORC_DATASETS = {
   "aorc-v1.1": {
     baseUrl: "https://noaa-nws-aorc-v1-1-1km.s3.amazonaws.com",
+    contentUrl: "https://noaa-nws-aorc-v1-1-1km.s3.amazonaws.com/{year}.zarr",
     description: "AORC Version 1.1 - CONUS Domain (Year-based Zarr stores)",
     spatial: {
       latitude: { min: 20.0, max: 55.0, resolution: 0.027 },

@@ -254,3 +254,4 @@ try {
 - **Base URL**: https://noaa-nwm-retrospective-2-1-zarr-pds.s3.amazonaws.com/
 - **Product**: chrtout.zarr (channel routing output)
 - **Variables**: streamflow, velocity, nudge
+

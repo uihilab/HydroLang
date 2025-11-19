@@ -18,18 +18,19 @@
 // C implementation
 // https://github.com/weathersource/wgrib2
 
-export default class GRIB2 {
+export class GRIB2 {
 
     // Static tables
-    static tables = {        
+    static tables = {
         // Discipline of Processed Data
-        "0.0" : { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table0-0.shtml
-            0 : 'Meteorological Products (see Table 4.1)',
+        "0.0": { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table0-0.shtml
+            0: 'Meteorological Products (see Table 4.1)',
             1: 'Hydrological Products (see Table 4.1)',
             2: 'Land Surface Products (see Table 4.1)',
             3: 'Satellite Remote Sensing Products (formerly Space Products) (see Table 4.1)',
             4: 'Space Weather Products (see Table 4.1)',
             10: 'Oceanographic Products (see Table 4.1)',
+            209: 'Multi-Radar Multi-Sensor (MRMS)',
             255: 'Missing'
         },
         // GRIB Master Tables Version Number
@@ -230,11 +231,11 @@ export default class GRIB2 {
         },
         // Scanning Mode
         '3.4': { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table3-4.shtml
-            1: ['0: Points in the first row or column scan in the +i (+x) direction','1: Points in the first row or column scan in the -i (-x) direction'],
-            2: ['0: Points in the first row or column scan in the -j (-y) direction','1: Points in the first row or column scan in the +j (+y) direction'],
-            3: ['0: Adjacent points in the i (x) direction are consecutive','1: Adjacent points in the j (y) direction are consecutive'],
-            4: ['0: All rows scan in the same direction','1: Adjacent rows scan in the opposite direction'],
-            5: ['0: Points within odd rows are not offset in i(x) direction','1: Points within odd rows are offset by Di/2 in i(x) direction'],
+            1: ['0: Points in the first row or column scan in the +i (+x) direction', '1: Points in the first row or column scan in the -i (-x) direction'],
+            2: ['0: Points in the first row or column scan in the -j (-y) direction', '1: Points in the first row or column scan in the +j (+y) direction'],
+            3: ['0: Adjacent points in the i (x) direction are consecutive', '1: Adjacent points in the j (y) direction are consecutive'],
+            4: ['0: All rows scan in the same direction', '1: Adjacent rows scan in the opposite direction'],
+            5: ['0: Points within odd rows are not offset in i(x) direction', '1: Points within odd rows are offset by Di/2 in i(x) direction'],
             6: ['0: Points within even rows are not offset in i(x) direction', '1: Points within even rows are offset by Di/2 in i(x) direction'],
             7: ['0: Points are not offset in j(y) direction', '1: Points are offset by Dj/2 in j(y) direction'],
             8: ['0: Rows have Ni grid points and columns have Nj grid points', '1: Rows have Ni grid points if points are not offset in i direction. Rows have Ni-1 grid points if points are offset by Di/2 in i direction. Columns have Nj grid points if points are not offset in j direction. Columns have Nj-1 grid points if points are offset by Dj/2 in j direction']
@@ -277,9 +278,9 @@ export default class GRIB2 {
         },
         // Scanning Mode for One Diamond
         '3.10': { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table3-10.shtml
-            1: ['0: Points  scan in the +i direction, i.e. from pole to Equator','1: Points scan in the -i direction, i.e. from Equator to pole'],
-            2: ['0: Points scan in the +j direction, i.e. from west to east','1: Points scan in the -j direction, i.e. from east to west'],
-            3: ['0: Adjacent points in the i (x) direction are consecutive','1: Adjacent points in the j (y) direction are consecutive']
+            1: ['0: Points  scan in the +i direction, i.e. from pole to Equator', '1: Points scan in the -i direction, i.e. from Equator to pole'],
+            2: ['0: Points scan in the +j direction, i.e. from west to east', '1: Points scan in the -j direction, i.e. from east to west'],
+            3: ['0: Adjacent points in the i (x) direction are consecutive', '1: Adjacent points in the j (y) direction are consecutive']
         },
         // Interpretation of List of Numbers at end of section 3
         '3.11': { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table3-11.shtml
@@ -468,13 +469,13 @@ export default class GRIB2 {
         // Type of Generating Process
         '4.3': { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table4-3.shtml
             0: 'Analysis',
-            1: 'Initialization', 
-            2: 'Forecast', 
-            3: 'Bias Corrected Forecast', 
-            4: 'Ensemble Forecast', 
-            5: 'Probability Forecast', 
-            6: 'Forecast Error', 
-            7: 'Analysis Error', 
+            1: 'Initialization',
+            2: 'Forecast',
+            3: 'Bias Corrected Forecast',
+            4: 'Ensemble Forecast',
+            5: 'Probability Forecast',
+            6: 'Forecast Error',
+            7: 'Analysis Error',
             8: 'Observation',
             9: 'Climatological',
             10: 'Probability-Weighted Forecast',
@@ -754,7 +755,7 @@ export default class GRIB2 {
             209: 'Confficient',
             255: 'Missing'
         },
-        '4.11' : {
+        '4.11': {
             0: 'Reserved',
             1: 'Successive times processed have same forecast time, start time of forecast is incremented.',
             2: 'Successive times processed have same start time of forecast, forecast time is incremented.',
@@ -954,10 +955,37 @@ export default class GRIB2 {
             //192-254: {parameter: 'Reserved for Local Use', units: '', abbreviation: ''},
             255: { parameter: 'Missing', units: '', abbreviation: '' }
         },
+        '4.2-209-0': { // MRMS Local Table
+            0: { parameter: 'Precipitation Rate', units: 'mm/hr', abbreviation: 'PrecipRate' },
+            1: { parameter: 'Radar Reflectivity', units: 'dBZ', abbreviation: 'REFC' },
+            2: { parameter: 'Lightning Density', units: 'flashes/km^2/min', abbreviation: 'LGT' },
+            3: { parameter: 'Echo Top', units: 'km', abbreviation: 'RETOP' },
+            4: { parameter: 'Vertically Integrated Liquid', units: 'kg/m^2', abbreviation: 'VIL' },
+            6: { parameter: 'Composite Reflectivity', units: 'dBZ', abbreviation: 'CREF' },
+            255: { parameter: 'Missing', units: '', abbreviation: '' }
+        },
+        '4.2-209-null': { // Fallback for when category is not parsed correctly
+            0: { parameter: 'Precipitation Rate', units: 'mm/hr', abbreviation: 'PrecipRate' },
+            1: { parameter: 'Radar Reflectivity', units: 'dBZ', abbreviation: 'REFC' },
+            2: { parameter: 'Lightning Density', units: 'flashes/km^2/min', abbreviation: 'LGT' },
+            3: { parameter: 'Echo Top', units: 'km', abbreviation: 'RETOP' },
+            4: { parameter: 'Vertically Integrated Liquid', units: 'kg/m^2', abbreviation: 'VIL' },
+            6: { parameter: 'Composite Reflectivity', units: 'dBZ', abbreviation: 'CREF' },
+            255: { parameter: 'Missing', units: '', abbreviation: '' }
+        },
+        '4.2-209-6': { // MRMS Local Table (Category 6)
+            0: { parameter: 'Radar Reflectivity', units: 'dBZ', abbreviation: 'REFC' },
+            1: { parameter: 'Precipitation Rate', units: 'mm/hr', abbreviation: 'PrecipRate' },
+            2: { parameter: 'Lightning Density', units: 'flashes/km^2/min', abbreviation: 'LGT' },
+            3: { parameter: 'Echo Top', units: 'km', abbreviation: 'RETOP' },
+            4: { parameter: 'Vertically Integrated Liquid', units: 'kg/m^2', abbreviation: 'VIL' },
+            6: { parameter: 'Composite Reflectivity', units: 'dBZ', abbreviation: 'CREF' },
+            255: { parameter: 'Missing', units: '', abbreviation: '' }
+        },
 
 
         // Data Representation Template Number
-        '5.0' : { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-0.shtml
+        '5.0': { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-0.shtml
             0: 'Grid Point Data - Simple Packing (see Template 5.0)',
             1: 'Matrix Value at Grid Point - Simple Packing (see Template 5.1)',
             2: 'Grid Point Data - Complex Packing (see Template 5.2)',
@@ -978,7 +1006,7 @@ export default class GRIB2 {
             65535: 'Missing',
         },
         // Type of Original Field Values
-        '5.1' : { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-1.shtml
+        '5.1': { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-1.shtml
             0: 'Floating Point',
             1: 'Integer',
             //2-191: 'Reserved',
@@ -986,7 +1014,7 @@ export default class GRIB2 {
             255: 'Missing',
         },
         // Matrix Coordinate Value Function Definition
-        '5.2' : { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-2.shtml
+        '5.2': { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-2.shtml
             0: 'Explicit Coordinate Values Set',
             1: 'Linear Coordinates\nf(1) = C1\nf(n) = f(n-1) + C2\n',
             //2-10: 'Reserved',
@@ -996,7 +1024,7 @@ export default class GRIB2 {
             255: 'Missing',
         },
         // Matrix Coordinate Parameter
-        '5.3' : { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-3.shtml
+        '5.3': { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-3.shtml
             0: 'Reserved',
             1: 'Direction Degrees True',
             2: 'Frequency (s^-1)',
@@ -1006,7 +1034,7 @@ export default class GRIB2 {
             255: 'Missing',
         },
         // Group Splitting Method
-        '5.4' : { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-4.shtml
+        '5.4': { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-4.shtml
             0: 'Row by Row Splitting',
             1: 'General Group Splitting',
             //2-191: 'Reserved',
@@ -1014,7 +1042,7 @@ export default class GRIB2 {
             255: 'Missing',
         },
         // Missing Value Management for Complex Packing
-        '5.5' : { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-5.shtml
+        '5.5': { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-5.shtml
             0: 'No explicit missing values included within the data values',
             1: 'Primary missing values included within the data values',
             2: 'Primary and secondary missing values included within the data values',
@@ -1023,7 +1051,7 @@ export default class GRIB2 {
             255: 'Missing',
         },
         // Order of Spatial Differencing
-        '5.6' : { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-6.shtml
+        '5.6': { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-6.shtml
             0: 'Reserved',
             1: 'First-Order Spatial Differencing',
             2: 'Second-Order Spatial Differencing',
@@ -1032,7 +1060,7 @@ export default class GRIB2 {
             255: 'Missing',
         },
         // Precision of Floating Point Numbers
-        '5.7' : { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-7.shtml
+        '5.7': { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-7.shtml
             0: 'Reserved',
             1: 'IEEE 32-bit (I=4 in Section 7)',
             2: 'IEEE 64-bit (I=8 in Section 7)',
@@ -1041,7 +1069,7 @@ export default class GRIB2 {
             255: 'Missing',
         },
         // Type of Compression
-        '5.40' : { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-40.shtml
+        '5.40': { // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-40.shtml
             0: 'Lossless',
             1: 'Lossy',
             //2-254: 'Reserved',
@@ -1888,13 +1916,13 @@ export default class GRIB2 {
                 content: null,
                 type: 'uint32',
                 info: 'Latitude of the pole of stretching'
-            },{
+            }, {
                 startIndex: 89,
                 size: 4,
                 content: null,
                 type: 'uint32',
                 info: 'Longitude of the pole stretching'
-            },{
+            }, {
                 startIndex: 93,
                 size: 4,
                 content: null,
@@ -2016,7 +2044,7 @@ export default class GRIB2 {
                 size: 'calc', // from 49 to ii; ii=48+4Ni and jj=48+4Ni+4j.
                 sizeRef: {
                     index: 31,
-                    calc: (ni) => ni*4
+                    calc: (ni) => ni * 4
                 },
                 content: null,
                 type: 'uint32',
@@ -2158,7 +2186,7 @@ export default class GRIB2 {
                 size: 'calc', // from 61 to ii; ii=60+4Ni and jj=60+4Ni+4j.
                 sizeRef: {
                     index: 31,
-                    calc: (ni) => ni*4
+                    calc: (ni) => ni * 4
                 },
                 content: null,
                 type: 'uint32',
@@ -2371,7 +2399,7 @@ export default class GRIB2 {
                 startIndex: 11,
                 size: 1,
                 content: null,
-                table: '4.1', 
+                table: '4.1',
                 type: 'uint8',
                 info: 'Parameter number (see Code table 4.2)'
             },
@@ -2379,7 +2407,7 @@ export default class GRIB2 {
                 startIndex: 12,
                 size: 1,
                 content: null,
-                table: '4.3', 
+                table: '4.3',
                 type: 'uint8',
                 info: 'Type of generating process (see Code table 4.3)'
             },
@@ -2387,7 +2415,7 @@ export default class GRIB2 {
                 startIndex: 13,
                 size: 1,
                 content: null,
-                table: '4.1', 
+                table: '4.1',
                 type: 'uint8',
                 info: 'Background generating process identifier (defined by originating centre)'
             },
@@ -2417,7 +2445,7 @@ export default class GRIB2 {
                 startIndex: 18,
                 size: 1,
                 content: null,
-                table: '4.4', 
+                table: '4.4',
                 type: 'uint8',
                 info: 'Indicator of unit of time range (see Code table 4.4)'
             },
@@ -2432,7 +2460,7 @@ export default class GRIB2 {
                 startIndex: 23,
                 size: 1,
                 content: null,
-                table: '4.5', 
+                table: '4.5',
                 type: 'uint8',
                 info: 'Type of first fixed surface (see Code table 4.5)'
             },
@@ -2469,8 +2497,116 @@ export default class GRIB2 {
                 startIndex: 31,
                 size: 4,
                 content: null,
+                info: 'Parameter category (see Code Table 4.1)',
+                startIndex: 10,
+                table: '4.1',
+                size: 1,
+                type: 'uint8',
+                content: null
+            },
+            {
+                info: 'Parameter number (see Code Table 4.2)',
+                startIndex: 11,
+                table: '4.2',
+                size: 1,
+                type: 'uint8',
+                content: null
+            },
+            {
+                info: 'Type of generating process (see Code Table 4.3)',
+                startIndex: 12,
+                table: '4.3',
+                size: 1,
+                type: 'uint8',
+                content: null
+            },
+            {
+                info: 'Background generating process identifier (defined by originating centre)',
+                startIndex: 13,
+                size: 1,
+                type: 'uint8',
+                content: null
+            },
+            {
+                info: 'Analysis or forecast generating process identified (see Code ON388 Table A)',
+                startIndex: 14,
+                table: 'ON388 Table A',
+                size: 1,
+                type: 'uint8',
+                content: null
+            },
+            {
+                info: 'Hours after reference time data cutoff (see Note 1)',
+                startIndex: 15,
+                size: 2,
+                type: 'uint16',
+                content: null
+            },
+            {
+                info: 'Minutes after reference time data cutoff',
+                startIndex: 17,
+                size: 1,
+                type: 'uint8',
+                content: null
+            },
+            {
+                info: 'Indicator of unit of time range (see Code Table 4.4)',
+                startIndex: 18,
+                table: '4.4',
+                size: 1,
+                type: 'uint8',
+                content: null
+            },
+            {
+                info: 'Forecast time in units defined by octet 18 (see Note 2)',
+                startIndex: 19,
+                size: 4,
                 type: 'uint32',
-                info: 'Scaled value of second fixed surfaces'
+                content: null
+            },
+            {
+                info: 'Type of first fixed surface (see Code Table 4.5)',
+                startIndex: 23,
+                table: '4.5',
+                size: 1,
+                type: 'uint8',
+                content: null
+            },
+            {
+                info: 'Scale factor of first fixed surface',
+                startIndex: 24,
+                size: 1,
+                type: 'uint8',
+                content: null
+            },
+            {
+                info: 'Scaled value of first fixed surface',
+                startIndex: 25,
+                size: 4,
+                type: 'uint32',
+                content: null
+            },
+            {
+                info: 'Type of second fixed surfaced (see Code Table 4.5)',
+                startIndex: 29,
+                table: '4.5',
+                size: 1,
+                type: 'uint8',
+                content: null
+            },
+            {
+                info: 'Scale factor of second fixed surface',
+                startIndex: 30,
+                size: 1,
+                type: 'uint8',
+                content: null
+            },
+            {
+                info: 'Scaled value of second fixed surfaces',
+                startIndex: 31,
+                size: 4,
+                type: 'uint32',
+                content: null
             }
         ],
         // 
@@ -2776,7 +2912,7 @@ export default class GRIB2 {
         // Section 5 - Data Representation
         // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_sect5.shtml
         // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_table5-0.shtml
-        
+
         // Grid point data - simple packing
         '5.0': [ // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_temp5-0.shtml
             // https://apps.ecmwf.int/codes/grib/format/grib2/regulations/
@@ -2937,7 +3073,7 @@ export default class GRIB2 {
                 size: 'calc',
                 sizeRef: {
                     index: 32,
-                    calc: (nc1) => nc1*4
+                    calc: (nc1) => nc1 * 4
                 },
                 content: null,
                 type: 'float32',
@@ -3433,7 +3569,7 @@ export default class GRIB2 {
                 info: 'List of MVL scale representative values of each level from lv=1 to MVL'
             }
         ],
-        
+
 
     }
 
@@ -3441,7 +3577,7 @@ export default class GRIB2 {
     // Fill them here and complete in grib2utils when parsing data
 
     // Current data template
-    constructor(buffer){
+    constructor(buffer) {
 
         this.buffer = buffer;
 
@@ -3449,7 +3585,7 @@ export default class GRIB2 {
 
         this.dataTemplate = {
             // SECTION 0 - Indicator Section
-            0: [ 
+            0: [
                 {
                     startIndex: 1,
                     size: 4,
@@ -3463,7 +3599,7 @@ export default class GRIB2 {
                     content: null,
                     type: null,
                     info: 'Reserved'
-                    
+
                 },
                 {
                     startIndex: 7,
@@ -3487,14 +3623,14 @@ export default class GRIB2 {
                 },
                 {
                     startIndex: 9,
-                    size: 8, 
+                    size: 8,
                     content: null,
                     type: 'uint64',
                     info: 'Total length of GRIB message in octects (All sections)'
                 }
             ],
-        
-        
+
+
             // SECTION 1 - Identification Section
             // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_sect1.shtml
             1: [
@@ -3541,7 +3677,7 @@ export default class GRIB2 {
                     type: 'uint8',
                     table: '1.1',
                     info: 'Version number of GRIB local tables used to augment Master Tables (see Table 1.1)'
-                    
+
                 },
                 {
                     startIndex: 12,
@@ -3620,9 +3756,9 @@ export default class GRIB2 {
                     info: 'Reserved'
                 },
             ],
-        
-        
-        
+
+
+
             // SECTION 2 - Local Use Section
             // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_sect2.shtml
             2: [
@@ -3648,9 +3784,9 @@ export default class GRIB2 {
                     info: 'Local Use (6-N)'
                 }
             ],
-        
-        
-        
+
+
+
             // SECTION 3 - Grid Definition Section
             // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_sect3.shtml
             3: [
@@ -3678,7 +3814,7 @@ export default class GRIB2 {
                     // Table 3.0
                     // 0 Specified in Code Table 3.1, 1 Predetermined Grid Definition - Defined by Originating Center,
                     // 2-191 Reserved, 191-254 Reserved for Local Use, 255 A grid definition does not apply to this product
-        
+
                     // Note 1: If octet 6 is not zero, octets 15-xx (15-nn if octet 11 is zero) may not be supplied.
                     // This should be documented with all bits set to 1 in the grid definition template number.
                 },
@@ -3744,12 +3880,12 @@ export default class GRIB2 {
                     //   - Corresponds to the coordinate lines as given in the grid definition, or
                     //   - Corresponds to a full circle, or
                     //   - Does not apply.
-        
+
                 }
             ],
-        
-        
-        
+
+
+
             // SECTION 4 - Product Definition Section
             // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_sect4.shtml
             4: [
@@ -3809,9 +3945,9 @@ export default class GRIB2 {
                     // intended to be encoded as pairs.
                 }
             ],
-        
-        
-        
+
+
+
             // SECTION 5 - Data Representation Section
             // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_sect5.shtml
             5: [
@@ -3862,11 +3998,11 @@ export default class GRIB2 {
                     // 21	    Type of original field values (see Code Table 5.1)
                     // Negative values of E or D shall be represented according to Regulation 92.1.5.
                 },
-                
+
             ],
-        
-        
-        
+
+
+
             // SECTION 6 - Bit Map Section
             // https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/grib2_sect5.shtml
             6: [
@@ -3882,7 +4018,7 @@ export default class GRIB2 {
                     size: 1,
                     content: 6,
                     type: 'uint8',
-                    info: 'Number of the section (6)' 
+                    info: 'Number of the section (6)'
                 },
                 {
                     startIndex: 6,
@@ -3892,7 +4028,7 @@ export default class GRIB2 {
                     type: 'uint8',
                     info: 'Bit-map indicator (See Table 6.0) (See note 1 below)'
                     // 1.  If octet 6 is not zero, the length of this section is 6 and octets 7-nn are not present.
-        
+
                     // 0        A bit map applies to this product and is specified in this section.
                     // 1-253    A bit map pre-determined by the orginating/generating center applies to this product and is not specified in this section.
                     // 254      A bit map previously defined in the same GRIB2 message applies to this product.
@@ -3904,11 +4040,11 @@ export default class GRIB2 {
                     content: null,
                     info: 'Bit-map'
                 },
-                
+
             ],
-        
-        
-        
+
+
+
             // SECTION 7 - Data Selection
             7: [
                 {
@@ -3945,11 +4081,11 @@ export default class GRIB2 {
                     info: '"7777" - Coded according to the International Alphabet Number 5.'
                 }
             ]
-        
+
         }
 
 
-        
+
     }
 }
 
@@ -4070,13 +4206,13 @@ async function extractGRIB2Data(grib2Data, options = {}) {
  * @param {ArrayBuffer} buffer - GRIB2 file buffer
  * @returns {Promise<Object>} Parsed GRIB2 data
  */
-async function parseGRIB2(buffer) {
+async function parseGRIB2(buffer, options = {}) {
     try {
         // Import the standalone parser
         const { parseGRIB2: standaloneParse } = await import('./hydrolang-grib2-parser.js');
 
         // Use the standalone parser
-        const result = await standaloneParse(buffer);
+        const result = await standaloneParse(buffer, options);
 
         console.log('GRIB2 parsing completed via standalone parser');
         return result;
@@ -4118,15 +4254,47 @@ async function load(options = {}) {
     }
 }
 
+/**
+ * Check if GRIB2 library is loaded
+ * @returns {boolean} True if loaded
+ */
+function isLoaded() {
+    return true;
+}
+
+/**
+ * Get GRIB2 library info
+ * @returns {Object} Library info
+ */
+function getInfo() {
+    return {
+        version: '2.0',
+        format: 'GRIB2',
+        implementation: 'Standalone Parser with Research Integration'
+    };
+}
+
 // Export functions for HydroLang use
-export { parseGRIB2, extractGRIB2Data, load, GRIB2 };
+export { parseGRIB2, extractGRIB2Data, load, isLoaded, getInfo };
+
+// Default export matching the loader interface expected by gridded-data.js
+export default {
+    load,
+    isLoaded,
+    getInfo,
+    GRIB2,
+    parseGRIB2,
+    extractGRIB2Data
+};
 
 // Also support CommonJS and browser globals
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { GRIB2, parseGRIB2, extractGRIB2Data, load };
+    module.exports = { GRIB2, parseGRIB2, extractGRIB2Data, load, isLoaded, getInfo };
 } else if (typeof window !== 'undefined') {
     window.GRIB2 = GRIB2;
     window.parseGRIB2 = parseGRIB2;
     window.extractGRIB2Data = extractGRIB2Data;
     window.load = load;
+    window.isLoaded = isLoaded;
+    window.getInfo = getInfo;
 }
