@@ -188,169 +188,169 @@ async function retrieve({ params, args, data } = {}) {
   try {
     console.log(params);
 
-  // Check if this is a gridded data source
-  const griddedConfig = GRIDDED_SOURCES[source];
-  if (griddedConfig) {
-    // Run preprocessing if needed (e.g., NLDI lookup for NWM)
-    if (griddedConfig.preProcess) {
-      const result = await griddedConfig.preProcess(params, args, dataType);
-      args = result.args;
+    // Check if this is a gridded data source
+    const griddedConfig = GRIDDED_SOURCES[source];
+    if (griddedConfig) {
+      // Run preprocessing if needed (e.g., NLDI lookup for NWM)
+      if (griddedConfig.preProcess) {
+        const result = await griddedConfig.preProcess(params, args, dataType);
+        args = result.args;
+      }
+
+      // Use the new generic processor (pass datasources, not params)
+      return processGriddedSource(source, dataType, args, datasources);
     }
-    
-    // Use the new generic processor (pass datasources, not params)
-    return processGriddedSource(source, dataType, args, datasources);
-  }
 
-  // For other datasources, check if they exist
-  let dataSource = datasources[source]?.[dataType];
+    // For other datasources, check if they exist
+    let dataSource = datasources[source]?.[dataType];
 
-  if (!dataSource) {
-    return Promise.reject(new Error("No data source found for the given specifications."));
-  }
-
-  let endpoint =
-    source === "waterOneFlow" || source === "hisCentral" || source === "mitigation_dt" || source === "flooddamage_dt" || source === "nldas"
-      ? (source === "nldas" ? datasources[source].sourceType(args.dataset, dataType, args) : datasources[source].sourceType(args.sourceType, dataType))
-      : dataSource.endpoint;
-
-  let type = params.type || dataSource.methods.type;
-
-  // Check if proxy is needed based on datasource requirements
-  let proxy = "";
-  if (datasources[source]?.requirements?.needProxy) {
-    // Use specified proxy or default to researchverse
-    const proxyName = params.proxyServer || "researchverse";
-    proxy = datasources.proxies[proxyName]?.endpoint || datasources.proxies["researchverse"].endpoint;
-  }
-  // If needProxy is explicitly false, don't use proxy (empty string)
-  // This allows direct fetch for APIs that support CORS like USGS WFS
-
-  let headers = {
-    "content-type": (() => {
-      if (type === "json") {
-        return "application/json";
-      } else if (type === "xml" || type === "soap") {
-        return "text/xml; charset=utf-8";
-      } else if (type === "csv" || type === "tab") {
-        return "application/text"; 
-      } else {
-        return "application/json"; // Default
-      }
-    })(),
-  };
-
-  if (type === "soap") {
-    headers["SOAPAction"] = datasources[source].action + dataType;
-  }
-
-  let keyname = datasources[source]?.requirements?.keyname;
-  if (keyname && params[keyname]) {
-    headers[keyname] = params[keyname];
-  } else if (keyname) {
-    console.warn("info: please verify the keyname of the source."); 
-  }
-
-  endpoint = endpoint.replace(/{(\w+)}/g, (match, key) => {
-    const value = args[key];
-    delete args[key];
-    return value;
-  });
-
-
-  let fetchOptions = {
-    method: dataSource.methods.method,
-    headers: headers,
-  };
-
-  if (fetchOptions.method === 'POST') {
-    if (type === 'json') {
-      fetchOptions.body = JSON.stringify(args);
-    } else if (type === 'soap' || type === 'xml') {
-      fetchOptions.body = Object.keys(args).length
-        ? datasources.envelope(dataSource.body(args))
-        : datasources.envelope(dataSource.body());
+    if (!dataSource) {
+      return Promise.reject(new Error("No data source found for the given specifications."));
     }
-  } else if (fetchOptions.method === 'GET') {
-    // Merge preset parameters from datasource with user-provided args
-    // Start with preset params from datasource definition
-    const mergedParams = {};
-    
-    if (dataSource.params) {
-      // Add all preset parameters that have non-null values
-      for (const [key, value] of Object.entries(dataSource.params)) {
-        if (value !== null && value !== undefined) {
-          mergedParams[key] = value;
-        }
-      }
-      
-      // Override with user-provided args (for params that were null)
-      for (const [key, value] of Object.entries(args)) {
-        if (value !== null && value !== undefined) {
-          mergedParams[key] = value;
-        }
-      }
-    } else {
-      // If no preset params, just use args as before
-      Object.assign(mergedParams, args);
+
+    let endpoint =
+      source === "waterOneFlow" || source === "hisCentral" || source === "mitigation_dt" || source === "flooddamage_dt" || source === "nldas"
+        ? (source === "nldas" ? datasources[source].sourceType(args.dataset, dataType, args) : datasources[source].sourceType(args.sourceType, dataType))
+        : dataSource.endpoint;
+
+    let type = params.type || dataSource.methods.type;
+
+    // Check if proxy is needed based on datasource requirements
+    let proxy = "";
+    if (datasources[source]?.requirements?.needProxy) {
+      // Use specified proxy or default to researchverse
+      const proxyName = params.proxyServer || "researchverse";
+      proxy = datasources.proxies[proxyName]?.endpoint || datasources.proxies["researchverse"].endpoint;
     }
-    
-    // Only add query string if we have parameters
-    if (Object.keys(mergedParams).length > 0) {
-      const queryString = new URLSearchParams(mergedParams).toString();
-    endpoint += `?${queryString}`;
+    // If needProxy is explicitly false, don't use proxy (empty string)
+    // This allows direct fetch for APIs that support CORS like USGS WFS
+
+    let headers = {
+      "content-type": (() => {
+        if (type === "json") {
+          return "application/json";
+        } else if (type === "xml" || type === "soap") {
+          return "text/xml; charset=utf-8";
+        } else if (type === "csv" || type === "tab") {
+          return "application/text";
+        } else {
+          return "application/json"; // Default
+        }
+      })(),
+    };
+
+    if (type === "soap") {
+      headers["SOAPAction"] = datasources[source].action + dataType;
     }
-  }
 
+    let keyname = datasources[source]?.requirements?.keyname;
+    if (keyname && params[keyname]) {
+      headers[keyname] = params[keyname];
+    } else if (keyname) {
+      console.warn("info: please verify the keyname of the source.");
+    }
 
-  return cachedFetch(proxy + endpoint, fetchOptions)
-    .then(async (response) => {
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`HTTP error ${response.status} fetching ${endpoint}: ${errorData}`);
-      }
-
-      if (type === "json") {
-        return response.json();
-      } else if (type === "xml" || type === "soap" || type === "csv" || type === "tab") {
-        return response.text();
-      } else {
-        return response.json(); // Default to JSON
-      }
-    })
-    .then((responseData) => {
-      if (type === "soap") {
-        try {
-          //DOM Parser workaround
-          // const parser = new DOMParser();
-          // const xmlDoc = parser.parseFromString(responseData, "text/xml");
-
-          // const parser = new XMLParser();
-          // console.log(parser)
-          // const xmlDoc = parser.parse(responseData);
-
-          return responseData
-
-          //let j = xml2json(xmlDoc);
-          // return xmlDoc["soap:Envelope"]?.["soap:Body"] || j; // Handle cases where soap:Body might not exist
-        } catch (xmlError) {
-          throw new Error(`Error parsing SOAP response from ${endpoint}: ${xmlError.message}`);
-        }
-      } else if (type === "xml" || type === "tab" || type === "CSV") {
-        return JSON.stringify(responseData);
-      } else if (trans) {
-        if (source === "usgs") {
-          return transform({
-            params: { save: 'value'}, 
-            args: { keep: '["datetime", "value"]', type: 'ARR'}, 
-            data: lowercasing(responseData)
-          });
-        } else if (trans === "eval") {
-          return eval(responseData); // Use eval cautiously
-        }
-      } else {
-        return lowercasing(responseData);
-      }
+    endpoint = endpoint.replace(/{(\w+)}/g, (match, key) => {
+      const value = args[key];
+      delete args[key];
+      return value;
     });
+
+
+    let fetchOptions = {
+      method: dataSource.methods.method,
+      headers: headers,
+    };
+
+    if (fetchOptions.method === 'POST') {
+      if (type === 'json') {
+        fetchOptions.body = JSON.stringify(args);
+      } else if (type === 'soap' || type === 'xml') {
+        fetchOptions.body = Object.keys(args).length
+          ? datasources.envelope(dataSource.body(args))
+          : datasources.envelope(dataSource.body());
+      }
+    } else if (fetchOptions.method === 'GET') {
+      // Merge preset parameters from datasource with user-provided args
+      // Start with preset params from datasource definition
+      const mergedParams = {};
+
+      if (dataSource.params) {
+        // Add all preset parameters that have non-null values
+        for (const [key, value] of Object.entries(dataSource.params)) {
+          if (value !== null && value !== undefined) {
+            mergedParams[key] = value;
+          }
+        }
+
+        // Override with user-provided args (for params that were null)
+        for (const [key, value] of Object.entries(args)) {
+          if (value !== null && value !== undefined) {
+            mergedParams[key] = value;
+          }
+        }
+      } else {
+        // If no preset params, just use args as before
+        Object.assign(mergedParams, args);
+      }
+
+      // Only add query string if we have parameters
+      if (Object.keys(mergedParams).length > 0) {
+        const queryString = new URLSearchParams(mergedParams).toString();
+        endpoint += `?${queryString}`;
+      }
+    }
+
+
+    return cachedFetch(proxy + endpoint, fetchOptions)
+      .then(async (response) => {
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(`HTTP error ${response.status} fetching ${endpoint}: ${errorData}`);
+        }
+
+        if (type === "json") {
+          return response.json();
+        } else if (type === "xml" || type === "soap" || type === "csv" || type === "tab") {
+          return response.text();
+        } else {
+          return response.json(); // Default to JSON
+        }
+      })
+      .then((responseData) => {
+        if (type === "soap") {
+          try {
+            //DOM Parser workaround
+            // const parser = new DOMParser();
+            // const xmlDoc = parser.parseFromString(responseData, "text/xml");
+
+            // const parser = new XMLParser();
+            // console.log(parser)
+            // const xmlDoc = parser.parse(responseData);
+
+            return responseData
+
+            //let j = xml2json(xmlDoc);
+            // return xmlDoc["soap:Envelope"]?.["soap:Body"] || j; // Handle cases where soap:Body might not exist
+          } catch (xmlError) {
+            throw new Error(`Error parsing SOAP response from ${endpoint}: ${xmlError.message}`);
+          }
+        } else if (type === "xml" || type === "tab" || type === "CSV") {
+          return JSON.stringify(responseData);
+        } else if (trans) {
+          if (source === "usgs") {
+            return transform({
+              params: { save: 'value' },
+              args: { keep: '["datetime", "value"]', type: 'ARR' },
+              data: lowercasing(responseData)
+            });
+          } else if (trans === "eval") {
+            return eval(responseData); // Use eval cautiously
+          }
+        } else {
+          return lowercasing(responseData);
+        }
+      });
   } finally {
     // Context will be cleaned up by next request or kept for subsequent calls
     // Don't delete here - cachedFetch needs it for caching
@@ -445,83 +445,83 @@ async function saveFile({ params, args, data } = {}) {
  * @param {Object|Array} options.data - AORC data to transform
  * @returns {Object|Array|string} Transformed AORC data
  */
-  const transformGriddedData = ({ params, args, data }) => {
-    console.log('[transform] Processing gridded data transformation');
+const transformGriddedData = ({ params, args, data }) => {
+  console.log('[transform] Processing gridded data transformation');
 
-    // Detect data source and apply appropriate transformations
-    const source = params?.source || 'generic';
+  // Detect data source and apply appropriate transformations
+  const source = params?.source || 'generic';
 
-    // Detect if this is a single variable or multi-variable dataset
-    const isMultiVariable = data && typeof data === 'object' && !data.variable && !Array.isArray(data);
+  // Detect if this is a single variable or multi-variable dataset
+  const isMultiVariable = data && typeof data === 'object' && !data.variable && !Array.isArray(data);
 
-    if (isMultiVariable) {
-      // Handle multiple variables
-      const results = {};
-      for (const [variableName, variableData] of Object.entries(data)) {
-        try {
-          results[variableName] = transformVariable(variableName, variableData, source, params, args);
-        } catch (error) {
-          console.warn(`Failed to transform ${variableName}: ${error.message}`);
-          results[variableName] = { error: error.message };
-        }
+  if (isMultiVariable) {
+    // Handle multiple variables
+    const results = {};
+    for (const [variableName, variableData] of Object.entries(data)) {
+      try {
+        results[variableName] = transformVariable(variableName, variableData, source, params, args);
+      } catch (error) {
+        console.warn(`Failed to transform ${variableName}: ${error.message}`);
+        results[variableName] = { error: error.message };
       }
-      return results;
-    } else {
-      // Handle single variable
-      const variableName = data.variable || Object.keys(data)[0];
-      return transformVariable(variableName, data, source, params, args);
     }
-  };
+    return results;
+  } else {
+    // Handle single variable
+    const variableName = data.variable || Object.keys(data)[0];
+    return transformVariable(variableName, data, source, params, args);
+  }
+};
 
 /**
  * Transform a single gridded data variable with comprehensive manipulations
  */
-  const transformVariable = (variableName, variableData, source, params, args) => {
-    let processedData = deepClone(variableData);
+const transformVariable = (variableName, variableData, source, params, args) => {
+  let processedData = deepClone(variableData);
 
-    // Apply source-specific scaling
-    if (source === 'aorc') {
-      processedData = applyDataScaling(processedData, variableName, datasources, 'aorc');
-    } else if (source === 'nwm') {
-      processedData = applyDataScaling(processedData, variableName, datasources, 'nwm');
-    } else if (source === 'threedep') {
-      processedData = applyDataScaling(processedData, variableName, datasources, 'threedep');
-    } else if (source === 'prism') {
-      processedData = applyDataScaling(processedData, variableName, datasources, 'prism');
-    }
+  // Apply source-specific scaling
+  if (source === 'aorc') {
+    processedData = applyDataScaling(processedData, variableName, datasources, 'aorc');
+  } else if (source === 'nwm') {
+    processedData = applyDataScaling(processedData, variableName, datasources, 'nwm');
+  } else if (source === 'threedep') {
+    processedData = applyDataScaling(processedData, variableName, datasources, 'threedep');
+  } else if (source === 'prism') {
+    processedData = applyDataScaling(processedData, variableName, datasources, 'prism');
+  }
 
-    // Apply unit conversions if requested
-    if (args?.units) {
-      processedData = convertDataUnits(processedData, variableName, args.units, source, datasources);
-    }
+  // Apply unit conversions if requested
+  if (args?.units) {
+    processedData = convertDataUnits(processedData, variableName, args.units, source, datasources);
+  }
 
-    // Apply temporal aggregations
-    if (args?.temporalAggregation) {
-      processedData = aggregateTemporal(processedData, args.temporalAggregation);
-    }
+  // Apply temporal aggregations
+  if (args?.temporalAggregation) {
+    processedData = aggregateTemporal(processedData, args.temporalAggregation);
+  }
 
-    // Apply spatial aggregations
-    if (args?.spatialAggregation) {
-      processedData = aggregateSpatial(processedData, args.spatialAggregation);
-    }
+  // Apply spatial aggregations
+  if (args?.spatialAggregation) {
+    processedData = aggregateSpatial(processedData, args.spatialAggregation);
+  }
 
-    // Apply quality control filters
-    if (args?.qualityControl) {
-      processedData = applyQualityControl(processedData, args.qualityControl);
-    }
+  // Apply quality control filters
+  if (args?.qualityControl) {
+    processedData = applyQualityControl(processedData, args.qualityControl);
+  }
 
-    // Apply statistical transformations
-    if (args?.statistics) {
-      processedData = calculateStatistics(processedData, args.statistics);
-    }
+  // Apply statistical transformations
+  if (args?.statistics) {
+    processedData = calculateStatistics(processedData, args.statistics);
+  }
 
-    // Apply format transformations
-    if (args?.type) {
-      return formatData(processedData, args, source, datasources);
-    }
+  // Apply format transformations
+  if (args?.type) {
+    return formatData(processedData, args, source, datasources);
+  }
 
-    return processedData;
-  };
+  return processedData;
+};
 
 
 
@@ -711,7 +711,7 @@ function transform({ params, args, data } = {}) {
 
   // === GRIDDED DATA TRANSFORMATIONS ===
   if (params?.source === 'aorc' || params?.source === 'nwm' || params?.source === 'threedep' || params?.source === 'prism' ||
-      (data && typeof data === 'object' && data.variable)) {
+    (data && typeof data === 'object' && data.variable)) {
     return transformGriddedData({ params, args, data });
   }
 
@@ -762,15 +762,15 @@ function transform({ params, args, data } = {}) {
     data = args?.parse ? cleanData(data) : data;
   }
 
-    // === PICKING A SPECIFIC ROW FROM 2D ARRAY ===
-    if (args?.pick !== undefined) {
-      if (Array.isArray(data) && Array.isArray(data[0])) {
-        const idx = Number(args.pick);
-        if (!isNaN(idx) && data.length > idx) {
-          data = data[idx];
-        }
+  // === PICKING A SPECIFIC ROW FROM 2D ARRAY ===
+  if (args?.pick !== undefined) {
+    if (Array.isArray(data) && Array.isArray(data[0])) {
+      const idx = Number(args.pick);
+      if (!isNaN(idx) && data.length > idx) {
+        data = data[idx];
       }
     }
+  }
 
   // === MODE HANDLING ===
   if (args?.mode === 'flatten') {
@@ -831,30 +831,30 @@ function transform({ params, args, data } = {}) {
       console.error('[transform] arr is undefined or not an array:', arr);
       return null;
     }
-  
+
     const arrays = arr.map(obj =>
       Object.keys(obj)
         .sort()
         .map(key => args.parse ? parseSpecialTypes(obj[key]) : obj[key])
     );
-  
+
     const final = Array(arrays[0]?.length || 0)
       .fill(0)
       .map(() => Array(arrays.length).fill(0));
-  
+
     for (let j = 0; j < arrays[0]?.length; j++) {
       for (let n = 0; n < arrays.length; n++) {
         final[j][n] = arrays[n][j];
       }
     }
-  
+
     // Attach names only if requested
     if (args.keep && args.attachNames !== false) {
       for (let j = 0; j < final.length; j++) {
         final[j].unshift(args.keep[j]);
       }
     }
-  
+
     return final;
   }
 
@@ -873,7 +873,7 @@ function transform({ params, args, data } = {}) {
       }
       return column;
     });
-  
+
     return arrays;
   }
 
@@ -904,7 +904,7 @@ function transform({ params, args, data } = {}) {
       const json = {};
       for (const res of data.matchAll(/(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\/>/gm)) {
         const key = res[1] || res[3],
-              value = res[2] && XMLJSon(res[2]);
+          value = res[2] && XMLJSon(res[2]);
         json[key] = value && Object.keys(value).length ? value : res[2] || null;
       }
       return json;
@@ -1076,7 +1076,7 @@ async function download({ params, args, data } = {}) {
     });
     exportfilename = `${fileName}.csv`;
 
-  //if JSON file is required. Similar as before.
+    //if JSON file is required. Similar as before.
   } else if (type === "JSON") {
     let js;
     if (Array.isArray(data)) {
@@ -1153,13 +1153,13 @@ async function download({ params, args, data } = {}) {
 function recursiveSearch({ obj, searchkey, results = [] } = {}) {
   const r = results;
   Object.keys(obj).forEach((key) => {
-      const value = obj[key];
-      if (key === searchkey && Array.isArray(value)) {
-          r.push(value);
-          return;
-      } else if (typeof value === "object" && value !== null) {
-          recursiveSearch({ obj: value, searchkey: searchkey, results: r });
-      }
+    const value = obj[key];
+    if (key === searchkey && Array.isArray(value)) {
+      r.push(value);
+      return;
+    } else if (typeof value === "object" && value !== null) {
+      recursiveSearch({ obj: value, searchkey: searchkey, results: r });
+    }
   });
   return r;
 }
@@ -1228,53 +1228,53 @@ function lowercasing(obj) {
  */
 function xml2json(xml) {
   try {
-      let obj = {};
+    let obj = {};
 
-      // Handle attributes
-      if (xml.attributes && xml.attributes.length > 0) {
-          for (let i = 0; i < xml.attributes.length; i++) {
-              const attr = xml.attributes.item(i);
-              obj[`@${attr.nodeName}`] = attr.nodeValue;
+    // Handle attributes
+    if (xml.attributes && xml.attributes.length > 0) {
+      for (let i = 0; i < xml.attributes.length; i++) {
+        const attr = xml.attributes.item(i);
+        obj[`@${attr.nodeName}`] = attr.nodeValue;
+      }
+    }
+
+    // Handle child nodes
+    for (let i = 0; i < xml.childNodes.length; i++) {
+      const node = xml.childNodes[i];
+
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent.trim();
+        if (text.length > 0) {
+          obj["#text"] = text;
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const nodeName = node.nodeName;
+        const childObj = xml2json(node);
+
+        if (obj[nodeName] === undefined) {
+          obj[nodeName] = childObj;
+        } else {
+          if (!Array.isArray(obj[nodeName])) {
+            obj[nodeName] = [obj[nodeName]];
           }
+          obj[nodeName].push(childObj);
+        }
       }
+    }
 
-      // Handle child nodes
-      for (let i = 0; i < xml.childNodes.length; i++) {
-          const node = xml.childNodes[i];
+    // Edge case: If no children or attributes and there's textContent
+    if (
+      Object.keys(obj).length === 0 &&
+      xml.textContent &&
+      xml.textContent.trim().length > 0
+    ) {
+      return xml.textContent.trim();
+    }
 
-          if (node.nodeType === Node.TEXT_NODE) {
-              const text = node.textContent.trim();
-              if (text.length > 0) {
-                  obj["#text"] = text;
-              }
-          } else if (node.nodeType === Node.ELEMENT_NODE) {
-              const nodeName = node.nodeName;
-              const childObj = xml2json(node);
-
-              if (obj[nodeName] === undefined) {
-                  obj[nodeName] = childObj;
-              } else {
-                  if (!Array.isArray(obj[nodeName])) {
-                      obj[nodeName] = [obj[nodeName]];
-                  }
-                  obj[nodeName].push(childObj);
-              }
-          }
-      }
-
-      // Edge case: If no children or attributes and there's textContent
-      if (
-          Object.keys(obj).length === 0 &&
-          xml.textContent &&
-          xml.textContent.trim().length > 0
-      ) {
-          return xml.textContent.trim();
-      }
-
-      return obj;
+    return obj;
   } catch (e) {
-      console.error('[xml2json] Error during conversion:', e.message);
-      return null;
+    console.error('[xml2json] Error during conversion:', e.message);
+    return null;
   }
 }
 
@@ -1425,10 +1425,10 @@ export const cache = {
       console.warn('Cache not initialized');
       return { totalSize: 0, totalEntries: 0, sizeFormatted: '0 B' };
     }
-    
+
     const allEntries = await cacheInstance.list({ includeVariables: true });
     const totalSize = allEntries.reduce((sum, entry) => sum + entry.size, 0);
-    
+
     return {
       totalSize,
       totalEntries: allEntries.length,

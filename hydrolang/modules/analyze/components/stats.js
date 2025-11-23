@@ -57,7 +57,7 @@ export default class stats {
    * @example
    * hydro.analyze.stats.range({data: [someData]})
    */
-  static range({ params, args, data } = {}) {
+  static range({ params = {}, args, data } = {}) {
     const min = this.min({ data }),
       max = this.max({ data });
     const N = params.N || data.length;
@@ -114,9 +114,9 @@ export default class stats {
     const gapValues = params.gapValues || [undefined, null, NaN, false, -9999, 9999];
     const method = args.method || 'interpolate'; // 'interpolate', 'mean', 'median'
     const isGap = (v) => gapValues.some(gap => Object.is(gap, v) || (Number.isNaN(gap) && Number.isNaN(v)));
-  
+
     const cleanArray = (arr) => arr.filter(v => !isGap(v));
-  
+
     const interpolate = (arr) => {
       const result = [...arr];
       for (let i = 0; i < result.length; i++) {
@@ -126,7 +126,7 @@ export default class stats {
           let next = i + 1;
           while (prev >= 0 && isGap(result[prev])) prev--;
           while (next < result.length && isGap(result[next])) next++;
-  
+
           if (prev >= 0 && next < result.length) {
             result[i] = (result[prev] + result[next]) / 2;
           } else if (prev >= 0) {
@@ -140,7 +140,7 @@ export default class stats {
       }
       return result;
     };
-  
+
     const fillStat = (arr, stat = 'mean') => {
       const valid = cleanArray(arr);
       const fill = stat === 'median'
@@ -148,19 +148,19 @@ export default class stats {
         : valid.reduce((a, b) => a + b, 0) / valid.length;
       return arr.map(v => isGap(v) ? fill : v);
     };
-  
+
     if (!Array.isArray(data)) return data;
-  
+
     // Case 1: Flat numeric array
     if (typeof data[0] !== 'object') {
       return method === 'interpolate'
         ? interpolate(data)
         : fillStat(data, method);
     }
-  
+
     // Case 2: 2D array (e.g. [time, values])
     let time = data[0], series = data[1];
-  
+
     // Optionally remove both time & value if value is invalid
     const validTime = [], validSeries = [];
     for (let i = 0; i < series.length; i++) {
@@ -169,14 +169,14 @@ export default class stats {
         validSeries.push(series[i]);
       }
     }
-  
+
     let filled = method === 'interpolate'
       ? interpolate(series)
       : fillStat(series, method);
-  
+
     return [time, filled];
   }
-  
+
 
   /**
    * Identifies gaps in time. Used for filling gaps if required by the
@@ -291,6 +291,9 @@ export default class stats {
   static mean({ params, args, data } = {}) {
     const sum = this.sum({ data });
     const mean = sum / data.length;
+    if (Number.isNaN(mean)) {
+      console.warn('stats.mean returned NaN. Data:', data, 'Sum:', sum);
+    }
     return mean;
   }
 
@@ -596,43 +599,43 @@ export default class stats {
       replaceValue = 0,
       thresholds = [-9999, 9999],
     } = args;
-  
+
     const isOutlier = (v) =>
       typeof v === 'number' &&
       (v <= thresholds[0] || v >= thresholds[1]);
-  
+
     const convert = (v) => {
       const n = Number(v);
       return isNaN(n) ? v : n;
     };
-  
+
     const clean1D = (arr) => arr.map(v => {
       const num = convert(v);
       return isOutlier(num) ? replaceValue : num;
     });
-  
+
     const clean2D = (arr) => arr.map(sub => clean1D(sub));
-  
+
     const isNamedStructure = (arr) =>
       Array.isArray(arr) &&
       arr.length === 2 &&
       typeof arr[0][0] === 'string' &&
       typeof arr[1][0] === 'string';
-  
+
     if (Array.isArray(data[0])) {
       if (isNamedStructure(data)) {
         const [timeRow, valueRow] = data;
-  
+
         const timeHeader = timeRow[0];
         const valueHeader = valueRow[0];
-  
+
         const timeArray = timeRow.slice(1);
         const valueArray = valueRow.slice(1).map(convert);
-  
+
         const cleanedValues = valueArray.map(v =>
           isOutlier(v) ? replaceValue : v
         );
-  
+
         return [
           [timeHeader, ...timeArray],
           [valueHeader, ...cleanedValues]
@@ -644,7 +647,7 @@ export default class stats {
       return clean1D(data);
     }
   }
-  
+
 
   /**
    * Calculates pearson coefficient for bivariate analysis.
@@ -759,8 +762,8 @@ export default class stats {
 
       const r = Math.pow(
         this.sum({ data: diff1 }) /
-          (Math.sqrt(this.sum({ data: diff2 })) *
-            Math.sqrt(this.sum({ data: diff3 }))),
+        (Math.sqrt(this.sum({ data: diff2 })) *
+          Math.sqrt(this.sum({ data: diff3 }))),
         2
       );
       return r;
@@ -853,7 +856,7 @@ export default class stats {
     const stdDev = this.stddev({ data: data });
     return (
       ((n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3))) *
-        (sum4 / Math.pow(stdDev, 4)) -
+      (sum4 / Math.pow(stdDev, 4)) -
       (3 * Math.pow(n - 1, 2)) / ((n - 2) * (n - 3))
     );
   }
@@ -907,9 +910,9 @@ export default class stats {
     //Can pass time series data as a 2d array without additional manipulation
     typeof data[0] === "object"
       ? (() => {
-          data = data[1];
-          data.shift();
-        })()
+        data = data[1];
+        data.shift();
+      })()
       : data;
     data = data.map((val) => JSON.parse(val));
     //if value is outside the values required from the api call
@@ -1004,7 +1007,7 @@ export default class stats {
       sum_v = 0.0,
       S_sum = 0.0,
       z = 0.0;
-    
+
     params = params || {};
     const alpha = params.alpha || 0.05;
 
@@ -1090,8 +1093,8 @@ export default class stats {
 
     function gammln(zz) {
       const cof = [76.18009172947146, -86.50532032941677,
-                   24.01409824083091, -1.231739572450155,
-                   0.1208650973866179e-2, -0.5395239384953e-5];
+        24.01409824083091, -1.231739572450155,
+        0.1208650973866179e-2, -0.5395239384953e-5];
       let x = zz - 1.0;
       let tmp = x + 5.5;
       tmp -= (x + 0.5) * Math.log(tmp);
@@ -1283,111 +1286,111 @@ hydro.analyze.stats.normalDistributio
     hydro.analyze.stats.simulate({data: testData})
    * 
    */
-    static runSimulation({ params, args, data } = {}) {
-      const { multiplier } = params || 1; //defaults to 1
-      const genRan = (min, max) => Math.random() * (max - min) + min;
-      const mean = this.mean({ data });
-      const std = this.stddev({ data });
-      const simNum = genRan(mean - std * multiplier, mean + std * multiplier);
-      return simNum;
-    }    
+  static runSimulation({ params, args, data } = {}) {
+    const { multiplier } = params || 1; //defaults to 1
+    const genRan = (min, max) => Math.random() * (max - min) + min;
+    const mean = this.mean({ data });
+    const std = this.stddev({ data });
+    const simNum = genRan(mean - std * multiplier, mean + std * multiplier);
+    return simNum;
+  }
 
-/**
-   * Generates a random simulated number when run with a dataset
-   * @method runMonteCarlo
-   * @author riya-patil
-   * @memberof stats
-   * @param {Object[]} data - passes data from multiple objects
-   * @returns {number[]} returns an array of the simulated results
-   * @example 
-   * const testData = [
-      [1, 2, 3, 4, 5],
-      [6, 7, 8, 9, 10],
-      [11, 12, 13, 14, 15],
-    ];
-    hydro.analyze.stats.runMonteCarlo({data: testData})
-   */
-    static runMonteCarlo({ params, args, data } = {}) {
-      const { iterations = 100, callback } = params || {};
-      // Extract iterations and callback from params
-      const results = [];
-    
-      for (let i = 0; i < iterations; i++) {
-        let simResult;
-        if (callback) {
-          simResult = callback({ params, args, data });
-        } else {
-          const value = data;
-          simResult = this.runSimulation({ data: value });
-        }
-        results.push(simResult);
+  /**
+     * Generates a random simulated number when run with a dataset
+     * @method runMonteCarlo
+     * @author riya-patil
+     * @memberof stats
+     * @param {Object[]} data - passes data from multiple objects
+     * @returns {number[]} returns an array of the simulated results
+     * @example 
+     * const testData = [
+        [1, 2, 3, 4, 5],
+        [6, 7, 8, 9, 10],
+        [11, 12, 13, 14, 15],
+      ];
+      hydro.analyze.stats.runMonteCarlo({data: testData})
+     */
+  static runMonteCarlo({ params, args, data } = {}) {
+    const { iterations = 100, callback } = params || {};
+    // Extract iterations and callback from params
+    const results = [];
+
+    for (let i = 0; i < iterations; i++) {
+      let simResult;
+      if (callback) {
+        simResult = callback({ params, args, data });
+      } else {
+        const value = data;
+        simResult = this.runSimulation({ data: value });
       }
-    
-      return results;
+      results.push(simResult);
     }
-    
-  
-/**
-   * Generates a random simulated number when run with a dataset
-   * @method runVegas
+
+    return results;
+  }
+
+
+  /**
+     * Generates a random simulated number when run with a dataset
+     * @method runVegas
+     * @author riya-patil
+     * @memberof stats
+     * @param {Object[]} data - passes data from multiple objects
+     * @returns {number[]} returns an array of the simulated results
+     * @example
+     * const testData = [
+        [1, 2, 3, 4, 5],
+        [6, 7, 8, 9, 10],
+        [11, 12, 13, 14, 15],
+      ];
+      hydro.analyze.stats.runVegas({data: testData})
+     */
+  static runVegas({ params, args, data } = {}) {
+    const { iterations = 100, callback } = params || {};
+    // Extract iterations and callback from params
+    const results = [];
+
+    for (let i = 0; i < iterations; i++) {
+      let simResult;
+      if (callback) {
+        simResult = callback({ params, args, data });
+      } else {
+        // Implementation details for the simulation without a callback
+        for (let value of data) {
+          const simValue = this.runSimulation({ data: value });
+          results.push(simValue);
+        }
+      }
+    }
+
+    return results;
+  }
+
+
+  /**
+   * Computes the probability density function (PDF) of a Gaussian (normal) distribution
+   * @method gaussianDist
    * @author riya-patil
    * @memberof stats
-   * @param {Object[]} data - passes data from multiple objects
-   * @returns {number[]} returns an array of the simulated results
+   * @param {Object} params - x (value at which to compute the PDF), mean (mean of the distribution), 
+   * and stddev (standard deviation of the distribution)
+   * @returns {Number} Probability density function of the Gaussian distribution
    * @example
-   * const testData = [
-      [1, 2, 3, 4, 5],
-      [6, 7, 8, 9, 10],
-      [11, 12, 13, 14, 15],
-    ];
-    hydro.analyze.stats.runVegas({data: testData})
+   * const testData = {
+      x: 2.5,
+      mean: 3,
+      stddev: 1.2
+    };
+    hydro.analyze.stats.gaussianDist({params: testData});
    */
-    static runVegas({ params, args, data } = {}) {
-      const { iterations = 100, callback } = params || {};
-      // Extract iterations and callback from params
-      const results = [];
-    
-      for (let i = 0; i < iterations; i++) {
-        let simResult;
-        if (callback) {
-          simResult = callback({ params, args, data });
-        } else {
-          // Implementation details for the simulation without a callback
-          for (let value of data) {
-            const simValue = this.runSimulation({ data: value });
-            results.push(simValue);
-          }
-        }
-      }
-    
-      return results;
-    }
-    
-
-/**
- * Computes the probability density function (PDF) of a Gaussian (normal) distribution
- * @method gaussianDist
- * @author riya-patil
- * @memberof stats
- * @param {Object} params - x (value at which to compute the PDF), mean (mean of the distribution), 
- * and stddev (standard deviation of the distribution)
- * @returns {Number} Probability density function of the Gaussian distribution
- * @example
- * const testData = {
-    x: 2.5,
-    mean: 3,
-    stddev: 1.2
-  };
-  hydro.analyze.stats.gaussianDist({params: testData});
- */
   static gaussianDist({ params, args, data }) {
     const { x, mean, stddev } = params;
     const exponent = -((x - mean) ** 2) / (2 * stddev ** 2);
     const coefficient = 1 / (stddev * Math.sqrt(2 * Math.PI));
-  
+
     return coefficient * Math.exp(exponent);
   }
-  
+
   /**
    * Probability mass function (PMF) of a Bernoulli distribution
    * The Bernoulli distribution is a discrete probability distribution for a random variable that takes the value 1 
@@ -1405,7 +1408,7 @@ hydro.analyze.stats.normalDistributio
    * // Calculate probability of failure (f=0) with p=0.7
    * hydro.analyze.stats.bernoulliDist({ params: { f: 0, s: 0.7 } }); // Returns 0.3
    */
-  static bernoulliDist({params, args, data} = {}) {
+  static bernoulliDist({ params, args, data } = {}) {
     const { f, s } = params; //f = failure, s = success
     if (f === 0) {
       return 1 - s;
@@ -1415,7 +1418,7 @@ hydro.analyze.stats.normalDistributio
       return 0;
     }
   }
-  
+
   /**
    * Computes the probability density function (PDF) of the Generalized Extreme Value (GEV) distribution
    * The GEV distribution is widely used in hydrology for modeling extreme events like maximum rainfall
@@ -1451,10 +1454,10 @@ hydro.analyze.stats.normalDistributio
    *   }
    * });
    */
-  static gevDistribution({params, args, data} = {}) {
+  static gevDistribution({ params, args, data } = {}) {
     const { x, mu, sigma, xi } = params;
     const z = (x - mu) / sigma;
-    
+
     if (xi === 0) {
       // Calculate the PDF for the Gumbel distribution
       const exponent = -z - Math.exp(-z);
@@ -1479,707 +1482,707 @@ hydro.analyze.stats.normalDistributio
  * hydro.analyze.stats.geometricDist({ params: { s: 0.5 }, args: { trials: 3 }, data: [] });
  * 0.125
  */
-static geometricDist({params, args, data} = {}) {
-  const { s } = params || 1;
-  const { trials } = args;
-  if (trials < 1) {
-    return 0;
-  }
-  return (1 - s) ** (trials - 1) * s;
-}
-
-/**
- * Calculates the probability mass function (PMF) of a Binomial Distribution
- * The binomial distribution models the number of successes in a fixed number of independent
- * trials, each with the same probability of success. In hydrology, it can be used to model
- * discrete event occurrences like the number of days with rainfall exceeding a threshold
- * in a given month, or the number of flood events in a year.
- * @method binomialDist
- * @author riya-patil
- * @memberof stats
- * @param {Object} params - Contains: trials (integer n ≥ 0, the total number of independent trials)
- *                        and probSuccess (probability p of success in a single trial, 0 ≤ p ≤ 1)
- * @param {Object} args - Contains: s (integer k, 0 ≤ k ≤ n, representing the number of successes)
- * @returns {Number} The probability of getting exactly k successes in n trials with probability p of success
- * @example
- * // Calculate the probability of exactly 3 rainy days out of 10 days,
- * // when the probability of rain on any given day is 0.3
- * hydro.analyze.stats.binomialDist({ 
- *   params: { 
- *     trials: 10,       // 10 days observed
- *     probSuccess: 0.3  // 30% chance of rain on any given day
- *   }, 
- *   args: { 
- *     s: 3              // We want exactly 3 rainy days
- *   }
- * }); // Returns approximately 0.2668
- * 
- * // Find the probability of having at most 2 flood events in 5 years
- * // when annual probability of a flood is 0.2
- * // First calculate P(X=0) + P(X=1) + P(X=2)
- * const p0 = hydro.analyze.stats.binomialDist({ params: { trials: 5, probSuccess: 0.2 }, args: { s: 0 }});
- * const p1 = hydro.analyze.stats.binomialDist({ params: { trials: 5, probSuccess: 0.2 }, args: { s: 1 }});
- * const p2 = hydro.analyze.stats.binomialDist({ params: { trials: 5, probSuccess: 0.2 }, args: { s: 2 }});
- * const atMost2 = p0 + p1 + p2; // Gives the cumulative probability
- */
-static binomialDist({params, args, data} = {}) {
-  const { trials, probSuccess } = params;
-  const { s } = args;
-
-  if (s < 0 || s > trials) {
-    return 0;
+  static geometricDist({ params, args, data } = {}) {
+    const { s } = params || 1;
+    const { trials } = args;
+    if (trials < 1) {
+      return 0;
+    }
+    return (1 - s) ** (trials - 1) * s;
   }
 
-  const coefficient = this.binomialCoefficient(trials, s);
-  const probability = coefficient * (probSuccess ** s) * ((1 - probSuccess) ** (trials - s));
-  return probability;
-}
+  /**
+   * Calculates the probability mass function (PMF) of a Binomial Distribution
+   * The binomial distribution models the number of successes in a fixed number of independent
+   * trials, each with the same probability of success. In hydrology, it can be used to model
+   * discrete event occurrences like the number of days with rainfall exceeding a threshold
+   * in a given month, or the number of flood events in a year.
+   * @method binomialDist
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains: trials (integer n ≥ 0, the total number of independent trials)
+   *                        and probSuccess (probability p of success in a single trial, 0 ≤ p ≤ 1)
+   * @param {Object} args - Contains: s (integer k, 0 ≤ k ≤ n, representing the number of successes)
+   * @returns {Number} The probability of getting exactly k successes in n trials with probability p of success
+   * @example
+   * // Calculate the probability of exactly 3 rainy days out of 10 days,
+   * // when the probability of rain on any given day is 0.3
+   * hydro.analyze.stats.binomialDist({ 
+   *   params: { 
+   *     trials: 10,       // 10 days observed
+   *     probSuccess: 0.3  // 30% chance of rain on any given day
+   *   }, 
+   *   args: { 
+   *     s: 3              // We want exactly 3 rainy days
+   *   }
+   * }); // Returns approximately 0.2668
+   * 
+   * // Find the probability of having at most 2 flood events in 5 years
+   * // when annual probability of a flood is 0.2
+   * // First calculate P(X=0) + P(X=1) + P(X=2)
+   * const p0 = hydro.analyze.stats.binomialDist({ params: { trials: 5, probSuccess: 0.2 }, args: { s: 0 }});
+   * const p1 = hydro.analyze.stats.binomialDist({ params: { trials: 5, probSuccess: 0.2 }, args: { s: 1 }});
+   * const p2 = hydro.analyze.stats.binomialDist({ params: { trials: 5, probSuccess: 0.2 }, args: { s: 2 }});
+   * const atMost2 = p0 + p1 + p2; // Gives the cumulative probability
+   */
+  static binomialDist({ params, args, data } = {}) {
+    const { trials, probSuccess } = params;
+    const { s } = args;
 
-/**
- * Multinomial Distribution - Generates random samples from a multinomial distribution.
- * @method multinomialDistribution
- * @author riya-patil
- * @memberof stats
- * @param {Object} params probabilities: 1D array of probabilities for each category; n: Number of samples to generate
- * @returns {Object} samples: 2D array of generated samples, where each row represents a sample and each column represents a category
- * frequencies: 2D array of frequencies for each category in the generated samples
- * @example
- * const multinomialData = {
- *   probabilities: [0.2, 0.3, 0.5],
- *   n: 100
- * };
- * hydro.analyze.stats.multinomialDistribution({ params: multinomialData });
- */
-static multinomialDistribution({params, args, data} = {}) {
-  const { probabilities, n } = params;
-
-  const numCategories = probabilities.length;
-  const samples = [];
-  const frequencies = [];
-
-  for (let i = 0; i < n; i++) {
-    const sample = [];
-    let remainingProb = 1;
-
-    for (let j = 0; j < numCategories - 1; j++) {
-      const prob = probabilities[j];
-      const rand = Math.random() * remainingProb;
-      const count = Math.floor(rand / prob);
-      sample.push(count);
-      remainingProb -= count * prob;
+    if (s < 0 || s > trials) {
+      return 0;
     }
 
-    const lastCategoryCount = Math.floor(remainingProb / probabilities[numCategories - 1]);
-    sample.push(lastCategoryCount);
-
-    samples.push(sample);
-    frequencies.push(this.frequency({data : sample}));
+    const coefficient = this.binomialCoefficient(trials, s);
+    const probability = coefficient * (probSuccess ** s) * ((1 - probSuccess) ** (trials - s));
+    return probability;
   }
 
-  return { samples, frequencies };
-}
-
-
-/** Calculates the probability mass function (PMF) of the Log series Distribution
-   * @method LogSeriesDistribution 
+  /**
+   * Multinomial Distribution - Generates random samples from a multinomial distribution.
+   * @method multinomialDistribution
    * @author riya-patil
    * @memberof stats
-   * @param {Object} params - Contains the parameter 'probSuccess' which represents the probability of success in a single trial.
-   * @param {Object} args - Contains the argument 'trials' (trials >= 1) which represents the number of trials.
-   * @returns {Number} Probability of achieving the first success in # of trials.
+   * @param {Object} params probabilities: 1D array of probabilities for each category; n: Number of samples to generate
+   * @returns {Object} samples: 2D array of generated samples, where each row represents a sample and each column represents a category
+   * frequencies: 2D array of frequencies for each category in the generated samples
    * @example
-   * hydro.analyze.stats.logSeriesDist({params: {probSuccess: 0.2, trials: 3}})
+   * const multinomialData = {
+   *   probabilities: [0.2, 0.3, 0.5],
+   *   n: 100
+   * };
+   * hydro.analyze.stats.multinomialDistribution({ params: multinomialData });
    */
-static logSeriesDist({params, args, data} = {}) {
-  const { probSuccess, trials } = params;
-  
-  if (trials < 1) {
-    return 0;
+  static multinomialDistribution({ params, args, data } = {}) {
+    const { probabilities, n } = params;
+
+    const numCategories = probabilities.length;
+    const samples = [];
+    const frequencies = [];
+
+    for (let i = 0; i < n; i++) {
+      const sample = [];
+      let remainingProb = 1;
+
+      for (let j = 0; j < numCategories - 1; j++) {
+        const prob = probabilities[j];
+        const rand = Math.random() * remainingProb;
+        const count = Math.floor(rand / prob);
+        sample.push(count);
+        remainingProb -= count * prob;
+      }
+
+      const lastCategoryCount = Math.floor(remainingProb / probabilities[numCategories - 1]);
+      sample.push(lastCategoryCount);
+
+      samples.push(sample);
+      frequencies.push(this.frequency({ data: sample }));
+    }
+
+    return { samples, frequencies };
   }
-  
-  const pmf = -Math.log(1 - probSuccess) * Math.pow(probSuccess, trials) / trials;
-  return pmf;
-}
 
- /** Calculates the probability density function (PDF) of the Lognormal Distribution
-   * @method lognormalDist 
-   * @author riya-patil
-   * @memberof stats
-   * @param {Object} params - Contains the parameters 'mu' and 'sigma' which represent the mean and standard deviation of the associated normal distribution.
-   * @param {Object} args - Contains the argument 'x' which represents the value at which to evaluate the PDF.
-   * @returns {Number} Probability density at 'x' in the Lognormal Distribution.
-   * @example 
-   * hydro.analyze.stats.lognormalDist({params: { mu: 0, sigma: 1 }, args: { x: 2 }})
-   */
- static lognormalDist({params, args, data} = {}) {
-  const { mu, sigma } = params;
-  const { x } = args;
 
-  if (x <= 0) {
-    return 0;
+  /** Calculates the probability mass function (PMF) of the Log series Distribution
+     * @method LogSeriesDistribution 
+     * @author riya-patil
+     * @memberof stats
+     * @param {Object} params - Contains the parameter 'probSuccess' which represents the probability of success in a single trial.
+     * @param {Object} args - Contains the argument 'trials' (trials >= 1) which represents the number of trials.
+     * @returns {Number} Probability of achieving the first success in # of trials.
+     * @example
+     * hydro.analyze.stats.logSeriesDist({params: {probSuccess: 0.2, trials: 3}})
+     */
+  static logSeriesDist({ params, args, data } = {}) {
+    const { probSuccess, trials } = params;
+
+    if (trials < 1) {
+      return 0;
+    }
+
+    const pmf = -Math.log(1 - probSuccess) * Math.pow(probSuccess, trials) / trials;
+    return pmf;
   }
 
-  const exponent = -((Math.log(x) - mu) ** 2) / (2 * sigma ** 2);
-  const pdf = (1 / (x * sigma * Math.sqrt(2 * Math.PI))) * Math.exp(exponent);
+  /** Calculates the probability density function (PDF) of the Lognormal Distribution
+    * @method lognormalDist 
+    * @author riya-patil
+    * @memberof stats
+    * @param {Object} params - Contains the parameters 'mu' and 'sigma' which represent the mean and standard deviation of the associated normal distribution.
+    * @param {Object} args - Contains the argument 'x' which represents the value at which to evaluate the PDF.
+    * @returns {Number} Probability density at 'x' in the Lognormal Distribution.
+    * @example 
+    * hydro.analyze.stats.lognormalDist({params: { mu: 0, sigma: 1 }, args: { x: 2 }})
+    */
+  static lognormalDist({ params, args, data } = {}) {
+    const { mu, sigma } = params;
+    const { x } = args;
 
-  return pdf;
-}
+    if (x <= 0) {
+      return 0;
+    }
 
-/** Calculates the probability density function (PDF) of the Gumbel Distribution
-   * @method gumbelDist 
-   * @author riya-patil
-   * @memberof stats
-   * @param {Object} params - Contains the parameters 'mu' (location parameter) and 'beta' (scale parameter).
-   * @returns {Number} Probability density at the given value 'x'.
-   * @example
-   * hydro.analyze.stats.gumbelDist({ params: { mu: 0, beta: 1, x: 2}})
-   */
-static gumbelDist({params, args, data} = {}) {
-  const { mu, beta } = params;
-  const { x } = args;
-  
-  const z = (x - mu) / beta;
-  const pdf = (1 / beta) * Math.exp(-(z + Math.exp(-z)));
-  
-  return pdf;
-}
+    const exponent = -((Math.log(x) - mu) ** 2) / (2 * sigma ** 2);
+    const pdf = (1 / (x * sigma * Math.sqrt(2 * Math.PI))) * Math.exp(exponent);
 
-/** Calculates the probability density function (PDF) of the Uniform Distribution
-   * @method uniformDist 
-   * @author riya-patil
-   * @memberof stats
-   * @param {Object} params - Contains the parameters 'a' (lower bound) and 'b' (upper bound).
-   * @param {Object} args - Contains the argument 'x' at which to evaluate the PDF.
-   * @returns {Number} Probability density at the given value 'x'.
-   * @example
-   * hydro.analyze.stats.uniformDist({ params: { a: 0, b: 1 }, args: { x: 0.5 } })
-   */
-static uniformDist({params, args, data} = {}) {
-  const { a, b } = params;
-  const { x } = args;
-  
-  if (x >= a && x <= b) {
-    const pdf = 1 / (b - a);
     return pdf;
-  } else {
-    return 0;
-  }
-}
-
-/** Calculates the Simple Moving Average of a given data set
-   * @method simpleMovingAverage 
-   * @author riya-patil
-   * @memberof stats
-   * @param {Object} params - Contains the parameter 'windowSize' which specifies the size of the moving average window.
-   * @param {Object} data - Contains the array of data points.
-   * @returns {Array} Array of moving average values.
-   * @example
-   * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-   * const windowSize = 3;
-   * hydro.analyze.stats.simpleMovingAverage({ params: { windowSize }, data });
-   */
-static simpleMovingAverage({params, args, data} = {}) {
-  const { windowSize } = params;
-
-  if (windowSize <= 0 || windowSize > data.length) {
-    throw new Error("Invalid window size.");
   }
 
-  const movingAverage = [];
+  /** Calculates the probability density function (PDF) of the Gumbel Distribution
+     * @method gumbelDist 
+     * @author riya-patil
+     * @memberof stats
+     * @param {Object} params - Contains the parameters 'mu' (location parameter) and 'beta' (scale parameter).
+     * @returns {Number} Probability density at the given value 'x'.
+     * @example
+     * hydro.analyze.stats.gumbelDist({ params: { mu: 0, beta: 1, x: 2}})
+     */
+  static gumbelDist({ params, args, data } = {}) {
+    const { mu, beta } = params;
+    const { x } = args;
 
-  for (let i = 0; i <= data.length - windowSize; i++) {
-    const window = data.slice(i, i + windowSize);
-    const sum = window.reduce((total, value) => total + value, 0);
-    const average = sum / windowSize;
-    movingAverage.push(average);
+    const z = (x - mu) / beta;
+    const pdf = (1 / beta) * Math.exp(-(z + Math.exp(-z)));
+
+    return pdf;
   }
 
-  return movingAverage;
-}
+  /** Calculates the probability density function (PDF) of the Uniform Distribution
+     * @method uniformDist 
+     * @author riya-patil
+     * @memberof stats
+     * @param {Object} params - Contains the parameters 'a' (lower bound) and 'b' (upper bound).
+     * @param {Object} args - Contains the argument 'x' at which to evaluate the PDF.
+     * @returns {Number} Probability density at the given value 'x'.
+     * @example
+     * hydro.analyze.stats.uniformDist({ params: { a: 0, b: 1 }, args: { x: 0.5 } })
+     */
+  static uniformDist({ params, args, data } = {}) {
+    const { a, b } = params;
+    const { x } = args;
 
-/**
- * Calculates the Linear Moving Average (LMA) of a given dataset.
- * @method linearMovingAverage
- * @author riya-patil
- * @memberof stats
- * @param {Number} params - Contains the windowSize parameter.
- * @param {Array} data - 1D array of numerical values.
- * @returns {Array} Array of moving averages.
- * @throws {Error} If the window size is invalid.
- * @example
- * const windowSize = 5;
- * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
- * hydro.analyze.stats.linearMovingAverage({ windowSize, data });
- */
-static linearMovingAverage({params, args, data} = {}) {
-  const { windowSize } = params;
-
-  if (windowSize <= 0 || windowSize > data.length) {
-    throw new Error("Invalid window size.");
-  }
-
-  const movingAverage = [];
-  let sum = 0;
- 
-  for (let i = 0; i < windowSize; i++) {
-	sum += data[i];
-  }
- 
-  movingAverage.push(sum / windowSize);
- 
-  for (let i = windowSize; i < data.length; i++) {
-	sum += data[i] - data[i - windowSize];
-    movingAverage.push(sum / windowSize);
-  }
- 
-  return movingAverage;
-}
-
-/**
- * Computes the Exponential Moving Average (EMA) for a given dataset.
- * @method exponentialMovingAverage
- * @author riya-patil
- * @memberof stats
- * @param {Object} args - Contains the dataset as 'data' (1D JavaScript array) and the 'alpha' value (smoothing factor between 0 and 1)
- * @returns {number[]} The Exponential Moving Average (EMA) values for the dataset
- * @example
- *const dataset= [1,2,3,4,5]
- *const params={alpha: 0.5}
- *hydro.analyze.stats.exponentialMovingAverage({params, data});
-*/
-
-static exponentialMovingAverage({params, args, data} = {}) {
-  const { alpha } = params;
-  const emaValues = [];
-  let ema = data[0];
-
-  for (let i = 1; i < data.length; i++) {
-    ema = alpha * data[i] + (1 - alpha) * ema;
-    emaValues.push(ema);
-  }
-
-  return emaValues;
-}
-
-/**
- * Generates a sequence of events following a Poisson process
- * A Poisson process models the occurrence of random events where the time between events
- * follows an exponential distribution. In hydrology, this is useful for modeling random
- * occurrences such as rainfall events, flood peaks, or extreme weather phenomena that
- * happen at a known average rate but with random timing.
- * @method poissonProcess
- * @author riya-patil
- * @memberof stats
- * @param {Object} params - Contains: 
- *                         - lambda (event rate, average number of events per time unit)
- *                         - timeFrame (duration for which to simulate the process)
- *                         - type (optional, "time" for event times or "count" for event counts in intervals)
- * @returns {Array} For type="time": Array of time points when events occur
- *                 For type="count": Array of counts per unit time interval
- * @example
- * // Scenario: Generate a synthetic sequence of storm events over a 30-day period
- * // Assuming storms occur at a rate of 0.2 per day (on average, 1 storm every 5 days)
- * 
- * // Get the timing of storm events over the 30-day period
- * const stormTimes = hydro.analyze.stats.poissonProcess({
- *   params: {
- *     lambda: 0.2,      // Rate of 0.2 storms per day
- *     timeFrame: 30,    // 30-day simulation period
- *     type: "time"      // Return the timing of events
- *   }
- * });
- * console.log("Storm events occur at days:", stormTimes);
- * // Example output: [3.2, 8.7, 15.4, 21.1, 28.9]
- * 
- * // Or get the daily count of storms for each day in the 30-day period
- * const dailyStormCounts = hydro.analyze.stats.poissonProcess({
- *   params: {
- *     lambda: 0.2,      // Rate of 0.2 storms per day
- *     timeFrame: 30,    // 30-day simulation period
- *     type: "count"     // Return counts per interval
- *   }
- * });
- * // Example output: [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
- * 
- * // This synthetic data can be used for:
- * // - Testing rainfall-runoff models with varying storm patterns
- * // - Evaluating flood risk under different precipitation scenarios
- * // - Studying reservoir operation under random inflow conditions
- */
-static poissonProcess({params, args, data} = {}) {
-  const { lambda, timeFrame, type = "time" } = params;
-  const { rateFunction } = args;
-
-  if (type === "time") {
-    const eventTimes = [];
-    let currentTime = 0;
-    
-    while (currentTime < timeFrame) {
-      // Generate time to next event based on exponential distribution
-      const timeToNextEvent = -Math.log(Math.random()) / lambda;
-      currentTime += timeToNextEvent;
-      
-      if (currentTime < timeFrame) {
-        eventTimes.push(currentTime);
-      }
-    }
-    
-    return eventTimes;
-  } else if (type === "count") {
-    const counts = new Array(Math.ceil(timeFrame)).fill(0);
-    
-    // Generate event times
-    const eventTimes = this.poissonProcess({
-      params: { lambda, timeFrame, type: "time" }
-    });
-    
-    // Count events per unit time
-    for (const time of eventTimes) {
-      const timeIndex = Math.floor(time);
-      if (timeIndex < counts.length) {
-        counts[timeIndex]++;
-      }
-    }
-    
-    return counts;
-  } else {
-    throw new Error("Invalid type. Use 'time' or 'count'.");
-  }
-}
-
-/**
- * Calculates the return period for a given probability of occurrence
- * In hydrology, the return period (or recurrence interval) represents the average time between events
- * of a certain magnitude. It is fundamental for flood frequency analysis, infrastructure design, and
- * risk assessment. The return period T is calculated as T = 1/p, where p is the probability of 
- * exceedance in a given year.
- * @method returnPeriod
- * @memberof stats
- * @param {Object} params - Contains probability (decimal between 0 and 1, probability of occurrence in a given time unit)
- * @returns {Number} Return period (average time between events of the specified probability)
- * @throws {Error} If probability is not between 0 and 1
- * @example
- * // Calculate the return period for a flood with a 0.01 (1%) annual exceedance probability
- * const hundredYearFlood = hydro.analyze.stats.returnPeriod({
- *   params: { probability: 0.01 }
- * });
- * // Returns 100 (years)
- * 
- * // Calculate return periods for different design events
- * const designEvents = [
- *   { name: "2-year event", probability: 0.5 },
- *   { name: "10-year event", probability: 0.1 },
- *   { name: "25-year event", probability: 0.04 },
- *   { name: "50-year event", probability: 0.02 },
- *   { name: "100-year event", probability: 0.01 },
- *   { name: "500-year event", probability: 0.002 }
- * ];
- * 
- * // Calculate and display the return periods
- * designEvents.forEach(event => {
- *   const period = hydro.analyze.stats.returnPeriod({
- *     params: { probability: event.probability }
- *   });
- *   console.log(`${event.name}: ${period} years`);
- * });
- * 
- * // This information can be used for:
- * // - Designing hydraulic structures like bridges, culverts, and dams
- * // - Establishing flood insurance rates and floodplain regulations
- * // - Assessing risk for critical infrastructure
- */
-static returnPeriod({params, args, data} = {}) {
-  const { probability } = params;
-  if (probability <= 0 || probability >= 1) {
-    throw new Error("Probability must be between 0 and 1 (exclusive).");
-  }
-
-  return 1 / probability;
-}
-
-/**
- * Performs differencing on a time series dataset to remove trend or seasonality from the data
- * @method differencing
- * @author riya-patil
- * @memberof stats
- * @param {Object} params - Contains the order parameter
- * @param {Array} data - 1D array of numerical values representing a time series
- * @returns {Array} Differenced time series
- * @throws {Error} If the order is invalid
- * @example
- * const order = 1;
- * const timeSeries = [1, 3, 6, 10, 15];
- * const differencedSeries = stats.differencing({ order, data: timeSeries });
- */
-static differencing({params, args, data} = {}) {
-  const order = params.order;
-  const timeSeries = data;
-
-  if (order >= timeSeries.length) {
-    throw new Error('Invalid order for differencing.');
-  }
-
-  const differencedSeries = timeSeries.slice(order).map((value, i) => value - timeSeries[i]);
-  return differencedSeries
-}
-
-/**
- * Computes the variance of residuals in a regression model to detect heteroskedasticity
- * @method residualVariance
- * @author riya-patil
- * @memberof stats
- * @param {Array} data - 1D array of numerical values representing the residuals.
- * @returns {number} Variance of residuals
- * @returns {Error} if not given valid array of residuals or not given correct number of arrays
- * @example
- * const residuals = [1.5, -2.1, 0.8, -1.2, 2.5];
- * const variance = stats.residualVariance({ data: residuals });
- */
-static residualVariance({params, args, data} = {}) {
-  const residuals = data;
-
-  if (!Array.isArray(residuals)) {
-    throw new Error('Invalid data. Expecting an array of residuals.');
-  }
-   
-  if (residuals.length < 2) {
-    throw new Error('Insufficient data. Expecting an array of at least 2 residuals.');
-  }
-
-  const squaredResiduals = residuals.map((residual) => residual * residual);
-  const variance = squaredResiduals.reduce((sum, value) => sum + value, 0) / squaredResiduals.length;
-
-  return variance;
-}
-
-/**
- * Computes the coefficients of a linear regression model.
- * @method regression
- * @author riya-patil
- * @memberof stats
- * @param {Object} data - Object containing predictor variables (X) and target variable (y).
- * @returns {Array} Coefficients of the linear regression model.
- * @example
- * const X = [[1, 2], [3, 4], [5, 6]];
- * const y = [3, 5, 7];
- * hydro.analyze.stats.regression({ data: { X, y } });
- */
-static regression({params, args, data} = {}) {
-  const X = data.X; // Matrix of predictor variables
-  const y = data.y; // Array of target variable
-
-  const XWithIntercept = X.map((row) => [1, ...row]);
-
-  const Xint = multiplyMatrix(transposeMatrix(XWithIntercept), XWithIntercept);
-  const Yint = multiplyMatrix(transposeMatrix(XWithIntercept), y);
-
-  const inverseXtX = matrixInverse(Xint);
-
-  const coefficients = multiplyMatrix(inverseXtX, Yint);
-
-  return coefficients;
-}
-
-/**
- * Performs multivariate regression analysis
- * @method multiregression
- * @author riya-patil
- * @memberof stats
- * @param {Object} data - Data for the multivariate regression
- * @returns {Array} Coefficients of the linear regression model.
- * @example
- * const X = [[1, 2], [3, 4], [5, 6]];
- * const y = [3, 5, 7];
- * hydro.analyze.stats.multiregression({ data: { X, y } });
- */
-static multiregression({params, args, data} = {}) {
-  const X = data.X; // Matrix of predictor variables
-  const Y = data.Y; // Array of target variables
-
-  const coefficients = [];
-  for (let i = 0; i < Y.length; i++) {
-    const y = Y[i];
-    const regressionData = { X, y };
-    const coefficient = this.regression({ data: regressionData });
-    coefficients.push(coefficient);
-  }
-
-  return coefficients;
-}
-
-/**
- * Performs White's test for heteroscedasticity
- * @method whitesTest
- * @author riya-patil
- * @param {Object} params - Parameters for the test, errors is array of residuals while regressors is array of regressor vars
- * @returns {Object} Object containing test statistic and p-value
- * @throws {Error} If the input arrays have different lengths
- * @example
- * const params = {
- *   errors: [1, 2, 3, 4, 5],
- *   regressors: [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]
- * };
- * hydro.analyze.stats.whitesTest({ params });
- */
-static whitesTest({ params }) {
-  const { errors, regressors } = params;
-
-  if (errors.length !== regressors.length) {
-    throw new Error("Input arrays must have the same length.");
-  }
-
-  const n = errors.length;
-  const k = regressors[0].length; // Number of regressors (variables)
-
-  let XX = 0;
-  let XE = 0;
-  let EE = 0;
-
-  for (let i = 0; i < n; i++) {
-    const error = errors[i];
-    const regressor = regressors[i];
-
-    XX += this.dotProduct(regressor, regressor);
-    XE += this.dotProduct(regressor, error); // Adjust for the size of the regressors
-    EE += error ** 2;
-  }
-
-  const testStatistic = n * (XE ** 2) / (XX * EE);
-  const pValue = 1 - this.chisqCDF(testStatistic, k);
-
-  return { testStatistic, pValue };
-}
-
-/**
- * Performs the Breusch-Pagan test for heteroscedasticity.
- * @method breuschPaganTest
- * @author riya-patil
- * @memberof stats
- * @param {Object} params errors: Array of residuals, regressors: Array of regressor variables
- * @returns {Object} Object containing test statistic and p-value.
- * @throws {Error} If the input arrays have different lengths.
- * @example
- * const params = {
- *   errors: [1, 2, 3, 4, 5],
- *   regressors: [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]
- * };
- * hydro.analyze.stats.breuschPaganTest({ params });
- */
-static breuschPaganTest({ params }) {
-  const { errors, regressors } = params;
-
-  if (errors.length !== regressors.length) {
-    throw new Error("Input arrays must have the same length.");
-  }
-
-  const n = errors.length;
-  const k = regressors[0].length;
-
-  let residualsSquared = [];
-
-  for (let i = 0; i < n; i++) {
-    const error = errors[i];
-    residualsSquared.push(error ** 2);
-  }
-
-  let XX = 0;
-  let XR = 0;
-  let RR = 0;
-
-  for (let i = 0; i < n; i++) {
-    const regressor = regressors[i];
-    const residualSquared = residualsSquared[i];
-
-    const dotProduct = dotProduct(regressor, regressor);
-    XX += dotProduct;
-    XR += dotProduct * residualSquared;
-    RR += residualSquared ** 2;
-  }
-
-  const testStatistic = (n / 2) * (Math.log(XR) - (1 / n) * Math.log(XX));
-  const pValue = 1 - chisqCDF(testStatistic, k);
-
-  return { testStatistic, pValue };
-}
-
-/**
- * Performs Goldfeld-Quandt test for heteroscedasticity
- * @method goldfeldQuandtTest
- * @author riya-patil
- * @param {Object} params - residuals (Array of residuals from a regression model), independentVar (Array of values of the independent variable)
- * @returns {Object} Object containing test statistic and p-value
- * @throws {Error} If the input arrays have different lengths
- * @example
- * const residuals = [1.2, 2.3, 0.8, 1.9, 1.5, 2.6];
- * const independentVar = [3, 4, 5, 6, 7, 8];
- * const result = stats.goldfeldQuandtTest({ params: { residuals, independentVar } });
- * console.log(result);
- */
-static goldfeldQuandtTest({ params, args, data }) {
-  const { residuals, independentVar } = params;
-
-  if (residuals.length !== independentVar.length) {
-    throw new Error("Input arrays must have the same length.");
-  }
-
-  const n = residuals.length;
-  const k = Math.floor(n * 0.4); // 40% of the data in each subset
-
-  const sortedIndices = independentVar.map((_, index) => index).sort((a, b) => independentVar[a] - independentVar[b]);
-
-  const lowSubsetIndices = sortedIndices.slice(0, k);
-  const highSubsetIndices = sortedIndices.slice(-k);
-
-  const lowResiduals = lowSubsetIndices.map((index) => residuals[index]);
-  const highResiduals = highSubsetIndices.map((index) => residuals[index]);
-
-  const testStatistic = (Math.max(...highResiduals) ** 2) / (Math.min(...lowResiduals) ** 2);
-
-  const pValue = 1 - chisqCDF(testStatistic, k - 1);
-
-  return { testStatistic, pValue };
-}
-
-
-
-/**
-   * Generates a random simulated number when run with a dataset
-   * @method runMarkovChainMonteCarlo
-   * @author riya-patil
-   * @memberof stats
-   * @param {Object[]} data - passes data from multiple objects
-   * @returns {number[]} returns an array of the simulated results
-   * @example 
-   * const options = {
-      params: {
-      iterations: 100,
-    },
-    data: {
-      initialState,
-      transitionMatrix,
-      },
-    };
-    hydro.analyze.stats.runMarkovChainMonteCarlo(options);
-   */
-static runMarkovChainMonteCarlo({ params, args, data } = {}) {
-  const { iterations = 100, callback } = params || {};
-  const results = [];
-  let currentState = data.initialState;
-
-  for (let i = 0; i < iterations; i++) {
-    let nextState;
-    if (callback) {
-      nextState = callback({ params, args, data, currentState });
+    if (x >= a && x <= b) {
+      const pdf = 1 / (b - a);
+      return pdf;
     } else {
-      nextState = getNextState(data.transitionMatrix, currentState);
+      return 0;
     }
-    results.push(nextState);
-    currentState = nextState;
   }
 
-  return results;
-}
- 
+  /** Calculates the Simple Moving Average of a given data set
+     * @method simpleMovingAverage 
+     * @author riya-patil
+     * @memberof stats
+     * @param {Object} params - Contains the parameter 'windowSize' which specifies the size of the moving average window.
+     * @param {Object} data - Contains the array of data points.
+     * @returns {Array} Array of moving average values.
+     * @example
+     * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+     * const windowSize = 3;
+     * hydro.analyze.stats.simpleMovingAverage({ params: { windowSize }, data });
+     */
+  static simpleMovingAverage({ params, args, data } = {}) {
+    const { windowSize } = params;
+
+    if (windowSize <= 0 || windowSize > data.length) {
+      throw new Error("Invalid window size.");
+    }
+
+    const movingAverage = [];
+
+    for (let i = 0; i <= data.length - windowSize; i++) {
+      const window = data.slice(i, i + windowSize);
+      const sum = window.reduce((total, value) => total + value, 0);
+      const average = sum / windowSize;
+      movingAverage.push(average);
+    }
+
+    return movingAverage;
+  }
+
+  /**
+   * Calculates the Linear Moving Average (LMA) of a given dataset.
+   * @method linearMovingAverage
+   * @author riya-patil
+   * @memberof stats
+   * @param {Number} params - Contains the windowSize parameter.
+   * @param {Array} data - 1D array of numerical values.
+   * @returns {Array} Array of moving averages.
+   * @throws {Error} If the window size is invalid.
+   * @example
+   * const windowSize = 5;
+   * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+   * hydro.analyze.stats.linearMovingAverage({ windowSize, data });
+   */
+  static linearMovingAverage({ params, args, data } = {}) {
+    const { windowSize } = params;
+
+    if (windowSize <= 0 || windowSize > data.length) {
+      throw new Error("Invalid window size.");
+    }
+
+    const movingAverage = [];
+    let sum = 0;
+
+    for (let i = 0; i < windowSize; i++) {
+      sum += data[i];
+    }
+
+    movingAverage.push(sum / windowSize);
+
+    for (let i = windowSize; i < data.length; i++) {
+      sum += data[i] - data[i - windowSize];
+      movingAverage.push(sum / windowSize);
+    }
+
+    return movingAverage;
+  }
+
+  /**
+   * Computes the Exponential Moving Average (EMA) for a given dataset.
+   * @method exponentialMovingAverage
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} args - Contains the dataset as 'data' (1D JavaScript array) and the 'alpha' value (smoothing factor between 0 and 1)
+   * @returns {number[]} The Exponential Moving Average (EMA) values for the dataset
+   * @example
+   *const dataset= [1,2,3,4,5]
+   *const params={alpha: 0.5}
+   *hydro.analyze.stats.exponentialMovingAverage({params, data});
+  */
+
+  static exponentialMovingAverage({ params, args, data } = {}) {
+    const { alpha } = params;
+    const emaValues = [];
+    let ema = data[0];
+
+    for (let i = 1; i < data.length; i++) {
+      ema = alpha * data[i] + (1 - alpha) * ema;
+      emaValues.push(ema);
+    }
+
+    return emaValues;
+  }
+
+  /**
+   * Generates a sequence of events following a Poisson process
+   * A Poisson process models the occurrence of random events where the time between events
+   * follows an exponential distribution. In hydrology, this is useful for modeling random
+   * occurrences such as rainfall events, flood peaks, or extreme weather phenomena that
+   * happen at a known average rate but with random timing.
+   * @method poissonProcess
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains: 
+   *                         - lambda (event rate, average number of events per time unit)
+   *                         - timeFrame (duration for which to simulate the process)
+   *                         - type (optional, "time" for event times or "count" for event counts in intervals)
+   * @returns {Array} For type="time": Array of time points when events occur
+   *                 For type="count": Array of counts per unit time interval
+   * @example
+   * // Scenario: Generate a synthetic sequence of storm events over a 30-day period
+   * // Assuming storms occur at a rate of 0.2 per day (on average, 1 storm every 5 days)
+   * 
+   * // Get the timing of storm events over the 30-day period
+   * const stormTimes = hydro.analyze.stats.poissonProcess({
+   *   params: {
+   *     lambda: 0.2,      // Rate of 0.2 storms per day
+   *     timeFrame: 30,    // 30-day simulation period
+   *     type: "time"      // Return the timing of events
+   *   }
+   * });
+   * console.log("Storm events occur at days:", stormTimes);
+   * // Example output: [3.2, 8.7, 15.4, 21.1, 28.9]
+   * 
+   * // Or get the daily count of storms for each day in the 30-day period
+   * const dailyStormCounts = hydro.analyze.stats.poissonProcess({
+   *   params: {
+   *     lambda: 0.2,      // Rate of 0.2 storms per day
+   *     timeFrame: 30,    // 30-day simulation period
+   *     type: "count"     // Return counts per interval
+   *   }
+   * });
+   * // Example output: [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+   * 
+   * // This synthetic data can be used for:
+   * // - Testing rainfall-runoff models with varying storm patterns
+   * // - Evaluating flood risk under different precipitation scenarios
+   * // - Studying reservoir operation under random inflow conditions
+   */
+  static poissonProcess({ params, args, data } = {}) {
+    const { lambda, timeFrame, type = "time" } = params;
+    const { rateFunction } = args;
+
+    if (type === "time") {
+      const eventTimes = [];
+      let currentTime = 0;
+
+      while (currentTime < timeFrame) {
+        // Generate time to next event based on exponential distribution
+        const timeToNextEvent = -Math.log(Math.random()) / lambda;
+        currentTime += timeToNextEvent;
+
+        if (currentTime < timeFrame) {
+          eventTimes.push(currentTime);
+        }
+      }
+
+      return eventTimes;
+    } else if (type === "count") {
+      const counts = new Array(Math.ceil(timeFrame)).fill(0);
+
+      // Generate event times
+      const eventTimes = this.poissonProcess({
+        params: { lambda, timeFrame, type: "time" }
+      });
+
+      // Count events per unit time
+      for (const time of eventTimes) {
+        const timeIndex = Math.floor(time);
+        if (timeIndex < counts.length) {
+          counts[timeIndex]++;
+        }
+      }
+
+      return counts;
+    } else {
+      throw new Error("Invalid type. Use 'time' or 'count'.");
+    }
+  }
+
+  /**
+   * Calculates the return period for a given probability of occurrence
+   * In hydrology, the return period (or recurrence interval) represents the average time between events
+   * of a certain magnitude. It is fundamental for flood frequency analysis, infrastructure design, and
+   * risk assessment. The return period T is calculated as T = 1/p, where p is the probability of 
+   * exceedance in a given year.
+   * @method returnPeriod
+   * @memberof stats
+   * @param {Object} params - Contains probability (decimal between 0 and 1, probability of occurrence in a given time unit)
+   * @returns {Number} Return period (average time between events of the specified probability)
+   * @throws {Error} If probability is not between 0 and 1
+   * @example
+   * // Calculate the return period for a flood with a 0.01 (1%) annual exceedance probability
+   * const hundredYearFlood = hydro.analyze.stats.returnPeriod({
+   *   params: { probability: 0.01 }
+   * });
+   * // Returns 100 (years)
+   * 
+   * // Calculate return periods for different design events
+   * const designEvents = [
+   *   { name: "2-year event", probability: 0.5 },
+   *   { name: "10-year event", probability: 0.1 },
+   *   { name: "25-year event", probability: 0.04 },
+   *   { name: "50-year event", probability: 0.02 },
+   *   { name: "100-year event", probability: 0.01 },
+   *   { name: "500-year event", probability: 0.002 }
+   * ];
+   * 
+   * // Calculate and display the return periods
+   * designEvents.forEach(event => {
+   *   const period = hydro.analyze.stats.returnPeriod({
+   *     params: { probability: event.probability }
+   *   });
+   *   console.log(`${event.name}: ${period} years`);
+   * });
+   * 
+   * // This information can be used for:
+   * // - Designing hydraulic structures like bridges, culverts, and dams
+   * // - Establishing flood insurance rates and floodplain regulations
+   * // - Assessing risk for critical infrastructure
+   */
+  static returnPeriod({ params, args, data } = {}) {
+    const { probability } = params;
+    if (probability <= 0 || probability >= 1) {
+      throw new Error("Probability must be between 0 and 1 (exclusive).");
+    }
+
+    return 1 / probability;
+  }
+
+  /**
+   * Performs differencing on a time series dataset to remove trend or seasonality from the data
+   * @method differencing
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the order parameter
+   * @param {Array} data - 1D array of numerical values representing a time series
+   * @returns {Array} Differenced time series
+   * @throws {Error} If the order is invalid
+   * @example
+   * const order = 1;
+   * const timeSeries = [1, 3, 6, 10, 15];
+   * const differencedSeries = stats.differencing({ order, data: timeSeries });
+   */
+  static differencing({ params, args, data } = {}) {
+    const order = params.order;
+    const timeSeries = data;
+
+    if (order >= timeSeries.length) {
+      throw new Error('Invalid order for differencing.');
+    }
+
+    const differencedSeries = timeSeries.slice(order).map((value, i) => value - timeSeries[i]);
+    return differencedSeries
+  }
+
+  /**
+   * Computes the variance of residuals in a regression model to detect heteroskedasticity
+   * @method residualVariance
+   * @author riya-patil
+   * @memberof stats
+   * @param {Array} data - 1D array of numerical values representing the residuals.
+   * @returns {number} Variance of residuals
+   * @returns {Error} if not given valid array of residuals or not given correct number of arrays
+   * @example
+   * const residuals = [1.5, -2.1, 0.8, -1.2, 2.5];
+   * const variance = stats.residualVariance({ data: residuals });
+   */
+  static residualVariance({ params, args, data } = {}) {
+    const residuals = data;
+
+    if (!Array.isArray(residuals)) {
+      throw new Error('Invalid data. Expecting an array of residuals.');
+    }
+
+    if (residuals.length < 2) {
+      throw new Error('Insufficient data. Expecting an array of at least 2 residuals.');
+    }
+
+    const squaredResiduals = residuals.map((residual) => residual * residual);
+    const variance = squaredResiduals.reduce((sum, value) => sum + value, 0) / squaredResiduals.length;
+
+    return variance;
+  }
+
+  /**
+   * Computes the coefficients of a linear regression model.
+   * @method regression
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} data - Object containing predictor variables (X) and target variable (y).
+   * @returns {Array} Coefficients of the linear regression model.
+   * @example
+   * const X = [[1, 2], [3, 4], [5, 6]];
+   * const y = [3, 5, 7];
+   * hydro.analyze.stats.regression({ data: { X, y } });
+   */
+  static regression({ params, args, data } = {}) {
+    const X = data.X; // Matrix of predictor variables
+    const y = data.y; // Array of target variable
+
+    const XWithIntercept = X.map((row) => [1, ...row]);
+
+    const Xint = multiplyMatrix(transposeMatrix(XWithIntercept), XWithIntercept);
+    const Yint = multiplyMatrix(transposeMatrix(XWithIntercept), y);
+
+    const inverseXtX = matrixInverse(Xint);
+
+    const coefficients = multiplyMatrix(inverseXtX, Yint);
+
+    return coefficients;
+  }
+
+  /**
+   * Performs multivariate regression analysis
+   * @method multiregression
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} data - Data for the multivariate regression
+   * @returns {Array} Coefficients of the linear regression model.
+   * @example
+   * const X = [[1, 2], [3, 4], [5, 6]];
+   * const y = [3, 5, 7];
+   * hydro.analyze.stats.multiregression({ data: { X, y } });
+   */
+  static multiregression({ params, args, data } = {}) {
+    const X = data.X; // Matrix of predictor variables
+    const Y = data.Y; // Array of target variables
+
+    const coefficients = [];
+    for (let i = 0; i < Y.length; i++) {
+      const y = Y[i];
+      const regressionData = { X, y };
+      const coefficient = this.regression({ data: regressionData });
+      coefficients.push(coefficient);
+    }
+
+    return coefficients;
+  }
+
+  /**
+   * Performs White's test for heteroscedasticity
+   * @method whitesTest
+   * @author riya-patil
+   * @param {Object} params - Parameters for the test, errors is array of residuals while regressors is array of regressor vars
+   * @returns {Object} Object containing test statistic and p-value
+   * @throws {Error} If the input arrays have different lengths
+   * @example
+   * const params = {
+   *   errors: [1, 2, 3, 4, 5],
+   *   regressors: [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]
+   * };
+   * hydro.analyze.stats.whitesTest({ params });
+   */
+  static whitesTest({ params }) {
+    const { errors, regressors } = params;
+
+    if (errors.length !== regressors.length) {
+      throw new Error("Input arrays must have the same length.");
+    }
+
+    const n = errors.length;
+    const k = regressors[0].length; // Number of regressors (variables)
+
+    let XX = 0;
+    let XE = 0;
+    let EE = 0;
+
+    for (let i = 0; i < n; i++) {
+      const error = errors[i];
+      const regressor = regressors[i];
+
+      XX += this.dotProduct(regressor, regressor);
+      XE += this.dotProduct(regressor, error); // Adjust for the size of the regressors
+      EE += error ** 2;
+    }
+
+    const testStatistic = n * (XE ** 2) / (XX * EE);
+    const pValue = 1 - this.chisqCDF(testStatistic, k);
+
+    return { testStatistic, pValue };
+  }
+
+  /**
+   * Performs the Breusch-Pagan test for heteroscedasticity.
+   * @method breuschPaganTest
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params errors: Array of residuals, regressors: Array of regressor variables
+   * @returns {Object} Object containing test statistic and p-value.
+   * @throws {Error} If the input arrays have different lengths.
+   * @example
+   * const params = {
+   *   errors: [1, 2, 3, 4, 5],
+   *   regressors: [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]
+   * };
+   * hydro.analyze.stats.breuschPaganTest({ params });
+   */
+  static breuschPaganTest({ params }) {
+    const { errors, regressors } = params;
+
+    if (errors.length !== regressors.length) {
+      throw new Error("Input arrays must have the same length.");
+    }
+
+    const n = errors.length;
+    const k = regressors[0].length;
+
+    let residualsSquared = [];
+
+    for (let i = 0; i < n; i++) {
+      const error = errors[i];
+      residualsSquared.push(error ** 2);
+    }
+
+    let XX = 0;
+    let XR = 0;
+    let RR = 0;
+
+    for (let i = 0; i < n; i++) {
+      const regressor = regressors[i];
+      const residualSquared = residualsSquared[i];
+
+      const dotProduct = dotProduct(regressor, regressor);
+      XX += dotProduct;
+      XR += dotProduct * residualSquared;
+      RR += residualSquared ** 2;
+    }
+
+    const testStatistic = (n / 2) * (Math.log(XR) - (1 / n) * Math.log(XX));
+    const pValue = 1 - chisqCDF(testStatistic, k);
+
+    return { testStatistic, pValue };
+  }
+
+  /**
+   * Performs Goldfeld-Quandt test for heteroscedasticity
+   * @method goldfeldQuandtTest
+   * @author riya-patil
+   * @param {Object} params - residuals (Array of residuals from a regression model), independentVar (Array of values of the independent variable)
+   * @returns {Object} Object containing test statistic and p-value
+   * @throws {Error} If the input arrays have different lengths
+   * @example
+   * const residuals = [1.2, 2.3, 0.8, 1.9, 1.5, 2.6];
+   * const independentVar = [3, 4, 5, 6, 7, 8];
+   * const result = stats.goldfeldQuandtTest({ params: { residuals, independentVar } });
+   * console.log(result);
+   */
+  static goldfeldQuandtTest({ params, args, data }) {
+    const { residuals, independentVar } = params;
+
+    if (residuals.length !== independentVar.length) {
+      throw new Error("Input arrays must have the same length.");
+    }
+
+    const n = residuals.length;
+    const k = Math.floor(n * 0.4); // 40% of the data in each subset
+
+    const sortedIndices = independentVar.map((_, index) => index).sort((a, b) => independentVar[a] - independentVar[b]);
+
+    const lowSubsetIndices = sortedIndices.slice(0, k);
+    const highSubsetIndices = sortedIndices.slice(-k);
+
+    const lowResiduals = lowSubsetIndices.map((index) => residuals[index]);
+    const highResiduals = highSubsetIndices.map((index) => residuals[index]);
+
+    const testStatistic = (Math.max(...highResiduals) ** 2) / (Math.min(...lowResiduals) ** 2);
+
+    const pValue = 1 - chisqCDF(testStatistic, k - 1);
+
+    return { testStatistic, pValue };
+  }
+
+
+
+  /**
+     * Generates a random simulated number when run with a dataset
+     * @method runMarkovChainMonteCarlo
+     * @author riya-patil
+     * @memberof stats
+     * @param {Object[]} data - passes data from multiple objects
+     * @returns {number[]} returns an array of the simulated results
+     * @example 
+     * const options = {
+        params: {
+        iterations: 100,
+      },
+      data: {
+        initialState,
+        transitionMatrix,
+        },
+      };
+      hydro.analyze.stats.runMarkovChainMonteCarlo(options);
+     */
+  static runMarkovChainMonteCarlo({ params, args, data } = {}) {
+    const { iterations = 100, callback } = params || {};
+    const results = [];
+    let currentState = data.initialState;
+
+    for (let i = 0; i < iterations; i++) {
+      let nextState;
+      if (callback) {
+        nextState = callback({ params, args, data, currentState });
+      } else {
+        nextState = getNextState(data.transitionMatrix, currentState);
+      }
+      results.push(nextState);
+      currentState = nextState;
+    }
+
+    return results;
+  }
+
   /***************************/
   /***** Helper functions ****/
   /***************************/
@@ -2358,261 +2361,261 @@ static runMarkovChainMonteCarlo({ params, args, data } = {}) {
   }
 
 
- /**
-  * **Still needs some testing**
-   * Compute the autocovariance matrix from the autocorrelation values
-   * @method autocovarianceMatrix
+  /**
+   * **Still needs some testing**
+    * Compute the autocovariance matrix from the autocorrelation values
+    * @method autocovarianceMatrix
+    * @author riya-patil
+    * @memberof stats
+    * @param {Object} data - array with autocorrelation values
+    * @param {number} params - number of lags
+    * @returns {Object} Autocovariance matrix
+    * @example 
+    * const acTestData = [1, 0.7, 0.5, 0.3];
+    * const lags = 2
+    * hydro.analyze.stats.autocovarianceMatrix({params: lag, data : actestData});
+    */
+  static autocovarianceMatrix({ params, args, data } = {}) {
+    const { lag, lags } = params || { lag: 2, lags: 2 };
+    const length = data.length;
+    const mean = this.mean({ data });
+    const autocorrelation = [];
+    const matrix = [];
+
+    for (let l = 0; l <= lag; l++) {
+      let sum = 0;
+      for (let t = l; t < length; t++) {
+        sum += (data[t] - mean) * (data[t - l] - mean);
+      }
+      autocorrelation.push(sum / ((length - l) * this.variance({ data })));
+    }
+
+    for (let i = 0; i <= lags; i++) {
+      const row = [];
+      for (let j = 0; j <= lags; j++) {
+        const ac = autocorrelation[Math.abs(i - j)];
+        row.push(i === j ? 1 : ac);
+      }
+      matrix.push(row);
+    }
+
+    return { autocorrelation, matrix };
+  }
+
+  /**
+   * Calculates the binomial coefficient (n choose k format)
+   * @method binomialCoefficient
    * @author riya-patil
    * @memberof stats
-   * @param {Object} data - array with autocorrelation values
-   * @param {number} params - number of lags
-   * @returns {Object} Autocovariance matrix
-   * @example 
-   * const acTestData = [1, 0.7, 0.5, 0.3];
-   * const lags = 2
-   * hydro.analyze.stats.autocovarianceMatrix({params: lag, data : actestData});
+   * @param {Number} trials - The number of trials
+   * @param {Number} s - The number of successes
+   * @returns {Number} The binomial coefficient (trials choose s)
    */
- static autocovarianceMatrix({ params, args, data } = {}) {
-  const { lag, lags } = params || { lag: 2, lags: 2 };
-  const length = data.length;
-  const mean = this.mean({ data });
-  const autocorrelation = [];
-  const matrix = [];
-
-  for (let l = 0; l <= lag; l++) {
-    let sum = 0;
-    for (let t = l; t < length; t++) {
-      sum += (data[t] - mean) * (data[t - l] - mean);
+  static binomialCoefficient(trials, s) {
+    if (s === 0 || s === trials) {
+      return 1;
     }
-    autocorrelation.push(sum / ((length - l) * this.variance({ data })));
-  }
-
-  for (let i = 0; i <= lags; i++) {
-    const row = [];
-    for (let j = 0; j <= lags; j++) {
-      const ac = autocorrelation[Math.abs(i - j)];
-      row.push(i === j ? 1 : ac);
+    if (s > trials) {
+      return 0;
     }
-    matrix.push(row);
+    let coefficient = 1;
+    for (let i = 1; i <= s; i++) {
+      coefficient *= (trials - i + 1) / i;
+    }
+
+    return coefficient;
   }
 
-  return { autocorrelation, matrix };
-}
+  /**
+   * Multiplies two matrices
+   * @method multipleMatrix
+   * @author riya-patil
+   * @memberof stats
+   * @param {Array} matrix1 - First matrix
+   * @param {Array} matrix2 - Second matrix
+   * @returns {Array} Result of matrix multiplication
+   * @example
+   * const matrix1 = [[1, 2], [3, 4]];
+   * const matrix2 = [[5, 6], [7, 8]];
+   * hydro.analyze.stats.multiplyMatrix(matrix1, matrix2)
+   */
+  static multiplyMatrix(matrix1, matrix2) {
+    const m1Rows = matrix1.length;
+    const m1Cols = matrix1[0].length;
+    const m2Cols = matrix2[0].length;
+    const result = [];
 
-/**
- * Calculates the binomial coefficient (n choose k format)
- * @method binomialCoefficient
- * @author riya-patil
- * @memberof stats
- * @param {Number} trials - The number of trials
- * @param {Number} s - The number of successes
- * @returns {Number} The binomial coefficient (trials choose s)
- */
-static binomialCoefficient(trials, s) {
-  if (s === 0 || s === trials) {
-    return 1;
-  }
-  if (s > trials) {
-    return 0;
-  }
-  let coefficient = 1;
-  for (let i = 1; i <= s; i++) {
-    coefficient *= (trials - i + 1) / i;
-  }
-
-  return coefficient;
-}
-
-/**
- * Multiplies two matrices
- * @method multipleMatrix
- * @author riya-patil
- * @memberof stats
- * @param {Array} matrix1 - First matrix
- * @param {Array} matrix2 - Second matrix
- * @returns {Array} Result of matrix multiplication
- * @example
- * const matrix1 = [[1, 2], [3, 4]];
- * const matrix2 = [[5, 6], [7, 8]];
- * hydro.analyze.stats.multiplyMatrix(matrix1, matrix2)
- */
-static multiplyMatrix(matrix1, matrix2) {
-  const m1Rows = matrix1.length;
-  const m1Cols = matrix1[0].length;
-  const m2Cols = matrix2[0].length;
-  const result = [];
-
-  for (let i = 0; i < m1Rows; i++) {
-    result[i] = [];
-    for (let j = 0; j < m2Cols; j++) {
-      let sum = 0;
-      for (let k = 0; k < m1Cols; k++) {
-        sum += matrix1[i][k] * matrix2[k][j];
+    for (let i = 0; i < m1Rows; i++) {
+      result[i] = [];
+      for (let j = 0; j < m2Cols; j++) {
+        let sum = 0;
+        for (let k = 0; k < m1Cols; k++) {
+          sum += matrix1[i][k] * matrix2[k][j];
+        }
+        result[i][j] = sum;
       }
-      result[i][j] = sum;
     }
+
+    return result;
   }
 
-  return result;
-}
+  /**
+   * Transposes a matrix
+   * @method transposeMatrix
+   * @author riya-patil
+   * @memberof stats
+   * @param {Array} matrix - Matrix to transpose
+   * @returns {Array} Transposed matrix
+   * @example
+   * const matrix = [[1, 2, 3], [4, 5, 6]];
+   * hydro.analyze.stats.transposeMatrix(matrix)
+   */
+  static transposeMatrix(matrix) {
+    const rows = matrix.length;
+    const cols = matrix[0].length;
+    const transposed = [];
 
-/**
- * Transposes a matrix
- * @method transposeMatrix
- * @author riya-patil
- * @memberof stats
- * @param {Array} matrix - Matrix to transpose
- * @returns {Array} Transposed matrix
- * @example
- * const matrix = [[1, 2, 3], [4, 5, 6]];
- * hydro.analyze.stats.transposeMatrix(matrix)
- */
-static transposeMatrix(matrix) {
-  const rows = matrix.length;
-  const cols = matrix[0].length;
-  const transposed = [];
-
-  for (let j = 0; j < cols; j++) {
-    transposed[j] = [];
-    for (let i = 0; i < rows; i++) {
-      transposed[j][i] = matrix[i][j];
+    for (let j = 0; j < cols; j++) {
+      transposed[j] = [];
+      for (let i = 0; i < rows; i++) {
+        transposed[j][i] = matrix[i][j];
+      }
     }
+
+    return transposed;
   }
 
-  return transposed;
-}
+  /**
+   * Computes the inverse of a matrix
+   * @method matrixInverse
+   * @author riya-patil
+   * @memberof stats
+   * @param {Array} matrix - Matrix to compute inverse of
+   * @returns {Array} Inverse of the matrix
+   * @example
+   * const matrix = [[1, 2, 3], [4, 5, 6]];
+   * hydro.analyze.stats.matrixInverse(matrix)
+   */
 
-/**
- * Computes the inverse of a matrix
- * @method matrixInverse
- * @author riya-patil
- * @memberof stats
- * @param {Array} matrix - Matrix to compute inverse of
- * @returns {Array} Inverse of the matrix
- * @example
- * const matrix = [[1, 2, 3], [4, 5, 6]];
- * hydro.analyze.stats.matrixInverse(matrix)
- */
+  static matrixInverse(matrix) {
+    const n = matrix.length;
+    const inv = [];
+    const inversed = [];
 
-static matrixInverse(matrix) {
-  const n = matrix.length;
-  const inv = [];
-  const inversed = [];
-
-  for (let i = 0; i < n; i++) {
-    inversed[i] = [];
-    inv[i] = [];
-    for (let j = 0; j < n; j++) {
-      inversed[i][j] = i === j ? 1 : 0;
-      inv[i][j] = matrix[i][j];
-    }
-  }
-
-  for (let k = 0; k < n; k++) {
-    const pivot = inv[k][k]; //elimatination to obtain inversed matrix
-
-    for (let j = 0; j < n; j++) {
-      inv[k][j] /= pivot;
-      inversed[k][j] /= pivot;
-    }
-    //row operations to eliminate other elements
     for (let i = 0; i < n; i++) {
-      if (i !== k) {
-        const factor = inv[i][k];
+      inversed[i] = [];
+      inv[i] = [];
+      for (let j = 0; j < n; j++) {
+        inversed[i][j] = i === j ? 1 : 0;
+        inv[i][j] = matrix[i][j];
+      }
+    }
 
-        for (let j = 0; j < n; j++) {
-          inv[i][j] -= factor * inv[k][j];
-          inversed[i][j] -= factor * inversed[k][j];
+    for (let k = 0; k < n; k++) {
+      const pivot = inv[k][k]; //elimatination to obtain inversed matrix
+
+      for (let j = 0; j < n; j++) {
+        inv[k][j] /= pivot;
+        inversed[k][j] /= pivot;
+      }
+      //row operations to eliminate other elements
+      for (let i = 0; i < n; i++) {
+        if (i !== k) {
+          const factor = inv[i][k];
+
+          for (let j = 0; j < n; j++) {
+            inv[i][j] -= factor * inv[k][j];
+            inversed[i][j] -= factor * inversed[k][j];
+          }
         }
       }
     }
+
+    return inversed;
   }
 
-  return inversed;
-}
-
-/**
- * Calculates the cumulative distribution function (CDF) of the chi-square distribution
- * NOTE: This will require revision in the future, readjusting considering lookups or fitting to a gamma distribution instead
- * @method chisqCDF
- * @author riya-patil
- * @memberof stats
- * @param {number} x The value at which to evaluate the CDF
- * @param {number} k The degrees of freedom
- * @returns {number} The cumulative probability
- * @example
- * const x = 10
- * const df = 20
- * hydro.analyze.stats.chisCDF(10, 20)
- */
-static chisqCDF(x, k) {
-  let term = Math.exp(-x / 2);
-  let sum = term;
-  for (let i = 1; i < k; i++) {
-    let prevTerm = term;
-    term *= x / (2 * (i + 1));
-    sum += term;
-    if (term === prevTerm) break;
-  }
-  return 1 - sum;
-}
-
-/**
- * Calculates the dot product of two vectors. Both vectors should be represented as 1D JS arrays with the same length
- * @method dotProduct
- * @author riya-patil
- * @param {Array} a - The first vector
- * @param {Array} b - The second vector
- * @returns {number} The dot product
- * @throws {Error} If the input vectors have different lengths
- * @example
- * const a = [1, 2, 3, 4, 5]
- * const b = [10, 20, 30, 40, 50]
- * hydro.analyze.stats.dotProduct(a,b)
- */
-static dotProduct(a, b) {
-  if (a.length != b.length) {
-    throw new Error("Input vectors must have the same length.");
-  }
-
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result += a[i] * b[i];
-  }
-
-  return result;
-}
-
-/**
- * Gets the next state based on the transition probabilities defined in the transition matrix.
- * @method getNextState
- * @author riya-patil
- * @memberof stats
- * @param {number[][]} transitionMatrix transition matrix representing the probabilities of transitioning between states.
- * @param {number} currentState current state of the function
- * @returns {number} Next state selected based on the transition probabilities.
- * @example
- * const transitionMatrix = [
-  [0.2, 0.8], 
-  [0.5, 0.5],
-    ];
-  const initialState = 0;
- */
-static getNextState(transitionMatrix, currentState) {
-  const randomValue = Math.random();
-  let cumulativeProbability = 0;
-
-  for (let i = 0; i < transitionMatrix[currentState].length; i++) {
-    cumulativeProbability += transitionMatrix[currentState][i];
-
-    if (randomValue <= cumulativeProbability) {
-      return i;
+  /**
+   * Calculates the cumulative distribution function (CDF) of the chi-square distribution
+   * NOTE: This will require revision in the future, readjusting considering lookups or fitting to a gamma distribution instead
+   * @method chisqCDF
+   * @author riya-patil
+   * @memberof stats
+   * @param {number} x The value at which to evaluate the CDF
+   * @param {number} k The degrees of freedom
+   * @returns {number} The cumulative probability
+   * @example
+   * const x = 10
+   * const df = 20
+   * hydro.analyze.stats.chisCDF(10, 20)
+   */
+  static chisqCDF(x, k) {
+    let term = Math.exp(-x / 2);
+    let sum = term;
+    for (let i = 1; i < k; i++) {
+      let prevTerm = term;
+      term *= x / (2 * (i + 1));
+      sum += term;
+      if (term === prevTerm) break;
     }
+    return 1 - sum;
   }
 
-  // If no state is selected, return the current state as a fallback
-  return currentState;
-}
+  /**
+   * Calculates the dot product of two vectors. Both vectors should be represented as 1D JS arrays with the same length
+   * @method dotProduct
+   * @author riya-patil
+   * @param {Array} a - The first vector
+   * @param {Array} b - The second vector
+   * @returns {number} The dot product
+   * @throws {Error} If the input vectors have different lengths
+   * @example
+   * const a = [1, 2, 3, 4, 5]
+   * const b = [10, 20, 30, 40, 50]
+   * hydro.analyze.stats.dotProduct(a,b)
+   */
+  static dotProduct(a, b) {
+    if (a.length != b.length) {
+      throw new Error("Input vectors must have the same length.");
+    }
+
+    let result = 0;
+    for (let i = 0; i < a.length; i++) {
+      result += a[i] * b[i];
+    }
+
+    return result;
+  }
+
+  /**
+   * Gets the next state based on the transition probabilities defined in the transition matrix.
+   * @method getNextState
+   * @author riya-patil
+   * @memberof stats
+   * @param {number[][]} transitionMatrix transition matrix representing the probabilities of transitioning between states.
+   * @param {number} currentState current state of the function
+   * @returns {number} Next state selected based on the transition probabilities.
+   * @example
+   * const transitionMatrix = [
+    [0.2, 0.8], 
+    [0.5, 0.5],
+      ];
+    const initialState = 0;
+   */
+  static getNextState(transitionMatrix, currentState) {
+    const randomValue = Math.random();
+    let cumulativeProbability = 0;
+
+    for (let i = 0; i < transitionMatrix[currentState].length; i++) {
+      cumulativeProbability += transitionMatrix[currentState][i];
+
+      if (randomValue <= cumulativeProbability) {
+        return i;
+      }
+    }
+
+    // If no state is selected, return the current state as a fallback
+    return currentState;
+  }
 
   /**********************************/
   /*** End of Helper functions **/

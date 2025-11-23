@@ -73,26 +73,56 @@ class ModelProxy {
 
   /**
    * Trains the model.
-   * @param {Object} data - { inputs, outputs, inputShape, outputShape }
+   * @param {Object} data - { inputs, outputs, inputShape, outputShape } OR a cache key string
    * @param {Object} config - { epochs, batchSize, ... }
    */
   async train({ data, config }) {
+    let trainData = data;
+
+    // Resolve cache key if data is a string
+    if (typeof data === 'string') {
+      const cache = globalThis.hydro?.cache;
+      if (cache) {
+        const cached = await cache.get(data);
+        if (cached) {
+          trainData = cached.data;
+        } else {
+          console.warn(`[NN] Cache key '${data}' not found. Sending as is.`);
+        }
+      }
+    }
+
     return this.nn._send("TRAIN", {
       modelId: this.id,
-      data,
+      data: trainData,
       config
     });
   }
 
   /**
    * Predicts using the model.
-   * @param {Object} inputs - Raw input data (array)
+   * @param {Object} inputs - Raw input data (array) OR a cache key string
    * @param {Array} inputShape - Shape of the input
    */
   async predict({ inputs, inputShape }) {
+    let predictInputs = inputs;
+
+    // Resolve cache key if inputs is a string
+    if (typeof inputs === 'string') {
+      const cache = globalThis.hydro?.cache;
+      if (cache) {
+        const cached = await cache.get(inputs);
+        if (cached) {
+          predictInputs = cached.data;
+        } else {
+          console.warn(`[NN] Cache key '${inputs}' not found. Sending as is.`);
+        }
+      }
+    }
+
     return this.nn._send("PREDICT", {
       modelId: this.id,
-      inputs,
+      inputs: predictInputs,
       inputShape
     });
   }
