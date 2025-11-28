@@ -6,11 +6,11 @@
  */
 export default class nn {
 
-  constructor() {
-    this.worker = new Worker(new URL('./utils/nn.worker.js', import.meta.url), { type: "module" });
-    this.pending = new Map();
-    this.msgId = 0;
+  static worker = new Worker(new URL('./utils/nn.worker.js?v=' + Date.now(), import.meta.url), { type: "module" });
+  static pending = new Map();
+  static msgId = 0;
 
+  static {
     this.worker.onmessage = (e) => {
       const { id, status, payload, action } = e.data;
 
@@ -29,7 +29,7 @@ export default class nn {
     };
   }
 
-  _send(action, payload) {
+  static _send(action, payload) {
     const id = this.msgId++;
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
@@ -38,27 +38,69 @@ export default class nn {
   }
 
   /**
-   * Creates a model in the worker.
-   * @param {Object} params - { type, config }
+   * Creates a machine learning model in the worker.
+   * @method createModel
+   * @memberof nn
+   * @param {Object} params - Contains: type (model type)
+   * @param {Object} args - Contains: config (model configuration)
    * @returns {Promise<ModelProxy>} A proxy object to control the model.
+   * 
+   * @example
+   * // Create a Dense Neural Network
+   * const denseModel = await hydro.analyze.nn.createModel({
+   *   params: { type: 'dense' },
+   *   args: { config: { inputs: 10, neurons: 32, outputs: 1 } }
+   * });
+   * 
+   * @example
+   * // Create a Convolutional Neural Network (CNN)
+   * const cnnModel = await hydro.analyze.nn.createModel({
+   *   params: { type: 'cnn' },
+   *   args: { config: { inputShape: [28, 28, 1], kernelSize: 3, filters: 32, classes: 10 } }
+   * });
+   * 
+   * @example
+   * // Create an LSTM Model
+   * const lstmModel = await hydro.analyze.nn.createModel({
+   *   params: { type: 'lstm' },
+   *   args: { config: { timeSteps: 10, features: 1, units: 50, outputs: 1 } }
+   * });
    */
-  async createModel({ params } = {}) {
+  static async createModel({ params = {}, args = {}, data } = {}) {
     const modelId = `model_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const type = params.type || "dense";
-    const config = params.config || params;
+    const config = args.config || {};
 
     await this._send("CREATE", { modelId, type, config });
 
     // Return a proxy object that remembers its ID
-    return new ModelProxy(this, modelId);
+    return new ModelProxy(modelId);
   }
 
   /**
-   * Loads a pretrained model (Not fully implemented in worker yet, but placeholder).
+   * Loads a pretrained model from a URL.
+   * @method loadModel
+   * @memberof nn
+   * @param {Object} params - Contains: url (path to model.json)
+   * @returns {Promise<ModelProxy>} A proxy object to control the model.
+   * 
+   * @example
+   * const loadedModel = await hydro.analyze.nn.loadModel({
+   *   params: { url: 'https://example.com/my-model/model.json' }
+   * });
    */
-  async loadModel({ params } = {}) {
-    // Implementation would involve sending URL to worker to load
-    throw new Error("loadModel not yet implemented in Fat Worker architecture.");
+  static async loadModel({ params = {}, args, data } = {}) {
+    const modelId = `model_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const url = params.url;
+
+    if (!url) {
+      throw new Error("URL is required to load a model.");
+    }
+
+    await this._send("LOAD", { modelId, url });
+
+    // Return a proxy object that remembers its ID
+    return new ModelProxy(modelId);
   }
 }
 
@@ -66,17 +108,25 @@ export default class nn {
  * Proxy class representing a model living in the worker.
  */
 class ModelProxy {
-  constructor(nnInstance, modelId) {
-    this.nn = nnInstance;
+  constructor(modelId) {
     this.id = modelId;
   }
 
   /**
-   * Trains the model.
-   * @param {Object} data - { inputs, outputs, inputShape, outputShape } OR a cache key string
-   * @param {Object} config - { epochs, batchSize, ... }
+   * Trains the model with provided data.
+   * @method train
+   * @memberof ModelProxy
+   * @param {Object} params - Contains: epochs, batchSize, validationSplit, optimizer, loss, metrics
+   * @param {Object} data - Contains: inputs, outputs (as arrays or tensors) OR a cache key string
+   * @returns {Promise<Object>} Training status and history.
+   * 
+   * @example
+   * await model.train({
+   *   params: { epochs: 50, batchSize: 32, loss: 'meanSquaredError', optimizer: 'adam' },
+   *   data: { inputs: xTrain, outputs: yTrain }
+   * });
    */
-  async train({ data, config }) {
+  async train({ params = {}, args, data } = {}) {
     let trainData = data;
 
     // Resolve cache key if data is a string
@@ -92,56 +142,79 @@ class ModelProxy {
       }
     }
 
-    return this.nn._send("TRAIN", {
+    return nn._send("TRAIN", {
       modelId: this.id,
       data: trainData,
-      config
+      config: params
     });
   }
 
   /**
-   * Predicts using the model.
-   * @param {Object} inputs - Raw input data (array) OR a cache key string
-   * @param {Array} inputShape - Shape of the input
+   * Generates predictions using the trained model.
+   * @method predict
+   * @memberof ModelProxy
+   * @param {Object} params - Contains: inputShape (optional)
+   * @param {Object|Array} data - Input data for prediction OR a cache key string
+   * @returns {Promise<Array>} Prediction results.
+   * 
+   * @example
+   * const predictions = await model.predict({
+   *   params: { inputShape: [1, 10] },
+   *   data: xTest
+   * });
    */
-  async predict({ inputs, inputShape }) {
-    let predictInputs = inputs;
+  async predict({ params = {}, args, data } = {}) {
+    let predictInputs = data;
 
     // Resolve cache key if inputs is a string
-    if (typeof inputs === 'string') {
+    if (typeof data === 'string') {
       const cache = globalThis.hydro?.cache;
       if (cache) {
-        const cached = await cache.get(inputs);
+        const cached = await cache.get(data);
         if (cached) {
           predictInputs = cached.data;
         } else {
-          console.warn(`[NN] Cache key '${inputs}' not found. Sending as is.`);
+          console.warn(`[NN] Cache key '${data}' not found. Sending as is.`);
         }
       }
     }
 
-    return this.nn._send("PREDICT", {
+    return nn._send("PREDICT", {
       modelId: this.id,
       inputs: predictInputs,
-      inputShape
+      inputShape: params.inputShape
     });
   }
 
   /**
-   * Saves the model.
-   * @param {string} name 
+   * Saves the model to the local file system (browser downloads).
+   * @method save
+   * @memberof ModelProxy
+   * @param {Object} params - Contains: name (filename for the model)
+   * @returns {Promise<Object>} Save status.
+   * 
+   * @example
+   * await model.save({
+   *   params: { name: 'my-trained-model' }
+   * });
    */
-  async save(name) {
-    return this.nn._send("SAVE", {
+  async save({ params = {}, args, data } = {}) {
+    return nn._send("SAVE", {
       modelId: this.id,
-      name
+      name: params.name || 'model'
     });
   }
 
   /**
-   * Disposes the model in the worker.
+   * Disposes the model from memory in the worker.
+   * @method dispose
+   * @memberof ModelProxy
+   * @returns {void}
+   * 
+   * @example
+   * model.dispose();
    */
   dispose() {
-    this.nn._send("DISPOSE", { modelId: this.id });
+    nn._send("DISPOSE", { modelId: this.id });
   }
 }

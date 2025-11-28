@@ -34,6 +34,23 @@ import nhdplus from "./datasources/nhdplus.js";
 import mrms from "./datasources/mrms.js"
 import threedep from "./datasources/threedep.js"
 import prism from "./datasources/prism.js"
+import bmkg from "./datasources/bmkg.js"
+import cma from "./datasources/cma.js"
+import dwd from "./datasources/dwd.js"
+import imd from "./datasources/imd.js"
+import jma from "./datasources/jma.js"
+import kma from "./datasources/kma.js"
+import knmi from "./datasources/knmi.js"
+import meteofrance from "./datasources/meteofrance.js"
+import metno from "./datasources/metno.js"
+import smhi from "./datasources/smhi.js"
+import tmd from "./datasources/tmd.js"
+import wbd from "./datasources/wbd.js"
+
+
+
+
+
 
 export {
   usgs,
@@ -68,5 +85,17 @@ export {
   aorc,
   threedep,
   prism,
-  nhdplus
+  nhdplus,
+  bmkg,
+  cma,
+  dwd,
+  imd,
+  jma,
+  kma,
+  knmi,
+  meteofrance,
+  metno,
+  smhi,
+  tmd,
+  wbd,
 };

@@ -25,6 +25,9 @@ self.onmessage = async function (e) {
             case "SAVE":
                 result = await saveModel(payload);
                 break;
+            case "LOAD":
+                result = await loadModel(payload);
+                break;
             case "DISPOSE":
                 result = disposeModel(payload);
                 break;
@@ -69,9 +72,19 @@ async function createModel({ modelId, type, config }) {
 
 function createDense(config) {
     const model = tf.sequential();
-    model.add(tf.layers.dense({ inputShape: [config.inputs], units: config.inputs, activation: 'relu' }));
-    model.add(tf.layers.dense({ units: config.neurons, activation: 'sigmoid' }));
-    model.add(tf.layers.dense({ units: config.outputs, activation: 'sigmoid' }));
+    model.add(tf.layers.dense({
+        inputShape: [config.inputs],
+        units: config.inputs,
+        activation: config.activation || 'relu'
+    }));
+    model.add(tf.layers.dense({
+        units: config.neurons,
+        activation: config.activation || 'relu'
+    }));
+    model.add(tf.layers.dense({
+        units: config.outputs,
+        activation: config.outputActivation || 'linear' // Default to linear for regression
+    }));
     return model;
 }
 
@@ -249,6 +262,12 @@ async function saveModel({ modelId, name }) {
     // Save to downloads
     await model.save(`downloads://${name}`);
     return { status: "SAVED", name };
+}
+
+async function loadModel({ modelId, url }) {
+    const model = await tf.loadLayersModel(url);
+    modelRegistry.set(modelId, model);
+    return { modelId, status: "LOADED" };
 }
 
 function disposeModel({ modelId }) {

@@ -1,6 +1,6 @@
 // Core modules (always included)
 import * as data from "./modules/data/data.js";
-import * as analyze from "./modules/analyze/analyze.js";
+import Analyze from "./modules/analyze/analyze.js";
 import { HydroLangCache, cachedFetch } from "./modules/data/utils/data-cache.js";
 import * as datasources from "./modules/data/datasources.js";
 
@@ -15,7 +15,7 @@ class Hydrolang {
     // Base modules are always loaded
     // Clone module namespace objects to allow mutation (wrapping)
     this.data = { ...data };
-    this.analyze = { ...analyze };
+    this.analyze = new Analyze(config.analyzeComponents);
 
     // Attach datasources to data module
     this.datasources = datasources;
@@ -103,6 +103,11 @@ class Hydrolang {
         }
 
       } else if (typeof value === 'object' && !Array.isArray(value)) {
+        // Skip Maps, Sets, and other built-in types that shouldn't be cloned via spread
+        if (value instanceof Map || value instanceof Set || value instanceof WeakMap || value instanceof WeakSet || value instanceof Date || value instanceof RegExp || value instanceof Worker) {
+          continue;
+        }
+
         // Clone and recurse
         module[key] = { ...value };
         this._wrapModule(module[key]);

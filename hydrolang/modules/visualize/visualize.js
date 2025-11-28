@@ -181,9 +181,19 @@ function chart({ params, args, data } = {}) {
   let currentChunkIndex = 0;
   let chunks = [];
 
+  // Clear any existing chart state for this ID
+  if (window._chartObjects && window._chartObjects[id]) {
+    try {
+      window._chartObjects[id].clearChart();
+    } catch (e) {
+      // Ignore clearChart errors
+    }
+    delete window._chartObjects[id];
+  }
+
   function normalizeChartData(raw) {
     if (!Array.isArray(raw)) return [];
-  
+
     // Check for deeply nested time series: [[["t", ...], ["v", ...]], ...]
     if (
       Array.isArray(raw[0]) &&
@@ -196,26 +206,53 @@ function chart({ params, args, data } = {}) {
         const y = valArr.slice(1).map(Number);
         return x.map((t, i) => [t, y[i]]);
       });
-  
+
       // Assume all series are aligned on same timestamps
       const timestamps = series[0].map(row => row[0]);
       const result = [timestamps];
       for (let s of series) {
         result.push(s.map(row => row[1]));
       }
-  
+
       return result;
     }
-  
+
     // Fallbacks for older formats
     if (raw.every(x => typeof x === "number")) {
       return [[...Array(raw.length).keys()], raw];
     }
-  
+
+    // Check if we have a time series format: [["datetime", ...dates], ["value", ...values]]
+    if (raw.length >= 2 &&
+      Array.isArray(raw[0]) && Array.isArray(raw[1]) &&
+      typeof raw[0][0] === 'string' && typeof raw[1][0] === 'string' &&
+      raw[0].length > 1 && raw[1].length > 1) {
+
+      // Check if first row contains date-like strings
+      const firstDataRow = raw[0];
+      const isDateTime = firstDataRow[0].toLowerCase().includes('date') ||
+        firstDataRow[0].toLowerCase().includes('time') ||
+        (firstDataRow.length > 1 && isDateString(firstDataRow[1]));
+
+      if (isDateTime) {
+        // Process as time series data
+        const timeData = raw[0].slice(1); // Remove label, keep time values
+        const result = [timeData]; // Time values as strings (Google Charts will parse them)
+
+        // Process value series
+        for (let i = 1; i < raw.length; i++) {
+          const values = raw[i].slice(1).map(Number);
+          result.push(values);
+        }
+
+        return result;
+      }
+    }
+
     let series = [], baseLength = 0;
     for (let entry of raw) {
       if (!Array.isArray(entry)) continue;
-  
+
       if (Array.isArray(entry[0]) && typeof entry[0][0] === 'string') {
         let time = entry[0].slice(1);
         let values = entry[1].slice(1).map(Number);
@@ -230,18 +267,33 @@ function chart({ params, args, data } = {}) {
         series.push([null, entry.map(Number)]);
       }
     }
-  
+
     let xBase = [...Array(baseLength).keys()];
     let result = [xBase];
-  
+
     for (let [x, y] of series) {
       if (!x) x = xBase;
       x = x.concat(Array(baseLength - x.length).fill(null));
       y = y.concat(Array(baseLength - y.length).fill(null));
       result.push(y);
     }
-  
+
     return result;
+  }
+
+  // Helper function to detect if a string is a date
+  function isDateString(str) {
+    if (typeof str !== 'string') return false;
+
+    // Check for common date patterns
+    const datePatterns = [
+      /^\d{4}-\d{2}-\d{2}/, // YYYY-MM-DD
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, // ISO datetime
+      /^\d{2}\/\d{2}\/\d{4}/, // MM/DD/YYYY
+      /^\d{2}-\d{2}-\d{4}/, // MM-DD-YYYY
+    ];
+
+    return datePatterns.some(pattern => pattern.test(str)) || !isNaN(Date.parse(str));
   }
 
   function splitChunks(data, size) {
@@ -262,8 +314,15 @@ function chart({ params, args, data } = {}) {
     const headers = ['X', ...subData.slice(1).map((_, i) => names[i] || 'Series ' + (i + 1))];
     dataMatrix.push(headers);
 
+    // Check if first column contains date strings
+    const isTimeSeriesData = subData[0].length > 0 &&
+      typeof subData[0][0] === 'string' &&
+      isDateString(subData[0][0]);
+
     for (let i = 0; i < subData[0].length; i++) {
-      const row = [subData[0][i]];
+      // Convert date strings to Date objects for proper time series rendering
+      const xValue = isTimeSeriesData ? new Date(subData[0][i]) : subData[0][i];
+      const row = [xValue];
       for (let j = 1; j < subData.length; j++) {
         row.push(subData[j][i]);
       }
@@ -272,7 +331,7 @@ function chart({ params, args, data } = {}) {
 
     const chartData = google.visualization.arrayToDataTable(dataMatrix);
 
-        const chartClassMap = {
+    const chartClassMap = {
       line: 'LineChart',
       column: 'ColumnChart',
       scatter: 'ScatterChart',
@@ -285,8 +344,9 @@ function chart({ params, args, data } = {}) {
     };
 
     if (!window._chartObjects) window._chartObjects = {};
-    if (!window._chartObjects[id]) window._chartObjects[id] = new google.visualization[chartClassMap[chartType]](container);
 
+    // Always create a new chart object to avoid state issues
+    window._chartObjects[id] = new google.visualization[chartClassMap[chartType]](container);
 
     const chart = window._chartObjects[id];
     chart.draw(chartData, options);
@@ -314,8 +374,8 @@ function chart({ params, args, data } = {}) {
     const next = document.createElement("button");
     const info = document.createElement("span");
 
-    prev.innerText = "Previous";
-    next.innerText = "Next";
+    prev.innerText = "◀";
+    next.innerText = "▶";
     nav.append(prev, info, next);
     container.appendChild(nav);
 
@@ -346,16 +406,22 @@ function chart({ params, args, data } = {}) {
   }
 
   const normalized = normalizeChartData(data);
-  if (!document.getElementById(id)) {
+  // Get or create container
+  let container = document.getElementById(id);
+  if (!container) {
     const div = document.createElement("div");
     div.id = id;
     document.body.appendChild(div);
+    container = div;
   }
 
-  const container = document.getElementById(id);
+  // Clear container content and reset any navigation state
+  container.innerHTML = '';
+  container._navCreated = false;
 
   if (partition && normalized[0].length > maxPoints) {
     chunks = splitChunks(normalized, maxPoints);
+    currentChunkIndex = 0; // Reset to first chunk
     drawChart(chunks[currentChunkIndex]);
     createButtons(container);
   } else {
@@ -498,7 +564,7 @@ function chart({ params, args, data } = {}) {
  */
 function table({ params, args, data } = {}) {
   data = data[0]
-  
+
   const drawTable = () => {
     // Create container for table and call the data types required for table generation
     var container,
@@ -710,12 +776,23 @@ function table({ params, args, data } = {}) {
  */
 
 function draw({ params = {}, args = {}, data = [] } = {}) {
+  // Ensure Google Charts is loaded before proceeding
+  if (!window.google || !window.google.charts) {
+    console.warn('Google Charts not loaded, attempting to load...');
+    google.charts.load("current", {
+      packages: ["corechart", "table", "line", "timeline"],
+      callback: () => {
+        // Retry the draw after loading
+        draw({ params, args, data });
+      }
+    });
+    return;
+  }
+
   if (!window.loaded) {
-    (() => {
-      google.charts.load("current", {
-        packages: ["corechart", "table", "line", "timeline"],
-      });
-    })();
+    google.charts.load("current", {
+      packages: ["corechart", "table", "line", "timeline"],
+    });
   }
   window.loaded = true;
 
@@ -823,7 +900,25 @@ function draw({ params = {}, args = {}, data = [] } = {}) {
       maxPoints: params.maxPoints || 1000
     };
 
-    setTimeout(() => chart({ params: pm, data: dat }), 200);
+    // Use google.charts.setOnLoadCallback for better timing
+    if (window.google && window.google.charts) {
+      google.charts.setOnLoadCallback(() => {
+        try {
+          chart({ params: pm, data: dat });
+        } catch (error) {
+          console.error('Error drawing chart:', error);
+        }
+      });
+    } else {
+      // Fallback to setTimeout if setOnLoadCallback is not available
+      setTimeout(() => {
+        try {
+          chart({ params: pm, data: dat });
+        } catch (error) {
+          console.error('Error drawing chart:', error);
+        }
+      }, 300);
+    }
     return;
   }
 
@@ -846,7 +941,7 @@ function draw({ params = {}, args = {}, data = [] } = {}) {
     };
     // setTimeout(() => table({ params: pm, data: dat }), 200);
     // return;
-    drawHtmlTable({params: pm, data: dat })
+    drawHtmlTable({ params: pm, data: dat })
   }
   //JSON options.
   else if (type === "json") {
