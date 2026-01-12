@@ -4,7 +4,7 @@
  * Supports DEM (Digital Elevation Model) data in various resolutions
  * @type {Object}
  * @name 3DEP
- * @auth  kento-sugiyama
+ * @author  kento-sugiyama
  * @memberof datasources
  */
 

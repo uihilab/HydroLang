@@ -110,7 +110,6 @@ function reinitializeController(mapType) {
  * @returns {Element} Layer appended to a map div that has already been created. The layer is added into the global
  * layer object.
  * @example
- * @example
  * // Add a standard OpenStreetMap tile layer
  * hydro.map.Layers({
  *   args: { type: 'tile', name: 'OpenStreetMap' }
@@ -2006,7 +2005,6 @@ function markerStyles({ params, args, data } = {}) {
  * @memberof map
  * @param {Object} params - Contains: maptype(google, osm)
  * @returns {Element} Toolkit layer added to map.
- * @example
  * @example
  * // Enable standard drawing tools on the map
  * hydro.map.draw({
