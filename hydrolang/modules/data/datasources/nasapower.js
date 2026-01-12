@@ -13,7 +13,7 @@ export default {
   "point-data": {
     endpoint: "https://power.larc.nasa.gov/api/temporal/daily/point",
     params: {
-      parameters: null, 
+      parameters: null,
       community: null,
       longitude: null,
       latitude: null,
@@ -48,7 +48,7 @@ export default {
       method: "GET"
     }
   },
-  
+
   // Global data query
   "global-data": {
     endpoint: "https://power.larc.nasa.gov/api/temporal/monthly/global",
@@ -84,7 +84,7 @@ export default {
   },
 
   requirements: {
-    needProxy: false,
+    needProxy: true,
     requireskey: false,
   },
 

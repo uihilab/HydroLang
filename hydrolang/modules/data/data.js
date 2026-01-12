@@ -1,5 +1,18 @@
 import * as datasources from "./datasources.js";
 import stats from "../analyze/components/stats.js";
+import { cachedFetch } from "./utils/data-cache.js";
+import {
+  GRIDDED_SOURCES,
+  processGriddedSource,
+  applyDataScaling,
+  convertDataUnits,
+  aggregateTemporal,
+  applyQualityControl,
+  calculateStatistics,
+  formatData,
+  loadGridDataLibrary,
+} from "./utils/index.js";
+
 //import fxparserMin from "./fxparser.min.js";
 
 //import XMLParser from './fxparser.min.js'
@@ -155,135 +168,533 @@ import stats from "../analyze/components/stats.js";
  *   }
  * });
  */
+
 async function retrieve({ params, args, data } = {}) {
 
   let source = params.source;
   let dataType = params.datatype;
   let placeHolder = params.placeHolder || false;
   let trans = params.transform || false;
-  let dataSource = datasources[source]?.[dataType];
 
-  console.log(params)
-
-  if (!dataSource) {
-    return Promise.reject(new Error("No data source found for the given specifications."));
-  }
-
-  let endpoint =
-    source === "waterOneFlow" || source === "hisCentral" || source === "mitigation_dt" || source === "flooddamage_dt"
-      ? datasources[source].sourceType(args.sourceType, dataType)
-      : dataSource.endpoint;
-
-  let type = params.type || dataSource.methods.type;
-
-  // let proxy = datasources[source]?.requirements?.needProxy
-  //   ? datasources.proxies["local-proxy"].endpoint
-  //   : "";
-  
-    let proxy = datasources.proxies["local-proxy"].endpoint
-    ;
-
-  let headers = {
-    "content-type": (() => {
-      if (type === "json") {
-        return "application/json";
-      } else if (type === "xml" || type === "soap") {
-        return "text/xml; charset=utf-8";
-      } else if (type === "csv" || type === "tab") {
-        return "application/text"; 
-      } else {
-        return "application/json"; // Default
+  try {
+    // Check if this is a gridded data source
+    const griddedConfig = GRIDDED_SOURCES[source];
+    if (griddedConfig) {
+      // Run preprocessing if needed (e.g., NLDI lookup for NWM)
+      if (griddedConfig.preProcess) {
+        const result = await griddedConfig.preProcess(params, args, dataType);
+        args = result.args;
       }
-    })(),
-  };
 
-  if (type === "soap") {
-    headers["SOAPAction"] = datasources[source].action + dataType;
-  }
-
-  let keyname = datasources[source]?.requirements?.keyname;
-  if (keyname && params[keyname]) {
-    headers[keyname] = params[keyname];
-  } else if (keyname) {
-    console.warn("info: please verify the keyname of the source."); 
-  }
-
-  endpoint = endpoint.replace(/{(\w+)}/g, (match, key) => {
-    const value = args[key];
-    delete args[key];
-    return value;
-  });
-
-
-  let fetchOptions = {
-    method: dataSource.methods.method,
-    headers: headers,
-  };
-
-  if (fetchOptions.method === 'POST') {
-    if (type === 'json') {
-      fetchOptions.body = JSON.stringify(args);
-    } else if (type === 'soap' || type === 'xml') {
-      fetchOptions.body = Object.keys(args).length
-        ? datasources.envelope(dataSource.body(args))
-        : datasources.envelope(dataSource.body());
+      // Use the new generic processor (pass datasources, not params)
+      // Pass process flag if present
+      if (params.process !== true) {
+        args.process = false;
+      }
+      return processGriddedSource(source, dataType, args, datasources);
     }
-  } else if (fetchOptions.method === 'GET' && Object.keys(args).length > 0) {
-    const queryString = new URLSearchParams(args).toString();
-    endpoint += `?${queryString}`;
+
+    // Resolve source configuration robustly (handling named vs default exports)
+    // Resolve source configuration robustly (handling named vs default exports)
+    //const sourceModule = datasources[source] || (datasources.default ? datasources.default[source] : undefined);
+
+    // Safety check for wrapped modules (nested default)
+    // We unwrap .default until we find a likely configuration object (has 'datasets' or 'sourceType')
+    // We need to find the object that actually HAS the sourceType function.
+    let sourceModule = datasources[source];
+
+    // Check main object, then .default, then .default.default using a helper
+    const findConfig = (obj) => {
+      if (!obj) return null;
+      if (typeof obj.sourceType === 'function') return obj;
+      if (obj.default) return findConfig(obj.default);
+      // Fallback for objects that might have datasets but sourceType is on global export
+      if (obj.datasets) return obj;
+      // Fallback for standard datasources (like usgs, nws) that have requirements and info
+      if (obj.requirements && obj.info) return obj;
+      return null;
+    };
+
+    // Try finding it starting from datasources[source]
+    let sourceConfig = findConfig(datasources[source]);
+
+    // If not found, try starting from datasources.default (if it exists)
+    if (!sourceConfig && datasources.default) {
+      sourceConfig = findConfig(datasources.default[source]);
+    }
+
+    // For other datasources, check if they exist
+    // Use the resolved sourceConfig to check for the dataType
+    // sourceConfig might be the datasource object itself (like usgs.js default export)
+    // or it might be the module namespace
+    let dataSource;
+    if (sourceConfig) {
+      dataSource = sourceConfig[dataType];
+      // If not found directly, it might be in datasets (for gridded sources masquerading as direct, like chirps/ecmwf)
+      if (!dataSource && sourceConfig.datasets) {
+        dataSource = sourceConfig.datasets[dataType];
+      }
+    }
+
+    if (!dataSource && !sourceConfig && !GRIDDED_SOURCES[source]) {
+      return Promise.reject(new Error(`No data source found for source '${source}' and type '${dataType}'.`));
+    }
+
+    // Fallback if we have sourceConfig but couldn't resolve specific dataSource yet
+    // (This happens for dynamic sources like chirps/ecmwf where methods are looked up later or custom logic used)
+    if (!dataSource && (source === 'chirps' || source === 'ecmwf' || source === 'dwd' || source === 'nldas')) {
+      // Create dummy dataSource to pass the check, endpoint calculation handles it later
+      dataSource = { methods: { type: 'json' } };
+    }
+
+    if (!dataSource) {
+      return Promise.reject(new Error(`No configuration found for source '${source}' and datatype '${dataType}'.`));
+    }
+
+    let endpoint =
+      source === "waterOneFlow" || source === "hisCentral" || source === "mitigation_dt" || source === "flooddamage_dt" || source === "nldas" || source === "dwd" || source === "chirps" || source === "ecmwf"
+        ? (source === "nldas" ? sourceConfig.sourceType(args.dataset, dataType, args) : (source === "dwd" || source === "chirps" || source === "ecmwf" ? sourceConfig.sourceType(args, dataType) : sourceConfig.sourceType(args.sourceType, dataType)))
+        : dataSource.endpoint;
+
+    if (!endpoint) {
+      throw new Error(`Endpoint resolution failed for source '${source}'. sourceType returned null or undefined.`);
+    }
+
+    let type = params.type || dataSource.methods.type;
+
+    // Check if proxy is needed based on datasource requirements
+    // Use the robust sourceConfig resolved earlier, not datasources[source] which might be undefined for default exports
+    let proxy = "";
+    const needsProxy = (sourceConfig.requirements && sourceConfig.requirements.needProxy) ||
+      (datasources[source] && datasources[source].requirements && datasources[source].requirements.needProxy);
+
+    if (needsProxy) {
+      // Use specified proxy or default to researchverse
+      const proxyName = params.proxyServer || "local-proxy";
+
+      const proxiesContainer = datasources.proxies || (datasources.default && datasources.default.proxies);
+
+      if (!proxiesContainer) {
+        throw new Error("Proxies configuration not found in datasources.");
+      }
+
+      console.log(`[Proxy Debug] Requested: ${proxyName}`);
+      console.log(`[Proxy Debug] Available: ${Object.keys(proxiesContainer).join(', ')}`);
+
+      proxy = proxiesContainer[proxyName]?.endpoint || proxiesContainer["local-proxy"].endpoint;
+      console.log(`[Proxy Debug] Resolved: ${proxy}`);
+    }
+
+    let headers = {
+      "content-type": (() => {
+        if (type === "json") {
+          return "application/json";
+        } else if (type === "xml" || type === "soap") {
+          return "text/xml; charset=utf-8";
+        } else if (type === "csv" || type === "tab") {
+          return "application/text";
+        } else if (type === "netcdf" || type === "tiff" || type === "image" || type === "blob" || type === "binary") {
+          // If we are POSTing to get a binary file (like ECMWF), we usually send JSON params.
+          if (dataSource.methods.method === 'POST') {
+            return "application/json";
+          }
+          return "application/octet-stream";
+        } else {
+          return "application/json"; // Default
+        }
+      })(),
+    };
+
+    if (type === "soap") {
+      headers["SOAPAction"] = datasources.default[source]?.action + dataType;
+    }
+
+    let keyname = sourceConfig.requirements?.keyname || datasources[source]?.requirements?.keyname;
+    if (keyname && params[keyname]) {
+      headers[keyname] = params[keyname];
+    } else if (keyname) {
+      console.warn("info: please verify the keyname of the source.");
+    }
+
+    endpoint = endpoint.replace(/{(\w+)}/g, (match, key) => {
+      const value = args[key];
+      delete args[key];
+      return value;
+    });
+
+
+    let fetchOptions = {
+      method: dataSource.methods.method || 'GET',
+      headers: headers,
+    };
+
+    if (fetchOptions.method === 'POST') {
+      if (type === 'json' || type === 'binary') {
+        // If content-type is json, stringify args
+        if (headers['content-type'] && headers['content-type'].includes('application/json')) {
+          fetchOptions.body = JSON.stringify(args);
+        } else {
+          // Fallback if binary but not json header (unlikely given logic above)
+          fetchOptions.body = JSON.stringify(args);
+        }
+      } else if (type === 'soap' || type === 'xml') {
+        fetchOptions.body = Object.keys(args).length
+          ? datasources.default.envelope(dataSource.body(args))
+          : datasources.default.envelope(dataSource.body());
+      }
+    } else if (fetchOptions.method === 'GET') {
+      // Merge preset parameters from datasource with user-provided args
+      // Start with preset params from datasource definition
+      const mergedParams = {};
+
+      if (dataSource.params) {
+        // Add all preset parameters that have non-null values
+        for (const [key, value] of Object.entries(dataSource.params)) {
+          if (value !== null && value !== undefined) {
+            mergedParams[key] = value;
+          }
+        }
+
+        // Override with user-provided args (for params that were null)
+        for (const [key, value] of Object.entries(args)) {
+          if (value !== null && value !== undefined) {
+            mergedParams[key] = value;
+          }
+        }
+      } else {
+        // If no preset params, just use args as before
+        Object.assign(mergedParams, args);
+      }
+
+      // Only add query string if we have parameters
+      if (Object.keys(mergedParams).length > 0) {
+        const queryString = new URLSearchParams(mergedParams).toString();
+        endpoint += `?${queryString}`;
+      }
+    }
+
+
+    // Determine whether to use cache
+    // Cache is DISABLED by default - must explicitly opt-in with cache: true
+    let globalCache = false;
+    if (typeof window !== 'undefined' && window.hydroConfig && window.hydroConfig.cache !== undefined) {
+      globalCache = window.hydroConfig.cache;
+    }
+    const useCache = params.cache === true || globalCache === true;
+
+    // Execute Request
+    const executeRequest = useCache ? cachedFetch : fetch;
+
+    return executeRequest(proxy + endpoint, fetchOptions)
+      .then(async (response) => {
+        // DEBUG: Log raw response
+        if (typeof response.clone === 'function') {
+          const clone = response.clone();
+          try {
+            const text = await clone.text();
+            console.log(`[Retrieve Debug] Raw response from ${proxy + endpoint}:`, text.substring(0, 500)); // Log first 500 chars
+          } catch (err) {
+            console.log(`[Retrieve Debug] Failed to read raw response:`, err);
+          }
+        } else {
+          console.log(`[Retrieve Debug] Response from ${proxy + endpoint} is not a standard Response object (no clone method).`);
+        }
+
+        // Handle non-Response objects (ArrayBuffer from cachedFetch)
+        if (typeof response.text !== 'function') {
+          if (response instanceof ArrayBuffer || response.byteLength !== undefined) {
+            const text = new TextDecoder().decode(response);
+            // If we expect JSON, try to parse it
+            if (params.datatype === 'json' || dataSource.methods.type === 'json') {
+              return JSON.parse(text);
+            }
+            return text;
+          }
+          return response;
+        }
+
+        // Check if response is a valid Response object (it might be raw data from cache)
+        const isResponseObj = response && typeof response.ok !== 'undefined' && typeof response.headers !== 'undefined';
+
+        if (!isResponseObj) {
+          // It's raw data (likely ArrayBuffer/Blob from cache)
+          if (type === 'json' && typeof response === 'string') {
+            try { return JSON.parse(response); } catch (e) { return response; }
+          }
+          // Wrap raw data if specific binary type requested
+          if (['blob', 'netcdf', 'grib2', 'tiff', 'image'].includes(type)) {
+            return new Blob([response]);
+          }
+          return response;
+        }
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(`HTTP error ${response.status} fetching ${endpoint}: ${errorData}`);
+        }
+
+        // If process is not explicitly true, return raw text or blob based on content type
+        if (params.process !== true) {
+          const contentType = response.headers.get('content-type');
+          if (contentType && (contentType.includes('application/json') || contentType.includes('text/'))) {
+            return response.text();
+          } else {
+            return response.blob();
+          }
+        }
+
+        // Logic for handling response types
+        // Priority: 1. User specified type, 2. Datasource default type, 3. Content-Type detection
+        let targetType = type || dataSource.methods.type || 'unknown';
+
+        // Force blob for known binary types
+        if (['netcdf', 'grib2', 'tiff', 'image', 'blob', 'zip', 'tar', 'kmz', 'zarr', 'binary'].includes(targetType)) {
+          if (typeof response.blob === 'function') {
+            return response.blob();
+          } else if (typeof response.arrayBuffer === 'function') {
+            return response.arrayBuffer().then(buf => new Blob([buf]));
+          }
+          return new Blob([response]); // Fallback
+        }
+
+        if (targetType === 'json') {
+          // Safety check: if content indicates binary/image preventing JSON parse error
+          const ct = response.headers.get('content-type');
+          if (ct && (ct.includes('image/') || ct.includes('application/octet-stream') || ct.includes('application/x-tar') || ct.includes('application/zip'))) {
+            if (typeof response.blob === 'function') return response.blob();
+            return response.arrayBuffer().then(buf => new Blob([buf]));
+          }
+          return response.json();
+        }
+
+        if (['xml', 'soap', 'csv', 'tab', 'kml'].includes(targetType)) {
+          return response.text();
+        }
+
+        // Dynamic detection if type is unknown or generic
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          return response.json();
+        } else if (contentType.includes('text/') || contentType.includes('xml') || contentType.includes('application/vnd.google-earth.kml+xml')) {
+          return response.text();
+        } else {
+          // Default to blob for anything else (likely binary) to avoid JSON parse errors
+          return response.blob();
+        }
+      })
+      .then((responseData) => {
+        // If process is not explicitly true, return raw data
+        if (params.process !== true) {
+          return responseData;
+        }
+
+        if (type === "soap") {
+          try {
+            //DOM Parser workaround
+            // const parser = new DOMParser();
+            // const xmlDoc = parser.parseFromString(responseData, "text/xml");
+
+            // const parser = new XMLParser();
+            // console.log(parser)
+            // const xmlDoc = parser.parse(responseData);
+
+            return responseData
+
+            //let j = xml2json(xmlDoc);
+            // return xmlDoc["soap:Envelope"]?.["soap:Body"] || j; // Handle cases where soap:Body might not exist
+          } catch (xmlError) {
+            throw new Error(`Error parsing SOAP response from ${endpoint}: ${xmlError.message}`);
+          }
+        } else if (type === "xml" || type === "tab" || type === "CSV") {
+          return JSON.stringify(responseData);
+        } else if (trans) {
+          if (source === "usgs") {
+            return transform({
+              params: { save: 'value' },
+              args: { keep: '["datetime", "value"]', type: 'ARR' },
+              data: lowercasing(responseData)
+            });
+          } else if (trans === "eval") {
+            return eval(responseData); // Use eval cautiously
+          }
+        } else {
+          return lowercasing(responseData);
+        }
+      });
+  } finally {
+    // Context will be cleaned up by next request or kept for subsequent calls
+    // Don't delete here - cachedFetch needs it for caching
+  }
+}
+
+
+/**
+ * Get a raw cached file for manual processing
+ * @param {Object} params - Parameters object
+ * @param {string} params.source - Data source
+ * @param {string} params.datatype - Data type
+ * @param {Object} args - Arguments object
+ * @param {string} args.key - Cache key to retrieve
+ * @param {Object} data - Data object (unused)
+ * @returns {Promise<Object>} Raw file data and metadata
+ */
+async function getFile({ params, args, data } = {}) {
+  const cache = globalThis.hydro?.cache;
+  if (!cache) {
+    throw new Error('Cache not available');
   }
 
+  const key = args.key;
+  if (!key) {
+    throw new Error('Cache key required in args.key');
+  }
 
-  return fetch(proxy + endpoint, fetchOptions)
-    .then(async (response) => {
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`HTTP error ${response.status} fetching ${endpoint}: ${errorData}`);
-      }
+  const cached = await cache.get(key);
+  if (!cached) {
+    throw new Error(`No cached file found with key: ${key}`);
+  }
 
-      if (type === "json") {
-        return response.json();
-      } else if (type === "xml" || type === "soap" || type === "csv" || type === "tab") {
-        return response.text();
-      } else {
-        return response.json(); // Default to JSON
-      }
-    })
-    .then((responseData) => {
-      if (type === "soap") {
-        try {
-          //DOM Parser workaround
-          // const parser = new DOMParser();
-          // const xmlDoc = parser.parseFromString(responseData, "text/xml");
-
-          // const parser = new XMLParser();
-          // console.log(parser)
-          // const xmlDoc = parser.parse(responseData);
-
-          return responseData
-
-          //let j = xml2json(xmlDoc);
-          // return xmlDoc["soap:Envelope"]?.["soap:Body"] || j; // Handle cases where soap:Body might not exist
-        } catch (xmlError) {
-          throw new Error(`Error parsing SOAP response from ${endpoint}: ${xmlError.message}`);
-        }
-      } else if (type === "xml" || type === "tab" || type === "CSV") {
-        return JSON.stringify(responseData);
-      } else if (trans) {
-        if (source === "usgs") {
-          return transform({
-            params: { save: 'value'}, 
-            args: { keep: '["datetime", "value"]', type: 'ARR'}, 
-            data: lowercasing(responseData)
-          });
-        } else if (trans === "eval") {
-          return eval(responseData); // Use eval cautiously
-        }
-      } else {
-        return lowercasing(responseData);
-      }
-    });
+  return {
+    data: cached.data,
+    metadata: cached.metadata,
+    key: key,
+    raw: true
+  };
 }
+
+/**
+ * Save processed data with a user-defined key
+ * @param {Object} params - Parameters object
+ * @param {string} params.source - Data source
+ * @param {string} params.datatype - Data type
+ * @param {Object} args - Arguments object
+ * @param {string} args.key - User-defined key for the dataset
+ * @param {string} args.name - Optional human-readable name
+ * @param {Object} data - Data object to save
+ * @returns {Promise<boolean>} Success status
+ */
+async function saveFile({ params, args, data } = {}) {
+  const cache = globalThis.hydro?.cache;
+  if (!cache) {
+    throw new Error('Cache not available');
+  }
+
+  const key = args.key;
+  if (!key) {
+    throw new Error('Dataset key required in args.key');
+  }
+
+  if (!data) {
+    throw new Error('Data to save is required');
+  }
+
+  const metadata = {
+    source: params.source || 'user',
+    datatype: params.datatype || 'dataset',
+    name: args.name || key,
+    savedAt: new Date().toISOString(),
+    userSaved: true
+  };
+
+  return await cache.saveDataset(key, data, metadata);
+}
+
+
+
+
+
+/**
+ * Transform AORC (NOAA Analysis of Record for Calibration) data with comprehensive manipulation capabilities
+ * Handles scaling, unit conversion, temporal/spatial aggregation, and various output formats
+ *
+ * @function transformAORCData
+ * @memberof data
+ * @param {Object} options - Configuration object for AORC transformation
+ * @param {Object} [options.params] - Parameters for transformation type
+ * @param {Object} [options.args] - Arguments for transformation options
+ * @param {Object|Array} options.data - AORC data to transform
+ * @returns {Object|Array|string} Transformed AORC data
+ */
+const transformGriddedData = ({ params, args, data }) => {
+  console.log('[transform] Processing gridded data transformation');
+
+  // Detect data source and apply appropriate transformations
+  const source = params?.source || 'generic';
+
+  // Detect if this is a single variable or multi-variable dataset
+  const isMultiVariable = data && typeof data === 'object' && !data.variable && !Array.isArray(data);
+
+  if (isMultiVariable) {
+    // Handle multiple variables
+    const results = {};
+    for (const [variableName, variableData] of Object.entries(data)) {
+      try {
+        results[variableName] = transformVariable(variableName, variableData, source, params, args);
+      } catch (error) {
+        console.warn(`Failed to transform ${variableName}: ${error.message}`);
+        results[variableName] = { error: error.message };
+      }
+    }
+    return results;
+  } else {
+    // Handle single variable
+    const variableName = data.variable || Object.keys(data)[0];
+    return transformVariable(variableName, data, source, params, args);
+  }
+};
+
+/**
+ * Transform a single gridded data variable with comprehensive manipulations
+ */
+const transformVariable = (variableName, variableData, source, params, args) => {
+  let processedData = deepClone(variableData);
+
+  // Apply source-specific scaling
+  if (source === 'aorc') {
+    processedData = applyDataScaling(processedData, variableName, datasources, 'aorc');
+  } else if (source === 'nwm') {
+    processedData = applyDataScaling(processedData, variableName, datasources, 'nwm');
+  } else if (source === 'threedep') {
+    processedData = applyDataScaling(processedData, variableName, datasources, 'threedep');
+  } else if (source === 'prism') {
+    processedData = applyDataScaling(processedData, variableName, datasources, 'prism');
+  }
+
+  // Apply unit conversions if requested
+  if (args?.units) {
+    processedData = convertDataUnits(processedData, variableName, args.units, source, datasources);
+  }
+
+  // Apply temporal aggregations
+  if (args?.temporalAggregation) {
+    processedData = aggregateTemporal(processedData, args.temporalAggregation);
+  }
+
+  // Apply spatial aggregations
+  if (args?.spatialAggregation) {
+    processedData = aggregateSpatial(processedData, args.spatialAggregation);
+  }
+
+  // Apply quality control filters
+  if (args?.qualityControl) {
+    processedData = applyQualityControl(processedData, args.qualityControl);
+  }
+
+  // Apply statistical transformations
+  if (args?.statistics) {
+    processedData = calculateStatistics(processedData, args.statistics);
+  }
+
+  // Apply format transformations
+  if (args?.type) {
+    return formatData(processedData, args, source, datasources);
+  }
+
+  return processedData;
+};
+
+
+
 
 
 /**
@@ -424,6 +835,10 @@ function transform({ params, args, data } = {}) {
   };
 
   const extractNestedValue = (obj, path) => {
+    // Check for direct property match first (handles keys with dots like "site.name")
+    if (obj && typeof obj === 'object' && Object.prototype.hasOwnProperty.call(obj, path)) {
+      return obj[path];
+    }
     return path.split('.').reduce((acc, key) => acc?.[key], obj);
   };
 
@@ -440,66 +855,136 @@ function transform({ params, args, data } = {}) {
     return result;
   };
 
+  // Helper to parse 'keep' argument which can be JSON string, comma-separated string, or array
+  const parseKeepArg = (keepArg) => {
+    if (!keepArg) return [];
+    if (Array.isArray(keepArg)) return keepArg;
+    if (typeof keepArg === 'string') {
+      try {
+        return JSON.parse(keepArg);
+      } catch (e) {
+        // Fallback: assume comma-separated string
+        return keepArg.split(',').map(k => k.trim()).filter(k => k);
+      }
+    }
+    return [];
+  };
+
+  // === AORC-SPECIFIC HELPER FUNCTIONS ===
+  const findNearestIndex = (coordSystem, targetValue) => {
+    const { min, resolution } = coordSystem;
+    const index = Math.round((targetValue - min) / resolution);
+    return Math.max(0, Math.min(index, Math.floor((coordSystem.max - min) / resolution)));
+  };
+
+  const aggregateTime = (date, timeStep, direction) => {
+    const dateObj = new Date(date);
+    const hours = timeStep === '1D' ? 24 : parseInt(timeStep) || 1;
+
+    if (direction === 'start') {
+      const startOfPeriod = new Date(dateObj);
+      startOfPeriod.setHours(Math.floor(dateObj.getHours() / hours) * hours, 0, 0, 0);
+      return startOfPeriod.toISOString();
+    } else {
+      const endOfPeriod = new Date(dateObj);
+      endOfPeriod.setHours(Math.ceil((dateObj.getHours() + 1) / hours) * hours, 0, 0, 0);
+      return endOfPeriod.toISOString();
+    }
+  };
+
+
+
   // Start transforming
   console.log('[transform] Original input data:', data);
   data = deepClone(data);
 
+  // === GRIDDED DATA TRANSFORMATIONS ===
+  if (params?.source === 'aorc' || params?.source === 'nwm' || params?.source === 'threedep' || params?.source === 'prism' ||
+    (data && typeof data === 'object' && data.variable)) {
+    return transformGriddedData({ params, args, data });
+  }
+
   // === PARAMS & ARGS LOGIC ===
   if (!params) {
     data = args?.parse ? cleanData(data) : data;
-  } else if (params.save !== undefined && args === undefined) {
-    const found = recursiveSearch({ obj: data, searchkey: params.save });
-    data = found?.[0];
-  } else if (params.save !== undefined && args.keep !== undefined) {
-    const found = recursiveSearch({ obj: data, searchkey: params.save });
-    data = found?.[0];
+  } else if (params.save !== undefined) {
+    // Determine if we should perform iterative extraction on an array
+    const isIterativeExtraction = Array.isArray(data) && (
+      // If save path has dots (nested) OR explicit instruction (could add flag later, for now infer from data type)
+      // If the user wants to filter *elements* of an array matching a path
+      params.save.includes('.') || args?.keep
+    );
 
-    if (!data) return null;
-    if (args.parse) {
+    if (isIterativeExtraction && Array.isArray(data)) {
+      // New logic: Map over the array and extract the 'save' path from each item
+      // This is for cases like: data=[{site: {name: 'A'}}, {site: {name: 'B'}}], save='site.name' -> ['A', 'B']
+      // OR data=[{val: {x: 1}}, {val: {x: 2}}], save='val', keep=['x'] -> [{x:1}, {x:2}]
+      const extracted = data.map(item => extractNestedValue(item, params.save)).filter(val => val !== undefined);
+
+      // If extraction yielded results, use them. If not (e.g. maybe save was meant to find a global key?), fall back.
+      // But typically if input is array and we provided a path, we expect mapped results.
+      if (extracted.length > 0) {
+        data = extracted;
+      } else {
+        // Fallback to recursive search (original behavior)
+        const found = recursiveSearch({ obj: data, searchkey: params.save });
+        data = found?.[0] || data; // keep original if not found? or null? existing logic implied found[0]
+      }
+    } else {
+      // Logic for single object input or non-iterative cases
+      const hasDots = params.save.includes('.');
+
+      if (hasDots) {
+        const val = extractNestedValue(data, params.save);
+        if (val !== undefined) data = val;
+      } else {
+        let found = recursiveSearch({ obj: data, searchkey: params.save });
+        if (found && found.length > 0) {
+          data = found[0];
+        } else {
+          // Fallback: direct property access.
+          const val = extractNestedValue(data, params.save);
+          if (val !== undefined) data = val;
+        }
+      }
+    }
+
+    if (args?.parse && data) {
       data = cleanData(data);
     }
-
-    if (typeof args.keep === 'string') {
-      args.keep = JSON.parse(args.keep);
-    }
-
-    const keepKeys = new RegExp(args.keep.join('|'));
-
-    if (Array.isArray(data)) {
-      data = data.map(obj => {
-        if (typeof obj !== 'object') return obj;
-        const filtered = {};
-        for (const key in obj) {
-          if (keepKeys.test(key)) {
-            filtered[key] = obj[key];
-          }
-        }
-        return filtered;
-      });
-    } else if (typeof data === 'object' && data !== null) {
-      const filtered = {};
-      for (const key in data) {
-        if (keepKeys.test(key)) {
-          filtered[key] = data[key];
-        }
-      }
-      data = filtered;
-    }
-  } else if (params.save !== undefined && args.keep === undefined) {
-    const found = recursiveSearch({ obj: data, searchkey: params.save });
-    data = found?.[0];
-    data = args?.parse ? cleanData(data) : data;
   }
 
-    // === PICKING A SPECIFIC ROW FROM 2D ARRAY ===
-    if (args?.pick !== undefined) {
-      if (Array.isArray(data) && Array.isArray(data[0])) {
-        const idx = Number(args.pick);
-        if (!isNaN(idx) && data.length > idx) {
-          data = data[idx];
+  // === SLICING ARRAY (e.g. remove headers) ===
+  if (args?.slice !== undefined) {
+    if (Array.isArray(data)) {
+      // slice could be a number (start) or array [start, end]
+      const sliceParams = Array.isArray(args.slice) ? args.slice : [args.slice];
+      data = data.slice(...sliceParams);
+    }
+  }
+
+  // === INNER SLICE (slice each sub-array) ===
+  if (args?.innerSlice !== undefined) {
+    if (Array.isArray(data)) {
+      const sliceParams = Array.isArray(args.innerSlice) ? args.innerSlice : [args.innerSlice];
+      data = data.map(item => {
+        if (Array.isArray(item)) {
+          return item.slice(...sliceParams);
         }
+        return item;
+      });
+    }
+  }
+
+  // === PICKING A SPECIFIC ROW FROM 2D ARRAY ===
+  if (args?.pick !== undefined) {
+    if (Array.isArray(data) && Array.isArray(data[0])) {
+      const idx = Number(args.pick);
+      if (!isNaN(idx) && data.length > idx) {
+        data = data[idx];
       }
     }
+  }
 
   // === MODE HANDLING ===
   if (args?.mode === 'flatten') {
@@ -523,17 +1008,35 @@ function transform({ params, args, data } = {}) {
     }
   }
 
-  // === KEEP NESTED KEYS AFTER FLATTEN ===
-  if (Array.isArray(data) && args?.keep) {
-    const keepPaths = args.keep;
-    data = data.map(item => {
+  // === KEEP NESTED KEYS AFTER FLATTEN / EXTRACT ===
+  // This handles both Array and Object data types for consistent nested key support
+  if (args?.keep) {
+    const keepPaths = parseKeepArg(args.keep);
+
+    if (Array.isArray(data)) {
+      data = data.map(item => {
+        const extracted = {};
+        for (const path of keepPaths) {
+          // Use the full path as the key to ensure it matches 'args.keep' for later lookup
+          // and to prevent collisions (e.g. site.id vs user.id)
+          const value = extractNestedValue(item, path);
+
+          if (value !== undefined) {
+            extracted[path] = value;
+          }
+        }
+        return extracted;
+      });
+    } else if (typeof data === 'object' && data !== null) {
       const extracted = {};
       for (const path of keepPaths) {
-        const key = path.includes('.') ? path.split('.').pop() : path;
-        extracted[key] = extractNestedValue(item, path);
+        const value = extractNestedValue(data, path);
+        if (value !== undefined) {
+          extracted[path] = value;
+        }
       }
-      return extracted;
-    });
+      data = extracted;
+    }
   }
 
   const type = args?.type;
@@ -541,17 +1044,8 @@ function transform({ params, args, data } = {}) {
 
   if (Array.isArray(data)) {
     arr = deepClone(data);
-
-    if (args?.keep) {
-      const keep = new RegExp(args.keep.join('|'));
-      for (let i = 0; i < arr.length; i++) {
-        for (const k in arr[i]) {
-          if (!keep.test(k)) {
-            delete arr[i][k];
-          }
-        }
-      }
-    }
+    // Previous "keep" logic here (lines 984-993) was deleting keys from arr based on regex again.
+    // Since we already filtered above using correct logic, we don't need this block.
   }
 
   // === FORMAT TRANSFORMATIONS ===
@@ -560,30 +1054,43 @@ function transform({ params, args, data } = {}) {
       console.error('[transform] arr is undefined or not an array:', arr);
       return null;
     }
-  
+
+    // Determine the order of keys to extract
+    // If args.keep is provided, use it to ensure order matches headers
+    // Otherwise, use sorted keys from the first object to be deterministic
+    let keys;
+    if (args.keep && Array.isArray(args.keep)) {
+      keys = args.keep;
+    } else if (arr.length > 0) {
+      keys = Object.keys(arr[0]).sort();
+    } else {
+      keys = [];
+    }
+
     const arrays = arr.map(obj =>
-      Object.keys(obj)
-        .sort()
-        .map(key => args.parse ? parseSpecialTypes(obj[key]) : obj[key])
+      keys.map(key => args.parse ? parseSpecialTypes(obj[key]) : obj[key])
     );
-  
+
     const final = Array(arrays[0]?.length || 0)
       .fill(0)
       .map(() => Array(arrays.length).fill(0));
-  
+
     for (let j = 0; j < arrays[0]?.length; j++) {
       for (let n = 0; n < arrays.length; n++) {
         final[j][n] = arrays[n][j];
       }
     }
-  
+
     // Attach names only if requested
-    if (args.keep && args.attachNames !== false) {
+    if (args.attachNames !== false) {
       for (let j = 0; j < final.length; j++) {
-        final[j].unshift(args.keep[j]);
+        // Use the same keys array for headers to ensure alignment
+        if (keys[j]) {
+          final[j].unshift(keys[j]);
+        }
       }
     }
-  
+
     return final;
   }
 
@@ -602,7 +1109,7 @@ function transform({ params, args, data } = {}) {
       }
       return column;
     });
-  
+
     return arrays;
   }
 
@@ -633,7 +1140,7 @@ function transform({ params, args, data } = {}) {
       const json = {};
       for (const res of data.matchAll(/(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\/>/gm)) {
         const key = res[1] || res[3],
-              value = res[2] && XMLJSon(res[2]);
+          value = res[2] && XMLJSon(res[2]);
         json[key] = value && Object.keys(value).length ? value : res[2] || null;
       }
       return json;
@@ -805,7 +1312,7 @@ async function download({ params, args, data } = {}) {
     });
     exportfilename = `${fileName}.csv`;
 
-  //if JSON file is required. Similar as before.
+    //if JSON file is required. Similar as before.
   } else if (type === "JSON") {
     let js;
     if (Array.isArray(data)) {
@@ -882,13 +1389,13 @@ async function download({ params, args, data } = {}) {
 function recursiveSearch({ obj, searchkey, results = [] } = {}) {
   const r = results;
   Object.keys(obj).forEach((key) => {
-      const value = obj[key];
-      if (key === searchkey && Array.isArray(value)) {
-          r.push(value);
-          return;
-      } else if (typeof value === "object" && value !== null) {
-          recursiveSearch({ obj: value, searchkey: searchkey, results: r });
-      }
+    const value = obj[key];
+    if (key === searchkey && Array.isArray(value)) {
+      r.push(value);
+      return;
+    } else if (typeof value === "object" && value !== null) {
+      recursiveSearch({ obj: value, searchkey: searchkey, results: r });
+    }
   });
   return r;
 }
@@ -957,53 +1464,53 @@ function lowercasing(obj) {
  */
 function xml2json(xml) {
   try {
-      let obj = {};
+    let obj = {};
 
-      // Handle attributes
-      if (xml.attributes && xml.attributes.length > 0) {
-          for (let i = 0; i < xml.attributes.length; i++) {
-              const attr = xml.attributes.item(i);
-              obj[`@${attr.nodeName}`] = attr.nodeValue;
+    // Handle attributes
+    if (xml.attributes && xml.attributes.length > 0) {
+      for (let i = 0; i < xml.attributes.length; i++) {
+        const attr = xml.attributes.item(i);
+        obj[`@${attr.nodeName}`] = attr.nodeValue;
+      }
+    }
+
+    // Handle child nodes
+    for (let i = 0; i < xml.childNodes.length; i++) {
+      const node = xml.childNodes[i];
+
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent.trim();
+        if (text.length > 0) {
+          obj["#text"] = text;
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const nodeName = node.nodeName;
+        const childObj = xml2json(node);
+
+        if (obj[nodeName] === undefined) {
+          obj[nodeName] = childObj;
+        } else {
+          if (!Array.isArray(obj[nodeName])) {
+            obj[nodeName] = [obj[nodeName]];
           }
+          obj[nodeName].push(childObj);
+        }
       }
+    }
 
-      // Handle child nodes
-      for (let i = 0; i < xml.childNodes.length; i++) {
-          const node = xml.childNodes[i];
+    // Edge case: If no children or attributes and there's textContent
+    if (
+      Object.keys(obj).length === 0 &&
+      xml.textContent &&
+      xml.textContent.trim().length > 0
+    ) {
+      return xml.textContent.trim();
+    }
 
-          if (node.nodeType === Node.TEXT_NODE) {
-              const text = node.textContent.trim();
-              if (text.length > 0) {
-                  obj["#text"] = text;
-              }
-          } else if (node.nodeType === Node.ELEMENT_NODE) {
-              const nodeName = node.nodeName;
-              const childObj = xml2json(node);
-
-              if (obj[nodeName] === undefined) {
-                  obj[nodeName] = childObj;
-              } else {
-                  if (!Array.isArray(obj[nodeName])) {
-                      obj[nodeName] = [obj[nodeName]];
-                  }
-                  obj[nodeName].push(childObj);
-              }
-          }
-      }
-
-      // Edge case: If no children or attributes and there's textContent
-      if (
-          Object.keys(obj).length === 0 &&
-          xml.textContent &&
-          xml.textContent.trim().length > 0
-      ) {
-          return xml.textContent.trim();
-      }
-
-      return obj;
+    return obj;
   } catch (e) {
-      console.error('[xml2json] Error during conversion:', e.message);
-      return null;
+    console.error('[xml2json] Error during conversion:', e.message);
+    return null;
   }
 }
 
@@ -1037,7 +1544,214 @@ function generateDateString() {
 }
 
 /**********************************/
+/*** NWM Processing Functions ****/
+/**********************************/
+
+
+
+
+
+
+
+
+
+
+
+/**********************************/
 /*** End of Helper functions **/
 /**********************************/
 
-export { retrieve, transform, download, upload, recursiveSearch, xml2json };
+// Cache management - simple list and get by key
+/**
+ * Cache management API - simple interface
+ * list() to see what's cached, get(key) to retrieve by name
+ * 
+ * @namespace cache
+ * @memberof data
+ */
+export const cache = {
+  /**
+   * List all cached datasets with human-readable key names
+   * 
+   * @function list
+   * @memberof data.cache
+   * @param {Object} [options] - Optional filter options
+   * @param {string} [options.source] - Filter by data source (e.g., 'nldas', 'usgs')
+   * @returns {Promise<Array>} Array with cacheKey, size, age for each cached dataset
+   * 
+   * @example
+   * const cached = await hydro.data.cache.list();
+   * cached.forEach(item => {
+   *   console.log(`${item.cacheKey} - ${item.sizeFormatted}, ${item.ageFormatted} old`);
+   * });
+   */
+  async list(options = {}) {
+    const cacheInstance = globalThis._hydroCache;
+    if (!cacheInstance) {
+      console.warn('Cache not initialized');
+      return [];
+    }
+    return await cacheInstance.list(options);
+  },
+
+  /**
+   * Get a cached dataset by cache key
+   * @param {string} cacheKey - The cache key (e.g., 'nhdplus/flowlines/abc1')
+   * @returns {Promise<Object|null>} Dataset with data and metadata, or null if not found
+   * 
+   * @example
+   * const data = await hydro.data.cache.get('nhdplus/flowlines/iowa-city');
+   * console.log(data);
+   */
+  async get(cacheKey) {
+    const cacheInstance = globalThis.hydro?.cache || globalThis._hydroCache;
+    if (!cacheInstance) {
+      console.warn('Cache not initialized');
+      return null;
+    }
+    const cached = await cacheInstance.get(cacheKey);
+    return cached ? cached.data : null;
+  },
+
+  /**
+   * Delete cached dataset by key
+   * 
+   * @function delete
+   * @memberof data.cache
+   * @param {string} cacheKey - Key to delete
+   * @returns {Promise<boolean>} Success
+   * 
+   * @example
+   * await hydro.data.cache.delete('nldas_hourly_lat40.0_lon-105.0_start2024-01-01');
+   */
+  async delete(cacheKey) {
+    const cacheInstance = globalThis.hydro?.cache || globalThis._hydroCache;
+    if (!cacheInstance) {
+      console.warn('Cache not initialized');
+      return false;
+    }
+    await cacheInstance.delete(cacheKey);
+    return true;
+  },
+
+  /**
+   * Clear all cache
+   * 
+   * @function clear
+   * @memberof data.cache
+   * @returns {Promise<boolean>} Success
+   * 
+   * @example
+   * await hydro.data.cache.clear();
+   */
+  async clear() {
+    const cacheInstance = globalThis._hydroCache;
+    if (!cacheInstance) {
+      console.warn('Cache not initialized');
+      return false;
+    }
+    await cacheInstance.clear();
+    return true;
+  },
+
+  /**
+   * Get cache statistics
+   * @returns {Promise<Object>} Cache statistics
+   * 
+   * @example
+   * const stats = await hydro.data.cache.stats();
+   * console.log(stats);
+   * // {totalSize: 104857600, totalEntries: 42, sizeFormatted: '100 MB', ...}
+   */
+  async stats() {
+    const cacheInstance = globalThis._hydroCache;
+    if (!cacheInstance) {
+      console.warn('Cache not initialized');
+      return { totalSize: 0, totalEntries: 0, sizeFormatted: '0 B' };
+    }
+
+    const allEntries = await cacheInstance.list({ includeVariables: true });
+    const totalSize = allEntries.reduce((sum, entry) => sum + entry.size, 0);
+
+    return {
+      totalSize,
+      totalEntries: allEntries.length,
+      sizeFormatted: cacheInstance.formatBytes(totalSize),
+      entries: allEntries
+    };
+  },
+
+  /**
+   * Check if data is available in cache without fetching
+   * Returns metadata about cached data including size and age
+   * 
+   * @function checkCache
+   * @memberof data.cache
+   * @param {Object} options - Check options
+   * @param {Object} options.params - Same params as retrieve function
+   * @param {string} options.params.source - Data source (e.g., 'nldas', 'usgs')
+   * @param {string} options.params.datatype - Data type
+   * @param {Object} options.args - Same args as retrieve function  
+   * @returns {Promise<Object|null>} Cached data info or null if not cached
+   * 
+   * @example
+   * // Check if NLDAS data is cached
+   * const cached = await hydro.data.cache.checkCache({
+   *   params: { source: 'nldas', datatype: 'hourly' },
+   *   args: { lat: 40, lon: -105, startDate: '2024-01-01', endDate: '2024-01-02' }
+   * });
+   * if (cached) {
+   *   console.log(`Data cached: ${cached.sizeMB} MB, ${cached.ageDays} days old`);
+   * }
+   */
+  async checkCache({ params, args }) {
+    const cacheInstance = globalThis.hydro?.cache || globalThis._hydroCache;
+    if (!cacheInstance) return null;
+
+    // Generate key from params
+    globalThis._hydroCacheContext = { params: { args } };
+    const key = cacheInstance.generateCacheKey('', params);
+
+    const cached = await cacheInstance.get(key);
+    if (!cached) return null;
+
+    return {
+      available: true,
+      key: key,
+      size: cached.data?.byteLength || 0,
+      sizeMB: ((cached.data?.byteLength || 0) / 1024 / 1024).toFixed(2),
+      age: Date.now() - (cached.metadata?.timestamp || cached.timestamp || Date.now()),
+      ageDays: ((Date.now() - (cached.metadata?.timestamp || cached.timestamp || Date.now())) / (24 * 60 * 60 * 1000)).toFixed(1)
+    };
+  },
+
+  /**
+   * Get comprehensive cache statistics
+   * Returns total size, file count, and detailed entries
+   * 
+   * @function getStats  
+   * @memberof data.cache
+   * @returns {Promise<Object>} Cache statistics
+   * 
+   * @example
+   * const stats = await hydro.data.cache.getStats();
+   * console.log(`Total cache size: ${stats.totalSizeMB} MB`);
+   * console.log(`Files cached: ${stats.totalFiles}`);
+   */
+  async getStats() {
+    const cacheInstance = globalThis.hydro?.cache || globalThis._hydroCache;
+    if (!cacheInstance) {
+      return {
+        totalFiles: 0,
+        totalSize: 0,
+        totalSizeMB: '0.0',
+        totalSizeGB: '0.00',
+        entries: []
+      };
+    }
+    return await cacheInstance.getStats();
+  }
+};
+
+export { retrieve, transform, download, upload, recursiveSearch, xml2json, getFile, saveFile };
+export default { retrieve, transform, download, upload, recursiveSearch, xml2json, getFile, saveFile, cache };

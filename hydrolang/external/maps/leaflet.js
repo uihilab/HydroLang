@@ -1,11 +1,11 @@
-import $ from "../jquery/jquery.js";
-
 /**
  * Imports Leaflet map engine.
  * @external leafletosmapi
  */
 class leafletosmapi {
   constructor() {
+    this.loaded = false;
+
     if (!window._leafletosmapi) {
       this.callbackname = "_leafletosmapi.mapLoaded";
       window._leafletosmapi = this;
@@ -14,50 +14,69 @@ class leafletosmapi {
   }
 
   async load() {
-    await $.when(
-      $.getScript("https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"),
-      $.Deferred(function (deferred) {
-        $(deferred.resolve);
-      })
-    ).done(function () {
-      console.log("Leaflet is loaded.");
+    if (this.loaded) {
+      return Promise.resolve();
+    }
+
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Load CSS files first
+        await this.loadCSS("https://unpkg.com/leaflet@1.6.0/dist/leaflet.css");
+        await this.loadCSS("https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css");
+
+        // Load JavaScript files
+        await this.loadScript("https://unpkg.com/leaflet@1.6.0/dist/leaflet.js");
+        console.log("Leaflet core is loaded.");
+
+        await this.loadScript("https://cdnjs.cloudflare.com/ajax/libs/leaflet-plugins/3.3.1/layer/vector/KML.js");
+
+        await this.loadScript("https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js");
+
+        this.loaded = true;
+        console.log("Leaflet and all plugins are loaded.");
+        resolve();
+      } catch (error) {
+        reject(new Error(`Failed to load Leaflet: ${error.message}`));
+      }
     });
+  }
 
-    await $.when(
-      $.getScript(
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet-plugins/3.3.1/layer/vector/KML.js"
-      ),
-      $.Deferred(function (deferred) {
-        $(deferred.resolve);
-      })
-    ).done(function () {});
+  async loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.defer = true;
 
-    await $.when(
-      $.getScript(
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"
-      ),
-      $.Deferred(function (deferred) {
-        $(deferred.resolve);
-      })
-    ).done(function () {});
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
 
-    $("<link/>", {
-      rel: "stylesheet",
-      type: "text/css",
-      href: "https://unpkg.com/leaflet@1.6.0/dist/leaflet.css",
-    }).appendTo("head");
+      document.head.appendChild(script);
+    });
+  }
 
-    $("<link/>", {
-      rel: "stylesheet",
-      type: "text/css",
-      href: "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css",
-    }).appendTo("head");
+  async loadCSS(href) {
+    return new Promise((resolve, reject) => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = href;
+
+      link.onload = () => resolve();
+      link.onerror = () => reject(new Error(`Failed to load CSS: ${href}`));
+
+      document.head.appendChild(link);
+    });
   }
 
   mapLoaded() {
     if (this.resolve) {
       this.resolve();
     }
+  }
+
+  isLoaded() {
+    return this.loaded;
   }
 }
 
