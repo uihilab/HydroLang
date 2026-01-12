@@ -1,8 +1,59 @@
 /**
  * High Resolution Rapid Refresh (HRRR) Model Data
- * Provides access to HRRR weather model forecasts and analysis data
- * HRRR is NOAA's high-resolution (3km) weather prediction model
- * https://rapidrefresh.noaa.gov/hrrr/
+ * Provides access to HRRR weather model forecasts and analysis data.
+ * HRRR is NOAA's high-resolution (3km) weather prediction model updated hourly.
+ *
+ * **Data Information:**
+ * - **Source:** NOAA NCEP / NOMADS
+ * - **Format:** GRIB2 (Native resolution)
+ * - **Resolution:** 3km (CONUS)
+ * - **Updates:** Hourly
+ * - **Forecast Horizon:** 18h (standard), 48h (extended/00z/06z/12z/18z)
+ *
+ * **Available Products:**
+ * - `hrrr-operational`: Real-time operational forecasts.
+ * - `hrrr-analysis`: Historical analysis (archive since 2014).
+ *
+ * **Key Variables:**
+ * - `TMP`: Temperature
+ * - `APCP`: Total Precipitation
+ * - `WIND`: Wind Speed
+ * - `VIS`: Visibility
+ *
+ * @example
+ * // 1. Retrieve operational Surface Temperature Forecast (Real-time)
+ * const forecastData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'hrrr',
+ *     datatype: 'point-data'
+ *   },
+ *   args: {
+ *     dataset: 'hrrr-operational',
+ *     product: 'sfc',
+ *     variable: 'TMP',
+ *     latitude: 40.7128,
+ *     longitude: -74.0060,
+ *     startDate: new Date().toISOString() // Or specific recent date
+ *   }
+ * });
+ *
+ * @example
+ * // 2. Retrieve Historical Analysis (Grid) for significant event
+ * const stormData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'hrrr',
+ *     datatype: 'grid-data'
+ *   },
+ *   args: {
+ *     dataset: 'hrrr-analysis',
+ *     product: 'anl',
+ *     variable: 'APCP',
+ *     bbox: [-96.0, 29.0, -94.0, 31.0], // Houston area
+ *     startDate: '2017-08-26T00:00:00Z' // Hurricane Harvey example
+ *   }
+ * });
+ *
+ * @see https://rapidrefresh.noaa.gov/hrrr/
  * @type {Object}
  * @name HRRR
  * @memberof datasources

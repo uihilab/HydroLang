@@ -1,7 +1,61 @@
 /**
  * NLDAS-3 (North American Land Data Assimilation System) Meteorological Forcing Data
- * Provides high-resolution meteorological forcing data for hydrologic modeling
- * Data is stored in NetCDF format on AWS S3 with public access
+ * Provides high-resolution meteorological forcing data for hydrologic modeling.
+ * Data is stored in NetCDF format on AWS S3 with public access.
+ *
+ * **Data Information:**
+ * - **Source:** NASA GSFC / WaterInsight
+ * - **Format:** NetCDF (beta release)
+ * - **Resolution:** ~1km (0.01°), Hourly/Daily/Monthly
+ * - **Coverage:** North America (CONUS, AK, HI, PR, Central America)
+ * - **Time Range:** 1979 - 2020+
+ *
+ * **Available Data Types:**
+ * - `point-data`: Time series for single location.
+ * - `grid-data`: Spatial subset for specific time.
+ * - `timeseries-data`: Multi-location extraction.
+ * - `raw-netcdf`: Direct access to raw files.
+ *
+ * **Key Variables:**
+ * - `Rainf`: Total precipitation rate (kg m⁻² = mm)
+ * - `Tair`: Near-surface air temperature (K)
+ * - `Qair`: Specific humidity (kg/kg)
+ * - `Wind_N` / `Wind_E`: Wind components (m/s)
+ *
+ * @example
+ * // 1. Retrieve Hourly Precipitation & Temperature (Point Data)
+ * const forcingData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'nldas',
+ *     datatype: 'point-data'
+ *   },
+ *   args: {
+ *     dataset: 'nldas-3-hourly',
+ *     variables: ['Rainf', 'Tair'],
+ *     latitude: 40.7128,
+ *     longitude: -74.0060,
+ *     startDate: '2015-06-01T00:00:00Z',
+ *     endDate: '2015-06-07T23:00:00Z'
+ *   }
+ * });
+ *
+ * @example
+ * // 2. Retrieve Daily Average Grid (NetCDF)
+ * const dailyGrid = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'nldas',
+ *     datatype: 'grid-data'
+ *   },
+ *   args: {
+ *     dataset: 'nldas-3-daily',
+ *     variables: ['Tair_max', 'Tair_min'],
+ *     bbox: [-85.0, 33.0, -83.0, 35.0], // Georgia region
+ *     startDate: '2019-07-15T00:00:00Z',
+ *     endDate: '2019-07-15T00:00:00Z'
+ *   }
+ * });
+ *
+ * @see https://ldas.gsfc.nasa.gov/nldas/NLDAS2forcing.php
  * @type {Object}
  * @name NLDAS
  * @memberof datasources

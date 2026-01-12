@@ -1,7 +1,51 @@
 /**
  * 3D Elevation Program (3DEP) datasource
- * Provides access to high-resolution elevation data from the USGS 3DEP service
- * Supports DEM (Digital Elevation Model) data in various resolutions
+ * Provides access to high-resolution elevation data from the USGS 3DEP service.
+ * Supports DEM (Digital Elevation Model) data in various resolutions.
+ *
+ * **Data Information:**
+ * - **Source:** USGS National Map
+ * - **Format:** GeoTIFF
+ * - **Resolutions:** 1/3 arc-second (~10m), 1 arc-second (~30m), etc.
+ * - **Coverage:** CONUS
+ * - **Coordinate System:** EPSG:4326 (WGS84) for requests, often projected in response.
+ *
+ * **Available Data Types:**
+ * - `grid-data`: Extract spatial DEM for a bounding box.
+ * - `point-data`: Extract single point elevation.
+ *
+ * **Key Variables:**
+ * - `elevation`: Digital Elevation Model (meters)
+ *
+ * @example
+ * // 1. Retrieve 10m DEM for a bounding box
+ * const demData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'threedep',
+ *     datatype: 'grid-data'
+ *   },
+ *   args: {
+ *     dataset: '3dep-dem',
+ *     variables: ['elevation'],
+ *     bbox: [-105.5, 40.0, -105.0, 40.5], // Colorado Rockies
+ *     resolution: 10 // meters
+ *   }
+ * });
+ *
+ * @example
+ * // 2. Retrieve Point Elevation
+ * const ptElev = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'threedep',
+ *     datatype: 'point-data'
+ *   },
+ *   args: {
+ *     latitude: 36.1699,
+ *     longitude: -115.1398 // Las Vegas
+ *   }
+ * });
+ *
+ * @see https://www.usgs.gov/3d-elevation-program
  * @type {Object}
  * @name 3DEP
  * @author  kento-sugiyama

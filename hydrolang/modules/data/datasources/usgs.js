@@ -1,12 +1,74 @@
 /**
- * https://waterservices.usgs.gov/rest/IV-Service.html
- * This API returns stream stages for US
+ * USGS Water Services (NWIS) datasource
+ * Provides access to water data for the United States, including streamflow, groundwater, and water quality.
+ *
+ * **Data Information:**
+ * - **Source:** USGS National Water Information System (NWIS)
+ * - **Services:** Instant Values (IV), Daily Values (DV), Groundwater, Water Quality, Site Info
+ *
+ * **Available Data Types:**
+ * - `instant-values`: Real-time/Instantaneous data (e.g., streamflow every 15 min).
+ * - `daily-values`: Daily aggregated data (e.g., daily mean discharge).
+ * - `groundwater`: Groundwater levels.
+ * - `water-quality`: Discrete water quality samples.
+ * - `site-information`: Metadata about measurement sites.
+ *
+ * **Key Parameters:**
+ * - `site`: USGS Site Number (e.g., "05454500")
+ * - `startDT` / `endDT`: Start and End dates (YYYY-MM-DD)
+ * - `parameterCd`: (Implicit in some requests, 00060=Discharge, 00065=Gage Height)
+ *
+ * @example
+ * // 1. Retrieve Instantaneous Streamflow (IV)
+ * const flowData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'usgs',
+ *     datatype: 'instant-values'
+ *   },
+ *   args: {
+ *     format: 'json',
+ *     sites: '05454500', // Iowa River at Iowa City
+ *     startDT: '2023-01-01',
+ *     endDT: '2023-01-07'
+ *   }
+ * });
+ *
+ * @example
+ * // 2. Retrieve Daily Mean Values (DV)
+ * const dailyData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'usgs',
+ *     datatype: 'daily-values'
+ *   },
+ *   args: {
+ *     format: 'json',
+ *     sites: '05454500',
+ *     startDT: '2020-01-01',
+ *     endDT: '2020-12-31' // Full year
+ *   }
+ * });
+ *
+ * @example
+ * // 3. Retrieve Site Information
+ * const siteMeta = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'usgs',
+ *     datatype: 'site-information'
+ *   },
+ *   args: {
+ *     format: 'rdb',
+ *     sites: '05454500',
+ *     siteOutput: 'expanded'
+ *   }
+ * });
+ *
+ * @see https://waterservices.usgs.gov/
  * @type {Object}
  * @name USGS
  * @memberof datasources
  */
 
- export default {
+export default {
   "instant-values": {
     endpoint: "http://waterservices.usgs.gov/nwis/iv/",
     params: {
@@ -25,7 +87,7 @@
       // "output-data-field-1": null,
       // enter data field here
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -49,7 +111,7 @@
       // "output-data-field-1": null,
       // enter data field here
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -73,7 +135,7 @@
       // "output-data-field-1": null,
       // enter data field here
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -94,7 +156,7 @@
     "data-fields": {
       // enter data field here
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -115,7 +177,7 @@
     "data-fields": {
       // enter data field here
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -136,7 +198,7 @@
     "data-fields": {
       // enter data field here
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -152,7 +214,7 @@
     MoreInfo: "https://waterservices.usgs.gov/rest/IV-Service.html",
     About: "This API returns stream stages for US"
   },
-  
+
   "endpoint-info": {
     "instant-values": {
       paramFormat: {

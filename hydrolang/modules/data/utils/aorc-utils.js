@@ -8,6 +8,7 @@ import { ZarrDataSource, loadGridDataLibrary } from './gridded-data-utils.js';
 /**
  * AORC-specific data source implementation
  * Extends ZarrDataSource with AORC-specific chunking and year-based organization
+ * @ignore
  */
 export class AORCDataSource extends ZarrDataSource {
   constructor(datasetConfig) {
@@ -517,15 +518,6 @@ export class AORCDataSource extends ZarrDataSource {
             // If raw is requested for grid data, maybe we shouldn't be here or we should return a zip?
             // Let's assume raw means "don't parse values" but we still likely need to decompress to slice?
             // If "raw" means "raw file", we can't return a single file for grid data easily.
-            // We'll return the decompressed buffer as is for this chunk in the loop logic below?
-            // Wait, previous logic returns `resultGrid` which is Float32.
-            // If raw is true, fetchAndDecompressChunk returns buffer.
-            // We can't put buffer into Float32Array directly if it's compressed.
-            // If fetchAndDecompressChunk returns raw compressed buffer, we can't proceed with slicing.
-            // So for grid data, "raw" might not be fully supported or needs definition. 
-            // BUT, user asked for "raw" for "all gridded data".
-            // Re-reading: "fetchAndDecompressChunk" handles "process: false".
-            // If we get raw buffer here, we can't slice it.
             // We will just push it to a list?
             if (!resultGrid.rawChunks) resultGrid.rawChunks = [];
             resultGrid.rawChunks.push({ urls: chunkPath, buffer: decompressed });
@@ -640,13 +632,9 @@ export class AORCDataSource extends ZarrDataSource {
 }
 
 
-
 /**
- * Process AORC point data request
- * @param {Object} args - Request arguments
- * @param {Object} datasetConfig - AORC dataset configuration
- * @returns {Promise<Object>} Processed data
- * @private
+ * Process AORC point extraction
+ * @ignore
  */
 export async function processAORCPointData(args, datasetConfig) {
   const aorc = new AORCDataSource(datasetConfig);
@@ -681,11 +669,8 @@ export async function processAORCPointData(args, datasetConfig) {
 }
 
 /**
- * Process AORC grid data request
- * @param {Object} args - Request arguments
- * @param {Object} datasetConfig - AORC dataset configuration
- * @returns {Promise<Object>} Processed grid data
- * @private
+ * Extract grid data from AORC
+ * @ignore
  */
 export async function processAORCGridData(args, datasetConfig) {
   // Handle variables parameter - can be array or single string
@@ -714,11 +699,8 @@ export async function processAORCGridData(args, datasetConfig) {
 }
 
 /**
- * Process AORC time series data request
- * @param {Object} args - Request arguments
- * @param {Object} datasetConfig - AORC dataset configuration
- * @returns {Promise<Object>} Time series data
- * @private
+ * Extract time series from AORC
+ * @ignore
  */
 export async function processAORCTimeSeriesData(args, datasetConfig) {
   // Handle variables parameter - can be array or single string
@@ -741,11 +723,8 @@ export async function processAORCTimeSeriesData(args, datasetConfig) {
 }
 
 /**
- * Get AORC dataset information
- * @param {Object} args - Request arguments
- * @param {Object} datasetConfig - AORC dataset configuration
- * @returns {Promise<Object>} Dataset information
- * @private
+ * Get dataset info
+ * @ignore
  */
 export async function processAORCDatasetInfo(args, datasetConfig) {
   const aorc = new AORCDataSource(datasetConfig);
@@ -796,13 +775,10 @@ export async function processAORCBulkExtraction(args, datasetConfig) {
 }
 
 /**
- * Format AORC output
- * @param {Object} data - AORC data
- * @param {string} format - Output format ('json', 'csv', 'netcdf')
- * @returns {Object|string} Formatted data
- * @private
+ * Format output data
+ * @ignore
  */
-export function formatAORCOutput(data, format) {
+export function formatAORCOutput(data, format = 'json') {
   const aorc = new AORCDataSource({});
 
   switch (format.toLowerCase()) {
@@ -817,10 +793,8 @@ export function formatAORCOutput(data, format) {
 }
 
 /**
- * Convert AORC data to CSV
- * @param {Object} data - AORC data
- * @returns {string} CSV string
- * @private
+ * Get available AORC variables
+ * @ignore
  */
 export function convertAORCToCSV(data) {
   const aorc = new AORCDataSource({});

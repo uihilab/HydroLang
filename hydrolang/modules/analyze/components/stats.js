@@ -6,15 +6,7 @@
 export default class stats {
   /**
    * Makes a deep copy of original data for further manipulation.
-   * @method copydata
-   * @memberof stats
-   * @param {Object} params - Not used by this function.
-   * @param {Object} args - Not used by this function.
-   * @param {Object|Array} data - Contains: 1d-JS array or object with original data.
-   * @returns {Object|Array} Deep copy of original data.
-   * @example
-   * hydro.analyze.stats.copydata({data: [1, 2, 3]});
-   * hydro.analyze.stats.copydata({data: {a: 1, b: 2}});
+   * @ignore
    */
 
   static copydata({ params, args, data } = {}) {
@@ -27,8 +19,7 @@ export default class stats {
 
   /**
    * Preprocesses data to robustly handle complex structures (headers, objects, labeled rows).
-   * @param {Array} data - Input data array.
-   * @returns {Array} Clean numeric array.
+   * @ignore
    */
   static preprocessData(data) {
     if (!Array.isArray(data)) {
@@ -129,14 +120,7 @@ export default class stats {
 
   /**
    * Retrieves a 1D array with the data.
-   * @method onearray
-   * @memberof stats
-   * @param {Object} params - Not used by this function.
-   * @param {Object} args - Not used by this function.
-   * @param {Array} data - Contains: 1d-JS array as [data].
-   * @returns {Array} Array object.
-   * @example
-   * hydro.analyze.stats.onearray({data: [1, 2, 3]});
+   * @ignore
    */
 
   static onearray({ params, args, data } = {}) {
@@ -379,14 +363,7 @@ export default class stats {
 
   /**
    * Fills data gaps (either time missig or data missing). Unfinished.
-   * @method gapfiller
-   * @memberof stats
-   * @param {Object} params - Contains: type (time or data).
-   * @param {Object} args - Not used by this function.
-   * @param {Array} data - Contains: 2d-JS array with data or time gaps to be filled as [[time],[data]].
-   * @returns {Array} Array with gaps filled.
-   * @example
-   * hydro.analyze.stats.gapfiller({params: {type: 'time'}, data: [[0, 60, 180], [1, 2, 3]]});
+   * @ignore
    */
 
   static gapfiller({ params, args, data } = {}) {

@@ -10,6 +10,7 @@ import { generatePRISMFileURL, formatPRISMTimePeriod, determinePRISMRegion, vali
 /**
  * PRISM-specific data source implementation
  * Extends GeoTIFFDataSource with PRISM-specific ZIP handling and URL generation
+ * @ignore
  */
 export class PRISMDataSource extends GeoTIFFDataSource {
   constructor(datasetConfig, prismVariables) {
@@ -239,6 +240,7 @@ export class PRISMDataSource extends GeoTIFFDataSource {
  * @param {string} resolution - Resolution (optional, auto-determined if not provided)
  * @returns {Promise<Object>} Extracted point data
  * @private
+ * @ignore
  */
 export async function extractPRISMPointData(variable, latitude, longitude, timestamp, datasetConfig, prismVariables, dataType = 'daily', region = null, resolution = null) {
   const prism = new PRISMDataSource(datasetConfig, prismVariables);
@@ -261,6 +263,7 @@ export async function extractPRISMPointData(variable, latitude, longitude, times
  * @param {string} resolution - Resolution (optional)
  * @returns {Promise<Object>} Extracted grid data
  * @private
+ * @ignore
  */
 export async function extractPRISMGridData(variable, bbox, timestamp, datasetConfig, prismVariables, dataType = 'daily', region = null, resolution = null) {
   const prism = new PRISMDataSource(datasetConfig, prismVariables);
@@ -286,6 +289,7 @@ export async function extractPRISMGridData(variable, bbox, timestamp, datasetCon
  * @param {string} resolution - Resolution (optional)
  * @returns {Promise<Object>} Time series data
  * @private
+ * @ignore
  */
 export async function extractPRISMTimeSeries(variable, latitude, longitude, startTime, endTime, datasetConfig, prismVariables, dataType = 'daily', region = null, resolution = null) {
   const prism = new PRISMDataSource(datasetConfig, prismVariables);
@@ -328,9 +332,7 @@ export async function extractPRISMTimeSeries(variable, latitude, longitude, star
 
 /**
  * Get available PRISM variables
- * @param {string} dataType - Data type ('daily', 'monthly', 'annual')
- * @returns {Array<string>} Available variable names
- * @private
+ * @ignore
  */
 export function getAvailablePRISMVariables(dataType = 'daily') {
   // Common PRISM variables
@@ -347,9 +349,7 @@ export function getAvailablePRISMVariables(dataType = 'daily') {
 
 /**
  * Validate PRISM configuration
- * @param {Object} config - Configuration to validate
- * @returns {boolean} True if valid
- * @private
+ * @ignore
  */
 export function validatePRISMConfig(config) {
   const required = ['baseUrl', 'spatial', 'temporal'];
@@ -366,11 +366,7 @@ export function validatePRISMConfig(config) {
 
 /**
  * Get PRISM dataset information and metadata
- * @param {Object} datasetConfig - PRISM dataset configuration
- * @param {string} infoType - Type of information requested
- * @param {Object} prismVariables - PRISM variables configuration
- * @returns {Object} Dataset information
- * @private
+ * @ignore
  */
 export async function getPRISMDatasetInfo(datasetConfig, infoType, prismVariables) {
   switch (infoType) {

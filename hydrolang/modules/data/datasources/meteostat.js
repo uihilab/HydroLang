@@ -1,14 +1,59 @@
 /**
- * Meteostat data retrieval.
- * Note: Different data sources may have different limitations
- * -> E.g., they may limit the # of queries per unit time
- * The API retrieves all the variables that are measured in a given station.
- * For cleaning up the data, refer to the data module in Hydrolang.
- * For identification of country ISO3 codes, refer to https://unstats.un.org/unsd/methodology/m49/
- * For referral on formats, please visit https://dev.meteostat.net/getting-started/formats-and-units
- * Dates in format ISO 8601 standard YYYY-MM-DD HH:MM:SS
- * Activation key format and name to is  "x-api-key"
- * More info, please visit https://dev.meteostat.net/
+ * Meteostat datasource
+ * Provides access to historical weather and climate data from thousands of stations worldwide.
+ * **Note:** Requires an API key (https://dev.meteostat.net/).
+ *
+ * **Data Information:**
+ * - **Source:** Meteostat (aggregates NOAA, DWD, etc.)
+ * - **Services:** Hourly/Daily Data (Station & Point), Station Search
+ * - **Coverage:** Global
+ *
+ * **Available Data Types:**
+ * - `dailydata-station`: Daily aggregate data for a specific station.
+ * - `hourlydata-stations`: Hourly data for a specific station.
+ * - `dailydata-point`: Daily interpolated data for a lat/lon.
+ * - `hourlydata-point`: Hourly interpolated data for a lat/lon.
+ * - `find-stations` / `nearby-stations`: Station meta-search.
+ *
+ * **Key Parameters:**
+ * - `station`: Meteostat Station ID (e.g., "10637" for Frankfurt)
+ * - `lat` / `lon`: Coordinates for point data
+ * - `start` / `end`: Dates (YYYY-MM-DD)
+ * - `key`: API Key (Header `x-api-key` handling)
+ *
+ * @example
+ * // 1. Retrieve Daily Data for a known Station
+ * const dailyData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'meteostat',
+ *     datatype: 'dailydata-station',
+ *     key: 'YOUR_API_KEY'
+ *   },
+ *   args: {
+ *     station: '10637', // Frankfurt
+ *     start: '2023-01-01',
+ *     end: '2023-01-31'
+ *   }
+ * });
+ *
+ * @example
+ * // 2. Retrieve Hourly Data for a Geographic Point (Interpolated)
+ * const hourlyPoint = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'meteostat',
+ *     datatype: 'hourlydata-point',
+ *     key: 'YOUR_API_KEY'
+ *   },
+ *   args: {
+ *     lat: 40.7128,
+ *     lon: -74.0060,
+ *     start: '2023-06-01',
+ *     end: '2023-06-02',
+ *     tz: 'America/New_York'
+ *   }
+ * });
+ *
+ * @see https://dev.meteostat.net/
  * @type {Object}
  * @name MeteoSTAT
  * @memberof datasources

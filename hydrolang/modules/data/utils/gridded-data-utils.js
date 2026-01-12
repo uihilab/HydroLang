@@ -8,8 +8,9 @@
 import * as griddedData from '../../../external/gridded-data/gridded-data.js';
 
 /**
- * Base class for gridded data sources (AORC, NWM, MRMS, HRRR, NLDAS, PRISM, ECMWF, 3DEP)
- * Consolidates all common patterns to eliminate repetition across utils files
+ * Base class for all gridded data sources
+ * Provides common functionality for extracting data from grid-based formats
+ * @ignore
  */
 export class GriddedDataSource {
   /**
@@ -586,7 +587,7 @@ export class GriddedDataSource {
         });
 
       } catch (timeError) {
-        console.warn(`[${this.sourceName}] Failed to get grid for ${currentTime.toISOString()}:`, timeError.message);
+        console.warn(`[${this.sourceName}] Failed to get grid for ${currentTime.toISOString()}: ${timeError.message}`);
         gridData.push({
           timestamp: currentTime.toISOString(),
           grid: null,
@@ -741,9 +742,9 @@ export class GriddedDataSource {
 }
 
 /**
- * Zarr-specific data source base class
- * Used by: AORC, NWM (Zarr format)
- * Consolidates Zarr array extraction patterns (~500 lines)
+ * Zarr Data Source Implementation
+ * Handles reading Zarr V2/V3 stores using zarr.js
+ * @ignore
  */
 export class ZarrDataSource extends GriddedDataSource {
   constructor(config) {
@@ -830,9 +831,9 @@ export class ZarrDataSource extends GriddedDataSource {
 }
 
 /**
- * GRIB2-specific data source base class
- * Used by: MRMS, HRRR, ECMWF
- * Consolidates GRIB2 parsing patterns (~800 lines)
+ * GRIB2 Data Source Implementation
+ * Handles reading GRIB2 files using custom GRIB2 parser or grib2-simple
+ * @ignore
  */
 export class GRIB2DataSource extends GriddedDataSource {
   constructor(config) {
@@ -1049,9 +1050,9 @@ export class GRIB2DataSource extends GriddedDataSource {
 }
 
 /**
- * NetCDF-specific data source base class
- * Used by: NLDAS, NWM (NetCDF format), others
- * Consolidates NetCDF reading patterns (~400 lines)
+ * NetCDF Data Source Implementation
+ * Handles reading NetCDF files using netcdfjs
+ * @ignore
  */
 export class NetCDFDataSource extends GriddedDataSource {
   constructor(config) {
@@ -1145,9 +1146,9 @@ export class NetCDFDataSource extends GriddedDataSource {
 }
 
 /**
- * GeoTIFF-specific data source base class
- * Used by: PRISM, 3DEP
- * Consolidates GeoTIFF reading patterns (~600 lines)
+ * GeoTIFF Data Source Implementation
+ * Handles reading GeoTIFF files using geotiff.js
+ * @ignore
  */
 export class GeoTIFFDataSource extends GriddedDataSource {
   constructor(config) {
@@ -1282,8 +1283,8 @@ export class GeoTIFFDataSource extends GriddedDataSource {
 }
 
 /**
- * Load gridded data libraries dynamically
- * @private
+ * Load grid data library dynamically (lazy loading)
+ * @ignore
  */
 export async function loadGridDataLibrary(format) {
   try {
@@ -1310,20 +1311,14 @@ export async function loadGridDataLibrary(format) {
 
 
 /**
- * Check if a gridded data library is loaded
- */
-/**
- * Check if a gridded data library is loaded
- * @private
+ * Check if a library is loaded
+ * @ignore
  */
 export function isGridDataLibraryLoaded(format) {
   // We can't easily check synchronously without importing the module
   // But since we are moving to centralized loader, we should rely on it.
   // However, we can't import it synchronously here if we want to keep this function synchronous
   // and avoid top-level side effects if possible.
-
-  // BUT, we can try to import it dynamically if we accept it returning a promise?
-  // Or we can just return false if we haven't loaded the module yet?
 
   // Actually, the best approach is to import the centralized loader at the top level
   // because the sub-loaders are lazy anyway.
@@ -1333,8 +1328,8 @@ export function isGridDataLibraryLoaded(format) {
 }
 
 /**
- * Get loaded library instance
- * @private
+ * Get a loaded library
+ * @ignore
  */
 export function getGridDataLibrary(format) {
   switch (format) {
@@ -1354,8 +1349,8 @@ export function getGridDataLibrary(format) {
 }
 
 /**
- * Aggregate time periods
- * @private
+ * Aggregate time series data
+ * @ignore
  */
 export function aggregateTime(date, timeStep, direction) {
   const dateObj = new Date(date);
@@ -1373,8 +1368,8 @@ export function aggregateTime(date, timeStep, direction) {
 }
 
 /**
- * Expand spatial bounding box by step factor
- * @private
+ * Expand spatial bounds by a buffer
+ * @ignore
  */
 export function expandSpatialBounds(bbox, spatialStep) {
   const [west, south, east, north] = bbox;
@@ -1388,8 +1383,8 @@ export function expandSpatialBounds(bbox, spatialStep) {
 }
 
 /**
- * Validate coordinate bounds
- * @private
+ * Check if coordinate is valid
+ * @ignore
  */
 export function isValidCoordinate(latitude, longitude, spatialBounds) {
   return latitude >= spatialBounds.latitude.min &&
@@ -1399,8 +1394,8 @@ export function isValidCoordinate(latitude, longitude, spatialBounds) {
 }
 
 /**
- * Validate bounding box
- * @private
+ * Check if bounding box is valid
+ * @ignore
  */
 export function isValidBoundingBox(bbox, spatialBounds) {
   const [west, south, east, north] = bbox;

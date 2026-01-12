@@ -8,6 +8,7 @@ import { GRIB2DataSource, loadGridDataLibrary } from './gridded-data-utils.js';
 /**
  * MRMS-specific data source implementation
  * Extends GRIB2DataSource with MRMS-specific URL generation and product handling
+ * @ignore
  */
 export class MRMSDataSource extends GRIB2DataSource {
   constructor(datasetConfig) {
@@ -327,14 +328,7 @@ export class MRMSDataSource extends GRIB2DataSource {
 
 /**
  * Extract point data from MRMS GRIB2 file
- * @param {string} variable - Variable name (e.g., 'REF', 'APCP')
- * @param {number} latitude - Latitude coordinate
- * @param {number} longitude - Longitude coordinate
- * @param {Date} timestamp - Data timestamp
- * @param {Object} datasetConfig - MRMS dataset configuration
- * @param {string} product - Specific MRMS product to use (optional)
- * @returns {Promise<Object>} Extracted point data
- * @private
+ * @ignore
  */
 export async function extractMRMSPointData(variable, latitude, longitude, timestamp, datasetConfig, product = null) {
   const mrms = new MRMSDataSource(datasetConfig);
@@ -349,7 +343,7 @@ export async function extractMRMSPointData(variable, latitude, longitude, timest
  * @param {Object} datasetConfig - MRMS dataset configuration
 * @param {string} product - Specific MRMS product to use (optional)
  * @returns {Promise<Object>} Extracted grid data
- * @private
+ * @ignore
  */
 export async function extractMRMSGridData(variable, bbox, timestamp, datasetConfig, product = null) {
   const mrms = new MRMSDataSource(datasetConfig);
@@ -367,7 +361,7 @@ export async function extractMRMSGridData(variable, bbox, timestamp, datasetConf
      * @param {Object} datasetConfig - MRMS dataset configuration
  * @param {string} product - Specific MRMS product to use (optional)
      * @returns {Promise<Object>} Time series data
- * @private
+ * @ignore
      */
 export async function extractMRMSTimeSeries(variable, latitude, longitude, startTime, endTime, datasetConfig, product = null) {
   const mrms = new MRMSDataSource(datasetConfig);
@@ -391,10 +385,7 @@ export async function extractMRMSTimeSeries(variable, latitude, longitude, start
 
 /**
  * Get available MRMS products for a given date
- * @param {Object} datasetConfig - MRMS dataset configuration
- * @param {Date} date - Date to check
- * @returns {Promise<Array>} Available products
- * @private
+ * @ignore
  */
 export async function getAvailableMRMSProducts(datasetConfig, date) {
   const mrms = new MRMSDataSource(datasetConfig);
@@ -413,7 +404,7 @@ export async function getAvailableMRMSProducts(datasetConfig, date) {
  * Validate MRMS configuration
  * @param {Object} config - Configuration to validate
      * @returns {boolean} True if valid
- * @private
+ * @ignore
      */
 export function validateMRMSConfig(config) {
   const required = ['baseUrl', 'spatial', 'temporal', 'products'];
@@ -437,10 +428,7 @@ export function validateMRMSConfig(config) {
 
 /**
  * Get MRMS dataset information and metadata
- * @param {Object} datasetConfig - MRMS dataset configuration
- * @param {string} infoType - Type of information requested
- * @returns {Object} Dataset information
- * @private
+ * @ignore
  */
 export async function getMRMSDatasetInfo(datasetConfig, infoType) {
   const mrms = new MRMSDataSource(datasetConfig);
@@ -481,7 +469,7 @@ export async function getMRMSDatasetInfo(datasetConfig, infoType) {
  * @param {string} product - MRMS product name
  * @param {Date} timestamp - Test timestamp
  * @returns {string} Generated URL for verification
- * @private
+ * @ignore
  */
 export async function testMRMSUrlGeneration(product, timestamp) {
   const { default: mrmsDatasource } = await import('../datasources/mrms.js');

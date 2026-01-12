@@ -10,6 +10,7 @@ import { ZarrDataSource, NetCDFDataSource, loadGridDataLibrary } from './gridded
 /**
  * NWM-specific data source implementation (hybrid Zarr/NetCDF)
  * Note: NWM works with COMIDs (stream segments), not lat/lon coordinates
+ * @ignore
  */
 export class NWMDataSource extends ZarrDataSource {
   constructor(datasetConfig) {
@@ -275,13 +276,7 @@ export class NWMDataSource extends ZarrDataSource {
 
 /**
  * Construct NWM file URL
- * @param {string} baseUrl - Base URL for NWM data
- * @param {number} year - Year
- * @param {Date} date - Date
- * @param {string} product - Product name
- * @param {string} datasetVersion - Dataset version
- * @returns {string} File URL
- * @private
+ * @ignore
  */
 export function constructNWMFileURL(baseUrl, year, date, product, datasetVersion) {
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
@@ -335,13 +330,7 @@ export function generateNWMDateRange(startDate, endDate, frequency) {
 /**
  * Extract NWM data (main entry point)
  * Supports both NetCDF format (for v2.0, v1.2) and Zarr format (for v2.1)
- * @param {Object} datasetConfig - NWM dataset configuration
- * @param {string} variable - Variable name
- * @param {number} comid - COMID (stream segment ID)
- * @param {Date} startDate - Start date
- * @param {Date} endDate - End date
- * @returns {Promise<Object>} Extracted NWM data
- * @private
+ * @ignore
  */
 export async function extractNWMData(datasetConfig, variable, comid, startDate, endDate) {
   const nwm = new NWMDataSource(datasetConfig);
@@ -350,11 +339,7 @@ export async function extractNWMData(datasetConfig, variable, comid, startDate, 
 
 /**
  * Process NWM bulk extraction request
- * @param {Object} args - Request arguments
- * @param {Object} datasetConfig - NWM dataset configuration
- * @param {Object} datasources - Datasources configuration
- * @returns {Promise<Object>} Bulk extraction results
- * @private
+ * @ignore
  */
 export async function processNWMBulkExtraction(args, datasetConfig, datasources) {
   const nwm = new NWMDataSource(datasetConfig);
@@ -400,10 +385,7 @@ export async function processNWMBulkExtraction(args, datasetConfig, datasources)
 
 /**
  * Format NWM output
- * @param {Object} data - NWM data
- * @param {string} format - Output format ('json', 'csv', 'netcdf')
- * @returns {Object|string} Formatted data
- * @private
+ * @ignore
  */
 export function formatNWMOutput(data, format) {
   const nwm = new NWMDataSource({ format: 'zarr' });
@@ -421,9 +403,7 @@ export function formatNWMOutput(data, format) {
 
 /**
  * Convert NWM data to CSV
- * @param {Object} data - NWM data
- * @returns {string} CSV string
- * @private
+ * @ignore
  */
 export function convertNWMToCSV(data) {
   const nwm = new NWMDataSource({ format: 'zarr' });

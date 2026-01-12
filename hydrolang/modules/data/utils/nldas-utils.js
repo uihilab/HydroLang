@@ -8,6 +8,7 @@ import { NetCDFDataSource } from './gridded-data-utils.js';
 /**
  * NLDAS-specific data source implementation
  * Extends NetCDFDataSource with NLDAS-specific file organization and URL generation
+ * @ignore
  */
 export class NLDASDataSource extends NetCDFDataSource {
   constructor(datasetConfig, nldasVariables) {
@@ -289,7 +290,7 @@ export class NLDASDataSource extends NetCDFDataSource {
  * @param {Object} datasetConfig - NLDAS dataset configuration
  * @param {Object} nldasVariables - NLDAS variables configuration
  * @returns {Promise<Object>} Extracted point data
- * @private
+ * @ignore
  */
 export async function extractNLDASPointData(variable, latitude, longitude, startDate, endDate, datasetConfig, nldasVariables) {
   const nldas = new NLDASDataSource(datasetConfig, nldasVariables);
@@ -301,13 +302,7 @@ export async function extractNLDASPointData(variable, latitude, longitude, start
 
 /**
  * Extract grid data from NLDAS NetCDF file
- * @param {string} variable - Variable name
- * @param {Array<number>} bbox - Bounding box [west, south, east, north]
- * @param {Date} timestamp - Data timestamp
- * @param {Object} datasetConfig - NLDAS dataset configuration
- * @param {Object} nldasVariables - NLDAS variables configuration
- * @returns {Promise<Object>} Extracted grid data
- * @private
+ * @ignore
  */
 export async function extractNLDASGridData(variable, bbox, timestamp, datasetConfig, nldasVariables) {
   const nldas = new NLDASDataSource(datasetConfig, nldasVariables);
@@ -324,7 +319,7 @@ export async function extractNLDASGridData(variable, bbox, timestamp, datasetCon
  * @param {Object} datasetConfig - NLDAS dataset configuration
  * @param {Object} nldasVariables - NLDAS variables configuration
  * @returns {Promise<Object>} Multiple points data
- * @private
+ * @ignore
  */
 export async function extractNLDASMultiplePoints(variable, locations, startTime, endTime, datasetConfig, nldasVariables) {
   const nldas = new NLDASDataSource(datasetConfig, nldasVariables);
@@ -336,10 +331,7 @@ export async function extractNLDASMultiplePoints(variable, locations, startTime,
 
 /**
  * Extract raw NetCDF data from NLDAS
- * @param {Object} args - Request arguments
- * @param {Object} datasetConfig - NLDAS dataset configuration
- * @returns {Promise<Object>} Raw NetCDF data
- * @private
+ * @ignore
  */
 export async function extractNLDASRawNetCDF(args, datasetConfig) {
   const nldas = new NLDASDataSource(datasetConfig, {});
@@ -357,8 +349,7 @@ export async function extractNLDASRawNetCDF(args, datasetConfig) {
 
 /**
  * Get available NLDAS variables
- * @returns {Array<string>} Available variable names
- * @private
+ * @ignore
  */
 export function getAvailableNLDASVariables() {
   // Common NLDAS-3 variables
@@ -376,9 +367,7 @@ export function getAvailableNLDASVariables() {
 
 /**
  * Validate NLDAS configuration
- * @param {Object} config - Configuration to validate
- * @returns {boolean} True if valid
- * @private
+ * @ignore
  */
 export function validateNLDASConfig(config) {
   const required = ['baseUrl', 'spatial', 'temporal'];
@@ -408,11 +397,7 @@ export function validateNLDASConfig(config) {
 
 /**
  * Get NLDAS dataset information and metadata
- * @param {Object} datasetConfig - NLDAS dataset configuration
- * @param {string} infoType - Type of information requested
- * @param {Object} nldasVariables - NLDAS variables configuration
- * @returns {Object} Dataset information
- * @private
+ * @ignore
  */
 export async function getNLDASDatasetInfo(datasetConfig, infoType, nldasVariables) {
   switch (infoType) {

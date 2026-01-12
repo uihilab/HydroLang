@@ -1,12 +1,61 @@
 /**
- * NOAA API for data retrieval, different application types.
- * Note: Different data sources may have different limitations
- * -> E.g., they may limit the # of queries per unit time
- * NOAA requires registration to get TOKEN and must be included in parameters.
- * https://www.ncdc.noaa.gov/cdo-web/webservices/v2#data
- * Must requests must be less than 1 year.
- * Dates in format YYYY-MM-DDThh:mm:ss
- * IMPORTANT: for retrieving more than 25 lines of data, include limit = required number.
+ * NOAA Climate Data Online (CDO) datasource
+ * Provides access to global historical weather and climate data.
+ * **Note:** Requires a free API token from NOAA (https://www.ncdc.noaa.gov/cdo-web/token).
+ *
+ * **Data Information:**
+ * - **Source:** NOAA NCDC / NCEI
+ * - **Services:** Daily Summaries (GHCND), Global Summary of Month (GSOM), Precipitation (15min/Hourly), Radar Imagery
+ * - **Coverage:** Global (depending on dataset)
+ * - **Limits:** Requests usually limited to 1 year of data per call; 5 calls/sec.
+ *
+ * **Available Data Types:**
+ * - `daily-summaries`: GHCN Daily (Max/Min Temp, Precip, Snow).
+ * - `global-summary`: GSOM Monthly summaries.
+ * - `prec-15min` / `prec-hourly`: High-frequency precipitation.
+ * - `weather-radar-imagery`: NEXRAD Level 2/3 imagery checks.
+ * - `availablestations`: Search for stations.
+ *
+ * **Key Parameters:**
+ * - `stationid`: Station ID (e.g., "GHCND:USW00014895")
+ * - `locationid`: Location ID (e.g., "FIPS:37")
+ * - `datasetid`: (Implicit in some types)
+ * - `startdate` / `enddate`: YYYY-MM-DD
+ * - `token`: NOAA API Token
+ *
+ * @example
+ * // 1. Retrieve Daily Summaries (Temp/Precip) for a Station
+ * const dailyData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'noaa',
+ *     datatype: 'daily-summaries',
+ *     token: 'YOUR_NOAA_TOKEN'
+ *   },
+ *   args: {
+ *     stationid: 'GHCND:USW00094728', // NY Central Park
+ *     startdate: '2020-01-01',
+ *     enddate: '2020-01-31',
+ *     limit: 1000
+ *   }
+ * });
+ *
+ * @example
+ * // 2. Retrieve Hourly Precipitation
+ * const hourlyPrecip = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'noaa',
+ *     datatype: 'prec-hourly',
+ *     token: 'YOUR_NOAA_TOKEN'
+ *   },
+ *   args: {
+ *     locationid: 'FIPS:11', // District of Columbia
+ *     startdate: '2010-01-01',
+ *     enddate: '2010-01-31',
+ *     limit: 500
+ *   }
+ * });
+ *
+ * @see https://www.ncdc.noaa.gov/cdo-web/webservices/v2
  * @type {Object}
  * @name NOAA
  * @memberof datasources

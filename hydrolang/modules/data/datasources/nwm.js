@@ -1,6 +1,57 @@
 /**
  * National Water Model (NWM) Retrospective Data
- * Provides access to historical streamflow data stored in Zarr format on S3
+ * Provides access to historical streamflow data stored in Zarr format on S3.
+ *
+ * **Data Information:**
+ * - **Source:** NOAA OWP
+ * - **Format:** Zarr (Release 2.1) & NetCDF types
+ * - **Time Range:** 1979 - 2020 (Retrospective 2.1)
+ *
+ * **Available Products:**
+ * - `chrtout`: Channel Output (Streamflow, velocity at reach points) - Primary product.
+ * - `lakeout`: Reservoir/Lake Output.
+ * - `ldasout`: Land Surface Output (Soil moisture, etc.).
+ * - `rtout`: Routing Output (Ponded water).
+ * - `gwout`: Groundwater Output.
+ *
+ * **Available Data Types for Retrieval:**
+ * - `point-data`: Extract data for specific stream reaches (COMID) or coordinates.
+ * - `grid-data`: Extract spatial subset.
+ * - `timeseries-data`: Extract time series for analysis.
+ *
+ * @example
+ * // 1. Retrieve Streamflow for a specific location (Auto-resolves COMID from lat/lon)
+ * const flowData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'nwm',
+ *     datatype: 'point-data'
+ *   },
+ *   args: {
+ *     dataset: 'nwm-retrospective-2-1-zarr-pds',
+ *     variables: ['streamflow'],
+ *     latitude: 40.7128,
+ *     longitude: -74.0060,
+ *     startDate: '2010-01-01T00:00:00Z',
+ *     endDate: '2010-01-07T00:00:00Z'
+ *   }
+ * });
+ *
+ * @example
+ * // 2. Retrieve Soil Moisture (Grid) for a region
+ * const soilData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'nwm',
+ *     datatype: 'grid-data'
+ *   },
+ *   args: {
+ *     dataset: 'nwm-retrospective-2-1-zarr-pds',
+ *     variables: ['SOIL_M'], // From ldasout product
+ *     bbox: [-90.0, 30.0, -88.0, 32.0],
+ *     startDate: '2015-06-01T00:00:00Z',
+ *     endDate: '2015-06-01T12:00:00Z'
+ *   }
+ * });
+ *
  * @type {Object}
  * @name NWM
  * @memberof datasources
@@ -418,7 +469,7 @@ export default {
   // Point data extraction - single location, streamflow data
   "point-data": {
     endpoint: null, // Dynamic endpoint based on dataset
-      params: {
+    params: {
       dataset: null, // Dataset identifier (e.g., "nwm-retrospective-3-0-pds")
       variables: null, // Array of variable names (usually ["streamflow"])
       comid: null, // OPTIONAL: COMID for specific stream reach (will be auto-found from coordinates if not provided)
@@ -429,7 +480,7 @@ export default {
       format: null // Output format: "json", "csv", "netcdf"
     },
     methods: {
-        type: "json",
+      type: "json",
       method: "GET"
     }
   },
@@ -437,7 +488,7 @@ export default {
   // Grid data extraction - spatial subset, streamflow data
   "grid-data": {
     endpoint: null, // Dynamic endpoint based on dataset
-      params: {
+    params: {
       dataset: null, // Dataset identifier
       variables: null, // Array of variable names
       bbox: null, // Bounding box: [west, south, east, north]
@@ -446,7 +497,7 @@ export default {
       format: null // Output format
     },
     methods: {
-        type: "json",
+      type: "json",
       method: "GET"
     }
   },
@@ -454,7 +505,7 @@ export default {
   // Time series extraction - streamflow for multiple locations
   "timeseries-data": {
     endpoint: null, // Dynamic endpoint based on dataset
-      params: {
+    params: {
       dataset: null, // Dataset identifier
       variable: null, // Variable name (usually "streamflow")
       locations: null, // Array of [lat, lon] pairs
@@ -463,7 +514,7 @@ export default {
       format: null // Output format
     },
     methods: {
-        type: "json",
+      type: "json",
       method: "GET"
     }
   },
@@ -471,12 +522,12 @@ export default {
   // Dataset metadata and information
   "dataset-info": {
     endpoint: null, // Dynamic endpoint based on dataset
-      params: {
+    params: {
       dataset: null, // Dataset identifier
       info: null // Type of info: "variables", "spatial", "temporal", "metadata"
     },
     methods: {
-        type: "json",
+      type: "json",
       method: "GET"
     }
   },
@@ -484,7 +535,7 @@ export default {
   // Bulk data extraction for analysis
   "bulk-extraction": {
     endpoint: null, // Dynamic endpoint based on dataset
-      params: {
+    params: {
       dataset: null, // Dataset identifier
       variables: null, // Array of variable names
       bbox: null, // Bounding box
@@ -495,17 +546,17 @@ export default {
       format: null // Output format
     },
     methods: {
-        type: "json",
+      type: "json",
       method: "GET"
-      }
-    },
-  
-    requirements: {
+    }
+  },
+
+  requirements: {
     needProxy: false,
     requireskey: false,
-    },
+  },
 
-    info: {
+  info: {
     returnFormats: "json, csv, netcdf",
     MoreInfo: "https://docs.ciroh.org/docs/products/Data%20Management%20and%20Access%20Tools/bigquery-api/",
     About: "National Water Model Retrospective Data provides historical streamflow data for hydrologic modeling and analysis. Data is stored in Zarr format on Amazon S3 with no authentication required."
@@ -517,9 +568,9 @@ export default {
   // Available variables and their properties
   variables: NWM_VARIABLES,
 
-    "endpoint-info": {
+  "endpoint-info": {
     "point-data": {
-        paramFormat: {
+      paramFormat: {
         dataset: "String - Dataset identifier (e.g., 'nwm-retrospective-3-0-pds')",
         variables: "Array - Variable names (usually ['streamflow'])",
         latitude: "Number - Latitude coordinate (-90 to 90)",
@@ -541,7 +592,7 @@ export default {
       }
     },
     "grid-data": {
-        paramFormat: {
+      paramFormat: {
         dataset: "String - Dataset identifier",
         variables: "Array - Variable names",
         bbox: "Array - Bounding box [west, south, east, north]",
@@ -561,7 +612,7 @@ export default {
       }
     },
     "timeseries-data": {
-        paramFormat: {
+      paramFormat: {
         dataset: "String - Dataset identifier",
         variable: "String - Variable name (usually 'streamflow')",
         locations: "Array - Array of [latitude, longitude] coordinate pairs",
@@ -581,7 +632,7 @@ export default {
       }
     },
     "dataset-info": {
-        paramFormat: {
+      paramFormat: {
         dataset: "String - Dataset identifier",
         info: "String - Information type ('variables', 'spatial', 'temporal', 'metadata')"
       },
@@ -593,7 +644,7 @@ export default {
       }
     },
     "bulk-extraction": {
-        paramFormat: {
+      paramFormat: {
         dataset: "String - Dataset identifier",
         variables: "Array - Variable names to extract",
         bbox: "Array - Bounding box [west, south, east, north]",
@@ -615,7 +666,6 @@ export default {
         format: "json",
         exampleRequest: "Extract daily streamflow for CONUS with 10x spatial aggregation"
       }
-      }
     }
-  };
-  
+  }
+};

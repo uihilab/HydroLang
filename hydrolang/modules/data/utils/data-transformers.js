@@ -5,7 +5,7 @@
 
 /**
  * Apply data scaling based on data source and variable
- * @private
+ * @ignore
  */
 export function applyDataScaling(data, variableName, datasources, source) {
   const sourceConfig = datasources[source];
@@ -40,7 +40,7 @@ export function applyDataScaling(data, variableName, datasources, source) {
 
 /**
  * Convert data units based on source and variable
- * @private
+ * @ignore
  */
 export function convertDataUnits(data, variableName, targetUnits, source, datasources) {
   const sourceConfig = datasources[source];
@@ -69,7 +69,7 @@ export function convertDataUnits(data, variableName, targetUnits, source, dataso
 
 /**
  * Apply temporal aggregation to data
- * @private
+ * @ignore
  */
 export function aggregateTemporal(data, aggregationConfig) {
   const { method, interval } = aggregationConfig;
@@ -86,7 +86,7 @@ export function aggregateTemporal(data, aggregationConfig) {
 
 /**
  * Apply spatial aggregation to data
- * @private
+ * @ignore
  */
 export function aggregateSpatial(data, aggregationConfig) {
   const { method, factor } = aggregationConfig;
@@ -103,7 +103,7 @@ export function aggregateSpatial(data, aggregationConfig) {
 
 /**
  * Apply quality control filters to data
- * @private
+ * @ignore
  */
 export function applyQualityControl(data, qcConfig) {
   const { filters } = qcConfig;
@@ -119,7 +119,7 @@ export function applyQualityControl(data, qcConfig) {
 
 /**
  * Calculate statistics for data
- * @private
+ * @ignore
  */
 export function calculateStatistics(data, statsConfig) {
   const { metrics } = statsConfig;
@@ -150,7 +150,7 @@ export function calculateStatistics(data, statsConfig) {
 
 /**
  * Format data according to specified type and source
- * @private
+ * @ignore
  */
 export function formatData(data, args, source, datasources) {
   const { type } = args;
@@ -255,7 +255,7 @@ function convertToArray(data) {
 
 /**
  * Apply scaling to individual values
- * @private
+ * @ignore
  */
 function applyScalingToValue(value, metadata) {
   if (value === null || value === undefined || value === metadata?.fillValue) {

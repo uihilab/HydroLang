@@ -10,6 +10,7 @@ import { generateHRRRFileURL } from '../datasources/hrrr.js';
 /**
  * HRRR-specific data source implementation
  * Extends GRIB2DataSource with HRRR-specific URL generation and forecast handling
+ * @ignore
  */
 export class HRRRDataSource extends GRIB2DataSource {
   constructor(datasetConfig, hrrrVariables) {
@@ -280,16 +281,7 @@ export class HRRRDataSource extends GRIB2DataSource {
 
 /**
  * Extract point data from HRRR GRIB2 file
- * @param {string} variable - Variable name (e.g., 'TMP', 'APCP')
- * @param {number} latitude - Latitude coordinate
- * @param {number} longitude - Longitude coordinate
- * @param {Date} timestamp - Data timestamp
- * @param {Object} datasetConfig - HRRR dataset configuration
- * @param {Object} hrrrVariables - HRRR variables configuration
- * @param {string} product - Specific HRRR product to use (optional)
- * @param {number} forecastHour - Forecast hour (0-48)
- * @returns {Promise<Object>} Extracted point data
- * @private
+ * @ignore
  */
 export async function extractHRRRPointData(variable, latitude, longitude, timestamp, datasetConfig, hrrrVariables, product = null, forecastHour = 0) {
   const hrrr = new HRRRDataSource(datasetConfig, hrrrVariables);
@@ -307,6 +299,7 @@ export async function extractHRRRPointData(variable, latitude, longitude, timest
  * @param {number} forecastHour - Forecast hour (0-48)
  * @param {Object} options - Additional options (aggregation, etc.)
  * @returns {Promise<Object>} Extracted grid data
+ * @ignore
  * @private
  */
 export async function extractHRRRGridData(variable, bbox, timestamp, datasetConfig, hrrrVariables, product = null, forecastHour = 0, options = {}) {
@@ -316,17 +309,7 @@ export async function extractHRRRGridData(variable, bbox, timestamp, datasetConf
 
 /**
  * Extract time series data from HRRR
- * Uses inherited extractTimeSeries from base class - NO CODE NEEDED!
- * @param {string} variable - Variable name
- * @param {number} latitude - Latitude coordinate
- * @param {number} longitude - Longitude coordinate
- * @param {Date} startTime - Start of time range
- * @param {Date} endTime - End of time range
- * @param {Object} datasetConfig - HRRR dataset configuration
- * @param {Object} hrrrVariables - HRRR variables configuration
- * @param {string} product - Specific HRRR product to use (optional)
- * @returns {Promise<Object>} Time series data
- * @private
+ * @ignore
  */
 export async function extractHRRRTimeSeries(variable, latitude, longitude, startTime, endTime, datasetConfig, hrrrVariables, product = null) {
   const hrrr = new HRRRDataSource(datasetConfig, hrrrVariables);
@@ -351,8 +334,7 @@ export async function extractHRRRTimeSeries(variable, latitude, longitude, start
 
 /**
  * Get available HRRR variables
- * @returns {Array<string>} Available variable names
- * @private
+ * @ignore
  */
 export function getAvailableHRRRVariables() {
   // This would typically load from the HRRR datasource configuration
@@ -363,9 +345,7 @@ export function getAvailableHRRRVariables() {
 
 /**
  * Validate HRRR configuration
- * @param {Object} config - Configuration to validate
- * @returns {boolean} True if valid
- * @private
+ * @ignore
  */
 export function validateHRRRConfig(config) {
   const required = ['baseUrl', 'spatial', 'temporal', 'products'];
@@ -395,11 +375,7 @@ export function validateHRRRConfig(config) {
 
 /**
  * Get HRRR dataset information and metadata
- * @param {Object} datasetConfig - HRRR dataset configuration
- * @param {string} infoType - Type of information requested
- * @param {Object} hrrrVariables - HRRR variables configuration
- * @returns {Object} Dataset information
- * @private
+ * @ignore
  */
 export async function getHRRRDatasetInfo(datasetConfig, infoType, hrrrVariables) {
   switch (infoType) {

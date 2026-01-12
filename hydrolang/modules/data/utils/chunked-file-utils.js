@@ -6,9 +6,9 @@
 
 /**
  * Generate cache key for processed data results
- * @private
+ * @ignore
  */
-function generateProcessedDataKey(fileBufferOrUrl, format, params) {
+export function generateProcessedDataKey(fileBufferOrUrl, format, params) {
   const url = typeof fileBufferOrUrl === 'string' ? fileBufferOrUrl : 'buffer';
   const paramStr = JSON.stringify(params);
   let hash = 0;
@@ -25,9 +25,9 @@ function generateProcessedDataKey(fileBufferOrUrl, format, params) {
 
 /**
  * Process a file buffer in chunks - used internally by readGRIB2Chunked
- * @private
+ * @ignore
  */
-async function processFileInChunks(fileBuffer, options = {}) {
+export async function processFileInChunks(fileBuffer, options = {}) {
   const {
     chunkSize = 10 * 1024 * 1024,
     processChunk,
@@ -86,7 +86,7 @@ async function processFileInChunks(fileBuffer, options = {}) {
  * @param {ArrayBuffer|string} fileBufferOrUrl - NetCDF file buffer or URL (will use cached data if available)
  * @param {Object} options - Reading options
  * @returns {Promise<Object>} Parsed data
- * @private
+ * @ignore
  */
 export async function readNetCDFChunked(fileBufferOrUrl, options = {}) {
   const {
@@ -252,7 +252,7 @@ export async function readNetCDFChunked(fileBufferOrUrl, options = {}) {
  * @param {ArrayBuffer|string} fileBufferOrUrl - GRIB2 file buffer or URL (will use cached data if available)
  * @param {Object} options - Reading options
  * @returns {Promise<Object>} Parsed data
- * @private
+ * @ignore
  */
 export async function readGRIB2Chunked(fileBufferOrUrl, options = {}) {
   const {

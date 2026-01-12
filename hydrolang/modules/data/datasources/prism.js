@@ -1,16 +1,57 @@
 /**
  * PRISM (Parameter-elevation Relationships on Independent Slopes Model) datasource
- * Provides access to high-resolution climate and weather data for the United States
- * Supports precipitation, temperature, humidity, and solar radiation variables
- * Data available as 30-year normals, monthly, and daily time series
+ * Provides access to high-resolution climate and weather data for the United States.
  *
- * Data includes:
- * - ppt: Total Precipitation (mm)
- * - tmin, tmean, tmax: Minimum/Mean/Maximum Temperature (°C)
- * - tdmean: Mean Dewpoint Temperature (°C)
- * - vpdmin, vpdmax: Minimum/Maximum Vapor Pressure Deficit (hPa)
- * - solclear, soltotal, solslope, soltrans: Solar radiation variables (MJ/m²/day)
+ * **Data Information:**
+ * - **Source:** Oregon State University / PRISM Climate Group
+ * - **Format:** GeoTIFF (New) / BIL (Legacy)
+ * - **Resolution:** 400m (15s), 800m (30s), 4km (2.5m)
+ * - **Coverage:** CONUS, AK, HI, PR
+ * - **Time Range:** 1895 - Present
  *
+ * **Available Data Types:**
+ * - `prism-current`: New format (GeoTIFF), covers US territories.
+ * - `prism-legacy`: Legacy format (BIL), CONUS only (Deprecated after Sept 2025).
+ *
+ * **Key Variables:**
+ * - `ppt`: Total Precipitation (mm)
+ * - `tmean` / `tmin` / `tmax`: Temperature (°C)
+ * - `tdmean`: Mean Dewpoint
+ * - `vpdmin` / `vpdmax`: Vapor Pressure Deficit
+ *
+ * @example
+ * // 1. Retrieve Recent Daily Max Temperature (New Format)
+ * const tempData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'prism',
+ *     datatype: 'grid-data'
+ *   },
+ *   args: {
+ *     dataset: 'prism-current',
+ *     variable: 'tmax',
+ *     bbox: [-123.0, 44.0, -121.0, 46.0], // Oregon
+ *     startDate: '2023-07-15T00:00:00Z',
+ *     resolution: '30s' // 800m
+ *   }
+ * });
+ *
+ * @example
+ * // 2. Retrieve Monthly Precipitation Normals (30-year)
+ * const normals = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'prism',
+ *     datatype: 'grid-data'
+ *   },
+ *   args: {
+ *     dataset: 'prism-current',
+ *     variable: 'ppt',
+ *     date: 'normals', // Special keyword for normals
+ *     resolution: '25m', // 4km
+ *     format: 'geotiff'
+ *   }
+ * });
+ *
+ * @see https://prism.oregonstate.edu/
  * @type {Object}
  * @name PRISM
  * @memberof datasources
@@ -208,7 +249,7 @@ const PRISM_STABILITY_LEVELS = {
  */
 export function generatePRISMFileURL(variable, region, resolution, timePeriod, format = 'new', stability = 'stable') {
   let filename;
-  
+
   if (format === 'new') {
     // New format: prism_<var>_<region>_<resolution>_<time period>.zip
     filename = `prism_${variable}_${region}_${resolution}_${timePeriod}.zip`;
@@ -217,7 +258,7 @@ export function generatePRISMFileURL(variable, region, resolution, timePeriod, f
     const scaleVersion = resolution; // e.g., "4kmD1", "800mM2"
     filename = `PRISM_${variable}_${stability}_${scaleVersion}_${timePeriod}_bil.zip`;
   }
-  
+
   const baseUrl = format === 'new' ? PRISM_BASE_URLS.new : PRISM_BASE_URLS.legacy;
   return `${baseUrl}?file=${filename}`;
 }
@@ -232,7 +273,7 @@ export function formatPRISMTimePeriod(date, dataType) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  
+
   switch (dataType) {
     case 'daily':
       return `${year}${month}${day}`;
@@ -254,22 +295,22 @@ export function formatPRISMTimePeriod(date, dataType) {
  */
 export function determinePRISMRegion(bbox) {
   const [west, south, east, north] = bbox;
-  
+
   // Alaska
   if (west >= -180 && east <= -129 && south >= 51 && north <= 72) {
     return 'ak';
   }
-  
+
   // Hawaii
   if (west >= -161 && east <= -154 && south >= 18 && north <= 23) {
     return 'hi';
   }
-  
+
   // Puerto Rico
   if (west >= -68 && east <= -65 && south >= 17 && north <= 19) {
     return 'pr';
   }
-  
+
   // Default to CONUS
   return 'us';
 }
@@ -285,7 +326,7 @@ export function validatePRISMVariable(variable, dataType) {
   if (!variableConfig) {
     return false;
   }
-  
+
   return variableConfig.availability.includes(dataType);
 }
 
@@ -318,7 +359,7 @@ export default {
   variables: PRISM_VARIABLES,
   stability: PRISM_STABILITY_LEVELS,
   baseUrls: PRISM_BASE_URLS,
-  
+
   // Utility functions
   generateURL: generatePRISMFileURL,
   formatTimePeriod: formatPRISMTimePeriod,

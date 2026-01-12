@@ -6,8 +6,9 @@
 
 /**
  * Universal cache for all data sources
+ * @ignore
  */
-class HydroLangCache {
+export class HydroLangCache {
   constructor() {
     this.dbName = 'HydroLang_DataCache';
     this.version = 1;
@@ -1208,10 +1209,10 @@ export const cacheAPI = {
 };
 
 /**
- * Generate simple cache key: source/datatype/id
- * @private
+ * Generate a simple cache key for non-gridded data
+ * @ignore
  */
-function generateSimpleCacheKey(context, url) {
+export function generateSimpleCacheKey(url, params = {}) {
   const source = context.source || 'unknown';
   const datatype = context.dataType || 'data';
 
@@ -1242,10 +1243,10 @@ function generateSimpleCacheKey(context, url) {
 }
 
 /**
- * Detect format from URL and content type (do this ONCE)
- * @private
+ * Detect file format from URL or content type
+ * @ignore
  */
-function detectFormat(url, contentType) {
+export function detectFormat(url, contentType = '') {
   if (contentType.includes('application/json') || url.includes('outputFormat=application/json')) return 'json';
   if (contentType.includes('application/xml') || contentType.includes('text/xml')) return 'xml';
   if (contentType.includes('application/x-grib')) return 'grib2';
@@ -1268,11 +1269,8 @@ function detectFormat(url, contentType) {
 }
 
 /**
- * Cached fetch function that intercepts all fetch calls and caches responses
- * @param {string} url - URL to fetch
- * @param {Object} options - Fetch options
- * @returns {Promise<Response|ArrayBuffer>} Fetch response (cached or fresh)
- * @private
+ * Fetch with caching support
+ * @ignore
  */
 export async function cachedFetch(url, options = {}) {
   const cache = globalThis.hydro?.cache;

@@ -12,6 +12,7 @@ const MAX_SIZE = 2048;
 /**
  * 3DEP-specific data source implementation
  * Extends GeoTIFFDataSource with 3DEP-specific elevation handling
+ * @ignore
  */
 export class DEPDataSource extends GeoTIFFDataSource {
   constructor() {
@@ -223,12 +224,7 @@ export class DEPDataSource extends GeoTIFFDataSource {
 
 /**
  * Fetches DEM data for a specific region from 3DEP Elevation service
- * @param {Object} data - Data parameters
- * @param {Array|Object} data.bbox - Bounding box coordinates [west, south, east, north]
- * @param {number} data.resolution - Data resolution in meters
- * @param {function} [progressCallback] - Optional progress callback
- * @returns {Promise<Object>} Promise resolving to DEM data with georaster
- * @private
+ * @ignore
  */
 export async function fetchDEMData(data, progressCallback) {
   const dep = new DEPDataSource();
@@ -237,11 +233,7 @@ export async function fetchDEMData(data, progressCallback) {
 
 /**
  * Fetches elevation data for a single point
- * @param {number} latitude - Latitude coordinate
- * @param {number} longitude - Longitude coordinate
- * @param {function} [progressCallback] - Optional progress callback
- * @returns {Promise<Object>} Promise resolving to point elevation data
- * @private
+ * @ignore
  */
 export async function fetchPointElevation(latitude, longitude, progressCallback) {
   const dep = new DEPDataSource();
@@ -250,9 +242,7 @@ export async function fetchPointElevation(latitude, longitude, progressCallback)
 
 /**
  * Validates 3DEP request parameters
- * @param {Object} params - Request parameters
- * @returns {Object} Validation result with isValid and errors
- * @private
+ * @ignore
  */
 export function validate3DEPParams(params) {
   const errors = [];

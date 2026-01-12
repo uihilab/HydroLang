@@ -2,8 +2,59 @@
  * European Centre for Medium-Range Weather Forecasts (ECMWF) API
  * This API provides access to various weather and climate data products including
  * forecasts, reanalysis datasets, and climate projections.
- * https://confluence.ecmwf.int/display/WEBAPI/ECMWF+Web+API
- * Note: ECMWF API requires registration and an API key.
+ * 
+ * **Data Information:**
+ * - **Source:** ECMWF & Copernicus Climate Data Store (CDS)
+ * - **Format:** GRIB2, NetCDF (requires conversion/processing)
+ * - **Key Products:** ERA5 (Reanalysis), Seasonal Forecasts, High-res Operations
+ * - **Access:** **REQUIRES API KEY** (See: https://cds.climate.copernicus.eu/api-how-to)
+ *
+ * **Available Data Types:**
+ * - `era5`: ERA5 Reanalysis data (Hourly, Monthly).
+ * - `seasonal-forecast`: Seasonal long-range forecasts.
+ * - `climate-projections`: CMIP6 global climate projections.
+ * - `forecast-grib2`: Operational forecasts (Real-time).
+ * - `point-data` / `grid-data`: Spatial extractions.
+ *
+ * **Example Usage:**
+ * 
+ * @example
+ * // 1. Retrieve ERA5 Reanalysis Data (Surface Temperature)
+ * // Note: Response is often binary (GRIB/NetCDF), requires params.process=true or manual handling
+ * const era5Data = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'ecmwf',
+ *     datatype: 'era5',
+ *     key: 'YOUR_ECMWF_API_KEY'
+ *   },
+ *   args: {
+ *     product_type: 'reanalysis',
+ *     variable: ['2m_temperature'],
+ *     year: '2022',
+ *     month: '01',
+ *     day: '01',
+ *     time: ['12:00'],
+ *     area: [50, -10, 40, 10], // Spatial subset
+ *     format: 'netcdf'
+ *   }
+ * });
+ *
+ * @example
+ * // 2. Retrieve Operational Forecast (GRIB2)
+ * const forecast = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'ecmwf',
+ *     datatype: 'forecast-grib2'
+ *   },
+ *   args: {
+ *     date: '20230101',
+ *     time: '00',
+ *     step: '24', // 24-hour forecast
+ *     param: '167' // 2m Temperature parameter ID
+ *   }
+ * });
+ *
+ * @see https://confluence.ecmwf.int/display/WEBAPI/ECMWF+Web+API
  * @type {Object}
  * @name ECMWF
  * @memberof datasources

@@ -1,19 +1,61 @@
 /**
  * NOAA MRMS (Multi-Radar Multi-Sensor) datasource
- * Provides access to high-resolution precipitation and radar data in GRIB2 format
- * Supports multiple MRMS products including Radar, QPE, QPF, and Severe Weather data
+ * Provides access to high-resolution precipitation and radar data in GRIB2 format.
+ * Supports multiple MRMS products including Radar, QPE, QPF, and Severe Weather data.
  *
- * MRMS Filename Pattern: MRMS_[ProductName]_[Height]_[YYYYMMDD]-[HHMMSS].grib2.gz
- * Example: MRMS_ReflectivityAtLowestAltitude_00.50_20201012-183805.grib2.gz
+ * **Data Information:**
+ * - **Source:** NOAA NCEP / NSSL
+ * - **Format:** GRIB2 (Compressed gz)
+ * - **Resolution:** 1km (0.01°)
+ * - **Updates:** 2-min (Radar), Hourly (QPE)
+ * - **Coverage:** CONUS
+ * - **Type:** Operational Real-time (Limited archive via HTTP)
  *
- * Data includes:
- * - Radar reflectivity (REF)
- * - Precipitation rate (PRATE)
- * - Precipitation accumulation (APCP)
- * - Composite reflectivity (REFC)
- * - Vertically Integrated Liquid (VIL)
- * - Echo Top (ETOP)
+ * **Available Data Types:**
+ * - `mrms-radar`: Real-time radar products (Reflectivity, Echo Tops).
+ * - `mrms-qpe`: Quantitative Precipitation Estimates (Radar-only, Multi-sensor).
+ * - `mrms-qpf`: Quantitative Precipitation Forecasts.
  *
+ * **Key Variables:**
+ * - `REF` / `REFC`: Reflectivity / Composite Reflectivity (dBZ)
+ * - `PRATE` / `APCP`: Precipitation Rate / Accumulation
+ * - `VIL`: Vertically Integrated Liquid
+ * - `RQI`: Radar Quality Index
+ *
+ * @example
+ * // 1. Retrieve Real-time Composite Reflectivity (Grid)
+ * const radarData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'mrms',
+ *     datatype: 'grid-data'
+ *   },
+ *   args: {
+ *     dataset: 'mrms-radar',
+ *     product: 'MergedReflectivityQCComposite',
+ *     variable: 'REFC',
+ *     bbox: [-98.0, 30.0, -90.0, 38.0], // Midwest/South
+ *     startDate: new Date().toISOString() // Current time (approx)
+ *   }
+ * });
+ *
+ * @example
+ * // 2. Retrieve 1-hour Precipitation Accumulation (QPE) for a point
+ * const precipData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'mrms',
+ *     datatype: 'point-data'
+ *   },
+ *   args: {
+ *     dataset: 'mrms-qpe',
+ *     product: 'RadarOnly_QPE_01H',
+ *     variable: 'APCP',
+ *     latitude: 35.4676,
+ *     longitude: -97.5164, // Oklahoma City
+ *     startDate: '2023-05-15T18:00:00Z'
+ *   }
+ * });
+ *
+ * @see https://mrms.ncep.noaa.gov/
  * @type {Object}
  * @name MRMS
  * @memberof datasources

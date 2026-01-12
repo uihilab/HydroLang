@@ -1,17 +1,58 @@
 /**
  * NOAA AORC (Analysis of Record for Calibration) datasource
- * Provides access to high-resolution meteorological forcing data stored in Zarr format on S3
- * Supports multiple variables, time periods, and spatial regions
+ * Provides access to high-resolution meteorological forcing data stored in Zarr format on S3.
  *
- * Data includes:
- * - APCP: Total Precipitation (kg/m²)
- * - DLWRF: Downward Long-Wave Radiation Flux (W/m²)
- * - DSWRF: Downward Short-Wave Radiation Flux (W/m²)
- * - PRES: Pressure (Pa)
- * - SPFH: Specific Humidity (kg/kg)
- * - TMP: Temperature (K)
- * - UGRD: U-Component of Wind (m/s)
- * - VGRD: V-Component of Wind (m/s)
+ * **Data Information:**
+ * - **Source:** NOAA NWS
+ * - **Format:** Zarr (accessed via S3)
+ * - **Resolution:** 1km roughly (0.008333 deg), Hourly
+ * - **Coverage:** CONUS, some transboundary
+ *
+ * **Available Data Types:**
+ * - `point-data`: Extract time series for a single lat/lon coordinate for specific variables.
+ * - `grid-data`: Extract a spatial subset (bounding box) for specific variables and time.
+ * - `timeseries-data`: Extract time series for multiple locations.
+ * - `bulk-extraction`: Large scale extraction (caution: data heavy).
+ *
+ * **Key Variables:**
+ * - `APCP_surface`: Total Precipitation (kg/m²)
+ * - `TMP_2maboveground`: Temperature at 2m (K)
+ * - `DSWRF_surface`: Short-wave Radiation (W/m²)
+ * - `DLWRF_surface`: Long-wave Radiation (W/m²)
+ *
+ * @example
+ * // 1. Retrieve Point Data (Precipitation & Temperature) for specific location/time
+ * const pointData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'aorc',
+ *     datatype: 'point-data'
+ *   },
+ *   args: {
+ *     dataset: 'aorc-v1.1',
+ *     variables: ['APCP_surface', 'TMP_2maboveground'],
+ *     latitude: 40.7128,
+ *     longitude: -74.0060,
+ *     startDate: '2020-01-01T00:00:00Z',
+ *     endDate: '2020-01-07T23:00:00Z'
+ *   }
+ * });
+ *
+ * @example
+ * // 2. Retrieve Grid Data (NetCDF format)
+ * const gridData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'aorc',
+ *     datatype: 'grid-data'
+ *   },
+ *   args: {
+ *     dataset: 'aorc-v1.1',
+ *     variables: ['APCP_surface'],
+ *     bbox: [-75.0, 40.0, -73.0, 42.0], // [west, south, east, north]
+ *     startDate: '2020-01-01T00:00:00Z',
+ *     endDate: '2020-01-01T06:00:00Z',
+ *     format: 'netcdf'
+ *   }
+ * });
  *
  * @type {Object}
  * @name AORC
