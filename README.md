@@ -6,113 +6,140 @@
 
 [**Link to documentation**](https://uihilab.github.io/HydroLang/)
 
-* [Introduction](https://github.com/uihilab/HydroLang#Introduction)
-* [How to Use](https://github.com/uihilab/HydroLang#How-to-Use)
-* [Expansions and Test Cases](https://github.com/uihilab/HydroLang#Expansions-and-Test-Cases)
-* [Community](https://github.com/uihilab/HydroLang#Community)
-* [Feedback](https://github.com/uihilab/HydroLang#Feedback)
-* [Scalability and To Do's](https://github.com/uihilab/HydroLang#Scalability-and-To-Dos)
-* [License](https://github.com/uihilab/HydroLang#License)
-* [Acknowledgements](https://github.com/uihilab/HydroLang#Acknowledgements)
+* [Introduction](#introduction)
+* [Modules](#modules)
+    * [Data](#data)
+    * [Analyze](#analyze)
+    * [Visualization](#visualization)
+    * [Maps](#maps)
+* [How to Use](#how-to-use)
+* [Examples](#examples)
+* [Community](#community)
+* [Feedback](#feedback)
+* [License](#license)
+* [Acknowledgements](#acknowledgements)
 * [References](#references)
 
 ## Introduction
-This project introduces HydroLang, a web-based framework for environmental and hydrological analyses. It contains 4 different modules, each with a specific purpose that can be used either in combination with other modules or separately. The modules are:
-* **Data**: used for data retrieval, manipulation, download and upload.
-* **Analyze**: contains three different components, each aiming towards a similar purpose:
-    - *hydro*: functions for precipitation analysis and rainfall-runoff lumped models.
-    - *stats*: functions for statistical characterization of data.
-    - *NN*: functions for the creation of feed forward neural network models using [TensorFlow.js](https://www.tensorflow.org/js).
-* **Visualization**: used for rendering different types of charts and tables on screen using [Google Charts](https://developers.google.com/chart).
-* **Maps**: used for rendering of maps with option of adding/removing/downloading layers of different formats (geoJSON, KML) using two options on map engines [Google Maps](https://developers.google.com/maps/documentation) and [Leaflet](https://leafletjs.com/).
+HydroLang is an open-source, web-based framework designed for comprehensive environmental and hydrological analysis. Built with modularity and extensibility in mind, it empowers researchers and developers to perform complex data retrieval, analysis, modeling, and visualization directly within the browser.
 
-The current modular structure serves as a starting point for basic hydrologic and environmental analyses, with further development bringing along new functions and modules that work using the same ontological design.
+By leveraging modern web technologies including **GDAL via WebAssembly for raster processing** and **TensorFlow.js for client-side machine learning**, HydroLang enables high-performance computing without the need for backend infrastructure.
+
+## Modules
+
+HydroLang consists of four core modules, each designed to handle specific aspects of the hydrological workflow. These modules can be used independently or chained together for seamless end-to-end analysis.
+
+### Data
+The **Data** module facilitates the retrieval, manipulation, and management of hydrological and environmental data. It supports connection to various public APIs and data sources, harmonizing diverse data formats into a unified structure for analysis.
+
+### Analyze
+The **Analyze** module is the computational core of HydroLang, subdivided into three specialized components:
+*   **Hydro & Stats**: Provides essential hydrological functions (e.g., rainfall-runoff lumped models) and robust statistical characterization tools for time-series data.
+*   **Geoprocessor**: A powerful client-side raster analysis engine powered by **GDAL (WASM)**. It enables advanced geospatial operations such as slope and aspect calculation, hillshading, reclassification, and terrain analysis directly in the browser.
+*   **NN (Neural Networks)**: A comprehensive machine learning component built on **TensorFlow.js**. It runs in a dedicated Web Worker to ensure UI responsiveness and supports various architectures including:
+    *   **Dense (Feed Forward)**: For general regression and classification.
+    *   **LSTM (Long Short-Term Memory)**: Optimized for time-series forecasting.
+    *   **CNN (Convolutional Neural Networks)**: For spatial pattern recognition.
+
+### Visualization
+The **Visualization** module enables the creation of interactive and publication-quality charts and tables. Built on top of **Google Charts**, it offers a wide range of visualization types (Line, Scatter, Bar, Histogram, etc.) and includes utilities for generating comprehensive HTML reports (`generateReport`) to summarize analytical results.
+
+### Maps
+The **Maps** module handles geospatial visualization, supporting both **Leaflet** and **Google Maps** engines. It provides tools for:
+*   Rendering vector data (GeoJSON, KML).
+*   Visualizing raster data (GeoTIFF) using the `addGeoRasterLayer` function.
+*   Interactive drawing and spatial querying with the built-in `draw` capabilities.
 
 ## How to Use
-Please download the library and run `index.html`. If a new html file should be created, the library must be onloaded onto the file as a script
+To use HydroLang, simply include the `hydro.js` module in your HTML file. No installation or build process is required.
 
 ```html
-<script
- type = "module"
- src= "./hydrolang/hydro.js"
-></script>
+<script type="module" src="./hydrolang/hydro.js"></script>
 ```
 
-Once the library is loaded, a new intance of HydroLang is added to the body of the file as:
-```javascript
-var hydro1 = new Hydrolang();
-```
-
-Each of the modules is accessed through chainage using the `hydro` class instance. Functions on the third level chainage have been declared as static methods and thus, will not appear as quick access on the browser. Parameter destructuring has been added to most driving function within the framework to create an easier way to declare workflows. The destructuring is driven mainly in the following scope:
+Initialize the library:
 
 ```javascript
-hydro[module][function]({params:{}, args:{}, data: []})
+import Hydrolang from './hydrolang/hydro.js';
+const hydro = new Hydrolang();
 ```
-`params:{}` represents an object with initial drivers for a specific function, `args:{}` is an object with additional parameters required for the function, and `data` is any data representation, usually an `n-D` array, for the function to run. For instance, in the data retrieval function:
+
+HydroLang uses a consistent "params-args-data" pattern for most of its functions, utilizing object destructuring for clarity and flexibility:
+
 ```javascript
-hydro.data.retrieve({params:{source: someSource, dataType: someType}, args:{specificArg: someArg}})
-``` 
-The function definition found in the documentation states which parameters are required.
-
-Summary examples for each module:
-* Function call for data module
-```javascript 
-var example: hydro1.data.function({params: {}, args:{}, data: []}) 
-```
-* Function call for any component on the analyze module
-```javascript 
-var example: hydro1.analyze.component.function({params: {}, args:{}, data: []}) 
-```
-* Function call for visualization module
-```javascript 
-var example: hydro1.visualize.function({params: {}, args:{}, data: []}) 
-```
-* Function call for maps module
-```javascript 
-var example: hydro1.map.function({params: {}, args:{}, data: []}) 
+hydro[module][component][function]({
+    params: { /* Configuration parameters (e.g., model type, chart options) */ },
+    args:   { /* Execution arguments (e.g., specific flags, keys) */ },
+    data:   [ /* Input data (arrays, typed arrays, or data objects) */ ]
+})
 ```
 
-## Expansions and Test Cases
+### Quick Examples
 
-### Core library usage
-The usage of the library through its core structure can be found within the following files or within each module folder:
-* `test-analysis.html`
-* `test-data.html`
-* `test-maps.html`
-* `test-visualization.html`
+**1. Data Retrieval**
+```javascript
+hydro.data.retrieve({
+    params: { source: 'USGS', dataType: 'streamflow' },
+    args:   { site: '05454500', period: 'P7D' }
+})
+.then(data => console.log(data));
+```
 
-### Expansions
-The current expansions of the framework are the following:
-* [BMI specification](https://github.com/uihilab/HydroLang/tree/master/hydrolang/bmi-implementation): CSDMS basic modeling interface through steering files.
-* [HL-ML](https://github.com/uihilab/HydroLang-ML): HTML driven web components for hydrology and environmental sciences.
+**2. Neural Network Prediction**
+```javascript
+// Create and train an LSTM model
+const model = await hydro.analyze.nn.createModel({
+    params: { type: 'lstm', units: 50, shape: [7, 1] } // 7-day lookback
+});
+
+await model.train({
+    params: { epochs: 50 },
+    data: { inputs: xTrain, outputs: yTrain }
+});
+```
+
+**3. Geoprocessing**
+```javascript
+// Calculate slope from a DEM
+const slopeData = await hydro.analyze.geoprocessor.execute({
+    params: { action: 'slope' },
+    data: [{ buffer: demArrayBuffer }]
+});
+```
+
+## Examples
+The `examples/` directory contains a comprehensive set of demos illustrating real-world use cases. These are categorized to help you get started quickly:
+
+*   **Data Sources**:
+    *   `usgs_streamflow.html`: Fetching and visualizing real-time streamflow data.
+    *   `3dep_dem_retrieval.html`: Retrieving elevation data for terrain analysis.
+*   **Geoprocessing**:
+    *   `terrain_analysis.html`: Performing client-side terrain analysis (Slope, Aspect, Hillshade).
+    *   `watershed_delineation.html`: Delineating watersheds and stream networks.
+*   **Machine Learning**:
+    *   `lstm_streamflow_forecast.html`: Forecasting streamflow using Deep Learning (LSTM).
+*   **Statistical Analysis**:
+    *   `correlation_analysis.html`: analyzing relationships between hydrological variables.
 
 ## Community
-It is possible for the library to expand by becoming a community-based framework with collaborations from research institutes or knowledgeable individuals thanks to the flexibility of employing a modular architecture, open-source libraries, and not requiring installation. Interested parties can adapt and expand HydroLang to fit their unique use cases, development environments, project requirements, and data resources. Everyone is encouraged to contribute to the growth of HydroLang by:
-* filing an issue to request certain features, functionality, and data,
-* implementing the desired capability on a fork, and submitting a pull request.
-Please visit the [contributing](https://github.com/uihilab/HydroLang/blob/master/docs/CONTRIBUTING.md) guidelines for more details. 
+HydroLang is a community-driven project. We welcome contributions from researchers, developers, and hydrologists. You can contribute by:
+*   Filing issues for bugs or feature requests.
+*   Submitting Pull Requests with new modules, data sources, or improvements.
+*   Sharing your models and case studies on the [HydroLang-Models repository](https://github.com/uihilab/HydroLang-Models).
 
-Furthermore, for community building, we encourage users of HydroLang to share their models, codes, and case studies on [HydroLang-Models repository](https://github.com/uihilab/HydroLang-Models).
+Please refer to the [Contributing Guidelines](https://github.com/uihilab/HydroLang/blob/master/docs/CONTRIBUTING.md) for more details.
 
 ## Feedback
-Please feel free to send feedback to us on any issues found by filing an [issue](https://github.com/uihilab/HydroLang/blob/master/.github/ISSUE_TEMPLATE/feature_request.md).
-
-## Scalability and To-Do's
-The framework is not limited to the functions and modules implemented, but rather provides a boilerplate for new features to be added. Nonetheless, the following should be considered:
-
-* The hydro component contains only lumped models.
-* The map module is fully available only on Leaflet engine.
+We value your feedback. Please report any issues or suggestions via our [GitHub Issues](https://github.com/uihilab/HydroLang/issues) page.
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/uihilab/HydroLang/blob/master/LICENSE) file for details.
 
 ## Acknowledgements
-This project is developed by the University of Iowa Hydroinformatics Lab (UIHI Lab):
+Developed by the **University of Iowa Hydroinformatics Lab (UIHI Lab)**:
+https://hydroinformatics.uiowa.edu/
 
-https://hydroinformatics.uiowa.edu/.
-
-And with the support of the Cosortium of Universities for the Advancement of Hydrological Science [CUAHSI](https://www.cuahsi.org/) through the [Hydroinformatics Innovation Fellowship](https://www.cuahsi.org/grant-opportunities/hydroinformatics-innovation-fellowship).
+Supported by the **Consortium of Universities for the Advancement of Hydrological Science (CUAHSI)** through the Hydroinformatics Innovation Fellowship.
 
 ## References
-
-* Erazo Ramirez, C., Sermet, Y., Molkenthin, F., & Demir, I. (2022). HydroLang: An open-source web-based programming framework for hydrological sciences. Environmental Modelling & Software, 157, 105525. [doi:10.1016/j.envsoft.2022.105525](https://www.sciencedirect.com/science/article/pii/S1364815222002250)
+*   Erazo Ramirez, C., Sermet, Y., Molkenthin, F., & Demir, I. (2022). HydroLang: An open-source web-based programming framework for hydrological sciences. *Environmental Modelling & Software*, 157, 105525. [doi:10.1016/j.envsoft.2022.105525](https://www.sciencedirect.com/science/article/pii/S1364815222002250)
