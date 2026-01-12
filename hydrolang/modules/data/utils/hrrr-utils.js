@@ -289,6 +289,7 @@ export class HRRRDataSource extends GRIB2DataSource {
  * @param {string} product - Specific HRRR product to use (optional)
  * @param {number} forecastHour - Forecast hour (0-48)
  * @returns {Promise<Object>} Extracted point data
+ * @private
  */
 export async function extractHRRRPointData(variable, latitude, longitude, timestamp, datasetConfig, hrrrVariables, product = null, forecastHour = 0) {
   const hrrr = new HRRRDataSource(datasetConfig, hrrrVariables);
@@ -306,6 +307,7 @@ export async function extractHRRRPointData(variable, latitude, longitude, timest
  * @param {number} forecastHour - Forecast hour (0-48)
  * @param {Object} options - Additional options (aggregation, etc.)
  * @returns {Promise<Object>} Extracted grid data
+ * @private
  */
 export async function extractHRRRGridData(variable, bbox, timestamp, datasetConfig, hrrrVariables, product = null, forecastHour = 0, options = {}) {
   const hrrr = new HRRRDataSource(datasetConfig, hrrrVariables);
@@ -324,6 +326,7 @@ export async function extractHRRRGridData(variable, bbox, timestamp, datasetConf
  * @param {Object} hrrrVariables - HRRR variables configuration
  * @param {string} product - Specific HRRR product to use (optional)
  * @returns {Promise<Object>} Time series data
+ * @private
  */
 export async function extractHRRRTimeSeries(variable, latitude, longitude, startTime, endTime, datasetConfig, hrrrVariables, product = null) {
   const hrrr = new HRRRDataSource(datasetConfig, hrrrVariables);
@@ -349,6 +352,7 @@ export async function extractHRRRTimeSeries(variable, latitude, longitude, start
 /**
  * Get available HRRR variables
  * @returns {Array<string>} Available variable names
+ * @private
  */
 export function getAvailableHRRRVariables() {
   // This would typically load from the HRRR datasource configuration
@@ -361,6 +365,7 @@ export function getAvailableHRRRVariables() {
  * Validate HRRR configuration
  * @param {Object} config - Configuration to validate
  * @returns {boolean} True if valid
+ * @private
  */
 export function validateHRRRConfig(config) {
   const required = ['baseUrl', 'spatial', 'temporal', 'products'];
@@ -394,6 +399,7 @@ export function validateHRRRConfig(config) {
  * @param {string} infoType - Type of information requested
  * @param {Object} hrrrVariables - HRRR variables configuration
  * @returns {Object} Dataset information
+ * @private
  */
 export async function getHRRRDatasetInfo(datasetConfig, infoType, hrrrVariables) {
   switch (infoType) {

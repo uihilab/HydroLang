@@ -1283,6 +1283,7 @@ export class GeoTIFFDataSource extends GriddedDataSource {
 
 /**
  * Load gridded data libraries dynamically
+ * @private
  */
 export async function loadGridDataLibrary(format) {
   try {
@@ -1313,6 +1314,7 @@ export async function loadGridDataLibrary(format) {
  */
 /**
  * Check if a gridded data library is loaded
+ * @private
  */
 export function isGridDataLibraryLoaded(format) {
   // We can't easily check synchronously without importing the module
@@ -1332,6 +1334,7 @@ export function isGridDataLibraryLoaded(format) {
 
 /**
  * Get loaded library instance
+ * @private
  */
 export function getGridDataLibrary(format) {
   switch (format) {
@@ -1352,6 +1355,7 @@ export function getGridDataLibrary(format) {
 
 /**
  * Aggregate time periods
+ * @private
  */
 export function aggregateTime(date, timeStep, direction) {
   const dateObj = new Date(date);
@@ -1370,6 +1374,7 @@ export function aggregateTime(date, timeStep, direction) {
 
 /**
  * Expand spatial bounding box by step factor
+ * @private
  */
 export function expandSpatialBounds(bbox, spatialStep) {
   const [west, south, east, north] = bbox;
@@ -1384,6 +1389,7 @@ export function expandSpatialBounds(bbox, spatialStep) {
 
 /**
  * Validate coordinate bounds
+ * @private
  */
 export function isValidCoordinate(latitude, longitude, spatialBounds) {
   return latitude >= spatialBounds.latitude.min &&
@@ -1394,6 +1400,7 @@ export function isValidCoordinate(latitude, longitude, spatialBounds) {
 
 /**
  * Validate bounding box
+ * @private
  */
 export function isValidBoundingBox(bbox, spatialBounds) {
   const [west, south, east, north] = bbox;

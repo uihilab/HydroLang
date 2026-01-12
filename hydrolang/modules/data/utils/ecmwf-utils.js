@@ -178,6 +178,7 @@ export class ECMWFDataSource extends GRIB2DataSource {
  * @param {Object} requestParams - ECMWF API request parameters
  * @param {Object} datasetConfig - ECMWF dataset configuration
  * @returns {Promise<Object>} ERA5 data
+ * @private
  */
 export async function extractERA5Data(requestParams, datasetConfig) {
   console.log(`[ecmwf] Extracting ERA5 data with params:`, requestParams);
@@ -224,6 +225,7 @@ export async function extractERA5Data(requestParams, datasetConfig) {
  * Download ERA5 file from data URL
  * @param {string} dataUrl - URL to download ERA5 data from
  * @returns {Promise<ArrayBuffer>} ERA5 file data
+ * @private
  */
 export async function downloadERA5File(dataUrl) {
   console.log(`[ecmwf] Downloading ERA5 file from: ${dataUrl}`);
@@ -246,6 +248,7 @@ export async function downloadERA5File(dataUrl) {
  * @param {ArrayBuffer} fileBuffer - ERA5 GRIB2 file data
  * @param {Object} extractOptions - Extraction options (variable, bbox, point, etc.)
  * @returns {Promise<Object>} Processed ERA5 data
+ * @private
  */
 export async function processERA5GRIB2Data(fileBuffer, extractOptions = {}) {
   console.log(`[ecmwf] Processing ERA5 GRIB2 data (${(fileBuffer.byteLength / 1024 / 1024).toFixed(1)} MB)`);
@@ -266,8 +269,9 @@ export async function processERA5GRIB2Data(fileBuffer, extractOptions = {}) {
  * @param {string} requestId - Request ID to poll
  * @param {Object} datasetConfig - Dataset configuration
  * @returns {Promise<Object>} Completed status object
+ * @private
  */
-async function pollECMWFStatus(requestId, datasetConfig) {
+export async function pollECMWFStatus(requestId, datasetConfig) {
   const proxy = datasources.proxies["local-proxy"].endpoint;
   const endpoint = `${datasetConfig.endpoint}/${requestId}`;
   const pollUrl = proxy + endpoint;
@@ -319,6 +323,7 @@ async function pollECMWFStatus(requestId, datasetConfig) {
  * @param {Date} timestamp - Data timestamp
  * @param {Object} datasetConfig - ECMWF dataset configuration
  * @returns {Promise<Object>} Extracted point data
+ * @private
  */
 export async function extractERA5PointData(variable, latitude, longitude, timestamp, datasetConfig) {
   console.log(`[ecmwf] Extracting ERA5 ${variable} at (${latitude}, ${longitude}) for ${timestamp.toISOString()}`);
@@ -342,6 +347,7 @@ export async function extractERA5PointData(variable, latitude, longitude, timest
  * @param {Date} timestamp - Data timestamp
  * @param {Object} datasetConfig - ECMWF dataset configuration
  * @returns {Promise<Object>} Extracted grid data
+ * @private
  */
 export async function extractERA5GridData(variable, bbox, timestamp, datasetConfig) {
   console.log(`[ecmwf] Extracting ERA5 ${variable} grid for ${timestamp.toISOString()}`);
@@ -365,6 +371,7 @@ export async function extractERA5GridData(variable, bbox, timestamp, datasetConf
  * @param {Date} endTime - End of time range
  * @param {Object} datasetConfig - ECMWF dataset configuration
  * @returns {Promise<Object>} Time series data
+ * @private
  */
 export async function extractERA5TimeSeries(variable, latitude, longitude, startTime, endTime, datasetConfig) {
   console.log(`[ecmwf] Extracting ERA5 ${variable} time series from ${startTime.toISOString()} to ${endTime.toISOString()}`);
@@ -382,6 +389,7 @@ export async function extractERA5TimeSeries(variable, latitude, longitude, start
 /**
  * Get available ERA5 variables
  * @returns {Array<string>} Available variable names
+ * @private
  */
 export function getAvailableERA5Variables() {
   // This should load from ECMWF datasource configuration
@@ -401,6 +409,7 @@ export function getAvailableERA5Variables() {
  * Validate ERA5 configuration
  * @param {Object} config - Configuration to validate
  * @returns {boolean} True if valid
+ * @private
  */
 export function validateERA5Config(config) {
   const required = ['endpoint', 'spatial', 'temporal'];

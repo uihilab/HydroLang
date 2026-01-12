@@ -16,6 +16,9 @@ export default class geoprocessor {
     // Worker Management
     // ============================================================
 
+    /**
+     * @private
+     */
     static async _ensureWorker() {
         if (!this._worker) {
             // Path relative to where this module is imported usually works if using module workers, 
@@ -43,6 +46,9 @@ export default class geoprocessor {
         }
     }
 
+    /**
+     * @private
+     */
     static _runWorker(action, args, data, transfer = []) {
         return new Promise(async (resolve, reject) => {
             try {
@@ -60,6 +66,9 @@ export default class geoprocessor {
     // Dependency Loading
     // ============================================================
 
+    /**
+     * @private
+     */
     static async _ensureLibraries() {
         if (!geospatial.isLoaded()) {
             await geospatial.load({
@@ -74,6 +83,9 @@ export default class geoprocessor {
     // Internal Helpers
     // ============================================================
 
+    /**
+     * @private
+     */
     static async _openFromArrayBuffer(input) {
         await this._ensureLibraries();
 
@@ -195,6 +207,9 @@ export default class geoprocessor {
         throw new Error("Unsupported TIFF format loaded.");
     }
 
+    /**
+     * @private
+     */
     static async _toGeoTIFF(bands, width, height, options = {}) {
         await this._ensureLibraries();
         const GeoTIFF = geospatial.libraries.GeoTIFF;
@@ -260,6 +275,9 @@ export default class geoprocessor {
         }
     }
 
+    /**
+     * @private
+     */
     static _toGeorasterObject(bands, width, height, options = {}) {
         // Calculate basic stats for fallback
         const mins = [], maxs = [], ranges = [];
@@ -337,7 +355,10 @@ export default class geoprocessor {
 
 
 
-    // Centralized band derivative
+    /**
+     * Centralized band derivative
+     * @private
+     */
     static _dx(arr, w, h, cell) {
         const out = new Float32Array(w * h);
         for (let y = 0; y < h; y++) {

@@ -1196,6 +1196,7 @@ async function addGeoRasterLayer({ params = {}, args, data } = {}) {
  * @param {Object} georaster - Georaster object with elevation data
  * @param {Object} styleOptions - Styling options for the layer
  * @returns {Object} Google Maps overlay object
+ * @private
  */
 function createGoogleMapsGeoRasterLayer(georaster, styleOptions = {}) {
   const {
@@ -1313,6 +1314,7 @@ function createGoogleMapsGeoRasterLayer(georaster, styleOptions = {}) {
  * @param {Object} georaster - Georaster object with elevation data
  * @param {Object} styleOptions - Styling options for the layer
  * @returns {Object} Leaflet layer object
+ * @private
  */
 async function createLeafletGeoRasterLayer(georaster, styleOptions = {}) {
   const {
@@ -1390,6 +1392,7 @@ async function createLeafletGeoRasterLayer(georaster, styleOptions = {}) {
  * @param {Object} georaster - Georaster object with elevation data
  * @param {Object} options - Layer options
  * @returns {Object} Leaflet image overlay
+ * @private
  */
 function createSimpleGeoRasterOverlay(georaster, options = {}) {
   const { opacity = 0.7, colorScheme = 'terrain' } = options;
@@ -1506,6 +1509,7 @@ function createSimpleGeoRasterOverlay(georaster, options = {}) {
  * @param {Object} georaster - Georaster object with elevation data
  * @param {Object} options - Layer options
  * @returns {Object} Leaflet canvas layer
+ * @private
  */
 function createLeafletCanvasGeoRasterLayer(georaster, options = {}) {
   const { opacity = 0.7, colorScheme = 'terrain' } = options;
@@ -1538,6 +1542,7 @@ function createLeafletCanvasGeoRasterLayer(georaster, options = {}) {
  * @param {number} normalizedValue - Normalized elevation (0-1)
  * @param {string|Array} colorScheme - Color scheme name or array of hex colors
  * @returns {Object} RGB color object
+ * @private
  */
 function getLeafletColorForElevation(normalizedValue, colorScheme) {
   // 1. Custom Array Scheme (e.g., ['#ffffff', '#0000ff'])
@@ -1604,6 +1609,7 @@ function interpolateColor(c1, c2, factor) {
 /**
  * Attempts to load the GeoRasterLayer plugin for Leaflet
  * @returns {Promise<void>}
+ * @private
  */
 async function loadGeoRasterLayerPlugin() {
   if (typeof L.GeoRasterLayer !== 'undefined') {
@@ -1817,6 +1823,7 @@ function addPopup({ params, args, data } = {}) {
  * Adds a custom legend to the map based on the map type and position specified.
  * @param {Object} param0 - Object containing the map type and position for the legend.
  * @param {string} param0.position - The position for the legend (top, top left, left, bottom left, bottom, bottom right, right, top right).
+ * @private
  */
 async function addCustomLegend({ params, args, data } = {}) {
   const { position } = params;
@@ -2159,6 +2166,7 @@ function generateColors() {
 /**
  * Returns the current map instance (Leaflet or Google Maps)
  * @returns {Object} Map instance
+ * @private
  */
 function getMap() {
   return osmap;

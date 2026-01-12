@@ -281,6 +281,7 @@ export class NWMDataSource extends ZarrDataSource {
  * @param {string} product - Product name
  * @param {string} datasetVersion - Dataset version
  * @returns {string} File URL
+ * @private
  */
 export function constructNWMFileURL(baseUrl, year, date, product, datasetVersion) {
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
@@ -294,6 +295,7 @@ export function constructNWMFileURL(baseUrl, year, date, product, datasetVersion
  * Get NWM temporal information
  * @param {Object} datasetConfig - NWM dataset configuration
  * @returns {Object} Temporal information
+ * @private
  */
 export function getNWMTemporalInfo(datasetConfig) {
   return {
@@ -310,6 +312,7 @@ export function getNWMTemporalInfo(datasetConfig) {
  * @param {Date} endDate - End date
  * @param {string} frequency - Frequency (hourly, daily)
  * @returns {Array<Date>} Array of dates
+ * @private
  */
 export function generateNWMDateRange(startDate, endDate, frequency) {
   const dates = [];
@@ -338,6 +341,7 @@ export function generateNWMDateRange(startDate, endDate, frequency) {
  * @param {Date} startDate - Start date
  * @param {Date} endDate - End date
  * @returns {Promise<Object>} Extracted NWM data
+ * @private
  */
 export async function extractNWMData(datasetConfig, variable, comid, startDate, endDate) {
   const nwm = new NWMDataSource(datasetConfig);
@@ -350,6 +354,7 @@ export async function extractNWMData(datasetConfig, variable, comid, startDate, 
  * @param {Object} datasetConfig - NWM dataset configuration
  * @param {Object} datasources - Datasources configuration
  * @returns {Promise<Object>} Bulk extraction results
+ * @private
  */
 export async function processNWMBulkExtraction(args, datasetConfig, datasources) {
   const nwm = new NWMDataSource(datasetConfig);
@@ -398,6 +403,7 @@ export async function processNWMBulkExtraction(args, datasetConfig, datasources)
  * @param {Object} data - NWM data
  * @param {string} format - Output format ('json', 'csv', 'netcdf')
  * @returns {Object|string} Formatted data
+ * @private
  */
 export function formatNWMOutput(data, format) {
   const nwm = new NWMDataSource({ format: 'zarr' });
@@ -417,6 +423,7 @@ export function formatNWMOutput(data, format) {
  * Convert NWM data to CSV
  * @param {Object} data - NWM data
  * @returns {string} CSV string
+ * @private
  */
 export function convertNWMToCSV(data) {
   const nwm = new NWMDataSource({ format: 'zarr' });

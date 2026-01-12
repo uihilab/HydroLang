@@ -1209,6 +1209,7 @@ export const cacheAPI = {
 
 /**
  * Generate simple cache key: source/datatype/id
+ * @private
  */
 function generateSimpleCacheKey(context, url) {
   const source = context.source || 'unknown';
@@ -1242,6 +1243,7 @@ function generateSimpleCacheKey(context, url) {
 
 /**
  * Detect format from URL and content type (do this ONCE)
+ * @private
  */
 function detectFormat(url, contentType) {
   if (contentType.includes('application/json') || url.includes('outputFormat=application/json')) return 'json';
@@ -1270,6 +1272,7 @@ function detectFormat(url, contentType) {
  * @param {string} url - URL to fetch
  * @param {Object} options - Fetch options
  * @returns {Promise<Response|ArrayBuffer>} Fetch response (cached or fresh)
+ * @private
  */
 export async function cachedFetch(url, options = {}) {
   const cache = globalThis.hydro?.cache;

@@ -646,6 +646,7 @@ export class AORCDataSource extends ZarrDataSource {
  * @param {Object} args - Request arguments
  * @param {Object} datasetConfig - AORC dataset configuration
  * @returns {Promise<Object>} Processed data
+ * @private
  */
 export async function processAORCPointData(args, datasetConfig) {
   const aorc = new AORCDataSource(datasetConfig);
@@ -684,6 +685,7 @@ export async function processAORCPointData(args, datasetConfig) {
  * @param {Object} args - Request arguments
  * @param {Object} datasetConfig - AORC dataset configuration
  * @returns {Promise<Object>} Processed grid data
+ * @private
  */
 export async function processAORCGridData(args, datasetConfig) {
   // Handle variables parameter - can be array or single string
@@ -716,6 +718,7 @@ export async function processAORCGridData(args, datasetConfig) {
  * @param {Object} args - Request arguments
  * @param {Object} datasetConfig - AORC dataset configuration
  * @returns {Promise<Object>} Time series data
+ * @private
  */
 export async function processAORCTimeSeriesData(args, datasetConfig) {
   // Handle variables parameter - can be array or single string
@@ -742,6 +745,7 @@ export async function processAORCTimeSeriesData(args, datasetConfig) {
  * @param {Object} args - Request arguments
  * @param {Object} datasetConfig - AORC dataset configuration
  * @returns {Promise<Object>} Dataset information
+ * @private
  */
 export async function processAORCDatasetInfo(args, datasetConfig) {
   const aorc = new AORCDataSource(datasetConfig);
@@ -770,6 +774,7 @@ export async function processAORCDatasetInfo(args, datasetConfig) {
  * @param {Object} args - Request arguments
  * @param {Object} datasetConfig - AORC dataset configuration
  * @returns {Promise<Object>} Bulk extraction results
+ * @private
  */
 export async function processAORCBulkExtraction(args, datasetConfig) {
   const aorc = new AORCDataSource(datasetConfig);
@@ -795,6 +800,7 @@ export async function processAORCBulkExtraction(args, datasetConfig) {
  * @param {Object} data - AORC data
  * @param {string} format - Output format ('json', 'csv', 'netcdf')
  * @returns {Object|string} Formatted data
+ * @private
  */
 export function formatAORCOutput(data, format) {
   const aorc = new AORCDataSource({});
@@ -814,6 +820,7 @@ export function formatAORCOutput(data, format) {
  * Convert AORC data to CSV
  * @param {Object} data - AORC data
  * @returns {string} CSV string
+ * @private
  */
 export function convertAORCToCSV(data) {
   const aorc = new AORCDataSource({});
@@ -824,6 +831,7 @@ export function convertAORCToCSV(data) {
  * Convert AORC data to NetCDF-compatible structure
  * @param {Object} data - AORC data
  * @returns {Object} NetCDF-compatible structure
+ * @private
  */
 export function convertAORCToNetCDF(data) {
   const aorc = new AORCDataSource({});

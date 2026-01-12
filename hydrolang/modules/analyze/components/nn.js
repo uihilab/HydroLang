@@ -465,6 +465,7 @@ class ModelProxy {
   /**
    * Preprocesses 1D data into LSTM-ready 3D format.
    * @method preprocess
+   * @private
    * @param {Object} params - Contains: inputWindow (timeSteps), outputWindow (predictions).
    * @param {Array} data - 1D array of values.
    * @returns {Array} [X, y] where X is 3D array and y is 2D array.
