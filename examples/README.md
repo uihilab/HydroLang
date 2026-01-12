@@ -1,6 +1,6 @@
 # HydroLang Examples - How to Use
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Running Examples
 
@@ -19,7 +19,7 @@ python -m http.server 8000
 # Visit: http://localhost:8000/examples/
 ```
 
-## 📁 What's In Each Folder
+## What's In Each Folder
 
 ### `data-sources/` - Fetching Data
 - Retrieve climate, elevation, and streamflow data
@@ -53,13 +53,13 @@ async function runExample() {
 }
 ```
 
-## ⚠️ Notes
+## Notes
 
 - Examples require internet for data retrieval
 - Check browser console (F12) for output
 - Some examples may take time to download large datasets
 
-## 📖 More Help
+## More Help
 
 - See individual example files for detailed comments
 - Check HydroLang documentation for API details
