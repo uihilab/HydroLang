@@ -1,20 +1,59 @@
 /**
- * World Bank API for data retrieval. Handles many types of data
- * depending on the requirements of the user.
- * Note: Different data sources may have different limitations
- * -> E.g., they may limit the # of queries per unit time
- * World Bank does not requires no key, but supports 3 different types
- * of output files. Consider visiting the website for more guidance.
- * https://datahelpdesk.worldbank.org/knowledgebase/articles/902061-climate-data-api
- * For identification of country ISO3 codes, refer to https://unstats.un.org/unsd/methodology/m49/
- * For identification of basin ISO3 codes, refer to https://github.com/hrbrmstr/basins
- * Dates in format YYYY
+ * World Bank API for data retrieval.
+ * Provides access to global climate data (precipitation/temperature) and development indicators.
+ *
+ * **Data Information:**
+ * - **Source:** World Bank Climate Change Knowledge Portal & Indicators API
+ * - **Coverage:** Global (by Country or Basin)
+ * - **Services:** Historical Weather, Climate Projections, Development Indicators
+ *
+ * **Available Data Types:**
+ * - `monavgs-country` / `annualavgs-country`: Historical averages by country.
+ * - `monavgs-basin` / `annualavgs-basin`: Historical averages by basin ID.
+ * - `indicators`: General development indicators (GDP, Pop, etc.).
+ * - `country-indicators`: Specific indicators for a country.
+ *
+ * **Key Parameters:**
+ * - `ISO3`: Country code (e.g., "USA", "BRA")
+ * - `start` / `end`: Years (YYYY)
+ * - `indicator`: Indicator code (e.g., "NY.GDP.MKTP.CD")
+ *
+ * @example
+ * // 1. Retrieve Historical Monthly Precipitation Averages for USA
+ * const rainfall = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'worldbank',
+ *     datatype: 'monavgs-country'
+ *   },
+ *   args: {
+ *     ISO3: 'USA',
+ *     start: 1980,
+ *     end: 1999
+ *   }
+ * });
+ *
+ * @example
+ * // 2. Retrieve GDP Indicator for Brazil
+ * const gdpData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'worldbank',
+ *     datatype: 'country-indicators'
+ *   },
+ *   args: {
+ *     country: 'BRA',
+ *     indicator: 'NY.GDP.MKTP.CD',
+ *     date: '2010:2020',
+ *     format: 'json'
+ *   }
+ * });
+ *
+ * @see https://datahelpdesk.worldbank.org/
  * @type {Object}
  * @name Worldbank
  * @memberof datasources
  */
 
- export default {
+export default {
   // yearly, monthlyvprecipitation per country or per basin.
   "monavgs-country": {
     endpoint: "http://climatedataapi.worldbank.org/climateweb/rest/v1/mavg/pr",
@@ -28,7 +67,7 @@
       ext: null,
       // and more...
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -47,7 +86,7 @@
       ext: null,
       // and more...
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -65,7 +104,7 @@
       ext: null,
       // and more...
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -84,7 +123,7 @@
       ext: null,
       // and more...
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -104,7 +143,7 @@
       ext: null,
       // and more...
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -123,7 +162,7 @@
       ext: null,
       // and more...
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -139,7 +178,7 @@
       ISO3: null,
       ext: null,
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -155,7 +194,7 @@
       basinID: null,
       ext: null,
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -171,7 +210,7 @@
       source: null,
       topic: null
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }
@@ -188,7 +227,7 @@
       per_page: null,
       page: null
     },
-    methods:{
+    methods: {
       type: "json",
       method: "GET"
     }

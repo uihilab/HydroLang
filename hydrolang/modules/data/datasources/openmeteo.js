@@ -1,9 +1,37 @@
 /**
  * Open-Meteo
  * Free Weather API for non-commercial use.
- * Provides global weather forecasts, including specific models for Australia (BOM) and others.
- * For more information: https://open-meteo.com/
+ * Provides global weather forecasts, historical data, and specific regional models.
  *
+ * **Data Information:**
+ * - **Source:** Open-Meteo (aggregates DWD, NOAA, ECMWF, BOM, etc.)
+ * - **Coverage:** Global
+ * - **License:** Free for non-commercial use (CC BY 4.0)
+ *
+ * **Available Data Types:**
+ * - `forecast`: General weather forecast (hourly/daily).
+ *
+ * **Key Parameters:**
+ * - `latitude` / `longitude`: Decimal coordinates
+ * - `hourly`: List of variables (e.g. "temperature_2m", "rain")
+ * - `models`: Optional specific model (e.g. "bom_access_global")
+ *
+ * @example
+ * // 1. Retrieve 7-day Forecast for Sydney (using BOM model)
+ * const forecast = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'openmeteo',
+ *     datatype: 'forecast'
+ *   },
+ *   args: {
+ *     latitude: -33.8688,
+ *     longitude: 151.2093,
+ *     hourly: 'temperature_2m,precipitation',
+ *     models: 'bom_access_global'
+ *   }
+ * });
+ *
+ * @see https://open-meteo.com/
  * @type {Object}
  * @name OpenMeteo
  * @memberof datasources

@@ -1,9 +1,36 @@
 /**
  * CHIRPS (Climate Hazards Group InfraRed Precipitation with Station data)
- * A 30+ year quasi-global rainfall dataset. Spans 50°S-50°N (and all longitudes) and ranges from 1981 to near-present.
- * Useful for Central America and Africa.
- * For more information: https://www.chc.ucsb.edu/data/chirps
+ * A 30+ year quasi-global rainfall dataset. Spans 50°S-50°N.
+ * Useful for drought monitoring and trend analysis.
  *
+ * **Data Information:**
+ * - **Source:** UCSB Climate Hazards Center
+ * - **Resolution:** 0.05° (~5km) and 0.25° (~25km)
+ * - **Format:** GeoTIFF (compressed), NetCDF
+ * - **Frequency:** Daily, Pentad, Dekadal, Monthly
+ *
+ * **Available Data Types:**
+ * - `global-daily`: Global daily rainfall.
+ * - `global-monthly`: Global monthly rainfall.
+ * - `africa-*`: Regional high-res for Africa.
+ *
+ * @example
+ * // 1. Retrieve Global Daily Rainfall (GeoTIFF)
+ * const rainData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'chirps',
+ *     datatype: 'global-daily'
+ *   },
+ *   args: {
+ *     year: '2023',
+ *     month: '01',
+ *     day: '15',
+ *     format: 'tiff',
+ *     resolution: '0.05'
+ *   }
+ * });
+ *
+ * @see https://www.chc.ucsb.edu/data/chirps
  * @type {Object}
  * @name CHIRPS
  * @memberof datasources

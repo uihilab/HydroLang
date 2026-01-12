@@ -1,8 +1,44 @@
 /**
  * NASA POWER (Prediction of Worldwide Energy Resource) API
- * This API provides global meteorology and solar energy data including temperature, precipitation, 
+ * This API provides global meteorology and solar energy data including temperature, precipitation,
  * humidity, solar energy, and more for agricultural, renewable energy, and sustainable building design.
- * https://power.larc.nasa.gov/docs/services/api/
+ *
+ * **Data Information:**
+ * - **Source:** NASA Langley Research Center
+ * - **Coverage:** Global
+ * - **Resolution:** 0.5° x 0.5° (Meteorology), 1.0° x 1.0° (Solar)
+ * - **Data Types:** Daily, Monthly, Climatology
+ *
+ * **Available Data Types:**
+ * - `point-data`: Time series for a single location.
+ * - `regional-data`: Data for a defined bounding box.
+ * - `global-data`: Global monthly averages.
+ * - `climatology`: Long-term averages.
+ *
+ * **Key Parameters:**
+ * - `parameters`: Comma-separated list (e.g., "T2M,PRECTOTCORR")
+ * - `community`: "ag" (Agroclimatology), "re" (Renewable Energy), "sb" (Sustainable Buildings)
+ * - `start` / `end`: YYYYMMDD format
+ *
+ * @example
+ * // 1. Retrieve Daily Temperature and Precipitation for a Point
+ * const powerData = await hydro.data.retrieve({
+ *   params: {
+ *     source: 'nasapower',
+ *     datatype: 'point-data'
+ *   },
+ *   args: {
+ *     parameters: 'T2M,PRECTOTCORR',
+ *     community: 'ag',
+ *     longitude: -76.3,
+ *     latitude: 38.5,
+ *     start: '20230101',
+ *     end: '20230110',
+ *     format: 'JSON'
+ *   }
+ * });
+ *
+ * @see https://power.larc.nasa.gov/docs/services/api/
  * @type {Object}
  * @name NASAPOWER
  * @memberof datasources
