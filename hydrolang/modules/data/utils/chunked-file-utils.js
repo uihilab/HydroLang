@@ -131,6 +131,12 @@ export async function readNetCDFChunked(fileBufferOrUrl, options = {}) {
     const { loadGridDataLibrary } = await import('./gridded-data-utils.js');
     const netcdfLib = await loadGridDataLibrary('netcdf');
 
+    // If process is explicitly false, return raw buffer
+    if (options.process === false) {
+      console.log(`[NetCDF] Skipping parsing (process: false)`);
+      return fileBuffer;
+    }
+
     // First, read just the header in small chunks to get metadata
     const headerSize = Math.min(1024 * 1024, fileBuffer.byteLength);
     const headerBuffer = fileBuffer.slice(0, headerSize);
@@ -289,6 +295,12 @@ export async function readGRIB2Chunked(fileBufferOrUrl, options = {}) {
     // Load GRIB2 library
     const { loadGridDataLibrary } = await import('./gridded-data-utils.js');
     const grib2Lib = await loadGridDataLibrary('grib2');
+
+    // If process is explicitly false, return raw buffer
+    if (options.process === false) {
+      console.log(`[GRIB2] Skipping parsing (process: false)`);
+      return fileBuffer;
+    }
 
     if (onProgress) onProgress({ stage: 'loading', progress: 10 });
 

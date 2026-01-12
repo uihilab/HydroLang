@@ -36,14 +36,43 @@ export class GriddedDataSource {
   async fetch(url, options = {}) {
     console.log(`[${this.sourceName}] Fetching: ${url}`);
 
-    // Set global cache context
-    globalThis._hydroCacheContext = globalThis._hydroCacheContext || {};
-    globalThis._hydroCacheContext.source = this.sourceName;
-    globalThis._hydroCacheContext.params = options.params || {};
-    globalThis._hydroCacheContext.cacheId = options.cacheId || options.params?.cacheId;
+    // Set global cache context ONLY if caching is explicitly requested
+    if (options.useCache === true || options.params?.cache === true) {
+      globalThis._hydroCacheContext = globalThis._hydroCacheContext || {};
+      globalThis._hydroCacheContext.source = this.sourceName;
+      globalThis._hydroCacheContext.params = options.params || {};
+      globalThis._hydroCacheContext.cacheId = options.cacheId || options.params?.cacheId;
+    }
+
+    // Handle Proxy
+    let fetchUrl = url;
+    if (options.proxy || (options.params && options.params.proxy)) {
+      // Default to local-proxy if true, or use specified proxy
+      const proxyName = (options.proxy === true || options.params.proxy === true) ? 'local-proxy' : (options.proxy || options.params.proxy);
+
+      // Hardcoded generic proxy map for internal use if module import is difficult here
+      // ideally we would import proxies from ../datasources/proxy.js but circular deps can be tricky
+      const proxies = {
+        "local-proxy": "https://hydroinformatics.uiowa.edu/lab/cors/?url=",
+        "researchverse": "https://researchverse.ai/backend/api/simple-proxy/?url=",
+        "corsproxy": "https://corsproxy.io/?"
+      };
+
+      const proxyEndpoint = proxies[proxyName] || proxies['local-proxy'];
+
+      // Handle CORS proxy format (some append ?url=, some just append URL)
+      // For simplicity, assuming the ones with ?url= need encoding, others might just append
+      if (proxyEndpoint.includes('?url=')) {
+        fetchUrl = `${proxyEndpoint}${encodeURIComponent(url)}`;
+      } else {
+        fetchUrl = `${proxyEndpoint}${url}`;
+      }
+
+      console.log(`[${this.sourceName}] Using proxy: ${fetchUrl}`);
+    }
 
     try {
-      const response = await fetch(url, {
+      const response = await fetch(fetchUrl, {
         method: 'GET',
         headers: {
           'Accept': options.accept || 'application/octet-stream, application/json, */*',
@@ -84,13 +113,11 @@ export class GriddedDataSource {
    * Unified JSON fetch
    */
   async fetchJSON(url, options = {}) {
-    const response = await fetch(url, {
-      headers: { 'Accept': 'application/json', ...options.headers }
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    return await response.json();
+    return this.fetch(url, { ...options, accept: 'application/json' })
+      .then(buffer => {
+        const dec = new TextDecoder("utf-8");
+        return JSON.parse(dec.decode(buffer));
+      });
   }
 
   /**
@@ -119,7 +146,14 @@ export class GriddedDataSource {
   /**
    * Universal decompression handler
    */
-  async decompress(compressedData, format = null) {
+  async decompress(compressedData, format = null, options = {}) {
+    // Default to raw mode unless process is explicitly true
+    // Also support legacy raw=true behavior (though strictly process=true is now the 'active' flag)
+    if (options.process !== true) {
+      console.log(`[${this.sourceName}] Skipping decompression (raw mode default)`);
+      return compressedData;
+    }
+
     const dataView = new Uint8Array(compressedData);
 
     // Check for gzip magic bytes (0x1f 0x8b)
@@ -134,12 +168,17 @@ export class GriddedDataSource {
 
     // Try Pako first (for gzip)
     if (isGzipped) {
-      let pakoLib = window.pako;
+      let pakoLib = (typeof window !== 'undefined' && window.pako);
 
       // Try loading from geospatial library if not available
       if (!pakoLib) {
-        const geospatialLib = await loadGridDataLibrary('geospatial');
-        pakoLib = geospatialLib?.pako || window.pako;
+        // Only try to load if in browser environment
+        if (typeof document !== 'undefined') {
+          const geospatialLib = await loadGridDataLibrary('geospatial');
+          pakoLib = geospatialLib?.pako;
+        }
+        // Fallback to global pako if still not found
+        pakoLib = pakoLib || globalThis.pako || (typeof window !== 'undefined' && window.pako);
       }
 
       if (pakoLib && typeof pakoLib.ungzip === 'function') {
@@ -169,7 +208,7 @@ export class GriddedDataSource {
     // Try format-specific decompression (blosc, zstd, etc.)
     if (this.library) {
       // Try fzstd for zstd-compressed data
-      const fzstd = this.library.fzstd || window.fzstd;
+      const fzstd = this.library.fzstd || globalThis.fzstd;
       if (fzstd && typeof fzstd.decompress === 'function') {
         try {
           const decompressed = fzstd.decompress(dataView);
@@ -181,9 +220,9 @@ export class GriddedDataSource {
       }
 
       // Try blosc decompression
-      if (typeof window.decompress === 'function') {
+      if (typeof globalThis.decompress === 'function') {
         try {
-          const decompressed = window.decompress(dataView);
+          const decompressed = globalThis.decompress(dataView);
           console.log(`[${this.sourceName}] Decompressed with blosc`);
           return decompressed;
         } catch (bloscError) {
@@ -201,10 +240,26 @@ export class GriddedDataSource {
   async loadLibrary() {
     if (!this.library) {
       this.library = await loadGridDataLibrary(this.libraryType);
-      if (!this.library) {
-        throw new Error(`${this.libraryType} library not available for ${this.sourceName}`);
+    }
+
+    // Fallback: if library failed to load (e.g. in worker), check global scope
+    if (!this.library) {
+      if (this.libraryType === 'geospatial') {
+        this.library = {};
+        if (typeof globalThis.GeoTIFF !== 'undefined') this.library.GeoTIFF = globalThis.GeoTIFF;
+        if (typeof globalThis.Tiff !== 'undefined') this.library.Tiff = globalThis.Tiff;
+        if (typeof globalThis.JSZip !== 'undefined') this.library.JSZip = globalThis.JSZip;
+      } else if (this.libraryType === 'netcdf') {
+        this.library = {};
+        if (typeof globalThis.netcdfjs !== 'undefined') this.library.NetCDFReader = globalThis.netcdfjs;
+        // Some might be exposed differently
+      } else if (this.libraryType === 'grib2') {
+        // handle grib2 globals if they exist
       }
     }
+
+    // Final check - only throw if we absolutely cannot proceed and need the library for parsing
+    // We defer the check to the actual usage methods (parseGeoTIFF, etc.)
     return this.library;
   }
 
@@ -790,7 +845,7 @@ export class GRIB2DataSource extends GriddedDataSource {
   async parseGRIB2(buffer, options = {}) {
     await this.loadLibrary();
 
-    const grib2Parser = this.library.parseGRIB2 || this.library.GRIB2Parser;
+    const grib2Parser = this.library?.parseGRIB2 || this.library?.GRIB2Parser || globalThis.GRIB2Parser;
 
     if (!grib2Parser) {
       throw new Error('GRIB2 parser not available');
@@ -1020,7 +1075,12 @@ export class NetCDFDataSource extends GriddedDataSource {
 
     console.log(`[${this.sourceName}] Parsing NetCDF data...`);
 
-    const NetCDFReader = this.library.NetCDFReader || this.library;
+    const NetCDFReader = this.library?.NetCDFReader || this.library || globalThis.netcdfjs || globalThis.NetCDFReader;
+
+    if (!NetCDFReader) {
+      throw new Error('NetCDF parser not available');
+    }
+
     const ncFile = new NetCDFReader(buffer);
 
     console.log(`[${this.sourceName}] NetCDF variables: ${ncFile.variables?.map(v => v.name).join(', ')}`);
@@ -1100,7 +1160,7 @@ export class GeoTIFFDataSource extends GriddedDataSource {
   async parseGeoTIFF(buffer, options = {}) {
     await this.loadLibrary();
 
-    const GeoTIFF = this.library.GeoTIFF;
+    const GeoTIFF = this.library?.GeoTIFF || globalThis.GeoTIFF;
 
     if (!GeoTIFF || !GeoTIFF.fromArrayBuffer) {
       throw new Error('GeoTIFF library not available');
@@ -1178,7 +1238,7 @@ export class GeoTIFFDataSource extends GriddedDataSource {
    * Handle ZIP extraction for PRISM and similar sources
    */
   async extractFromZip(zipBuffer, filePattern = null) {
-    const JSZip = this.library.JSZip;
+    const JSZip = this.library?.JSZip || globalThis.JSZip;
 
     if (!JSZip) {
       throw new Error('JSZip library not available');
@@ -1226,9 +1286,22 @@ export class GeoTIFFDataSource extends GriddedDataSource {
  */
 export async function loadGridDataLibrary(format) {
   try {
+    // Check environment
+    const isWorker = typeof document === 'undefined';
+
+    // Prepare options to disable dynamic loading in workers
+    const options = isWorker ? {
+      includeJS: false,
+      includeGeo: false,
+      includeProj4: false,
+      includeGeoTIFF: false,
+      includeTurf: false,
+      includeGeolib: false
+    } : {};
+
     // Use centralized loader from external/gridded-data
     const { loadLibrary } = await import('../../../external/gridded-data/gridded-data.js');
-    return await loadLibrary({ params: { format } });
+    return await loadLibrary({ params: { format, options } }); // Pass options correctly
   } catch (error) {
     throw new Error(`Failed to load ${format} library: ${error.message}`);
   }

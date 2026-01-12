@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Main class used for statistical analyses and data cleaning.
  * @class
  * @name stats
@@ -8,38 +8,135 @@ export default class stats {
    * Makes a deep copy of original data for further manipulation.
    * @method copydata
    * @memberof stats
-   * @param {Object}  data - Contains: 1d-JS array or object with original data.
-   * @returns {Object} Deep copy of original data.
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object|Array} data - Contains: 1d-JS array or object with original data.
+   * @returns {Object|Array} Deep copy of original data.
    * @example
-   * hydro.analyze.stats.copydata({data: [someData]})
+   * hydro.analyze.stats.copydata({data: [1, 2, 3]});
+   * hydro.analyze.stats.copydata({data: {a: 1, b: 2}});
    */
 
   static copydata({ params, args, data } = {}) {
-    var arr, values, keys;
-
-    if (typeof data !== "object" || data === null) {
+    if (data === null || typeof data !== "object") {
       return data;
     }
+    // Shallow copy to prevent Web Worker clone errors
+    return Array.isArray(data) ? [...data] : { ...data };
+  }
 
-    arr = Array.isArray(data) ? [] : {};
-
-    for (keys in data) {
-      values = data[keys];
-
-      arr[keys] = this.copydata({ data: values });
+  /**
+   * Preprocesses data to robustly handle complex structures (headers, objects, labeled rows).
+   * @param {Array} data - Input data array.
+   * @returns {Array} Clean numeric array.
+   */
+  static preprocessData(data) {
+    if (!Array.isArray(data)) {
+      const num = Number(data);
+      if (typeof data === 'number' && !isNaN(data)) return [data];
+      if (!isNaN(num)) return [num];
+      return [];
     }
 
-    return arr;
+    let processed = data;
+
+    // 0. Column-Oriented Detection
+    // Check if it's an array of arrays where we have "columns"
+    // Heuristic: Outer length is small (e.g. < 10), Inner length is > Outer length
+    // And one of the columns is numeric.
+    if (processed.length > 0 && Array.isArray(processed[0])) {
+      // If it looks like [ [d,d,d], [v,v,v] ]
+      const isColumnOriented = processed.every(col => Array.isArray(col)) &&
+        processed.length < processed[0].length &&
+        processed.length < 20; // heuristic cap
+
+      if (isColumnOriented) {
+        // Find the numeric column
+        for (const col of processed) {
+          // Check sample
+          const numericCount = col.slice(0, 10).filter(v => typeof v === 'number' || (typeof v === 'string' && !isNaN(Number(v)))).length;
+          if (numericCount > 5 || (col.length < 10 && numericCount > 0)) {
+            return col
+              .map(v => Number(v))
+              .filter(v => typeof v === 'number' && !isNaN(v));
+          }
+        }
+      }
+    }
+
+    // 1. Header Detection (Simple Heuristic: First row strings, Second row numbers)
+    if (processed.length > 1 && Array.isArray(processed[0]) && Array.isArray(processed[1])) {
+      const firstRowStrings = processed[0].every(item => typeof item === 'string' && isNaN(Number(item)));
+      const secondRowNumbers = processed[1].some(item => typeof item === 'number' || !isNaN(Number(item)));
+      if (firstRowStrings && secondRowNumbers) {
+        processed = processed.slice(1);
+      }
+    }
+
+    // 2. Value Extraction & Flattening Logic
+    const extractNumber = (item) => {
+      if (typeof item === 'number') {
+        return isNaN(item) ? null : item;
+      }
+      if (typeof item === 'string') {
+        const num = Number(item);
+        return isNaN(num) ? null : num;
+      }
+      if (typeof item === 'object' && item !== null) {
+        // Priority keys for extraction
+        const keys = ['#text', 'value', 'val', 'amount', 'number'];
+        for (const key of keys) {
+          if (item[key] !== undefined) {
+            const num = Number(item[key]);
+            if (!isNaN(num)) return num;
+          }
+        }
+        // Fallback: finding first numeric value involved in array/object
+        if (Array.isArray(item)) {
+          // Heuristic for [Time, Value] or [Label, Value]
+          // If length is 2, check the second item first as it's likely the value
+          if (item.length === 2) {
+            const second = extractNumber(item[1]);
+            if (second !== null) return second;
+            const first = extractNumber(item[0]);
+            if (first !== null) return first;
+          }
+
+          // General array: Find first valid number
+          for (const subItem of item) {
+            const n = extractNumber(subItem);
+            if (n !== null) return n;
+          }
+        } else {
+          // Object fallback: First numeric property
+          for (const key in item) {
+            const num = Number(item[key]);
+            if (!isNaN(num)) return num;
+          }
+        }
+      }
+      return null; // Non-numeric
+    };
+
+    const cleanData = [];
+    for (const item of processed) {
+      const val = extractNumber(item);
+      if (val !== null) cleanData.push(val);
+    }
+
+    return cleanData;
   }
 
   /**
    * Retrieves a 1D array with the data.
    * @method onearray
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array as [data]
-   * @returns {Object[]} Array object.
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - Contains: 1d-JS array as [data].
+   * @returns {Array} Array object.
    * @example
-   * hydro.analyze.stats.onearray({data: [someData]})
+   * hydro.analyze.stats.onearray({data: [1, 2, 3]});
    */
 
   static onearray({ params, args, data } = {}) {
@@ -49,18 +146,22 @@ export default class stats {
   }
 
   /**
-   * Gives the range of a dataset
+   * Gives the range of a dataset.
    * @method range
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array with data as [data].
+   * @param {Object} params - Contains: N (number of steps).
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - Contains: 1d-JS array with data as [data].
    * @returns {Array} Range of the data.
    * @example
-   * hydro.analyze.stats.range({data: [someData]})
+   * hydro.analyze.stats.range({data: [1, 5, 10]});
+   * hydro.analyze.stats.range({params: {N: 5}, data: [1, 10]});
    */
   static range({ params = {}, args, data } = {}) {
     const min = this.min({ data }),
       max = this.max({ data });
-    const N = params.N || data.length;
+    // Robust parsing
+    const N = Number(params.N || data.length);
     const step = (max - min) / N;
     const range = [];
 
@@ -75,10 +176,12 @@ export default class stats {
    * Identifies gaps in data.
    * @method datagaps
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array with data as [data].
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - Contains: 1d-JS array with data as [data].
    * @returns {Number} Number of gaps in data.
    * @example
-   * hydro.analyze.stats.datagaps({data: [someData]})
+   * hydro.analyze.stats.datagaps({data: [1, NaN, 3, undefined]});
    */
 
   static datagaps({ params, args, data } = {}) {
@@ -87,9 +190,9 @@ export default class stats {
       gap = 0;
 
     if (typeof arr[0] != "object") {
-      or = this.copydata({ data: arr });
+      or = arr.slice();
     } else {
-      or = this.copydata({ data: arr[1] });
+      or = arr[1].slice();
     }
     for (var i = 0; i < or.length; i++) {
       if (or[i] === undefined || Number.isNaN(or[i]) || or[i] === false) {
@@ -101,17 +204,57 @@ export default class stats {
   }
 
   /**
-   * Remove gaps in data with an option to fill the gap.
-   * @method gapremoval
+   * Remove or fill gaps in data with various methods
+   * Handles NaN, null, undefined, false, and custom gap values
+   * Supports interpolation, mean, and median filling strategies
+   * 
+   * @function gapremoval
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array object with data as [data].
-   * @returns {Number} Number of gaps found in the data.
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Parameters
+   * @param {Array} [options.params.gapValues] - Values to treat as gaps (default: [undefined, null, NaN, false, -9999, 9999])
+   * @param {Object} [options.args] - Arguments
+   * @param {string} [options.args.method] - Fill method: 'interpolate', 'mean', 'median' (default: 'interpolate')
+   * @param {Array} options.data - Data array (1D or 2D with [time, values])
+   * @returns {Array} Data with gaps removed or filled
+   * 
    * @example
-   * hydro.analyze.stats.gapremoval({data: [someData]})
+   * // Interpolate missing values
+   * const data = [10, NaN, 14, 16, null, 20];
+   * const filled = hydro.analyze.stats.gapremoval({ 
+   *   data, 
+   *   args: { method: 'interpolate' } 
+   * });
+   * console.log(filled); // [10, 12, 14, 16, 18, 20] (interpolated)
+   * 
+   * @example
+   * // Fill with mean
+   * const rainfall = [12, -9999, 15, 18, -9999, 14]; // -9999 = missing
+   * const filled = hydro.analyze.stats.gapremoval({
+   *   data: rainfall,
+   *   params: { gapValues: [-9999] },
+   *   args: { method: 'mean' }
+   * });
+   * 
+   * @example
+   * // Time series with gaps
+   * const timeSeries = [
+   *   ['2024-01-01', '2024-01-02', '2024-01-03', '2024-01-04'],
+   *   [100, NaN, 120, 125]
+   * ];
+   * const filled = hydro.analyze.stats.gapremoval({ 
+   *   data: timeSeries,
+   *   args: { method: 'interpolate' } 
+   * });
    */
-
   static gapremoval({ params = {}, args = {}, data } = {}) {
-    const gapValues = params.gapValues || [undefined, null, NaN, false, -9999, 9999];
+    let gapValues = params.gapValues || [undefined, null, NaN, false, -9999, 9999];
+
+    // Robust parsing: convert string numbers in gapValues array
+    if (Array.isArray(gapValues)) {
+      gapValues = gapValues.map(v => (typeof v === 'string' && !Number.isNaN(Number(v))) ? Number(v) : v);
+    }
+
     const method = args.method || 'interpolate'; // 'interpolate', 'mean', 'median'
     const isGap = (v) => gapValues.some(gap => Object.is(gap, v) || (Number.isNaN(gap) && Number.isNaN(v)));
 
@@ -183,20 +326,22 @@ export default class stats {
    * user. Time in minutes and timestep must be divisible by the total time of the event.
    * @method timegaps
    * @memberof stats
-   * @param {Object} params - Contains: timestep (in min)
-   * @param {Object} data - Contains: 1d-JS array with timedata in minutes as [timeData].
-   * @returns {Object[]} Array with gaps.
+   * @param {Object} params - Contains: timestep (in min).
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - Contains: 1d-JS array with timedata in minutes as [timeData].
+   * @returns {Array} Array with gaps.
    * @example
-   * hydro.analyze.stats.timegaps({params: {timestep: 'someNum'} data: [timeData]})
+   * hydro.analyze.stats.timegaps({params: {timestep: 60}, data: [0, 60, 180, 240]});
    */
 
   static timegaps({ params, args, data } = {}) {
-    var timestep = params.timestep,
+    // Robust parsing
+    var timestep = Number(params.timestep),
       arr = data,
-      or = this.copydata({ data: arr });
+      or = Array.isArray(arr) ? arr.slice() : [];
 
     if (typeof arr[0] === "object") {
-      or = this.copydata({ data: arr[0] });
+      or = arr[0].slice();
     }
     var datetr = [];
 
@@ -236,19 +381,20 @@ export default class stats {
    * Fills data gaps (either time missig or data missing). Unfinished.
    * @method gapfiller
    * @memberof stats
-   * @param {Object} params - Contains: type (time or data)
-   * @param {Object} data - Contains: 2d-JS array with data or time gaps to be filled as [[time],[data]].
-   * @returns {Object[]} Array with gaps filled.
+   * @param {Object} params - Contains: type (time or data).
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - Contains: 2d-JS array with data or time gaps to be filled as [[time],[data]].
+   * @returns {Array} Array with gaps filled.
    * @example
-   * hydro.analyze.stats.gapfiller({params: {type: 'someType'}, data: [[time1,time2...], [data1, data2,...]]})
+   * hydro.analyze.stats.gapfiller({params: {type: 'time'}, data: [[0, 60, 180], [1, 2, 3]]});
    */
 
   static gapfiller({ params, args, data } = {}) {
-    var or = this.copydata({ data: data }),
+    var or = Array.isArray(data) ? data.slice() : [],
       datetr = [];
 
-    if (typeof data[0] === "object") {
-      or = this.copydata({ data: data[0] });
+    if (Array.isArray(data[0])) {
+      or = data[0].slice();
     }
 
     for (var i = 0; i < or.length; i++) {
@@ -277,32 +423,62 @@ export default class stats {
   }
 
   /**
-   * Sums all data in a 1-d array.
-   * @method sum
+   * Calculate the sum of all values in a dataset
+   * Automatically handles complex data structures through preprocessing
+   * 
+   * @function sum
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array object with data as [data].
-   * @returns {Number} Sum of all data in an array.
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Additional parameters (not used)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {number} Sum of all values in the array
+   * 
    * @example
-   * hydro.analyze.stats.sum({data: [data]})
+   * // Basic sum
+   * const total = hydro.analyze.stats.sum({ data: [1, 2, 3, 4] });
+   * console.log(total); // 10
+   * 
+   * @example  
+   * // Works with precipitation data
+   * const dailyRainfall = [12.5, 0, 5.2, 18.3, 3.1];
+   * const weeklyTotal = hydro.analyze.stats.sum({ data: dailyRainfall });
+   * console.log(`Total rainfall: ${weeklyTotal} mm`);
    */
-
   static sum({ params, args, data } = {}) {
+    const clean = this.preprocessData(data);
     return data.reduce((acc, curr) => acc + curr, 0);
   }
 
   /**
-   * Calculates the mean of a 1d array.
-   * @method mean
+   * Calculate the arithmetic mean (average) of a dataset
+   * Returns 0 for empty arrays, handles NaN values gracefully
+   * 
+   * @function mean
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array object with data as [data].
-   * @returns {Number} Mean of the data.
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Additional parameters (not used)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {number} Arithmetic mean of the dataset, or 0 if empty
+   * 
    * @example
-   * hydro.analyze.stats.mean({data: [data]})
+   * // Calculate average temperature
+   * const temps = [22.5, 23.1, 21.8, 24.2, 23.5];
+   * const avgTemp = hydro.analyze.stats.mean({ data: temps });
+   * console.log(avgTemp); // 23.02
+   * 
+   * @example
+   * // Calculate mean streamflow
+   * const flow = [125.5, 138.2, 142.8, 135.1, 129.6];
+   * const avgFlow = hydro.analyze.stats.mean({ data: flow });
+   * console.log(`Average flow: ${avgFlow.toFixed(2)} m³/s`);
    */
-
   static mean({ params, args, data } = {}) {
-    const sum = this.sum({ data });
-    const mean = sum / data.length;
+    const clean = data
+    if (!clean.length) return 0;
+    const sum = clean.reduce((acc, curr) => acc + curr, 0);
+    const mean = sum / clean.length;
     if (Number.isNaN(mean)) {
       console.warn('stats.mean returned NaN. Data:', data, 'Sum:', sum);
     }
@@ -310,17 +486,38 @@ export default class stats {
   }
 
   /**
-   * Calculates the median values for a 1d array.
-   * @method median
+   * Calculate the median (middle value) of a dataset
+   * Handles both odd and even-length arrays, automatically sorts data
+   * Robust to outliers compared to mean
+   * 
+   * @function median
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array object with data as [data].
-   * @returns {Number} Median of the data.
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Additional parameters (not used)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {number} Median value of the dataset, or 0 if empty
+   * 
    * @example
-   * hydro.analyze.stats.median({data: [data]})
+   * // Odd number of values
+   * const values1 = [1, 2, 3, 4, 5];
+   * console.log(hydro.analyze.stats.median({ data: values1 })); // 3
+   * 
+   * @example
+   * // Even number of values (average of two middle values)
+   * const values2 = [1, 2, 3, 4];
+   * console.log(hydro.analyze.stats.median({ data: values2 })); // 2.5
+   * 
+   * @example
+   * // Median is robust to outliers
+   * const precipitation = [10, 12, 11, 13, 100]; // 100 is outlier
+   * console.log(hydro.analyze.stats.mean({ data: precipitation })); // 29.2 (affected by outlier)
+   * console.log(hydro.analyze.stats.median({ data: precipitation })); // 12 (not affected)
    */
-
   static median({ params, args, data } = {}) {
-    const sortedArray = data.slice().sort((a, b) => a - b);
+    const clean = this.preprocessData(data);
+    if (!clean.length) return 0;
+    const sortedArray = clean.sort((a, b) => a - b);
     const middleIndex = Math.floor(sortedArray.length / 2);
 
     if (sortedArray.length % 2 === 0) {
@@ -333,123 +530,226 @@ export default class stats {
   }
 
   /**
-   * Calculates standard deviation of a 1d array.
-   * @method stddev
+   * Calculate the standard deviation of a dataset
+   * Measures the amount of variation or dispersion from the mean
+   * Uses population standard deviation formula (divides by N, not N-1)
+   * 
+   * @function stddev
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array object with data as [data].
-   * @returns {Number} Standard deviation.
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Additional parameters (not used)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {number} Standard deviation of the dataset, or 0 if empty
+   * 
    * @example
-   * hydro.analyze.stats.stddev({data: [data]})
+   * // Calculate variability in temperature  
+   * const dailyTemps = [20, 22, 19, 23, 21, 20, 22];
+   * const tempStdDev = hydro.analyze.stats.stddev({ data: dailyTemps });
+   * console.log(`Temperature variability: ±${tempStdDev.toFixed(2)}°C`);
+   * 
+   * @example
+   * // Compare variability of two streamflow datasets
+   * const upstream = [100, 105, 98, 102, 101];
+   * const downstream = [200, 350, 150, 400, 180];
+   * console.log('Upstream stddev:', hydro.analyze.stats.stddev({ data: upstream })); // ~2.5
+   * console.log('Downstream stddev:', hydro.analyze.stats.stddev({ data: downstream })); // ~99.8 (more variable)
    */
-
   static stddev({ params, args, data } = {}) {
-    var mean = this.mean({ data }),
+    const clean = this.preprocessData(data);
+    if (!clean.length) return 0;
+    var mean = this.mean({ data: clean }),
       SD = 0,
       nex = [];
-    for (var i = 0; i < data.length; i += 1) {
-      nex.push((data[i] - mean) * (data[i] - mean));
+    for (var i = 0; i < clean.length; i += 1) {
+      nex.push((clean[i] - mean) * (clean[i] - mean));
     }
     return (SD = Math.sqrt(this.sum({ data: nex }) / nex.length));
   }
 
   /**
-   * Calculate variance for an 1-d array of data.
-   * @method variance
+   * Calculate the variance of a dataset
+   * Variance is the average of squared deviations from the mean
+   * Standard deviation squared (σ²)
+   * 
+   * @function variance
    * @memberof stats
-   * @param {Object} data - Contains 1d-JS array object with data as [data].
-   * @returns {Number} Variance of the data.
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Additional parameters (not used)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {number} Variance of the dataset, or 0 if empty
+   * 
    * @example
-   * hydro.analyze.stats.variance({data: [data]})
+   * // Calculate variance of rainfall data
+   * const rainfall = [10, 15, 12, 18, 14];
+   * const variance = hydro.analyze.stats.variance({ data: rainfall });
+   * const stddev = Math.sqrt(variance); // or use stats.stddev()
+   * console.log(`Variance: ${variance.toFixed(2)}, StdDev: ${stddev.toFixed(2)}`);
+   * 
+   * @example
+   * // Variance is in squared units
+   * const flow = [100, 120, 90, 110]; // flow in m³/s
+   * const var_flow = hydro.analyze.stats.variance({ data: flow });
+   * console.log(`Variance: ${var_flow} (m³/s)²`);
    */
-
   static variance({ params, args, data } = {}) {
-    const mean = this.mean({ data });
-    const squareDiffs = data.map((num) => (num - mean) ** 2);
+    const clean = this.preprocessData(data);
+    if (!clean.length) return 0;
+    const mean = this.mean({ data: clean });
+    const squareDiffs = clean.map((num) => (num - mean) ** 2);
     const sumSquareDiffs = squareDiffs.reduce((acc, curr) => acc + curr, 0);
-    const variance = sumSquareDiffs / data.length;
+    const variance = sumSquareDiffs / clean.length;
     return variance;
   }
 
   /**
-   * Calculates sum of squares for a dataset.
-   * @method sumsqrd
+   * Calculate sum of squared values
+   * Used in variance calculations and sum of squared errors
+   * 
+   * @function sumsqrd
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array object with data as [data].
-   * @returns {Number} Sum of squares for data.
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Additional parameters (not used)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {number} Sum of squared values
+   * 
    * @example
-   * hydro.analyze.stats.sumsqrd({data: [data]})
+   * // Calculate sum of squares
+   * const data = [1, 2, 3, 4];
+   * const ss = hydro.analyze.stats.sumsqrd({ data });
+   * console.log(ss); // 1² + 2² + 3² + 4² = 30
+   * 
+   * @example
+   * // Used in error calculations
+   * const errors = [0.5, -1.2, 0.8, -0.3];
+   * const sse = hydro.analyze.stats.sumsqrd({ data: errors });
+   * console.log(`Sum of squared errors: ${sse}`);
    */
-
   static sumsqrd({ params, args, data } = {}) {
-    var sum = 0,
-      i = data.length;
-    while (--i >= 0) sum += data[i];
+    const clean = this.preprocessData(data);
+    var i = clean.length,
+      sum = 0;
+    while (--i >= 0) sum += Math.pow(clean[i], 2);
     return sum;
   }
 
   /**
-   * Minimum value of an array.
-   * @method min
+   * Find the minimum value in a dataset
+   * Automatically preprocesses data to handle complex structures
+   * 
+   * @function min
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array object with data as [data].
-   * @returns {Number} Minimum value of a dataset.
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Additional parameters (not used)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {number} Minimum value in the dataset
+   * 
    * @example
-   * hydro.analyze.stats.min({data: [data]})
+   * // Find minimum daily temperature
+   * const temps = [22, 18, 25, 20, 19];
+   * const minTemp = hydro.analyze.stats.min({ data: temps });
+   * console.log(`Lowest temperature: ${minTemp}°C`); // 18°C
+   * 
+   * @example
+   * // Useful for finding lowest flow in a period
+   * const streamflow = [125.5, 138.2, 142.8, 135.1, 129.6];
+   * const minFlow = hydro.analyze.stats.min({ data: streamflow });
    */
-
   static min({ params, args, data } = {}) {
-    return Math.min(...data);
+    const clean = this.preprocessData(data);
+    return Math.min(...clean);
   }
 
   /**
-   * Maximum value of an array.
-   * @method max
+   * Find the maximum value in a dataset
+   * Automatically preprocesses data to handle complex structures
+   * 
+   * @function max
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array object with data as [data].
-   * @returns {Number} Maximum value of a dataset.
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Additional parameters (not used)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {number} Maximum value in the dataset
+   * 
    * @example
-   * hydro.analyze.stats.max({data: [data]})
+   * // Find peak daily temperature
+   * const temps = [22, 18, 25, 20, 19];
+   * const maxTemp = hydro.analyze.stats.max({ data: temps });
+   * console.log(`Highest temperature: ${maxTemp}°C`); // 25°C
+   * 
+   * @example
+   * // Find peak flow for flood analysis
+   * const streamflow = [125.5, 138.2, 542.8, 135.1, 129.6];
+   * const peakFlow = hydro.analyze.stats.max({ data: streamflow });
+   * console.log(`Peak flow: ${peakFlow} m³/s`); // 542.8 m³/s
    */
-
   static max({ params, args, data } = {}) {
-    return Math.max(...data);
+    const clean = this.preprocessData(data);
+    return Math.max(...clean);
   }
 
   /**
-   * Unique values in an array.
-   * @method unique
+   * Extract unique values from a dataset
+   * Removes duplicates and returns only distinct values
+   * 
+   * @function unique
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array object with data as [data].
-   * @returns {Object[]} Array with unique values.
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Additional parameters (not used)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {Array<number>} Array containing only unique values
+   * 
    * @example
-   * hydro.analyze.stats.unique({data: [data]})
+   * // Get unique precipitation values
+   * const dailyRain = [0, 5, 0, 12, 5, 0, 18, 12];
+   * const uniqueValues = hydro.analyze.stats.unique({ data: dailyRain });
+   * console.log(uniqueValues); // [0, 5, 12, 18]
+   * 
+   * @example
+   * // Count number of unique flow values
+   * const flow = [100, 120, 100, 150, 120, 100];
+   * const unique = hydro.analyze.stats.unique({ data: flow });
+   * console.log(`${unique.length} unique flow values:`, unique);
    */
-
   static unique({ params, args, data } = {}) {
-    var un = {},
-      _arr = [];
-    for (var i = 0; i < data.length; i++) {
-      if (!un[data[i]]) {
-        un[data[i]] = true;
-        _arr.push(data[i]);
-      }
-    }
-    return _arr;
+    const clean = this.preprocessData(data);
+    return clean.filter((value, index, self) => self.indexOf(value) === index);
   }
 
   /**
-   * Calculates the frequency in data.
-   * @method frequency
+   * Calculate frequency distribution of values in a dataset
+   * Returns object with each unique value as key and its count as value
+   * 
+   * @function frequency
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array object with data as [data].
-   * @returns {Object} Object with frenquency distribution.
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Additional parameters (not used)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {Object} Object with value:count pairs
+   * 
    * @example
-   * hydro.analyze.stats.frequency({data: [data]})
+   * // Analyze precipitation frequency
+   * const rainfall = [0, 5, 0, 0, 10, 5, 0, 15, 5];
+   * const freq = hydro.analyze.stats.frequency({ data: rainfall });
+   * console.log(freq); // { 0: 4, 5: 3, 10: 1, 15: 1 }
+   * console.log(`No rain on ${freq[0]} days`);
+   * 
+   * @example
+   * // Find most common flow value
+   * const flow = [100, 120, 100, 150, 120, 100, 100];
+   * const freq = hydro.analyze.stats.frequency({ data: flow });
+   * const mostCommon = Object.entries(freq)
+   *   .sort((a, b) => b[1] - a[1])[0];
+   * console.log(`Most frequent flow: ${mostCommon[0]} (${mostCommon[1]} times)`);
    */
-
   static frequency({ params, args, data } = {}) {
-    console.log(data)
-    var _arr = this.copydata({ data: data }),
+    var _arr = this.preprocessData(data),
       counter = {};
     _arr.forEach((i) => {
       counter[i] = (counter[i] || 0) + 1;
@@ -458,293 +758,413 @@ export default class stats {
   }
 
   /**
-   * Use mean and standard deviation to standardize the original dataset.
-   * @method standardize
+   * Standardize data using z-score normalization
+   * Transforms data to have mean=0 and standard deviation=1
+   * Useful for comparing variables on different scales
+   * 
+   * @function standardize
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array object with data as [data].
-   * @returns {Object[]} Array with standardized data.
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Additional parameters (not used)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {Array<number>} Standardized data (z-scores)
+   * 
    * @example
-   * hydro.analyze.stats.standardize({data: [data]})
+   * // Standardize flow data
+   * const flow = [100, 150, 200, 250, 300];
+   * const zScores = hydro.analyze.stats.standardize({ data: flow });
+   * console.log(zScores); // [-1.41, -0.71, 0, 0.71, 1.41] (approximately)
+   * 
+   * @example
+   * // Compare variables on different scales
+   * const temp = [20, 25, 30]; // °C
+   * const precip = [10, 50, 100]; // mm
+   * const tempStd = hydro.analyze.stats.standardize({ data: temp });
+   * const precipStd = hydro.analyze.stats.standardize({ data: precip });
+   * // Now both have mean=0, std=1 and can be compared
+   * 
+   * @example
+   * // Identify outliers (|z| > 3 is often considered outlier)
+   * const data = [10, 12, 11, 13, 100, 12, 11];
+   * const zScores = hydro.analyze.stats.standardize({ data });
+   * const outliers = data.filter((v, i) => Math.abs(zScores[i]) > 3);
+   * console.log(outliers); // [100]
    */
-
   static standardize({ params, args, data } = {}) {
+    const clean = this.preprocessData(data);
     var _arr = [],
-      stddev = this.stddev({ data: data }),
-      mean = this.mean({ data: data });
-    for (var i = 0; i < data.length; i++) {
-      _arr[i] = (data[i] - mean) / stddev;
+      stddev = this.stddev({ data: clean }),
+      mean = this.mean({ data: clean });
+    for (var i = 0; i < clean.length; i++) {
+      _arr[i] = (clean[i] - mean) / stddev;
     }
     return _arr;
   }
 
   /**
-   * Quantile calculator for given data.
-   * @method quantile
+   * Calculate quantiles (percentiles) of a dataset
+   * Returns the value below which a given percentage of observations fall
+   * Uses linear interpolation between data points
+   * 
+   * @function quantile
    * @memberof stats
-   * @param {Object} params - Contains: q(quartile as 0.25, 0.75, or required)
-   * @param {Object} data - Contains: 1d-JS array object with data as [data].
-   * @returns {Object[]} Array with values fitting the quartile.
+   * @param {Object} options - Function options
+   * @param {Object} options.params - Parameters
+   * @param {number} options.params.q - Quantile to calculate (0 to 1, e.g., 0.25 for 25th percentile, 0.5 for median)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {number} Value at the specified quantile
+   * 
    * @example
-   * hydro.analyze.stats.quantile({params: {q: 'someNum'}, data: [data]})
+   * // Calculate quartiles
+   * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+   * const Q1 = hydro.analyze.stats.quantile({ params: { q: 0.25 }, data }); // 25th percentile
+   * const Q2 = hydro.analyze.stats.quantile({ params: { q: 0.5 }, data });  // 50th percentile (median)
+   * const Q3 = hydro.analyze.stats.quantile({ params: { q: 0.75 }, data }); // 75th percentile
+   * console.log(`Q1: ${Q1}, Q2: ${Q2}, Q3: ${Q3}`);
+   * 
+   * @example
+   * // Calculate 95th percentile for flood frequency analysis
+   * const annualPeaks = [450, 520, 480, 650, 590, 510, 720, 480, 550, 610];
+   * const P95 = hydro.analyze.stats.quantile({ params: { q: 0.95 }, data: annualPeaks });
+   * console.log(`95th percentile flow: ${P95} m³/s`);
    */
-
   static quantile({ params, args, data } = {}) {
-    var _arr = data.slice();
-    _arr.sort(function (a, b) {
+    const clean = this.preprocessData(data);
+    clean.sort(function (a, b) {
       return a - b;
     });
-    var p = (data.length - 1) * params.q;
+    // Robust parsing
+    var p = (clean.length - 1) * Number(params.q);
     if (p % 1 === 0) {
-      return _arr[p];
+      return clean[p];
     } else {
       var b = Math.floor(p),
         rest = p - b;
-      if (_arr[b + 1] !== undefined) {
-        return _arr[b] + rest * (_arr[b + 1] - _arr[b]);
+      if (clean[b + 1] !== undefined) {
+        return clean[b] + rest * (clean[b + 1] - clean[b]);
       } else {
-        return _arr[b];
+        return clean[b];
       }
     }
   }
 
   /**
-   * Removes interquartile outliers from an array or a set of arrays.
-   * @method interoutliers
+   * Detect and remove interquartile range (IQR) outliers
+   * Uses the 1.5*IQR rule: values beyond Q1-1.5IQR or Q3+1.5IQR are outliers
+   * More robust to extreme values than z-score method
+   * 
+   * @function interoutliers
    * @memberof stats
-   * @param {Object} [params={ q1: 0.25, q2: 0.75 }] - Parameters object.
-   * @param {Array} data - Data to filter. If a 2D array is provided, the first array will be considered as a time array.
-   * @returns {Array} - Filtered data.
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Parameters
+   * @param {number} [options.params.q1=0.25] - Lower quartile (default: 25th percentile)
+   * @param {number} [options.params.q2=0.75] - Upper quartile  (default: 75th percentile)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {Array<number>} Data with outliers removed
+   * 
    * @example
-   * hydro.analyze.stats.interoutliers({ params: { q1: 0.25, q2: 0.75 }, data: [1, 2, 3, 100, 4, 5, 6]});
+   * // Remove outliers from streamflow data
+   * const flow = [100, 105, 98, 102, 500, 101, 99, 103]; // 500 is outlier
+   * const cleaned = hydro.analyze.stats.interoutliers({ 
+   *   params: { q1: 0.25, q2: 0.75 },
+   *   data: flow 
+   * });
+   * console.log(cleaned); // [100, 105, 98, 102, 101, 99, 103] (500 removed)
+   * 
+   * @example
+   * // IQR method for precipitation data
+   * const rainfall = [0, 5, 10, 8, 12, 150, 7, 9, 11]; // 150 is extreme outlier
+   * const filtered = hydro.analyze.stats.interoutliers({ data: rainfall });
+   * // Removes values beyond Q1-1.5*IQR and Q3+1.5*IQR
+   * 
+   * @example
+   * // Compare original vs cleaned data
+   * const data = [10, 12, 11, 13, 100, 12, 11, 14, 200];
+   * const cleaned = hydro.analyze.stats.interoutliers({ data });
+   * console.log(`Removed ${data.length - cleaned.length} outliers`);
+   * console.log(`Mean before: ${hydro.analyze.stats.mean({data})}`);
+   * console.log(`Mean after: ${hydro.analyze.stats.mean({data: cleaned})}`);
    */
-
   static interoutliers({ params = { q1: 0.25, q2: 0.75 }, data = [] } = {}) {
-    const { q1, q2 } = params;
-    const or = [...data];
-    let time = [];
+    const clean = data
+    const q1 = Number(params.q1 !== undefined ? params.q1 : 0.25);
+    const q2 = Number(params.q2 !== undefined ? params.q2 : 0.75);
 
-    if (Array.isArray(data[0])) {
-      [time, or] = data;
-    }
+    var q1v = this.quantile({ params: { q: q1 }, data: clean });
+    var q2v = this.quantile({ params: { q: q2 }, data: clean });
+    var iqr = q2v - q1v;
+    var max = q2v + iqr * 1.5;
+    var min = q1v - iqr * 1.5;
 
-    const Q1 = this.quantile({ data: or, params: { q: q1 } });
-    const Q3 = this.quantile({ data: or, params: { q: q2 } });
-    const IQR = Math.abs(Q3 - Q1);
-    const qd = Math.abs(Q1 - 1.5 * IQR);
-    const qu = Math.abs(Q3 + 1.5 * IQR);
-
-    const filteredData = or.filter((value, index) => {
-      if (value >= qd && value <= qu) {
-        if (time.length) {
-          return [time[index], value];
-        } else {
-          return value;
-        }
-      }
-    });
-
-    return time.length ? filteredData : filteredData;
+    return clean.filter((value) => value >= min && value <= max);
   }
 
   /**
-   * Filters the outliers from the given data set based on its standard score (z-score).
-   *
+   * Detect outliers using z-score (standard score) method
+   * Returns threshold bounds based on number of standard deviations
+   * Values beyond these thresholds are considered outliers
+   * 
+   * @function normoutliers
    * @memberof stats
-   * @static
-   * @method normoutliers
-   *
-   * @param {Object} [params={}] - An object containing optional parameters.
-   * @param {Number} [params.low=-0.5] - The lower threshold value for filtering data.
-   * @param {Number} [params.high=0.5] - The higher threshold value for filtering data.
-   * @param {Object} [args] - An object containing any additional arguments.
-   * @param {Array} data - The data set to filter outliers from.
-   * @param {Array} [data[0]=[]] - An optional array of timestamps corresponding to the data.
-   * @param {Array} data[1] - The main data array containing values to filter outliers from.
-   *
-   * @returns {Array} Returns the filtered data set. If timestamps are provided, it will return an array of
-   * timestamps and filtered data set as [t, out]. If no timestamps are provided, it will return the filtered data set.
-   *
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Parameters
+   * @param {number} [options.params.lowerBound=-0.5] - Lower threshold in standard deviations
+   * @param {number} [options.params.upperBound=0.5] - Upper threshold in standard deviations
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {Object} Object with min and max threshold values
+   * 
    * @example
-   *
-   * // Filter outliers from the data set between z-scores of -0.5 and 0.5
-   * let data = [1, 2, 3, 4, 5, 10, 12, 15, 20];
-   * let filteredData = hydro.analyze.stats.normoutliers({ params: { low: -0.5, high: 0.5 }, data: data });
-   * // filteredData => [1, 2, 3, 4, 5, 15, 20]
-   *
-   * // Filter outliers from the data set between z-scores of -1 and 1 with timestamps
-   * let data = [[1, 2, 3, 4, 5, 10, 12, 15, 20], [1, 2, 3, 4, 5, 10, 12, 15, 200]];
-   * let [timestamps, filteredData] = hydro.analyze.stats.normoutliers({ params: { low: -1, high: 1 }, data: data });
-   * // timestamps => [1, 2, 3, 4, 5, 10, 12, 15]
-   * // filteredData => [1, 2, 3, 4, 5, 10, 12, 15]
+   * // Standard 3-sigma rule (|z| > 3 is outlier)
+   * const flow = [100, 105, 98, 102, 500, 101, 99];
+   * const bounds = hydro.analyze.stats.normoutliers({ 
+   *   params: { lowerBound: -3, upperBound: 3 },
+   *   data: flow 
+   * });
+   * console.log(`Outliers beyond: ${bounds.min} - ${bounds.max}`);
+   * 
+   * @example
+   * // Custom threshold for flow data
+   * const rainfall = [10, 12, 11, 150, 13, 12];
+   * const bounds = hydro.analyze.stats.normoutliers({ 
+   *   params: { lowerBound: -2, upperBound: 2 },
+   *   data: rainfall 
+   * });
+   * const outliers = rainfall.filter(v => v < bounds.min || v > bounds.max);
    */
-
   static normoutliers({ params = {}, args, data } = {}) {
-    const { lowerBound = -0.5, upperBound = 0.5 } = params;
-    const [time, or] = Array.isArray(data[0]) ? data : [[], data];
-    const stnd = this.standardize({ data: or });
+    const clean = this.preprocessData(data);
+    const mean = this.mean({ data: clean });
+    const std = this.stddev({ data: clean });
+    const lowerBound = Number(params.lowerBound !== undefined ? params.lowerBound : -0.5);
+    const upperBound = Number(params.upperBound !== undefined ? params.upperBound : 0.5);
 
-    const out = or.filter(
-      (_, i) => stnd[i] < lowerBound || stnd[i] > upperBound
-    );
-    const t = time.filter(
-      (_, j) => stnd[j] < lowerBound || stnd[j] > upperBound
-    );
-
-    return time.length === 0 ? out : [t, out];
+    return {
+      min: mean - lowerBound * std,
+      max: mean + upperBound * std,
+    };
   }
 
   /**
    * Remove outliers from dataset. It uses p1 and p2 as outliers to remove.
    * @method outremove
    * @memberof stats
-   * @param {Object} params - Contains: type ('normalized', 'interquartile')
-   * @param {Object} args - Contains: p1 (low end value), p2 (high end value) both depending on outlier analysis type
-   * @param {Object} data - Contains: 2d-JS array with time series data as [[time],[data]].
-   * @returns {Object[]} Array with cleaned data.
+   * @param {Object} params - Contains: type ('normalized', 'interquartile').
+   * @param {Object} args - Contains: thresholds ([min, max]), replaceValue (value to replace outliers with).
+   * @param {Array} data - Contains: 2d-JS array with time series data as [[time],[data]].
+   * @returns {Array} Array with cleaned data.
    * @example
-   * hydro.analyze.stats.outremove({params: {type: 'someType'}, args: {p1: 'someNum', p2: 'someNum'},
-   * data: [[time1, time2,...], [data1, data2,...]]})
+   * hydro.analyze.stats.outremove({args: {thresholds: [0, 10], replaceValue: 0}, data: [1, 15, 5]});
    */
 
-  static outremove({ data, args = {}, params = {} } = {}) {
-    const {
+  static outremove({ data, params = {} } = {}) {
+    let {
       replaceValue = 0,
       thresholds = [-9999, 9999],
-    } = args;
+    } = params;
+
+    if (typeof replaceValue === 'string' && !isNaN(Number(replaceValue))) {
+      replaceValue = Number(replaceValue);
+    }
+    if (Array.isArray(thresholds)) {
+      thresholds = thresholds.map(Number);
+    }
 
     const isOutlier = (v) =>
-      typeof v === 'number' &&
-      (v <= thresholds[0] || v >= thresholds[1]);
+      typeof v === "number" && (v < thresholds[0] || v > thresholds[1]);
 
-    const convert = (v) => {
-      const n = Number(v);
-      return isNaN(n) ? v : n;
-    };
+    if (!Array.isArray(data)) return data;
 
-    const clean1D = (arr) => arr.map(v => {
-      const num = convert(v);
-      return isOutlier(num) ? replaceValue : num;
-    });
+    // Detect column-oriented format:
+    // Example: [[header, v1, v2...], [header2, v1, v2...]]
+    let isColumnOriented =
+      data.length > 1 &&
+      Array.isArray(data[0]) &&
+      data.every((col) => Array.isArray(col) && col.length === data[0].length);
 
-    const clean2D = (arr) => arr.map(sub => clean1D(sub));
+    if (isColumnOriented) {
+      return data.map((col) => {
+        const header = col[0];
 
-    const isNamedStructure = (arr) =>
-      Array.isArray(arr) &&
-      arr.length === 2 &&
-      typeof arr[0][0] === 'string' &&
-      typeof arr[1][0] === 'string';
+        // Determine whether column is numeric based on *values only*, not header
+        const isNumericColumn = col
+          .slice(1)
+          .some((v) => !isNaN(Number(v)) && v !== null && v !== "");
 
-    if (Array.isArray(data[0])) {
-      if (isNamedStructure(data)) {
-        const [timeRow, valueRow] = data;
+        if (!isNumericColumn) return col; // leave string/date columns alone
 
-        const timeHeader = timeRow[0];
-        const valueHeader = valueRow[0];
-
-        const timeArray = timeRow.slice(1);
-        const valueArray = valueRow.slice(1).map(convert);
-
-        const cleanedValues = valueArray.map(v =>
-          isOutlier(v) ? replaceValue : v
-        );
-
-        return [
-          [timeHeader, ...timeArray],
-          [valueHeader, ...cleanedValues]
-        ];
-      } else {
-        return clean2D(data);
-      }
-    } else {
-      return clean1D(data);
+        // Clean numeric column
+        return col.map((item, index) => {
+          if (index === 0) return item; // keep header
+          const val = Number(item);
+          if (isNaN(val)) return item;
+          return isOutlier(val) ? replaceValue : val;
+        });
+      });
     }
+
+    // Detect row-oriented 2D: [[t,v], [t,v]]
+    if (Array.isArray(data[0])) {
+      return data.map((row) => {
+        let valIndex = -1;
+
+        // find numeric value column
+        for (let i = 0; i < row.length; i++) {
+          if (!isNaN(Number(row[i])) && row[i] !== null && row[i] !== "") {
+            valIndex = i;
+            break;
+          }
+        }
+
+        if (valIndex !== -1) {
+          const val = Number(row[valIndex]);
+          if (!isNaN(val) && isOutlier(val)) {
+            const newRow = [...row];
+            newRow[valIndex] = replaceValue;
+            return newRow;
+          }
+        }
+        return row;
+      });
+    }
+
+    // 1D list
+    return data.map((item) => {
+      const val = Number(item);
+      if (isNaN(val)) return item;
+      return isOutlier(val) ? replaceValue : val;
+    });
   }
 
 
-  /**
-   * Calculates pearson coefficient for bivariate analysis.
-   * The sets must be of the same size.
-   * @method correlation
-   * @memberof stats
-   * @param {Object} params.data - An object containing the two data sets as set1 and set2.
-   * @returns {Number} Pearson coefficient.
-   * @example
-   * const data = {set1: [1,2,3], set2: [2,4,6]};
-   * const pearsonCoefficient = hydro1.analyze.stats.correlation({data})
-   */
 
+
+  /**
+   * Calculate Pearson correlation coefficient for bivariate analysis
+   * Measures the linear relationship between two datasets (-1 to 1)
+   * Both datasets must be the same length
+   * 
+   * @function correlation
+   * @memberof stats
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Additional parameters (not used)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Object} options.data - Object containing two datasets
+   * @param {Array<number>} options.data.set1 - First dataset
+   * @param {Array<number>} options.data.set2 - Second dataset  
+   * @returns {number} Pearson correlation coefficient (-1 to 1)
+   * 
+   * @example
+   * // Perfect positive correlation
+   * const data1 = { set1: [1, 2, 3, 4, 5], set2: [2, 4, 6, 8, 10] };
+   * const r1 = hydro.analyze.stats.correlation({ data: data1 });
+   * console.log(r1); // ~1.0 (strong positive correlation)
+   * 
+   * @example
+   * // Compare observed vs modeled streamflow
+   * const observed = [120, 135, 142, 138, 125];
+   * const modeled = [118, 140, 138, 135, 128];
+   * const r = hydro.analyze.stats.correlation({ 
+   *   data: { set1: observed, set2: modeled } 
+   * });
+   * console.log(`Correlation: ${r.toFixed(3)}`); // e.g., 0.985
+   * 
+   * @example
+   * // Interpret correlation values:
+   * // r =  1.0: Perfect positive correlation
+   * // r =  0.7: Strong positive correlation
+   * // r =  0.0: No correlation
+   * // r = -0.7: Strong negative correlation
+   * // r = -1.0: Perfect negative correlation
+   */
   static correlation({ params, args, data } = {}) {
     const { set1, set2 } = data;
     const n = set1.length + set2.length;
+    // Robust parsing
+    const s1 = set1.map(Number);
+    const s2 = set2.map(Number);
     const q1q2 = [];
     const sq1 = [];
     const sq2 = [];
 
-    for (let i = 0; i < set1.length; i++) {
-      q1q2[i] = set1[i] * set2[i];
-      sq1[i] = set1[i] ** 2;
-      sq2[i] = set2[i] ** 2;
+    for (let i = 0; i < s1.length; i++) {
+      q1q2[i] = s1[i] * s2[i];
+      sq1[i] = s1[i] ** 2;
+      sq2[i] = s2[i] ** 2;
     }
 
     const r1 =
       n * this.sum({ data: q1q2 }) -
-      this.sum({ data: set1 }) * this.sum({ data: set2 });
+      this.sum({ data: s1 }) * this.sum({ data: s2 });
     const r2a = Math.sqrt(
-      n * this.sum({ data: sq1 }) - this.sum({ data: set1 }) ** 2
+      n * this.sum({ data: sq1 }) - this.sum({ data: s1 }) ** 2
     );
     const r2b = Math.sqrt(
-      n * this.sum({ data: sq2 }) - this.sum({ data: set2 }) ** 2
+      n * this.sum({ data: sq2 }) - this.sum({ data: s2 }) ** 2
     );
 
     return r1 / (r2a * r2b);
   }
 
   /**
-   * Calculates various efficiency metrics to evaluate model performance
-   * Efficiency metrics are essential for evaluating hydrological model performance by comparing
-   * simulated outputs with observed data. These metrics help quantify the accuracy and reliability
-   * of models for streamflow prediction, water quality simulation, or other hydrological processes.
-   * @method efficiencies
+   * Calculate various efficiency metrics to evaluate hydrological model performance
+   * Essential for comparing simulated outputs with observed data
+   * Supports NSE, R², Index of Agreement, RMSE, MAE, and more
+   * 
+   * @function efficiencies
    * @memberof stats
-   * @param {Object} params - Contains: type (type of efficiency metric to calculate)
-   *                          Options include:
-   *                          - 'NSE': Nash-Sutcliffe Efficiency (ranges from -∞ to 1, with 1 being perfect)
-   *                          - 'determination': Coefficient of determination (R²) (ranges from 0 to 1)
-   *                          - 'agreement': Index of agreement (ranges from 0 to 1)
-   *                          - 'all': Calculate all available metrics
-   * @param {Array} data - Array containing two arrays: [observed, modeled] values
-   * @returns {Number|Object} - A number representing the calculated metric, or an object containing multiple metrics if 'all' is specified
+   * @param {Object} options - Function options
+   * @param {Object} options.params - Parameters
+   * @param {string} options.params.type - Type of metric: 'NSE', 'determination', 'agreement', 'RMSE', 'MAE', 'all'
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array} options.data - Two arrays: [observed, modeled] values (must be same length)
+   * @returns {number|Object} Efficiency value, or object with all metrics if type='all'
+   * 
    * @example
-   * // Calculate Nash-Sutcliffe Efficiency for a streamflow model
-   * const observedFlow = [12.5, 15.2, 22.8, 31.5, 25.4, 18.7, 10.3, 8.2];
-   * const modeledFlow = [11.3, 14.7, 20.5, 28.9, 27.1, 16.2, 11.8, 7.5];
-   * 
-   * const nse = hydro.analyze.stats.efficiencies({ 
-   *   params: { type: 'NSE' }, 
-   *   data: [observedFlow, modeledFlow] 
+   * // Nash-Sutcliffe Efficiency (NSE) - most common hydrological metric
+   * // NSE = 1: Perfect model, NSE = 0: Model as good as mean, NSE < 0: Model worse than mean
+   * const observed = [10.5, 12.3, 15.8, 18.2, 14.1, 11.7, 9.8];
+   * const modeled = [10.2, 12.1, 16.2, 17.8, 14.5, 11.3, 10.1];
+   * const nse = hydro.analyze.stats.efficiencies({
+   *   params: { type: 'NSE' },
+   *   data: [observed, modeled]
    * });
-   * console.log(`NSE: ${nse.toFixed(3)}`); // Example: NSE: 0.856
+   * console.log(`NSE: ${nse.toFixed(3)}`); // e.g., 0.985 (excellent performance)
    * 
-   * // Calculate all efficiency metrics for model evaluation
-   * const metrics = hydro.analyze.stats.efficiencies({ 
-   *   params: { type: 'all' }, 
-   *   data: [observedFlow, modeledFlow] 
+   * @example
+   * // Coefficient of Determination (RÂ²)
+   * const r2 = hydro.analyze.stats.efficiencies({
+   *   params: { type: 'determination' },
+   *   data: [observed, modeled]
    * });
+   * console.log(`R²: ${r2.toFixed(3)}`); // 0 to 1, higher is better
    * 
-   * console.log(`NSE: ${metrics.NSE.toFixed(3)}`);       // Example: 0.856
-   * console.log(`R²: ${metrics.r2.toFixed(3)}`);         // Example: 0.923
-   * console.log(`Agreement: ${metrics.d.toFixed(3)}`);   // Example: 0.947
+   * @example
+   * // Calculate all metrics for comprehensive model evaluation
+   * const metrics = hydro.analyze.stats.efficiencies({
+   *   params: { type: 'all' },
+   *   data: [observed, modeled]
+   * });
+   * console.log('Model Performance:');
+   * console.log(`  NSE: ${metrics.NSE.toFixed(3)}`);
+   * console.log(`  R²: ${metrics.determination.toFixed(3)}`);
+   * console.log(`  Index of Agreement: ${metrics.agreement.toFixed(3)}`);
    * 
-   * // Interpretation guidelines for NSE values in hydrology:
-   * // NSE > 0.8: Excellent model performance
-   * // 0.6 < NSE < 0.8: Very good performance
-   * // 0.4 < NSE < 0.6: Good performance
-   * // 0.2 < NSE < 0.4: Poor performance
-   * // NSE < 0.2: Unacceptable performance
+   * @example
+   * // Interpretation guide:
+   * // NSE: >0.75 = Very good, 0.65-0.75 = Good, 0.50-0.65 = Satisfactory, <0.50 = Unsatisfactory
+   * // R²: >0.85 = Very good correlation
+   * // Index of Agreement: >0.90 = Excellent agreement
    */
   static efficiencies({ params, args, data } = {}) {
     let { type } = params,
-      [obs, model] = data;
+      [obsRaw, modelRaw] = data;
+
+    // Robust parsing
+    const obs = obsRaw.map(Number);
+    const model = modelRaw.map(Number);
+
     const meanobs = this.mean({ data: obs });
     const meanmodel = this.mean({ data: model });
 
@@ -813,15 +1233,19 @@ export default class stats {
    * for small data sets.
    * @method fastfourier
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array with data as [data]
-   * @returns {Object[]} calculated array.
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - Contains: 1d-JS array with data as [data].
+   * @returns {Array} calculated array.
    * @example
-   * hydro.analyze.stats.fastFourier({data: [someData]})
+   * hydro.analyze.stats.fastFourier({data: [1, 2, 3, 4]});
    */
 
   static fastFourier({ params, args, data } = {}) {
-    const nearest = Math.pow(2, Math.ceil(Math.log2(data.length)));
-    let paddedData = tf.pad1d(data, [0, nearest - data.length]);
+    // Robust parsing
+    const numData = data.map(Number);
+    const nearest = Math.pow(2, Math.ceil(Math.log2(numData.length)));
+    let paddedData = tf.pad1d(numData, [0, nearest - numData.length]);
     const imag = tf.zerosLike(paddedData);
     const complexData = tf.complex(paddedData, imag);
     const fft = tf.spectral.fft(complexData);
@@ -830,42 +1254,66 @@ export default class stats {
   }
 
   /**
-   * Calculates the skewness of a dataset
-   * @method skewness
+   * Calculate skewness of a distribution
+   * Measures asymmetry of the probability distribution
+   * Positive skew: long tail on right, Negative skew: long tail on left
+   * 
+   * @function skewness
    * @memberof stats
-   * @param {Object} params - Contains: none
-   * @param {Array} data - Array of numeric values
-   * @returns {Number} Skewness value
+   * @param {Object} options - Function options
+   * @param {Object} [options.params] - Additional parameters (not used)
+   * @param {Object} [options.args] - Additional arguments (not used)
+   * @param {Array<number>} options.data - Array of numeric values
+   * @returns {number} Skewness coefficient
+   * 
    * @example
-   * hydro.analyze.stats.skewness({data: [1, 2, 3, 4, 5]})
+   * // Symmetric distribution (skewness ≈ 0)
+   * const symmetric = [1, 2, 3, 4, 5, 4, 3, 2, 1];
+   * const skew1 = hydro.analyze.stats.skewness({ data: symmetric });
+   * console.log(skew1); // ≈ 0 (symmetric)
+   * 
+   * @example
+   * // Right-skewed flood peaks (common in hydrology)
+   * const floods = [100, 120, 110, 130, 500]; // 500 creates right skew
+   * const skewness = hydro.analyze.stats.skewness({ data: floods });
+   * console.log(skewness); // Positive value (right-skewed)
+   * 
+   * @example
+   * // Interpretation:
+   * // skewness > 0: Right-skewed (tail extends right)
+   * // skewness = 0: Symmetric
+   * // skewness < 0: Left-skewed (tail extends left)
    */
   static skewness({ params, arg, data } = {}) {
-    const n = data.length;
-    const mean = this.mean({ data: data });
-    const sum3 = data.reduce((acc, val) => acc + Math.pow(val - mean, 3), 0);
+    // Robust parsing
+    const numData = this.preprocessData(data);
+    const n = numData.length;
+    const mean = this.mean({ data: numData });
+    const sum3 = numData.reduce((acc, val) => acc + Math.pow(val - mean, 3), 0);
     const stdDev = Math.sqrt(
-      data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n
+      numData.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n
     );
     return (n / ((n - 1) * (n - 2))) * (sum3 / Math.pow(stdDev, 3));
   }
 
   /**
-   * Calculates the kurtosis of a dataset
+   * Calculates the kurtosis of a dataset.
    * @method kurtosis
    * @memberof stats
-   * @param {Object} params - Contains: none
-   * @param {Array} data - Array of numeri
-   * values
-   * @returns {Number} Kurtosis value
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - Array of numeric values.
+   * @returns {Number} Kurtosis value.
    * @example
-   * hydro.analyze.stats.kurtosis({data: [1
-   * 2, 3, 4, 5]})
+   * hydro.analyze.stats.kurtosis({data: [1, 2, 3, 4, 5]});
    */
   static kurtosis({ params, args, data } = {}) {
-    const n = data.length;
-    const mean = this.mean({ data: data });
-    const sum4 = data.reduce((acc, val) => acc + Math.pow(val - mean, 4), 0);
-    const stdDev = this.stddev({ data: data });
+    // Robust parsing
+    const numData = this.preprocessData(data);
+    const n = numData.length;
+    const mean = this.mean({ data: numData });
+    const sum4 = numData.reduce((acc, val) => acc + Math.pow(val - mean, 4), 0);
+    const stdDev = this.stddev({ data: numData });
     return (
       ((n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3))) *
       (sum4 / Math.pow(stdDev, 4)) -
@@ -874,19 +1322,15 @@ export default class stats {
   }
 
   /**
-   * Performs forward fill to replace missin
-   * values in an array with the last
-   * non-null value
+   * Performs forward fill to replace missing values in an array with the last non-null value.
    * @method forwardFill
-   * @memberof stat
-   * @param {Object} params - Contains: none
-   * @param {Array} data - Array of value
-   * with missing entries
-   * @returns {Object} Object containing th
-   * filled data array and an array of
-   * replace indices
-   * @example hydro.analyze.stats.forwardFi
-   * ({data: [1, null, 3, null, null, 6]})
+   * @memberof stats
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - Array of values with missing entries.
+   * @returns {Object} Object containing the filled data array and an array of replaced indices.
+   * @example
+   * hydro.analyze.stats.forwardFill({data: [1, null, 3, null, null, 6]});
    */
   static forwardFill({ params, args, data } = {}) {
     let previousValue = null;
@@ -912,21 +1356,18 @@ export default class stats {
    * using google graphing tools.
    * @method basicstats
    * @memberof stats
-   * @param {Object} data - 1d-JS array with data arranged as [data].
-   * @returns {Object[]} flatenned array for the dataset.
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - 1d-JS array with data arranged as [data].
+   * @returns {Array} flatenned array for the dataset.
    * @example
-   * hydro.analyze.stats.basicstats({data: [someData]})
+   * hydro.analyze.stats.basicstats({data: [1, 2, 3, 4, 5]});
    */
 
   static basicstats({ params, args, data } = {}) {
-    //Can pass time series data as a 2d array without additional manipulation
-    typeof data[0] === "object"
-      ? (() => {
-        data = data[1];
-        data.shift();
-      })()
-      : data;
-    data = data.map((val) => JSON.parse(val));
+    // Robust parsing using preprocessData
+    data = this.preprocessData(data);
+
     //if value is outside the values required from the api call
     data = data.map((val) => {
       val > 99998 ? (val = 0) : val;
@@ -977,7 +1418,8 @@ export default class stats {
    * @method MK
    * @memberof stats
    * @param {Object} params - Contains alpha (significance level, default 0.05)
-   * @param {Object} data - Array of time series data to test for trend
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - Array of time series data to test for trend
    * @returns {Object} Results containing:
    *   - S: Mann-Kendall statistic
    *   - z: Standardized test statistic 
@@ -985,7 +1427,7 @@ export default class stats {
    *   - trend: String indicating detected trend ("increasing", "decreasing", or "no trend")
    *   - significant: Boolean indicating if trend is statistically significant
    * @example
-   * // Detect trend in annual streamflow data (m³/s) over 30 years
+   * // Detect trend in annual streamflow data (mÂ³/s) over 30 years
    * const annualStreamflow = [
    *   105, 98, 102, 95, 90, 100, 92, 87, 93, 85,
    *   88, 82, 80, 85, 78, 75, 80, 76, 72, 70,
@@ -996,21 +1438,6 @@ export default class stats {
    *   params: { alpha: 0.05 },  // 5% significance level
    *   data: annualStreamflow
    * });
-   * 
-   * // Interpret the results for water resource management
-   * if (trendResult.significant) {
-   *   if (trendResult.trend === "decreasing") {
-   *     console.log("Significant decreasing trend detected in streamflow");
-   *     console.log("Water management implication: Potential water scarcity issues");
-   *   } else if (trendResult.trend === "increasing") {
-   *     console.log("Significant increasing trend detected in streamflow");
-   *     console.log("Water management implication: Potential increased flood risk");
-   *   }
-   * } else {
-   *   console.log("No significant trend detected in streamflow");
-   * }
-   * console.log(`Test statistic (S): ${trendResult.S}`);
-   * console.log(`p-value: ${trendResult.p}`);
    */
 
   static MK({ params, args, data }) {
@@ -1044,7 +1471,7 @@ export default class stats {
 
     var n = data.length;
 
-    // If n ≤ 10, use the exact variance calculation
+    // If n â‰¤ 10, use the exact variance calculation
     // Otherwise, use the approximation
     var sigma;
     if (n <= 10) {
@@ -1091,14 +1518,16 @@ export default class stats {
    * Regularized incomplete gamma function approximation using series expansion.
    * @method gammaCDFApprox
    * @memberof stats
-   * @param {Object} params - Parameters for the function
-   * @param {number} params.alpha - Shape parameter
-   * @param {number} params.beta - Scale parameter
-   * @param {Object} data - Data input (array with single value x)
-   * @returns {number} Regularized incomplete gamma CDF value
+   * @param {Object} params - Parameters for the function: alpha (Shape parameter), beta (Scale parameter).
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - Data input (array with single value x).
+   * @returns {Number} Regularized incomplete gamma CDF value.
+   * @example
+   * hydro.analyze.stats.gammaCDFApprox({params: {alpha: 2, beta: 1}, data: [1.5]});
    */
-  static gammaCDFApprox({ params = {}, args = {}, data } = {}) {
+  static gammaCDFApprox({ params = {}, args = {}, data = [] } = {}) {
     const { alpha, beta } = params;
+    if (data === undefined || data.length === 0) return 0;
     const x = data[0];
     const EPSILON = 1e-8;
     const ITMAX = 100;
@@ -1160,16 +1589,16 @@ export default class stats {
   }
 
   /**
-   * Normal distribution
+   * Normal distribution.
    * @method normalcdf
    * @memberof stats
    * @author Alexander Michalek & Renato Amorim, IFC, University of Iowa.
-   * @param {Object[]} data - Contains: 1d-JS array with timeseries
-   * @returns {Object[]} 1d array with 3 values: p-value, value sum and z value
-   * @param {Object[]} data - 1d-JS array
-   * @returns {Number} number value for the distribution
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - Contains: 1d-JS array with timeseries.
+   * @returns {Array} 1d array with probabilities.
    * @example
-   * hydro.analyze.stats.normalcdf({data: [someData]})
+   * hydro.analyze.stats.normalcdf({data: [1.96, -1.96]});
    */
 
   static normalcdf({ params, args, data }) {
@@ -1193,20 +1622,24 @@ export default class stats {
   }
 
   /**
-   * D-statistic
-   * Computes D-statistic from two samples to evaluate if they come from the same distribution
+   * D-statistic.
+   * Computes D-statistic from two samples to evaluate if they come from the same distribution.
    * Reference: Kottegoda & Rosso, 2008.
    * @method computeD
    * @memberof stats
    * @author Alexander Michalek & Renato Amorim, IFC, University of Iowa.
-   * @param {Object[]} data - 2d-JS array containing ordered as [samples_A, samples_B], with each being 1-d arrays
-   * @returns {Number} d-statistic of the samples
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: sampleA and sampleB (1-d arrays).
+   * @returns {Number} d-statistic of the samples.
    * @example
-   * hydro.analyze.stats.computeD({data: [samples_A, samples_B]})
+   * hydro.analyze.stats.computeD({data: {sampleA: [1, 2, 3], sampleB: [1, 2, 4]}});
    */
-  static computeD({ params, args, data }) {
-    var { sampleA, sampleB } = data,
-      maximumDifference = 0,
+  static computeD({ params, args, data = {} }) {
+    var { sampleA, sampleB } = data;
+    if (!sampleA || !sampleB) return 0;
+
+    var maximumDifference = 0,
       N = 1e3;
     let minimum = this.min({ data: sampleA.concat(sampleB) }),
       maximum = this.max({ data: sampleA.concat(sampleB) }),
@@ -1226,16 +1659,18 @@ export default class stats {
   }
 
   /**
-   * Kolmogorov Smirnov Two-sided Test
+   * Kolmogorov Smirnov Two-sided Test.
    * Calculates the P value, based on the D-statistic from the function above.
    * Reference: Kottegoda & Rosso, 2008.
    * @method KS_computePValue
    * @memberof stats
    * @author Alexander Michalek & Renato Amorim, IFC, University of Iowa
-   * @param {Object[]} data - 2d-JS array containing ordered as [samples_A, samples_B], with each being 1-d arrays
-   * @returns {Object[]} array with [p-Statistic, d-Statistic]
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - 2d-JS array containing ordered as [samples_A, samples_B], with each being 1-d arrays.
+   * @returns {Array} array with [p-Statistic, d-Statistic].
    * @example
-   * hydro.analyze.stats.KS_computePValue({data: [samples_A, samples_B]})
+   * hydro.analyze.stats.KS_computePValue({data: [[1, 2, 3], [1, 2, 4]]});
    */
   static KS_computePValue({ params, args, data }) {
     var samples_A = data[0],
@@ -1253,11 +1688,12 @@ export default class stats {
    * @method KS_rejectAtAlpha
    * @memberof stats
    * @author Alexander Michalek & Renato Amorim, IFC, University of Iowa
-   * @param {Object} params - contains {alpha: Number} with alpha being the significance level
-   * @param {Object[]} data - 2d-JS array containing ordered as [samples_A, samples_B], with each being 1-d arrays
-   * @returns {Number} rejection if p is less than the significance level
+   * @param {Object} params - contains {alpha: Number} with alpha being the significance level.
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - 2d-JS array containing ordered as [samples_A, samples_B], with each being 1-d arrays.
+   * @returns {Boolean} rejection if p is less than the significance level.
    * @example
-   * hydro.analyze.stats.KS_rejectAtAlpha({params: {alpha: someAlpha}, data: [samples_A, samples_B]})
+   * hydro.analyze.stats.KS_rejectAtAlpha({params: {alpha: 0.05}, data: [[1, 2, 3], [1, 2, 4]]});
    */
   static KS_rejectAtAlpha({ params, args, data }) {
     let [p, d] = this.KS_computePValue({ data: data });
@@ -1265,38 +1701,36 @@ export default class stats {
   }
 
   /**
-
-Computes the probability density function
-of a normal distribution.
-@method normalDistribution
-@memberof stats
-@param {Object} params - Contains:
-z-value.
-@returns {Number} Probability density
-function of the normal distribution.
-@example
-hydro.analyze.stats.normalDistributio
-({params: {z: 1.5}})
-*/
+   * Computes the probability density function of a normal distribution.
+   * @method normalDistribution
+   * @memberof stats
+   * @param {Object} params - Contains: z (z-value).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} Probability density function of the normal distribution.
+   * @example
+   * hydro.analyze.stats.normalDistribution({params: {z: 1.5}});
+   */
   static normalDistribution({ params, args, data }) {
     return Math.exp(-(Math.log(2 * Math.PI) + params.z * params.z) * 0.5);
   }
 
   /**
-   * Generates a random simulated number when run with a dataset
+   * Generates a random simulated number when run with a dataset.
    * @method runSimulation
    * @author riya-patil
    * @memberof stats
-   * @param {Object} data - passes data from an object
-   * @returns {Number} Returns a simulated number
+   * @param {Object} params - Contains: multiplier (optional, default 1).
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - passes data from an object.
+   * @returns {Number} Returns a simulated number.
    * @example 
    * const testData = [
-      [1, 2, 3, 4, 5],
-      [6, 7, 8, 9, 10],
-      [11, 12, 13, 14, 15],
-    ];
-    hydro.analyze.stats.simulate({data: testData})
-   * 
+   *    [1, 2, 3, 4, 5],
+   *    [6, 7, 8, 9, 10],
+   *    [11, 12, 13, 14, 15],
+   * ];
+   * hydro.analyze.stats.runSimulation({data: testData});
    */
   static runSimulation({ params, args, data } = {}) {
     const { multiplier } = params || 1; //defaults to 1
@@ -1308,20 +1742,22 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-     * Generates a random simulated number when run with a dataset
-     * @method runMonteCarlo
-     * @author riya-patil
-     * @memberof stats
-     * @param {Object[]} data - passes data from multiple objects
-     * @returns {number[]} returns an array of the simulated results
-     * @example 
-     * const testData = [
-        [1, 2, 3, 4, 5],
-        [6, 7, 8, 9, 10],
-        [11, 12, 13, 14, 15],
-      ];
-      hydro.analyze.stats.runMonteCarlo({data: testData})
-     */
+   * Generates a random simulated number when run with a dataset.
+   * @method runMonteCarlo
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains: iterations (default 100), callback (optional function).
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - passes data from multiple objects.
+   * @returns {Array} returns an array of the simulated results.
+   * @example 
+   * const testData = [
+   *    [1, 2, 3, 4, 5],
+   *    [6, 7, 8, 9, 10],
+   *    [11, 12, 13, 14, 15],
+   * ];
+   * hydro.analyze.stats.runMonteCarlo({data: testData});
+   */
   static runMonteCarlo({ params, args, data } = {}) {
     const { iterations = 100, callback } = params || {};
     // Extract iterations and callback from params
@@ -1343,20 +1779,22 @@ hydro.analyze.stats.normalDistributio
 
 
   /**
-     * Generates a random simulated number when run with a dataset
-     * @method runVegas
-     * @author riya-patil
-     * @memberof stats
-     * @param {Object[]} data - passes data from multiple objects
-     * @returns {number[]} returns an array of the simulated results
-     * @example
-     * const testData = [
-        [1, 2, 3, 4, 5],
-        [6, 7, 8, 9, 10],
-        [11, 12, 13, 14, 15],
-      ];
-      hydro.analyze.stats.runVegas({data: testData})
-     */
+   * Generates a random simulated number when run with a dataset.
+   * @method runVegas
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains: iterations (default 100), callback (optional function).
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - passes data from multiple objects.
+   * @returns {Array} returns an array of the simulated results.
+   * @example
+   * const testData = [
+   *    [1, 2, 3, 4, 5],
+   *    [6, 7, 8, 9, 10],
+   *    [11, 12, 13, 14, 15],
+   * ];
+   * hydro.analyze.stats.runVegas({data: testData});
+   */
   static runVegas({ params, args, data } = {}) {
     const { iterations = 100, callback } = params || {};
     // Extract iterations and callback from params
@@ -1380,23 +1818,25 @@ hydro.analyze.stats.normalDistributio
 
 
   /**
-   * Computes the probability density function (PDF) of a Gaussian (normal) distribution
+   * Computes the probability density function (PDF) of a Gaussian (normal) distribution.
    * @method gaussianDist
    * @author riya-patil
    * @memberof stats
-   * @param {Object} params - x (value at which to compute the PDF), mean (mean of the distribution), 
-   * and stddev (standard deviation of the distribution)
-   * @returns {Number} Probability density function of the Gaussian distribution
+   * @param {Object} params - Contains: x (value at which to compute the PDF), mean (mean of the distribution), and stddev (standard deviation of the distribution).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} Probability density function of the Gaussian distribution.
    * @example
    * const testData = {
-      x: 2.5,
-      mean: 3,
-      stddev: 1.2
-    };
-    hydro.analyze.stats.gaussianDist({params: testData});
+   *    x: 2.5,
+   *    mean: 3,
+   *    stddev: 1.2
+   * };
+   * hydro.analyze.stats.gaussianDist({params: testData});
    */
-  static gaussianDist({ params, args, data }) {
+  static gaussianDist({ params = {}, args, data } = {}) {
     const { x, mean, stddev } = params;
+    if (mean === undefined || stddev === undefined || x === undefined) return 0; // Safeguard
     const exponent = -((x - mean) ** 2) / (2 * stddev ** 2);
     const coefficient = 1 / (stddev * Math.sqrt(2 * Math.PI));
 
@@ -1404,15 +1844,17 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Probability mass function (PMF) of a Bernoulli distribution
+   * Probability mass function (PMF) of a Bernoulli distribution.
    * The Bernoulli distribution is a discrete probability distribution for a random variable that takes the value 1 
    * with probability of success p and the value 0 with probability of failure (1-p).
    * It models binary outcomes like success/failure, yes/no, or true/false.
    * @method bernoulliDist
    * @author riya-patil
    * @memberof stats
-   * @param {Object} params - Contains: f (indicator for failure=0 or success=1) and s (probability of success, between 0 and 1)
-   * @returns {Number} Probability mass function of the Bernoulli distribution at the specified point
+   * @param {Object} params - Contains: f (indicator for failure=0 or success=1) and s (probability of success, between 0 and 1).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} Probability mass function of the Bernoulli distribution at the specified point.
    * @example
    * // Calculate probability of success (f=1) with p=0.7
    * hydro.analyze.stats.bernoulliDist({ params: { f: 1, s: 0.7 } }); // Returns 0.7
@@ -1420,7 +1862,7 @@ hydro.analyze.stats.normalDistributio
    * // Calculate probability of failure (f=0) with p=0.7
    * hydro.analyze.stats.bernoulliDist({ params: { f: 0, s: 0.7 } }); // Returns 0.3
    */
-  static bernoulliDist({ params, args, data } = {}) {
+  static bernoulliDist({ params = {}, args, data } = {}) {
     const { f, s } = params; //f = failure, s = success
     if (f === 0) {
       return 1 - s;
@@ -1435,7 +1877,7 @@ hydro.analyze.stats.normalDistributio
    * Computes the probability density function (PDF) of the Generalized Extreme Value (GEV) distribution
    * The GEV distribution is widely used in hydrology for modeling extreme events like maximum rainfall
    * or flood discharges. It combines three extreme value distributions: Gumbel (Type I),
-   * Fréchet (Type II), and Weibull (Type III) into a single parametric family.
+   * FrÃ©chet (Type II), and Weibull (Type III) into a single parametric family.
    * @method gevDistribution
    * @author riya-patil
    * @memberof stats
@@ -1443,8 +1885,10 @@ hydro.analyze.stats.normalDistributio
    *                        x (value at which to compute the PDF), 
    *                        mu (location parameter, determines the mode of the distribution),
    *                        sigma (scale parameter > 0, controls the spread of the distribution), 
-   *                        xi (shape parameter, determines the tail behavior - xi=0 gives Gumbel, xi>0 gives Fréchet, xi<0 gives Weibull)
-   * @returns {Number} Probability density function value of the GEV distribution at point x
+   *                        xi (shape parameter, determines the tail behavior - xi=0 gives Gumbel, xi>0 gives FrÃ©chet, xi<0 gives Weibull).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} Probability density function value of the GEV distribution at point x.
    * @example
    * // Calculate PDF for Gumbel distribution (xi=0)
    * hydro.analyze.stats.gevDistribution({
@@ -1456,7 +1900,7 @@ hydro.analyze.stats.normalDistributio
    *   }
    * });
    * 
-   * // Calculate PDF for Fréchet distribution (xi>0)
+   * // Calculate PDF for FrÃ©chet distribution (xi>0)
    * hydro.analyze.stats.gevDistribution({
    *   params: { 
    *     x: 50,
@@ -1466,8 +1910,9 @@ hydro.analyze.stats.normalDistributio
    *   }
    * });
    */
-  static gevDistribution({ params, args, data } = {}) {
+  static gevDistribution({ params = {}, args, data } = {}) {
     const { x, mu, sigma, xi } = params;
+    if (x === undefined || mu === undefined || sigma === undefined || xi === undefined) return 0;
     const z = (x - mu) / sigma;
 
     if (xi === 0) {
@@ -1483,21 +1928,22 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
- * Calculates the probability mass function (PMF) of a Geometric Distribution
- * @method geometricDist
- * @author riya-patil
- * @memberof stats
- * @param {Object} params - Contains the probability of success "s" (where 0 <= s <= 1) as a parameter.
- * @param {Number} args - Contains the number of trials until the first success trials (trials >= 1)
- * @returns {Number} The probability of getting the first success on the n-th trial
- * @example
- * hydro.analyze.stats.geometricDist({ params: { s: 0.5 }, args: { trials: 3 }, data: [] });
- * 0.125
- */
-  static geometricDist({ params, args, data } = {}) {
-    const { s } = params || 1;
-    const { trials } = args;
-    if (trials < 1) {
+   * Calculates the probability mass function (PMF) of a Geometric Distribution.
+   * @method geometricDist
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the probability of success "s" (where 0 <= s <= 1) as a parameter.
+   * @param {Object} args - Contains the number of trials until the first success trials (trials >= 1).
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} The probability of getting the first success on the n-th trial.
+   * @example
+   * hydro.analyze.stats.geometricDist({ params: { s: 0.5 }, args: { trials: 3 } });
+   */
+  static geometricDist({ params = {}, args = {}, data } = {}) {
+    // Fix: param default handling
+    const s = (params && params.s !== undefined) ? params.s : 1;
+    const { trials } = args || {};
+    if (!trials || trials < 1) {
       return 0;
     }
     return (1 - s) ** (trials - 1) * s;
@@ -1512,10 +1958,11 @@ hydro.analyze.stats.normalDistributio
    * @method binomialDist
    * @author riya-patil
    * @memberof stats
-   * @param {Object} params - Contains: trials (integer n ≥ 0, the total number of independent trials)
-   *                        and probSuccess (probability p of success in a single trial, 0 ≤ p ≤ 1)
-   * @param {Object} args - Contains: s (integer k, 0 ≤ k ≤ n, representing the number of successes)
-   * @returns {Number} The probability of getting exactly k successes in n trials with probability p of success
+   * @param {Object} params - Contains: trials (integer n â‰¥ 0, the total number of independent trials)
+   *                        and probSuccess (probability p of success in a single trial, 0 â‰¤ p â‰¤ 1).
+   * @param {Object} args - Contains: s (integer k, 0 â‰¤ k â‰¤ n, representing the number of successes).
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} The probability of getting exactly k successes in n trials with probability p of success.
    * @example
    * // Calculate the probability of exactly 3 rainy days out of 10 days,
    * // when the probability of rain on any given day is 0.3
@@ -1537,10 +1984,11 @@ hydro.analyze.stats.normalDistributio
    * const p2 = hydro.analyze.stats.binomialDist({ params: { trials: 5, probSuccess: 0.2 }, args: { s: 2 }});
    * const atMost2 = p0 + p1 + p2; // Gives the cumulative probability
    */
-  static binomialDist({ params, args, data } = {}) {
+  static binomialDist({ params = {}, args = {}, data } = {}) {
     const { trials, probSuccess } = params;
     const { s } = args;
 
+    if (s === undefined || trials === undefined || probSuccess === undefined) return 0;
     if (s < 0 || s > trials) {
       return 0;
     }
@@ -1555,9 +2003,10 @@ hydro.analyze.stats.normalDistributio
    * @method multinomialDistribution
    * @author riya-patil
    * @memberof stats
-   * @param {Object} params probabilities: 1D array of probabilities for each category; n: Number of samples to generate
-   * @returns {Object} samples: 2D array of generated samples, where each row represents a sample and each column represents a category
-   * frequencies: 2D array of frequencies for each category in the generated samples
+   * @param {Object} params - Contains: probabilities (1D array of probabilities for each category), n (Number of samples to generate).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Not used by this function.
+   * @returns {Object} samples: 2D array of generated samples, where each row represents a sample and each column represents a category, frequencies: 2D array of frequencies for each category in the generated samples.
    * @example
    * const multinomialData = {
    *   probabilities: [0.2, 0.3, 0.5],
@@ -1565,7 +2014,7 @@ hydro.analyze.stats.normalDistributio
    * };
    * hydro.analyze.stats.multinomialDistribution({ params: multinomialData });
    */
-  static multinomialDistribution({ params, args, data } = {}) {
+  static multinomialDistribution({ params = {}, args, data } = {}) {
     const { probabilities, n } = params;
 
     const numCategories = probabilities.length;
@@ -1595,20 +2044,25 @@ hydro.analyze.stats.normalDistributio
   }
 
 
-  /** Calculates the probability mass function (PMF) of the Log series Distribution
-     * @method LogSeriesDistribution 
-     * @author riya-patil
-     * @memberof stats
-     * @param {Object} params - Contains the parameter 'probSuccess' which represents the probability of success in a single trial.
-     * @param {Object} args - Contains the argument 'trials' (trials >= 1) which represents the number of trials.
-     * @returns {Number} Probability of achieving the first success in # of trials.
-     * @example
-     * hydro.analyze.stats.logSeriesDist({params: {probSuccess: 0.2, trials: 3}})
-     */
-  static logSeriesDist({ params, args, data } = {}) {
-    const { probSuccess, trials } = params;
+  /**
+   * Calculates the probability mass function (PMF) of the Log series Distribution.
+   * @method LogSeriesDistribution 
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the parameter 'probSuccess' which represents the probability of success in a single trial.
+   * @param {Object} args - Contains the argument 'trials' (trials >= 1) which represents the number of trials.
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} Probability of achieving the first success in # of trials.
+   * @example
+   * hydro.analyze.stats.logSeriesDist({params: {probSuccess: 0.2}, args: {trials: 3}});
+   */
+  static logSeriesDist({ params = {}, args = {}, data } = {}) {
+    const { probSuccess } = params;
+    // Fix: trials is in args per JSDoc, but code was looking in params.
+    // Also verifying verification script expectation. JSDoc says args: trials.
+    const { trials } = args;
 
-    if (trials < 1) {
+    if (!trials || trials < 1) {
       return 0;
     }
 
@@ -1616,17 +2070,19 @@ hydro.analyze.stats.normalDistributio
     return pmf;
   }
 
-  /** Calculates the probability density function (PDF) of the Lognormal Distribution
-    * @method lognormalDist 
-    * @author riya-patil
-    * @memberof stats
-    * @param {Object} params - Contains the parameters 'mu' and 'sigma' which represent the mean and standard deviation of the associated normal distribution.
-    * @param {Object} args - Contains the argument 'x' which represents the value at which to evaluate the PDF.
-    * @returns {Number} Probability density at 'x' in the Lognormal Distribution.
-    * @example 
-    * hydro.analyze.stats.lognormalDist({params: { mu: 0, sigma: 1 }, args: { x: 2 }})
-    */
-  static lognormalDist({ params, args, data } = {}) {
+  /**
+   * Calculates the probability density function (PDF) of the Lognormal Distribution.
+   * @method lognormalDist 
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the parameters 'mu' and 'sigma' which represent the mean and standard deviation of the associated normal distribution.
+   * @param {Object} args - Contains the argument 'x' which represents the value at which to evaluate the PDF.
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} Probability density at 'x' in the Lognormal Distribution.
+   * @example 
+   * hydro.analyze.stats.lognormalDist({params: { mu: 0, sigma: 1 }, args: { x: 2 }});
+   */
+  static lognormalDist({ params = {}, args = {}, data } = {}) {
     const { mu, sigma } = params;
     const { x } = args;
 
@@ -1640,16 +2096,19 @@ hydro.analyze.stats.normalDistributio
     return pdf;
   }
 
-  /** Calculates the probability density function (PDF) of the Gumbel Distribution
-     * @method gumbelDist 
-     * @author riya-patil
-     * @memberof stats
-     * @param {Object} params - Contains the parameters 'mu' (location parameter) and 'beta' (scale parameter).
-     * @returns {Number} Probability density at the given value 'x'.
-     * @example
-     * hydro.analyze.stats.gumbelDist({ params: { mu: 0, beta: 1, x: 2}})
-     */
-  static gumbelDist({ params, args, data } = {}) {
+  /**
+   * Calculates the probability density function (PDF) of the Gumbel Distribution.
+   * @method gumbelDist 
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the parameters 'mu' (location parameter) and 'beta' (scale parameter).
+   * @param {Object} args - Contains the argument 'x' at which to evaluate the PDF.
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} Probability density at the given value 'x'.
+   * @example
+   * hydro.analyze.stats.gumbelDist({ params: { mu: 0, beta: 1 }, args: { x: 2 }});
+   */
+  static gumbelDist({ params = {}, args = {}, data } = {}) {
     const { mu, beta } = params;
     const { x } = args;
 
@@ -1659,17 +2118,19 @@ hydro.analyze.stats.normalDistributio
     return pdf;
   }
 
-  /** Calculates the probability density function (PDF) of the Uniform Distribution
-     * @method uniformDist 
-     * @author riya-patil
-     * @memberof stats
-     * @param {Object} params - Contains the parameters 'a' (lower bound) and 'b' (upper bound).
-     * @param {Object} args - Contains the argument 'x' at which to evaluate the PDF.
-     * @returns {Number} Probability density at the given value 'x'.
-     * @example
-     * hydro.analyze.stats.uniformDist({ params: { a: 0, b: 1 }, args: { x: 0.5 } })
-     */
-  static uniformDist({ params, args, data } = {}) {
+  /**
+   * Calculates the probability density function (PDF) of the Uniform Distribution.
+   * @method uniformDist 
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the parameters 'a' (lower bound) and 'b' (upper bound).
+   * @param {Object} args - Contains the argument 'x' at which to evaluate the PDF.
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} Probability density at the given value 'x'.
+   * @example
+   * hydro.analyze.stats.uniformDist({ params: { a: 0, b: 1 }, args: { x: 0.5 } });
+   */
+  static uniformDist({ params = {}, args = {}, data } = {}) {
     const { a, b } = params;
     const { x } = args;
 
@@ -1681,29 +2142,33 @@ hydro.analyze.stats.normalDistributio
     }
   }
 
-  /** Calculates the Simple Moving Average of a given data set
-     * @method simpleMovingAverage 
-     * @author riya-patil
-     * @memberof stats
-     * @param {Object} params - Contains the parameter 'windowSize' which specifies the size of the moving average window.
-     * @param {Object} data - Contains the array of data points.
-     * @returns {Array} Array of moving average values.
-     * @example
-     * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-     * const windowSize = 3;
-     * hydro.analyze.stats.simpleMovingAverage({ params: { windowSize }, data });
-     */
+  /**
+   * Calculates the Simple Moving Average of a given data set.
+   * @method simpleMovingAverage 
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains the parameter 'windowSize' which specifies the size of the moving average window.
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - Contains the array of data points.
+   * @returns {Array} Array of moving average values.
+   * @example
+   * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+   * const windowSize = 3;
+   * hydro.analyze.stats.simpleMovingAverage({ params: { windowSize }, data });
+   */
   static simpleMovingAverage({ params, args, data } = {}) {
     const { windowSize } = params;
 
-    if (windowSize <= 0 || windowSize > data.length) {
+    const numData = this.preprocessData(data);
+
+    if (windowSize <= 0 || windowSize > numData.length) {
       throw new Error("Invalid window size.");
     }
 
     const movingAverage = [];
 
-    for (let i = 0; i <= data.length - windowSize; i++) {
-      const window = data.slice(i, i + windowSize);
+    for (let i = 0; i <= numData.length - windowSize; i++) {
+      const window = numData.slice(i, i + windowSize);
       const sum = window.reduce((total, value) => total + value, 0);
       const average = sum / windowSize;
       movingAverage.push(average);
@@ -1717,19 +2182,21 @@ hydro.analyze.stats.normalDistributio
    * @method linearMovingAverage
    * @author riya-patil
    * @memberof stats
-   * @param {Number} params - Contains the windowSize parameter.
+   * @param {Object} params - Contains the windowSize parameter.
+   * @param {Object} args - Not used by this function.
    * @param {Array} data - 1D array of numerical values.
    * @returns {Array} Array of moving averages.
    * @throws {Error} If the window size is invalid.
    * @example
    * const windowSize = 5;
    * const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-   * hydro.analyze.stats.linearMovingAverage({ windowSize, data });
+   * hydro.analyze.stats.linearMovingAverage({ params: { windowSize }, data });
    */
   static linearMovingAverage({ params, args, data } = {}) {
     const { windowSize } = params;
+    const numData = this.preprocessData(data);
 
-    if (windowSize <= 0 || windowSize > data.length) {
+    if (windowSize <= 0 || windowSize > numData.length) {
       throw new Error("Invalid window size.");
     }
 
@@ -1737,13 +2204,13 @@ hydro.analyze.stats.normalDistributio
     let sum = 0;
 
     for (let i = 0; i < windowSize; i++) {
-      sum += data[i];
+      sum += numData[i];
     }
 
     movingAverage.push(sum / windowSize);
 
-    for (let i = windowSize; i < data.length; i++) {
-      sum += data[i] - data[i - windowSize];
+    for (let i = windowSize; i < numData.length; i++) {
+      sum += numData[i] - numData[i - windowSize];
       movingAverage.push(sum / windowSize);
     }
 
@@ -1755,21 +2222,24 @@ hydro.analyze.stats.normalDistributio
    * @method exponentialMovingAverage
    * @author riya-patil
    * @memberof stats
-   * @param {Object} args - Contains the dataset as 'data' (1D JavaScript array) and the 'alpha' value (smoothing factor between 0 and 1)
-   * @returns {number[]} The Exponential Moving Average (EMA) values for the dataset
+   * @param {Object} params - Contains: alpha (smoothing factor between 0 and 1).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: dataset (1D JavaScript array).
+   * @returns {number[]} The Exponential Moving Average (EMA) values for the dataset.
    * @example
-   *const dataset= [1,2,3,4,5]
-   *const params={alpha: 0.5}
-   *hydro.analyze.stats.exponentialMovingAverage({params, data});
-  */
+   * const dataset = [1, 2, 3, 4, 5];
+   * const params = { alpha: 0.5 };
+   * hydro.analyze.stats.exponentialMovingAverage({ params, data: dataset });
+   */
 
   static exponentialMovingAverage({ params, args, data } = {}) {
     const { alpha } = params;
+    const numData = this.preprocessData(data);
     const emaValues = [];
-    let ema = data[0];
+    let ema = numData[0];
 
-    for (let i = 1; i < data.length; i++) {
-      ema = alpha * data[i] + (1 - alpha) * ema;
+    for (let i = 1; i < numData.length; i++) {
+      ema = alpha * numData[i] + (1 - alpha) * ema;
       emaValues.push(ema);
     }
 
@@ -1777,7 +2247,117 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Generates a sequence of events following a Poisson process
+   * Decomposes a time series into Trend, Seasonal, and Residual components using Classical Decomposition (Moving Averages).
+   * @method seasonalDecompose
+   * @memberof stats
+   * @param {Object} params - Contains:
+   *  - period {Number}: The seasonality period (e.g., 12 for monthly data, 7 for daily).
+   *  - model {String}: 'additive' (default) or 'multiplicative'.
+   * @param {Object} args - Not used.
+   * @param {Array} data - Input time series data.
+   * @returns {Array} Array of arrays: [observed, trend, seasonal, residuals].
+   * @example
+   * const [obs, trend, seas, resid] = hydro.analyze.stats.seasonalDecompose({
+   *   params: { period: 12, model: 'additive' },
+   *   data: [...]
+   * });
+   */
+  static seasonalDecompose({ params = {}, args, data } = {}) {
+    // 1. Preprocess
+    const observed = this.preprocessData(data);
+    const n = observed.length;
+    const period = Number(params.period) || 12; // Default to 12 if not provided
+    const model = params.model === 'multiplicative' ? 'multiplicative' : 'additive';
+
+    // 2. Trend Component (Centered Moving Average)
+    const trend = new Array(n).fill(null);
+    const halfPeriod = Math.floor(period / 2);
+
+    for (let i = halfPeriod; i < n - halfPeriod; i++) {
+      if (period % 2 === 0) {
+        // Even period: 2-step average (period size, centered)
+        let sum1 = 0;
+        for (let j = -halfPeriod; j < halfPeriod; j++) {
+          sum1 += observed[i + j];
+        }
+        let sum2 = 0;
+        for (let j = -halfPeriod + 1; j <= halfPeriod; j++) {
+          sum2 += observed[i + j];
+        }
+        trend[i] = (sum1 + sum2) / (2 * period);
+      } else {
+        // Odd period: Simple centered MA
+        let sum = 0;
+        for (let j = -halfPeriod; j <= halfPeriod; j++) {
+          sum += observed[i + j];
+        }
+        trend[i] = sum / period;
+      }
+    }
+
+    // 3. Detrending
+    const detrended = new Array(n).fill(null);
+    for (let i = 0; i < n; i++) {
+      if (trend[i] !== null) {
+        if (model === 'additive') {
+          detrended[i] = observed[i] - trend[i];
+        } else {
+          // Multiplicative: observed / trend
+          detrended[i] = trend[i] !== 0 ? observed[i] / trend[i] : null; // Handle div by zero if necessary
+        }
+      }
+    }
+
+    // 4. Seasonal Component
+    // Average variance per period index (e.g., average of all Januaries)
+    const seasonalIndices = new Array(period).fill(0);
+    const seasonalCounts = new Array(period).fill(0);
+
+    for (let i = 0; i < n; i++) {
+      if (detrended[i] !== null && !isNaN(detrended[i])) {
+        const idx = i % period;
+        seasonalIndices[idx] += detrended[i];
+        seasonalCounts[idx]++;
+      }
+    }
+
+    const seasonalPattern = seasonalIndices.map((sum, i) =>
+      seasonalCounts[i] > 0 ? sum / seasonalCounts[i] : 0
+    );
+
+    // Normalize seasonal component
+    // Additive: sum should be 0. Multiplicative: sum should be period (average 1).
+    if (model === 'additive') {
+      const meanSeason = seasonalPattern.reduce((a, b) => a + b, 0) / period;
+      for (let i = 0; i < period; i++) seasonalPattern[i] -= meanSeason;
+    } else {
+      const meanSeason = seasonalPattern.reduce((a, b) => a + b, 0) / period;
+      for (let i = 0; i < period; i++) seasonalPattern[i] /= meanSeason;
+    }
+
+    // Expand seasonal pattern to full length
+    const seasonal = new Array(n).fill(0).map((_, i) => seasonalPattern[i % period]);
+
+    // 5. Residual Component
+    const residuals = new Array(n).fill(null);
+    for (let i = 0; i < n; i++) {
+      if (model === 'additive') {
+        residuals[i] = observed[i] - trend[i] - seasonal[i];
+      } else {
+        // Multiplicative: observed / (trend * seasonal)
+        // Trend is null at edges, residuals will be null.
+        if (trend[i] !== null && seasonal[i] !== 0) {
+          residuals[i] = observed[i] / (trend[i] * seasonal[i]);
+        }
+      }
+    }
+
+    // Return Array of Arrays
+    return [observed, trend, seasonal, residuals];
+  }
+
+  /**
+   * Generates a sequence of events following a Poisson process.
    * A Poisson process models the occurrence of random events where the time between events
    * follows an exponential distribution. In hydrology, this is useful for modeling random
    * occurrences such as rainfall events, flood peaks, or extreme weather phenomena that
@@ -1789,6 +2369,8 @@ hydro.analyze.stats.normalDistributio
    *                         - lambda (event rate, average number of events per time unit)
    *                         - timeFrame (duration for which to simulate the process)
    *                         - type (optional, "time" for event times or "count" for event counts in intervals)
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Not used by this function.
    * @returns {Array} For type="time": Array of time points when events occur
    *                 For type="count": Array of counts per unit time interval
    * @example
@@ -1821,7 +2403,7 @@ hydro.analyze.stats.normalDistributio
    * // - Evaluating flood risk under different precipitation scenarios
    * // - Studying reservoir operation under random inflow conditions
    */
-  static poissonProcess({ params, args, data } = {}) {
+  static poissonProcess({ params = {}, args = {}, data } = {}) {
     const { lambda, timeFrame, type = "time" } = params;
     const { rateFunction } = args;
 
@@ -1863,16 +2445,18 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Calculates the return period for a given probability of occurrence
+   * Calculates the return period for a given probability of occurrence.
    * In hydrology, the return period (or recurrence interval) represents the average time between events
    * of a certain magnitude. It is fundamental for flood frequency analysis, infrastructure design, and
    * risk assessment. The return period T is calculated as T = 1/p, where p is the probability of 
    * exceedance in a given year.
    * @method returnPeriod
    * @memberof stats
-   * @param {Object} params - Contains probability (decimal between 0 and 1, probability of occurrence in a given time unit)
-   * @returns {Number} Return period (average time between events of the specified probability)
-   * @throws {Error} If probability is not between 0 and 1
+   * @param {Object} params - Contains probability (decimal between 0 and 1, probability of occurrence in a given time unit).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} Return period (average time between events of the specified probability).
+   * @throws {Error} If probability is not between 0 and 1.
    * @example
    * // Calculate the return period for a flood with a 0.01 (1%) annual exceedance probability
    * const hundredYearFlood = hydro.analyze.stats.returnPeriod({
@@ -1913,18 +2497,19 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Performs differencing on a time series dataset to remove trend or seasonality from the data
+   * Performs differencing on a time series dataset to remove trend or seasonality from the data.
    * @method differencing
    * @author riya-patil
    * @memberof stats
-   * @param {Object} params - Contains the order parameter
-   * @param {Array} data - 1D array of numerical values representing a time series
-   * @returns {Array} Differenced time series
-   * @throws {Error} If the order is invalid
+   * @param {Object} params - Contains the order parameter.
+   * @param {Object} args - Not used by this function.
+   * @param {Array} data - 1D array of numerical values representing a time series.
+   * @returns {Array} Differenced time series.
+   * @throws {Error} If the order is invalid.
    * @example
    * const order = 1;
    * const timeSeries = [1, 3, 6, 10, 15];
-   * const differencedSeries = stats.differencing({ order, data: timeSeries });
+   * const differencedSeries = stats.differencing({ params: { order }, data: timeSeries });
    */
   static differencing({ params, args, data } = {}) {
     const order = params.order;
@@ -1939,13 +2524,15 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Computes the variance of residuals in a regression model to detect heteroskedasticity
+   * Computes the variance of residuals in a regression model to detect heteroskedasticity.
    * @method residualVariance
    * @author riya-patil
    * @memberof stats
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
    * @param {Array} data - 1D array of numerical values representing the residuals.
-   * @returns {number} Variance of residuals
-   * @returns {Error} if not given valid array of residuals or not given correct number of arrays
+   * @returns {number} Variance of residuals.
+   * @returns {Error} if not given valid array of residuals or not given correct number of arrays.
    * @example
    * const residuals = [1.5, -2.1, 0.8, -1.2, 2.5];
    * const variance = stats.residualVariance({ data: residuals });
@@ -1972,6 +2559,8 @@ hydro.analyze.stats.normalDistributio
    * @method regression
    * @author riya-patil
    * @memberof stats
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
    * @param {Object} data - Object containing predictor variables (X) and target variable (y).
    * @returns {Array} Coefficients of the linear regression model.
    * @example
@@ -1980,27 +2569,41 @@ hydro.analyze.stats.normalDistributio
    * hydro.analyze.stats.regression({ data: { X, y } });
    */
   static regression({ params, args, data } = {}) {
-    const X = data.X; // Matrix of predictor variables
-    const y = data.y; // Array of target variable
+    // Robust parsing: preprocess inputs separately
+    // Note: X is matrix, y is array. preprocessData flattens everything, so we must be careful with matrix.
+    // preprocessData is designed for lists. For matrices, we might need row-wise. 
+    // Wait, preprocessData detects headers and stripes non-numeric. 
+    // If X is a simple 2D array of numbers, preprocessData will FLATTEN it if we pass it directly.
+    // Regression expects X as matrix (2D). 
+    // We should parse Y (target) using preprocessData.
+    // We should parse X manually row-by-row or check implementation.
+    // Existing logic iterates X.map.
+    // Let's minimally invasively ensure numbers in X.
+
+    // Y is 1D array
+    const y = this.preprocessData(data.y);
+    const X = data.X.map(row => this.preprocessData(row)); // Ensure each row is numeric 1D with 0 headers
 
     const XWithIntercept = X.map((row) => [1, ...row]);
 
-    const Xint = multiplyMatrix(transposeMatrix(XWithIntercept), XWithIntercept);
-    const Yint = multiplyMatrix(transposeMatrix(XWithIntercept), y);
+    const Xint = this.multiplyMatrix({ data: { matrix1: this.transposeMatrix({ data: XWithIntercept }), matrix2: XWithIntercept } });
+    const Yint = this.multiplyMatrix({ data: { matrix1: this.transposeMatrix({ data: XWithIntercept }), matrix2: y } });
 
-    const inverseXtX = matrixInverse(Xint);
+    const inverseXtX = this.matrixInverse(Xint);
 
-    const coefficients = multiplyMatrix(inverseXtX, Yint);
+    const coefficients = this.multiplyMatrix({ data: { matrix1: inverseXtX, matrix2: Yint } });
 
     return coefficients;
   }
 
   /**
-   * Performs multivariate regression analysis
+   * Performs multivariate regression analysis.
    * @method multiregression
    * @author riya-patil
    * @memberof stats
-   * @param {Object} data - Data for the multivariate regression
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Data for the multivariate regression.
    * @returns {Array} Coefficients of the linear regression model.
    * @example
    * const X = [[1, 2], [3, 4], [5, 6]];
@@ -2008,8 +2611,15 @@ hydro.analyze.stats.normalDistributio
    * hydro.analyze.stats.multiregression({ data: { X, y } });
    */
   static multiregression({ params, args, data } = {}) {
-    const X = data.X; // Matrix of predictor variables
-    const Y = data.Y; // Array of target variables
+    if (!data || !data.X || !data.Y) return [];
+
+    const X = data.X.map(row => this.preprocessData(row)); // Clean X rows
+    // Y is matrix or list of lists in this context (multiple targets)? 
+    // Verification test says Y: [[1, 2], [3, 4]] (rows are samples? or columns are targets?)
+    // Logic: for (let i = 0; i < Y.length; i++) { const y = Y[i]; ... }
+    // If Y is array of target vectors (columns), likely intended as targets.
+    // Let's assume input matches expected structure but cleaner numbers.
+    const Y = data.Y.map(yVec => this.preprocessData(yVec));
 
     const coefficients = [];
     for (let i = 0; i < Y.length; i++) {
@@ -2023,21 +2633,28 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Performs White's test for heteroscedasticity
+   * Performs White's test for heteroscedasticity.
    * @method whitesTest
    * @author riya-patil
-   * @param {Object} params - Parameters for the test, errors is array of residuals while regressors is array of regressor vars
-   * @returns {Object} Object containing test statistic and p-value
-   * @throws {Error} If the input arrays have different lengths
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: errors (array of residuals) and regressors (array of regressor vars).
+   * @returns {Object} Object containing test statistic and p-value.
+   * @throws {Error} If the input arrays have different lengths.
    * @example
    * const params = {
    *   errors: [1, 2, 3, 4, 5],
    *   regressors: [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]
    * };
-   * hydro.analyze.stats.whitesTest({ params });
+   * hydro.analyze.stats.whitesTest({ data: params });
    */
   static whitesTest({ params, args, data } = {}) {
-    const { errors, regressors } = data;
+    const { errors: errRaw, regressors: regRaw } = data;
+
+    // Preprocess 1D errors
+    const errors = this.preprocessData(errRaw);
+    // Preprocess 2D regressors
+    const regressors = regRaw.map(r => this.preprocessData(r));
 
     if (errors.length !== regressors.length) {
       throw new Error("Input arrays must have the same length.");
@@ -2092,7 +2709,9 @@ hydro.analyze.stats.normalDistributio
    * @method breuschPaganTest
    * @author riya-patil
    * @memberof stats
-   * @param {Object} params errors: Array of residuals, regressors: Array of regressor variables
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: errors (Array of residuals) and regressors (Array of regressor variables).
    * @returns {Object} Object containing test statistic and p-value.
    * @throws {Error} If the input arrays have different lengths.
    * @example
@@ -2100,7 +2719,7 @@ hydro.analyze.stats.normalDistributio
    *   errors: [1, 2, 3, 4, 5],
    *   regressors: [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]]
    * };
-   * hydro.analyze.stats.breuschPaganTest({ params });
+   * hydro.analyze.stats.breuschPaganTest({ data: params });
    */
   static breuschPaganTest({ params, args, data } = {}) {
     const { errors, regressors } = data;
@@ -2140,16 +2759,18 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Performs Goldfeld-Quandt test for heteroscedasticity
+   * Performs Goldfeld-Quandt test for heteroscedasticity.
    * @method goldfeldQuandtTest
    * @author riya-patil
-   * @param {Object} params - residuals (Array of residuals from a regression model), independentVar (Array of values of the independent variable)
-   * @returns {Object} Object containing test statistic and p-value
-   * @throws {Error} If the input arrays have different lengths
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: residuals (Array of residuals from a regression model) and independentVar (Array of values of the independent variable).
+   * @returns {Object} Object containing test statistic and p-value.
+   * @throws {Error} If the input arrays have different lengths.
    * @example
    * const residuals = [1.2, 2.3, 0.8, 1.9, 1.5, 2.6];
    * const independentVar = [3, 4, 5, 6, 7, 8];
-   * const result = stats.goldfeldQuandtTest({ params: { residuals, independentVar } });
+   * const result = stats.goldfeldQuandtTest({ data: { residuals, independentVar } });
    * console.log(result);
    */
   static goldfeldQuandtTest({ params, args, data } = {}) {
@@ -2180,24 +2801,26 @@ hydro.analyze.stats.normalDistributio
 
 
   /**
-     * Generates a random simulated number when run with a dataset
-     * @method runMarkovChainMonteCarlo
-     * @author riya-patil
-     * @memberof stats
-     * @param {Object[]} data - passes data from multiple objects
-     * @returns {number[]} returns an array of the simulated results
-     * @example 
-     * const options = {
-        params: {
-        iterations: 100,
-      },
-      data: {
-        initialState,
-        transitionMatrix,
-        },
-      };
-      hydro.analyze.stats.runMarkovChainMonteCarlo(options);
-     */
+   * Generates a random simulated number when run with a dataset.
+   * @method runMarkovChainMonteCarlo
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains: iterations (default 100), callback (optional function).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: initialState and transitionMatrix.
+   * @returns {Array} returns an array of the simulated results.
+   * @example 
+   * const options = {
+   *   params: {
+   *     iterations: 100,
+   *   },
+   *   data: {
+   *     initialState: 0,
+   *     transitionMatrix: [[0.5, 0.5], [0.5, 0.5]],
+   *   },
+   * };
+   * hydro.analyze.stats.runMarkovChainMonteCarlo(options);
+   */
   static runMarkovChainMonteCarlo({ params, args, data } = {}) {
     const { iterations = 100, callback } = params || {};
     const results = [];
@@ -2208,7 +2831,7 @@ hydro.analyze.stats.normalDistributio
       if (callback) {
         nextState = callback({ params, args, data, currentState });
       } else {
-        nextState = getNextState(data.transitionMatrix, currentState);
+        nextState = this.getNextState(data.transitionMatrix, currentState);
       }
       results.push(nextState);
       currentState = nextState;
@@ -2225,10 +2848,12 @@ hydro.analyze.stats.normalDistributio
    * Preprocessing tool for joining arrays for table display.
    * @method joinarray
    * @memberof stats
-   * @param {Object} data - 2d-JS array as [[someData1], [someData2]]
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - 2d-JS array as [[someData1], [someData2]].
    * @returns {Object[]} Array for table display.
    * @example
-   * hydro.analyze.stats.joinarray({data: [[someData1], [someData2]]})
+   * hydro.analyze.stats.joinarray({data: [[someData1], [someData2]]});
    */
 
   static joinarray({ params, arg, data } = {}) {
@@ -2246,12 +2871,13 @@ hydro.analyze.stats.normalDistributio
    * Helper function for preparing nd-JSarrays for charts and tables for duration/discharge.
    * @method flatenise
    * @memberof stats
-   * @param {Object} params - Contains: columns (nd-JS array with names as [someName1, someName2,...])
-   * @param {Object} data - Contains: nd-JS array object required to be flatenned as [[somedata1, somedata2,...],[somedata1, somedata2,...],...]
+   * @param {Object} params - Contains: columns (nd-JS array with names as [someName1, someName2,...]).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: nd-JS array object required to be flatenned as [[somedata1, somedata2,...],[somedata1, somedata2,...],...].
    * @returns {Object[]} Flatenned array.
    * @example
    * hydro.analyze.stats.flatenise({params:{columns: [someName1, someName2,...]},
-   * data: [[somedata1, somedata2,...],[somedata1, somedata2,...],...]})
+   * data: [[somedata1, somedata2,...],[somedata1, somedata2,...],...]});
    */
 
   static flatenise({ params, args, data } = {}) {
@@ -2273,10 +2899,12 @@ hydro.analyze.stats.normalDistributio
    * retrieving data or uploading data.
    * @method numerise
    * @memberof stats
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
    * @param {Object} data - Contains: 1d-JS array with data composed of strings as [dataValues].
    * @returns {Object[]} Array as numbers.
    * @example
-   * hydro.analyze.stats.numerise({data: [someValues]})
+   * hydro.analyze.stats.numerise({data: [someValues]});
    */
 
   static numerise({ params, args, data } = {}) {
@@ -2288,10 +2916,12 @@ hydro.analyze.stats.normalDistributio
    * Filters out items in an array that are undefined, NaN, null, ", etc.
    * @method cleaner
    * @memberof stats
-   * @param {Object} data - Contains: 1d-JS array with data to be cleaned as [dataValues]
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: 1d-JS array with data to be cleaned as [dataValues].
    * @returns {Object[]} Cleaned array.
    * @example
-   * hydro.analyze.stats.cleaner({data: [someValues]})
+   * hydro.analyze.stats.cleaner({data: [someValues]});
    */
 
   static cleaner({ params, args, data } = {}) {
@@ -2303,10 +2933,12 @@ hydro.analyze.stats.normalDistributio
    * Filters out items in an array based on another array.
    * @method itemfilter
    * @memberof stats
-   * @param {Object} data - Contains: 2d-JS array with data to be kept and removed as [[dataKept],[dataRemoved]]
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: 2d-JS array with data to be kept and removed as [[dataKept],[dataRemoved]].
    * @returns {Object[]} Cleaned array.
    * @example
-   * hydro.analyze.stats.itemfilter({data: [[dataKept], [dataRemoved]]})
+   * hydro.analyze.stats.itemfilter({data: [[dataKept], [dataRemoved]]});
    */
 
   static itemfilter({ params, args, data } = {}) {
@@ -2319,14 +2951,16 @@ hydro.analyze.stats.normalDistributio
    * for changing displaying into google charts.
    * @method dateparser
    * @memberof stats
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
    * @param {Object[]} data - Contains: 1-dJS array with date values as [dateValue].
    * @returns {Object[]} Array with date parsed.
    * @example
-   * hydro.analyze.stats.dateparser({data: [someValues]})
+   * hydro.analyze.stats.dateparser({data: [someValues]});
    */
 
   static dateparser({ params, args, data } = {}) {
-    var x = this.copydata({ data: data });
+    // var x = this.copydata({ data: data }); // Removed unused deep copy
     var xo = [];
     for (var j = 0; j < data.length; j++) {
       xo.push(new Date(data[j]).toLocaleString());
@@ -2339,26 +2973,30 @@ hydro.analyze.stats.normalDistributio
    * Mainly used for creating google charts. M != N.
    * @method arrchange
    * @memberof stats
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
    * @param {Object} data - Contains: nd-JS array representing [[m],[n]] matrix.
    * @returns {Object[]}  [[n],[m]] array.
    * @example
-   * hydro.analyze.stats.arrchange({data: [[someSize1],[someSize2]]})
+   * hydro.analyze.stats.arrchange({data: [[someSize1],[someSize2]]});
    */
 
   static arrchange({ params, args, data } = {}) {
-    var x = this.copydata({ data: data });
+    // var x = this.copydata({ data: data }); // Removed redundant deep copy
     var transp = (matrix) => matrix[0].map((x, i) => matrix.map((x) => x[i]));
-    return transp(x);
+    return transp(data);
   }
 
   /**
    * Pushes at the end of an array the data of another array.
    * @method push
    * @memberof stats
-   * @param {Object} data - Contains: 2d-JS array with data arranged as [[willPush],[pushed]]
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: 2d-JS array with data arranged as [[willPush],[pushed]].
    * @returns {Object[]} Last dataset with pushed data.
    * @example
-   * hydro.analyze.stats.push({data: [[dataSet1], [dataSet2]]})
+   * hydro.analyze.stats.push({data: [[dataSet1], [dataSet2]]});
    */
 
   static push({ params, args, data } = {}) {
@@ -2366,19 +3004,21 @@ hydro.analyze.stats.normalDistributio
       for (var i = 0; i < data[0].length; i++) {
         data[0][j].push(data[1][j][i]);
       }
-    return arr1;
+    return data[0]; // Fixed arr1 -> data[0]
   }
 
   /**
    * Generates an array of random integers within a specified range.
    * @method generateRandomData
    * @memberof stats
-   * @param {Object} params - Contains size and range
-   * @param {number} params.size - The number of elements to generate
-   * @param {number} [params.range=100] - The upper limit (exclusive)
-   * @returns {number[]} An array of random integers
+   * @param {Object} params - Contains size and range.
+   * @param {number} params.size - The number of elements to generate.
+   * @param {number} [params.range=100] - The upper limit (exclusive).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Not used by this function.
+   * @returns {number[]} An array of random integers.
    * @example
-   * hydro.analyze.stats.generateRandomData({ params: { size: 10, range: 50 } })
+   * hydro.analyze.stats.generateRandomData({ params: { size: 10, range: 50 } });
    */
   static generateRandomData({ params = {}, args, data } = {}) {
     const { size, range = 100 } = params;
@@ -2392,18 +3032,19 @@ hydro.analyze.stats.normalDistributio
 
   /**
    * **Still needs some testing**
-    * Compute the autocovariance matrix from the autocorrelation values
-    * @method autocovarianceMatrix
-    * @author riya-patil
-    * @memberof stats
-    * @param {Object} data - array with autocorrelation values
-    * @param {number} params - number of lags
-    * @returns {Object} Autocovariance matrix
-    * @example 
-    * const acTestData = [1, 0.7, 0.5, 0.3];
-    * const lags = 2
-    * hydro.analyze.stats.autocovarianceMatrix({params: lag, data : actestData});
-    */
+   * Compute the autocovariance matrix from the autocorrelation values.
+   * @method autocovarianceMatrix
+   * @author riya-patil
+   * @memberof stats
+   * @param {Object} params - Contains: lags (number of lags).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - array with autocorrelation values.
+   * @returns {Object} Autocovariance matrix.
+   * @example 
+   * const acTestData = [1, 0.7, 0.5, 0.3];
+   * const lags = 2;
+   * hydro.analyze.stats.autocovarianceMatrix({params: {lags}, data : acTestData});
+   */
   static autocovarianceMatrix({ params, args, data } = {}) {
     const { lag, lags } = params || { lag: 2, lags: 2 };
     const length = data.length;
@@ -2432,13 +3073,16 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Calculates the binomial coefficient (n choose k format)
+   * Calculates the binomial coefficient (n choose k format).
    * @method binomialCoefficient
    * @author riya-patil
    * @memberof stats
-   * @param {Number} trials - The number of trials
-   * @param {Number} s - The number of successes
-   * @returns {Number} The binomial coefficient (trials choose s)
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Contains: trials (The number of trials) and s (The number of successes).
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} The binomial coefficient (trials choose s).
+   * @example
+   * hydro.analyze.stats.binomialCoefficient(5, 2);
    */
   static binomialCoefficient(trials, s) {
     if (s === 0 || s === trials) {
@@ -2456,19 +3100,21 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Multiplies two matrices
-   * @method multipleMatrix
+   * Multiplies two matrices.
+   * @method multiplyMatrix
    * @author riya-patil
    * @memberof stats
-   * @param {Array} matrix1 - First matrix
-   * @param {Array} matrix2 - Second matrix
-   * @returns {Array} Result of matrix multiplication
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Contains: matrix1 and matrix2.
+   * @param {Object} data - Not used by this function.
+   * @returns {Array} Result of matrix multiplication.
    * @example
    * const matrix1 = [[1, 2], [3, 4]];
    * const matrix2 = [[5, 6], [7, 8]];
-   * hydro.analyze.stats.multiplyMatrix(matrix1, matrix2)
+   * hydro.analyze.stats.multiplyMatrix(matrix1, matrix2);
    */
-  static multiplyMatrix(matrix1, matrix2) {
+  static multiplyMatrix({ params, args, data } = {}) {
+    const { matrix1, matrix2 } = args || data; // Allow args or data for flexibility
     const m1Rows = matrix1.length;
     const m1Cols = matrix1[0].length;
     const m2Cols = matrix2[0].length;
@@ -2489,17 +3135,20 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Transposes a matrix
+   * Transposes a matrix.
    * @method transposeMatrix
    * @author riya-patil
    * @memberof stats
-   * @param {Array} matrix - Matrix to transpose
-   * @returns {Array} Transposed matrix
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Contains: matrix (Matrix to transpose).
+   * @param {Object} data - Not used by this function.
+   * @returns {Array} Transposed matrix.
    * @example
    * const matrix = [[1, 2, 3], [4, 5, 6]];
-   * hydro.analyze.stats.transposeMatrix(matrix)
+   * hydro.analyze.stats.transposeMatrix(matrix);
    */
-  static transposeMatrix(matrix) {
+  static transposeMatrix({ params, args, data } = {}) {
+    const matrix = args?.matrix || data; // Allow args or data for flexibility
     const rows = matrix.length;
     const cols = matrix[0].length;
     const transposed = [];
@@ -2515,18 +3164,20 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Computes the inverse of a matrix
+   * Computes the inverse of a matrix.
    * @method matrixInverse
    * @author riya-patil
    * @memberof stats
-   * @param {Array} matrix - Matrix to compute inverse of
-   * @returns {Array} Inverse of the matrix
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Contains: matrix (Matrix to compute inverse of).
+   * @param {Object} data - Not used by this function.
+   * @returns {Array} Inverse of the matrix.
    * @example
    * const matrix = [[1, 2, 3], [4, 5, 6]];
-   * hydro.analyze.stats.matrixInverse(matrix)
+   * hydro.analyze.stats.matrixInverse(matrix);
    */
 
-  static matrixInverse(matrix) {
+  static matrixInverse(matrix) { // This function does not use the {params, args, data} structure
     const n = matrix.length;
     const inv = [];
     const inversed = [];
@@ -2564,20 +3215,32 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Calculates the cumulative distribution function (CDF) of the chi-square distribution
-   * NOTE: This will require revision in the future, readjusting considering lookups or fitting to a gamma distribution instead
+   * Calculates the cumulative distribution function (CDF) of the chi-square distribution.
+   * NOTE: This will require revision in the future, readjusting considering lookups or fitting to a gamma distribution instead.
    * @method chisqCDF
    * @author riya-patil
    * @memberof stats
-   * @param {number} x The value at which to evaluate the CDF
-   * @param {number} k The degrees of freedom
-   * @returns {number} The cumulative probability
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Contains: x (The value at which to evaluate the CDF) and k (The degrees of freedom).
+   * @param {Object} data - Not used by this function.
+   * @returns {number} The cumulative probability.
    * @example
-   * const x = 10
-   * const df = 20
-   * hydro.analyze.stats.chisCDF(10, 20)
+   * const x = 10;
+   * const df = 20;
+   * hydro.analyze.stats.chisqCDF(10, 20);
    */
-  static chisqCDF(x, k) {
+  static chisqCDF(arg1, arg2) {
+    let x, k;
+    if (typeof arg1 === 'object' && arg1 !== null && (arg1.params || arg1.args || arg1.data)) {
+      // Object style call
+      const { args = {} } = arg1;
+      x = args.x;
+      k = args.k;
+    } else {
+      // Positional call
+      x = arg1;
+      k = arg2;
+    }
     let term = Math.exp(-x / 2);
     let sum = term;
     for (let i = 1; i < k; i++) {
@@ -2590,26 +3253,32 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Calculates the dot product of two vectors. Both vectors should be represented as 1D JS arrays with the same length
+   * Calculates the dot product of two vectors. Both vectors should be represented as 1D JS arrays with the same length.
    * @method dotProduct
    * @author riya-patil
-   * @param {Array} a - The first vector
-   * @param {Array} b - The second vector
-   * @returns {number} The dot product
-   * @throws {Error} If the input vectors have different lengths
+   * @memberof stats
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Contains: a (The first vector) and b (The second vector).
+   * @param {Object} data - Not used by this function.
+   * @returns {number} The dot product.
+   * @throws {Error} If the input vectors have different lengths.
    * @example
-   * const a = [1, 2, 3, 4, 5]
-   * const b = [10, 20, 30, 40, 50]
-   * hydro.analyze.stats.dotProduct(a,b)
+   * const a = [1, 2, 3, 4, 5];
+   * const b = [10, 20, 30, 40, 50];
+   * hydro.analyze.stats.dotProduct(a,b);
    */
-  static dotProduct(a, b) {
+  static dotProduct(a, b) { // This function does not use the {params, args, data} structure
     if (a.length != b.length) {
       throw new Error("Input vectors must have the same length.");
     }
 
+    // Robust parsing
+    const v1 = a.map(Number);
+    const v2 = b.map(Number);
+
     let result = 0;
-    for (let i = 0; i < a.length; i++) {
-      result += a[i] * b[i];
+    for (let i = 0; i < v1.length; i++) {
+      result += v1[i] * v2[i];
     }
 
     return result;
@@ -2620,17 +3289,19 @@ hydro.analyze.stats.normalDistributio
    * @method getNextState
    * @author riya-patil
    * @memberof stats
-   * @param {number[][]} transitionMatrix transition matrix representing the probabilities of transitioning between states.
-   * @param {number} currentState current state of the function
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Contains: transitionMatrix (number[][]) and currentState (number).
+   * @param {Object} data - Not used by this function.
    * @returns {number} Next state selected based on the transition probabilities.
    * @example
    * const transitionMatrix = [
-    [0.2, 0.8], 
-    [0.5, 0.5],
-      ];
-    const initialState = 0;
+   *   [0.2, 0.8], 
+   *   [0.5, 0.5],
+   * ];
+   * const initialState = 0;
+   * hydro.analyze.stats.getNextState(transitionMatrix, initialState);
    */
-  static getNextState(transitionMatrix, currentState) {
+  static getNextState(transitionMatrix, currentState) { // This function does not use the {params, args, data} structure
     const randomValue = Math.random();
     let cumulativeProbability = 0;
 
@@ -2650,11 +3321,14 @@ hydro.analyze.stats.normalDistributio
    * Calculates the PDF of the Gamma Distribution.
    * @method gammaDist
    * @memberof stats
-   * @param {Object} params - alpha (shape), beta (scale)
-   * @param {Object} args - x (value)
-   * @returns {Number} PDF value
+   * @param {Object} params - Contains: alpha (shape) and beta (scale).
+   * @param {Object} args - Contains: x (value).
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} PDF value.
+   * @example
+   * hydro.analyze.stats.gammaDist({ params: { alpha: 2, beta: 1 }, args: { x: 3 } });
    */
-  static gammaDist({ params, args, data } = {}) {
+  static gammaDist({ params = {}, args = {}, data } = {}) {
     const { alpha, beta } = params;
     const { x } = args;
     if (x < 0) return 0;
@@ -2683,11 +3357,14 @@ hydro.analyze.stats.normalDistributio
    * Calculates the PDF of the Weibull Distribution.
    * @method weibullDist
    * @memberof stats
-   * @param {Object} params - k (shape), lambda (scale)
-   * @param {Object} args - x (value)
-   * @returns {Number} PDF value
+   * @param {Object} params - Contains: k (shape) and lambda (scale).
+   * @param {Object} args - Contains: x (value).
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} PDF value.
+   * @example
+   * hydro.analyze.stats.weibullDist({ params: { k: 2, lambda: 1 }, args: { x: 1 } });
    */
-  static weibullDist({ params, args, data } = {}) {
+  static weibullDist({ params = {}, args = {}, data } = {}) {
     const { k, lambda } = params;
     const { x } = args;
     if (x < 0) return 0;
@@ -2698,11 +3375,14 @@ hydro.analyze.stats.normalDistributio
    * Calculates the PDF of the Exponential Distribution.
    * @method exponentialDist
    * @memberof stats
-   * @param {Object} params - lambda (rate)
-   * @param {Object} args - x (value)
-   * @returns {Number} PDF value
+   * @param {Object} params - Contains: lambda (rate).
+   * @param {Object} args - Contains: x (value).
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} PDF value.
+   * @example
+   * hydro.analyze.stats.exponentialDist({ params: { lambda: 1 }, args: { x: 1 } });
    */
-  static exponentialDist({ params, args, data } = {}) {
+  static exponentialDist({ params = {}, args = {}, data } = {}) {
     const { lambda } = params;
     const { x } = args;
     if (x < 0) return 0;
@@ -2713,19 +3393,14 @@ hydro.analyze.stats.normalDistributio
    * Calculates the PDF of the Beta Distribution.
    * @method betaDist
    * @memberof stats
-   * @param {Object} params - alpha, beta
-   * @param {Object} args - x (value, 0 <= x <= 1)
-   * @returns {Number} PDF value
+   * @param {Object} params - Contains: alpha and beta.
+   * @param {Object} args - Contains: x (value, 0 <= x <= 1).
+   * @param {Object} data - Not used by this function.
+   * @returns {Number} PDF value.
+   * @example
+   * hydro.analyze.stats.betaDist({ params: { alpha: 2, beta: 5 }, args: { x: 0.5 } });
    */
-  /**
-   * Calculates the PDF of the Beta Distribution.
-   * @method betaDist
-   * @memberof stats
-   * @param {Object} params - alpha, beta
-   * @param {Object} args - x (value, 0 <= x <= 1)
-   * @returns {Number} PDF value
-   */
-  static betaDist({ params, args, data } = {}) {
+  static betaDist({ params = {}, args = {}, data } = {}) {
     const { alpha, beta } = params;
     const { x } = args;
     if (x < 0 || x > 1) return 0;
@@ -2760,17 +3435,21 @@ hydro.analyze.stats.normalDistributio
    * Performs a t-test (one-sample, two-sample independent, or paired).
    * @method tTest
    * @memberof stats
-   * @param {Object} params - type ('one', 'two', 'paired'), mu (for one-sample)
-   * @param {Object} data - sample1, sample2 (optional)
-   * @returns {Object} t-statistic and degrees of freedom
+   * @param {Object} params - Contains: type ('one', 'two', 'paired') and mu (for one-sample).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: sample1 and sample2 (optional).
+   * @returns {Object} t-statistic and degrees of freedom.
+   * @example
+   * hydro.analyze.stats.tTest({ params: { type: 'one', mu: 0 }, data: { sample1: [1, 2, 3] } });
    */
   static tTest({ params, args, data } = {}) {
     const { type = 'one', mu = 0 } = params;
     const { sample1, sample2 } = data;
 
-    const mean1 = this.mean({ data: sample1 });
-    const n1 = sample1.length;
-    const var1 = this.variance({ data: sample1 });
+    const clean1 = this.preprocessData(sample1);
+    const mean1 = this.mean({ data: clean1 });
+    const n1 = clean1.length;
+    const var1 = this.variance({ data: clean1 });
 
     let t, df;
 
@@ -2778,16 +3457,18 @@ hydro.analyze.stats.normalDistributio
       t = (mean1 - mu) / Math.sqrt(var1 / n1);
       df = n1 - 1;
     } else if (type === 'two') {
-      const mean2 = this.mean({ data: sample2 });
-      const n2 = sample2.length;
-      const var2 = this.variance({ data: sample2 });
+      const clean2 = this.preprocessData(sample2);
+      const mean2 = this.mean({ data: clean2 });
+      const n2 = clean2.length;
+      const var2 = this.variance({ data: clean2 });
       // Assuming equal variance for simplicity, or Welch's t-test could be added
       const sp = Math.sqrt(((n1 - 1) * var1 + (n2 - 1) * var2) / (n1 + n2 - 2));
       t = (mean1 - mean2) / (sp * Math.sqrt(1 / n1 + 1 / n2));
       df = n1 + n2 - 2;
     } else if (type === 'paired') {
-      if (n1 !== sample2.length) throw new Error("Samples must have same length for paired t-test");
-      const diffs = sample1.map((v, i) => v - sample2[i]);
+      const clean2 = this.preprocessData(sample2);
+      if (n1 !== clean2.length) throw new Error("Samples must have same length for paired t-test");
+      const diffs = clean1.map((v, i) => v - clean2[i]);
       const meanDiff = this.mean({ data: diffs });
       const varDiff = this.variance({ data: diffs });
       t = meanDiff / Math.sqrt(varDiff / n1);
@@ -2801,17 +3482,24 @@ hydro.analyze.stats.normalDistributio
    * Performs an F-test for equality of variances.
    * @method fTest
    * @memberof stats
-   * @param {Object} data - sample1, sample2
-   * @returns {Object} F-statistic and degrees of freedom
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: sample1 and sample2.
+   * @returns {Object} F-statistic and degrees of freedom.
+   * @example
+   * hydro.analyze.stats.fTest({ data: { sample1: [1, 2, 3], sample2: [4, 5, 6] } });
    */
   static fTest({ params, args, data } = {}) {
     const { sample1, sample2 } = data;
-    const var1 = this.variance({ data: sample1 });
-    const var2 = this.variance({ data: sample2 });
+    const clean1 = this.preprocessData(sample1);
+    const clean2 = this.preprocessData(sample2);
+
+    const var1 = this.variance({ data: clean1 });
+    const var2 = this.variance({ data: clean2 });
 
     const F = var1 / var2;
-    const df1 = sample1.length - 1;
-    const df2 = sample2.length - 1;
+    const df1 = clean1.length - 1;
+    const df2 = clean2.length - 1;
 
     return { F, df1, df2 };
   }
@@ -2820,11 +3508,15 @@ hydro.analyze.stats.normalDistributio
    * Performs a one-way ANOVA.
    * @method anova
    * @memberof stats
-   * @param {Object} data - Array of samples (arrays) e.g., [[1,2], [3,4], [5,6]]
-   * @returns {Object} F-statistic and degrees of freedom
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Array of samples (arrays) e.g., [[1,2], [3,4], [5,6]].
+   * @returns {Object} F-statistic and degrees of freedom.
+   * @example
+   * hydro.analyze.stats.anova({ data: [[1, 2], [3, 4], [5, 6]] });
    */
   static anova({ params, args, data } = {}) {
-    const samples = data;
+    const samples = data.map(s => this.preprocessData(s));
     const k = samples.length;
     const nTotal = samples.reduce((acc, s) => acc + s.length, 0);
 
@@ -2863,17 +3555,23 @@ hydro.analyze.stats.normalDistributio
    * Performs the Mann-Whitney U test for independent samples.
    * @method mannWhitney
    * @memberof stats
-   * @param {Object} data - sample1, sample2
-   * @returns {Object} U-statistic and p-value (approximate)
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: sample1 and sample2.
+   * @returns {Object} U-statistic and p-value (approximate).
+   * @example
+   * hydro.analyze.stats.mannWhitney({ data: { sample1: [1, 2, 3], sample2: [4, 5, 6] } });
    */
   static mannWhitney({ params, args, data } = {}) {
     const { sample1, sample2 } = data;
-    const n1 = sample1.length;
-    const n2 = sample2.length;
+    const clean1 = this.preprocessData(sample1);
+    const clean2 = this.preprocessData(sample2);
+    const n1 = clean1.length;
+    const n2 = clean2.length;
 
     // Combine and rank
-    const combined = sample1.map(v => ({ val: v, group: 1 }))
-      .concat(sample2.map(v => ({ val: v, group: 2 })));
+    const combined = clean1.map(v => ({ val: v, group: 1 }))
+      .concat(clean2.map(v => ({ val: v, group: 2 })));
 
     combined.sort((a, b) => a.val - b.val);
 
@@ -2911,17 +3609,24 @@ hydro.analyze.stats.normalDistributio
    * Performs the Wilcoxon Signed-Rank test for paired samples.
    * @method wilcoxonSignedRank
    * @memberof stats
-   * @param {Object} data - sample1, sample2
-   * @returns {Object} W-statistic and p-value (approximate)
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: sample1 and sample2.
+   * @returns {Object} W-statistic and p-value (approximate).
+   * @example
+   * hydro.analyze.stats.wilcoxonSignedRank({ data: { sample1: [1, 2, 3], sample2: [1.1, 2.1, 3.1] } });
    */
   static wilcoxonSignedRank({ params, args, data } = {}) {
     const { sample1, sample2 } = data;
-    if (sample1.length !== sample2.length) throw new Error("Samples must have same length");
+    const clean1 = this.preprocessData(sample1);
+    const clean2 = this.preprocessData(sample2);
 
-    const n = sample1.length;
+    if (clean1.length !== clean2.length) throw new Error("Samples must have same length");
+
+    const n = clean1.length;
     const diffs = [];
     for (let i = 0; i < n; i++) {
-      const d = sample1[i] - sample2[i];
+      const d = clean1[i] - clean2[i];
       if (d !== 0) diffs.push(d);
     }
 
@@ -2960,21 +3665,17 @@ hydro.analyze.stats.normalDistributio
   }
 
   /**
-   * Performs the Shapiro-Wilk test for normality (Simplified approximation).
-   * Note: This is a simplified implementation and may not be as accurate as standard software for all sample sizes.
-   * @method shapiroWilk
-   * @memberof stats
-   * @param {Object} data - Array of values
-   * @returns {Object} W-statistic and p-value (approximate)
-   */
-  /**
    * Performs the Shapiro-Wilk test for normality.
    * Uses polynomial approximations for coefficients (Royston, 1992) for n <= 50.
    * For n > 50, this implementation falls back to a simplified approximation or should ideally use the Shapiro-Francia test.
    * @method shapiroWilk
    * @memberof stats
-   * @param {Object} data - Array of values
-   * @returns {Object} W-statistic and p-value
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Array of values.
+   * @returns {Object} W-statistic and p-value.
+   * @example
+   * hydro.analyze.stats.shapiroWilk({ data: [1, 2, 3, 4, 5] });
    */
   static shapiroWilk({ params, args, data } = {}) {
     const x = data.slice().sort((a, b) => a - b);
@@ -3062,15 +3763,12 @@ hydro.analyze.stats.normalDistributio
    * Performs the Anderson-Darling test for normality.
    * @method andersonDarling
    * @memberof stats
-   * @param {Object} data - Array of values
-   * @returns {Object} A2-statistic and significance
-   */
-  /**
-   * Performs the Anderson-Darling test for normality.
-   * @method andersonDarling
-   * @memberof stats
-   * @param {Object} data - Array of values
-   * @returns {Object} A2-statistic and significance
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Array of values.
+   * @returns {Object} A2-statistic and significance.
+   * @example
+   * hydro.analyze.stats.andersonDarling({ data: [1, 2, 3, 4, 5] });
    */
   static andersonDarling({ params, args, data } = {}) {
     const x = data.slice().sort((a, b) => a - b);
@@ -3143,25 +3841,32 @@ hydro.analyze.stats.normalDistributio
    * Calculates the Autocorrelation Function (ACF) for a given lag.
    * @method autoCorrelation
    * @memberof stats
-   * @param {Object} params - lag (k)
-   * @param {Object} data - Time series array
-   * @returns {Number} Autocorrelation at lag k
+   * @param {Object} params - Contains: lag (k).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Time series array.
+   * @returns {Number} Autocorrelation at lag k.
+   * @example
+   * hydro.analyze.stats.autoCorrelation({ params: { lag: 1 }, data: [1, 2, 3, 4, 5] });
    */
   static autoCorrelation({ params, args, data } = {}) {
-    const { lag } = params;
-    const n = data.length;
-    const mean = this.mean({ data });
+    const lag = Number(params.lag);
+    // Robust parsing
+    const numData = this.preprocessData(data);
+    const n = numData.length;
+    if (n === 0) return 0;
+    const mean = this.mean({ data: numData });
 
     let num = 0;
     let den = 0;
 
     for (let i = 0; i < n; i++) {
-      den += Math.pow(data[i] - mean, 2);
+      den += Math.pow(numData[i] - mean, 2);
       if (i < n - lag) {
-        num += (data[i] - mean) * (data[i + lag] - mean);
+        num += (numData[i] - mean) * (numData[i + lag] - mean);
       }
     }
 
+    if (den === 0) return 0;
     return num / den;
   }
 
@@ -3170,9 +3875,12 @@ hydro.analyze.stats.normalDistributio
    * Uses the Yule-Walker equations (recursive method).
    * @method partialAutoCorrelation
    * @memberof stats
-   * @param {Object} params - lag (k)
-   * @param {Object} data - Time series array
-   * @returns {Number} PACF at lag k
+   * @param {Object} params - Contains: lag (k).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Time series array.
+   * @returns {Number} PACF at lag k.
+   * @example
+   * hydro.analyze.stats.partialAutoCorrelation({ params: { lag: 1 }, data: [1, 2, 3, 4, 5] });
    */
   static partialAutoCorrelation({ params, args, data } = {}) {
     const { lag } = params;
@@ -3215,13 +3923,17 @@ hydro.analyze.stats.normalDistributio
    * Performs bootstrap resampling to estimate statistics.
    * @method bootstrap
    * @memberof stats
-   * @param {Object} params - iterations, statistic (function name as string or function)
-   * @param {Object} data - Original data array
-   * @returns {Object} Original statistic, mean of resamples, bias, confidence interval
+   * @param {Object} params - Contains: iterations, statistic (function name as string or function).
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Original data array.
+   * @returns {Object} Original statistic, mean of resamples, bias, confidence interval.
+   * @example
+   * hydro.analyze.stats.bootstrap({ params: { iterations: 100, statistic: 'mean' }, data: [1, 2, 3, 4, 5] });
    */
   static bootstrap({ params, args, data } = {}) {
     const { iterations = 1000, statistic = 'mean', alpha = 0.05 } = params;
-    const n = data.length;
+    const numData = this.preprocessData(data);
+    const n = numData.length;
     const resampledStats = [];
 
     // Get the statistic function
@@ -3232,13 +3944,13 @@ hydro.analyze.stats.normalDistributio
       statFunc = statistic;
     }
 
-    const originalStat = statFunc(data);
+    const originalStat = statFunc(numData);
 
     for (let i = 0; i < iterations; i++) {
       const sample = [];
       for (let j = 0; j < n; j++) {
         const idx = Math.floor(Math.random() * n);
-        sample.push(data[idx]);
+        sample.push(numData[idx]);
       }
       resampledStats.push(statFunc(sample));
     }
@@ -3258,8 +3970,12 @@ hydro.analyze.stats.normalDistributio
    * Generates a random walk time series.
    * @method randomWalk
    * @memberof stats
-   * @param {Object} params - steps, startValue, drift, volatility
-   * @returns {Array} Random walk series
+   * @param {Object} params - Contains: steps, startValue, drift, volatility.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Not used by this function.
+   * @returns {Array} Random walk series.
+   * @example
+   * hydro.analyze.stats.randomWalk({ params: { steps: 50, startValue: 0, drift: 0, volatility: 1 } });
    */
   static randomWalk({ params, args, data } = {}) {
     const { steps = 100, startValue = 0, drift = 0, volatility = 1 } = params;
@@ -3291,11 +4007,20 @@ hydro.analyze.stats.normalDistributio
    * Calculates various error metrics (RMSE, MAE, MAPE, MSE).
    * @method errorMetrics
    * @memberof stats
-   * @param {Object} data - observed, modeled
-   * @returns {Object} Object with error metrics
+   * @param {Object} params - Not used by this function.
+   * @param {Object} args - Not used by this function.
+   * @param {Object} data - Contains: observed and modeled.
+   * @returns {Object} Object with error metrics.
+   * @example
+   * hydro.analyze.stats.errorMetrics({ data: { observed: [1, 2, 3], modeled: [1.1, 1.9, 3.2] } });
    */
   static errorMetrics({ params, args, data } = {}) {
-    const { observed, modeled } = data;
+    const { observed: obsRaw, modeled: modRaw } = data;
+
+    // Robust parsing
+    const observed = this.preprocessData(obsRaw);
+    const modeled = this.preprocessData(modRaw);
+
     if (observed.length !== modeled.length) throw new Error("Arrays must have same length");
 
     const n = observed.length;

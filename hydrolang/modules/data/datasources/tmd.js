@@ -81,7 +81,7 @@ export default {
     },
 
     requirements: {
-        needProxy: false,
+        needProxy: true,
         requireskey: true,
         keyname: "ukey", // Requires both uid and ukey
     },

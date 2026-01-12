@@ -237,34 +237,38 @@ export default {
 
     let endpoint = '';
 
-    // For raw-netcdf access, construct direct file URL
-    if (dataType === 'raw-netcdf') {
-      const { year, month, day, hour } = params;
+    // For raw-netcdf OR any other data type (point, grid), we construct the file URL
+    // This allows retrieve() to fetch the file directly.
+    // Parsing is now a separate step as per refactor.
 
-      if (!year || !month || !day) {
-        throw new Error('Year, month, and day are required for raw-netcdf access');
-      }
+    // Default params if not provided (fallback logic could be added here)
+    const year = params.year || (params.startDate ? new Date(params.startDate).getUTCFullYear() : undefined);
+    const month = params.month || (params.startDate ? (new Date(params.startDate).getUTCMonth() + 1).toString().padStart(2, '0') : undefined);
+    const day = params.day || (params.startDate ? new Date(params.startDate).getUTCDate().toString().padStart(2, '0') : undefined);
+    const textHour = params.hour || (params.startDate ? new Date(params.startDate).getUTCHours().toString().padStart(2, '0') : undefined);
 
-      // Construct filename based on temporal resolution
-      let filename;
-      if (dataset === 'nldas-3-hourly') {
-        // For hourly data, need specific hour
-        if (hour === undefined || hour === null) {
-          throw new Error('Hour is required for hourly NLDAS data');
-        }
-        filename = `NLDAS_FOR0010_H.A${year}${month.padStart(2, '0')}${day.padStart(2, '0')}.${hour.toString().padStart(2, '0')}0.beta.nc`;
-      } else if (dataset === 'nldas-3-daily') {
-        filename = `NLDAS_FOR0010_D.A${year}${month.padStart(2, '0')}${day.padStart(2, '0')}.beta.nc`;
-      } else if (dataset === 'nldas-3-monthly') {
-        filename = `NLDAS_FOR0010_M.A${year}${month.padStart(2, '0')}.beta.nc`;
-      }
-
-      endpoint = `${datasetConfig.baseUrl}/${year}${month.padStart(2, '0')}/${filename}`;
-    } else {
-      // For processed data (point-data, grid-data, etc.), return null to indicate processing needed
-      // The actual processing will happen in the data.js file
-      return null;
+    if (!year || !month || !day) {
+      // For dataset-info or similar meta-requests, we might not need a file
+      if (dataType === 'dataset-info') return null;
+      throw new Error('Year, month, and day (or startDate) are required for NLDAS access');
     }
+
+    // Construct filename based on temporal resolution
+    let filename;
+    if (dataset === 'nldas-3-hourly') {
+      // For hourly data, need specific hour
+      if (textHour === undefined || textHour === null) {
+        throw new Error('Hour (or specific startDate time) is required for hourly NLDAS data');
+      }
+      // Updated filename format matching user correction: NLDAS_FOR0010_H.A{YYYY}{MM}{DD}.{HH}0.beta.nc
+      filename = `NLDAS_FOR0010_H.A${year}${month.toString().padStart(2, '0')}${day.toString().padStart(2, '0')}.${textHour.toString().padStart(2, '0')}0.beta.nc`;
+    } else if (dataset === 'nldas-3-daily') {
+      filename = `NLDAS_FOR0010_D.A${year}${month.toString().padStart(2, '0')}${day.toString().padStart(2, '0')}.beta.nc`;
+    } else if (dataset === 'nldas-3-monthly') {
+      filename = `NLDAS_FOR0010_M.A${year}${month.toString().padStart(2, '0')}.beta.nc`;
+    }
+
+    endpoint = `${datasetConfig.baseUrl}/${year}${month.toString().padStart(2, '0')}/${filename}`;
 
     return endpoint;
   },

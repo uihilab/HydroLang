@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USGS Streamflow Analysis Application</title>
+    <script type="module">
+        import Hydro from '../../hydrolang/hydro.js';
+
+        let hydro;
+
+        const log = (message, type = 'info') => {
+            const output = document.getElementById('output');
+            const entry = document.createElement('div');
+            entry.className = `log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            output.appendChild(entry);
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        };
+
+        async function runAnalysis() {
+            const button = document.getElementById('runButton');
+            button.disabled = true;
+            document.getElementById('output').innerHTML = '';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('chartContainer').innerHTML = '';
+
+            try {
+                log('Initializing HydroLang...', 'info');
+                hydro = new Hydro();
+
+                // Wait for modules to load
+                let attempts = 0;
+                while ((!hydro.data || !hydro.analyze || !hydro.visualize) && attempts < 50) {
+                    await new Promise(r => setTimeout(r, 100));
+                    attempts++;
+                }
+
+                if (!hydro.data) {
+                    throw new Error('Failed to load data module');
+                }
+
+                log('HydroLang initialized successfully', 'success');
+
+                // Get form parameters
+                const stationid = document.getElementById('stationid').value;
+                const startdate = document.getElementById('startdate').value;
+                const enddate = document.getElementById('enddate').value;
+
+                log(`Retrieving streamflow data for station ${stationid}...`, 'info');
+
+                // Retrieve USGS streamflow data
+                const streamflowData = await hydro.data.retrieve({
+                    params: {
+                        source: 'usgs',
+                        datatype: 'streamflow',
+                        stationid: stationid
+                    },
+                    args: {
+                        startdate: startdate,
+                        enddate: enddate
+                    }
+                });
+
+                log(`Data retrieved: ${streamflowData.value.length} records`, 'success');
+
+                // Extract values and dates
+                const values = streamflowData.value.map(v => parseFloat(v));
+                const dates = streamflowData.dateTime || Array.from({ length: values.length }, (_, i) => i);
+
+                // Calculate statistics
+                log('Calculating statistics...', 'info');
+                const stats = hydro.analyze.stats;
+
+                const mean = stats.mean({ data: values });
+                const max = stats.max({ data: values });
+                const min = stats.min({ data: values });
+                const stddev = stats.stddev({ data: values });
+                const median = stats.median({ data: values });
+
+                log('Statistics calculated', 'success');
+
+                // Display results
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.style.display = 'block';
+
+                document.getElementById('statMean').textContent = mean.toFixed(2);
+                document.getElementById('statMax').textContent = max.toFixed(2);
+                document.getElementById('statMin').textContent = min.toFixed(2);
+                document.getElementById('statStddev').textContent = stddev.toFixed(2);
+                document.getElementById('statMedian').textContent = median.toFixed(2);
+                document.getElementById('statCount').textContent = values.length;
+
+                // Create visualization using hydro.visualize.draw
+                log('Creating streamflow visualization...', 'info');
+
+                const chartData = [
+                    dates,
+                    values
+                ];
+
+                hydro.visualize.draw({
+                    params: {
+                        type: 'chart',
+                        id: 'chartContainer',
+                        name: `Streamflow Data - Station ${stationid}`
+                    },
+                    args: {
+                        charttype: 'line',
+                        names: ['Streamflow (cfs)'],
+                        vAxes: {
+                            0: { title: 'Streamflow (cubic feet per second)' }
+                        },
+                        series: {
+                            0: { color: '#1f77b4', lineWidth: 2 }
+                        }
+                    },
+                    data: chartData
+                });
+
+                log('Analysis completed successfully!', 'success');
+
+            } catch (error) {
+                log(`ERROR: ${error.message}`, 'error');
+                console.error('Full error:', error);
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('runButton').addEventListener('click', runAnalysis);
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2C5F8D 0%, #5585B5 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #2a5298;
+            margin-bottom: 15px;
+            font-size: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .control-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #2C5F8D 0%, #5585B5 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #output {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 250px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .log-info {
+            color: #2196f3;
+            margin: 3px 0;
+        }
+
+        .log-success {
+            color: #4caf50;
+            margin: 3px 0;
+            font-weight: bold;
+        }
+
+        .log-warning {
+            color: #ff9800;
+            margin: 3px 0;
+        }
+
+        .log-error {
+            color: #f44336;
+            margin: 3px 0;
+            font-weight: bold;
+        }
+
+        #results {
+            display: none;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-card .label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .metric-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2a5298;
+        }
+
+        #chartContainer {
+            min-height: 400px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>USGS Streamflow Data Analysis</h1>
+            <p>Retrieve and Analyze Streamflow Data from USGS Gauging Stations</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h2>1. Data Retrieval Parameters</h2>
+                <div class="controls">
+                    <div class="control-group">
+                        <label>Station ID</label>
+                        <input type="text" id="stationid" value="06730500" placeholder="e.g., 06730500">
+                    </div>
+                    <div class="control-group">
+                        <label>Start Date</label>
+                        <input type="date" id="startdate" value="2024-01-01">
+                    </div>
+                    <div class="control-group">
+                        <label>End Date</label>
+                        <input type="date" id="enddate" value="2024-01-31">
+                    </div>
+                </div>
+                <button id="runButton">Retrieve and Analyze Data</button>
+            </div>
+
+            <div class="section">
+                <h2>2. Processing Status</h2>
+                <div id="output"></div>
+            </div>
+
+            <div class="section" id="results">
+                <h2>3. Statistical Summary</h2>
+                <div class="metrics">
+                    <div class="metric-card">
+                        <div class="label">Mean Flow</div>
+                        <div class="value"><span id="statMean">-</span> cfs</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">Maximum Flow</div>
+                        <div class="value"><span id="statMax">-</span> cfs</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">Minimum Flow</div>
+                        <div class="value"><span id="statMin">-</span> cfs</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">Std Deviation</div>
+                        <div class="value"><span id="statStddev">-</span> cfs</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">Median Flow</div>
+                        <div class="value"><span id="statMedian">-</span> cfs</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">Record Count</div>
+                        <div class="value" id="statCount">-</div>
+                    </div>
+                </div>
+
+                <h2>4. Streamflow Time Series</h2>
+                <div id="chartContainer"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

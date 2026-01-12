@@ -32,7 +32,7 @@ async function load(options = {}) {
     const fzstd = await import('https://cdn.jsdelivr.net/npm/fzstd/+esm');
 
     // Load pako for Zlib support (useful for some Zarr stores)
-    let pako = window.pako;
+    let pako = (typeof window !== 'undefined' && window.pako) || globalThis.pako;
     if (!pako) {
       try {
         const pakoModule = await import('https://cdn.skypack.dev/pako');
@@ -51,9 +51,10 @@ async function load(options = {}) {
     };
 
     // Expose globally for compatibility with some utils
-    if (!window.numcodecs) window.numcodecs = numcodecs;
-    if (!window.fzstd) window.fzstd = fzstd;
-    if (!window.pako && pako) window.pako = pako;
+    const globalObj = typeof window !== 'undefined' ? window : globalThis;
+    if (!globalObj.numcodecs) globalObj.numcodecs = numcodecs;
+    if (!globalObj.fzstd) globalObj.fzstd = fzstd;
+    if (!globalObj.pako && pako) globalObj.pako = pako;
 
     isZarrLoaded = true;
 

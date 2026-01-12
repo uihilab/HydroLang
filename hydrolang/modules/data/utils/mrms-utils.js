@@ -118,12 +118,17 @@ export class MRMSDataSource extends GRIB2DataSource {
   /**
  * Process MRMS file (handles both GRIB2 and GeoTIFF formats)
  */
-  async processFile(url, variable, timestamp) {
+  async processFile(url, variable, timestamp, options = {}) {
     // Fetch file
-    const fileBuffer = await this.fetch(url, { params: { timestamp } });
+    const fileBuffer = await this.fetch(url, { params: { timestamp, ...options.params }, ...options });
 
-    // Check if file needs decompression
-    const decompressed = await this.decompress(fileBuffer);
+    // Check if file needs decompression (passes options for raw mode check)
+    const decompressed = await this.decompress(fileBuffer, null, options);
+
+    // If raw mode (default), return decompressed (which is just the buffer)
+    if (options.process !== true) {
+      return decompressed;
+    }
 
     // Debug file signature
     const uint8Array = new Uint8Array(decompressed.buffer || decompressed, 0, Math.min(32, decompressed.byteLength || decompressed.length));
@@ -189,7 +194,7 @@ export class MRMSDataSource extends GRIB2DataSource {
     console.log(`[mrms] Fetching ${product} for ${variable} at ${timestamp.toISOString()}`);
 
     // Process file
-    const messages = await this.processFile(url, variable, timestamp);
+    const messages = await this.processFile(url, variable, timestamp, { ...options, product });
 
     // Find message for this variable
     const message = this.findGRIB2Message(messages, variable);
@@ -241,13 +246,20 @@ export class MRMSDataSource extends GRIB2DataSource {
     console.log(`[mrms] Fetching grid ${product} for ${variable}`);
 
     // Process file
-    const messages = await this.processFile(url, variable, timestamp);
+    // Process file
+    // Process file
+    const messages = await this.processFile(url, variable, timestamp, { ...options, product });
 
     // Find message for this variable
     const message = this.findGRIB2Message(messages, variable);
 
     // Extract grid
     const gridResult = this.getGRIB2Grid(message, bbox);
+
+    // Raw mode: return raw grid data (unscaled)
+    if (options.process !== true) {
+      return gridResult.data;
+    }
 
     // Apply scaling to all grid values
     const scaledData = gridResult.data.map(val => this.applyScaling(val, variableMeta));
@@ -268,6 +280,43 @@ export class MRMSDataSource extends GRIB2DataSource {
         description: variableMeta.description
       }
     };
+  }
+  /**
+   * Get dataset info
+   */
+  async getDatasetInfo(args) {
+    const infoType = args.info || args.infoType || 'metadata';
+
+    switch (infoType) {
+      case 'variables':
+        await this.loadDatasource();
+        return {
+          variables: this.variables,
+          count: Object.keys(this.variables).length
+        };
+
+      case 'spatial':
+        return this.datasetConfig.spatial;
+
+      case 'temporal':
+        return this.datasetConfig.temporal;
+
+      case 'products':
+        return {
+          products: this.datasetConfig.products,
+          count: Object.keys(this.datasetConfig.products).length
+        };
+
+      case 'metadata':
+        await this.loadDatasource();
+        return {
+          ...this.datasetConfig,
+          variables: this.variables
+        };
+
+      default:
+        throw new Error(`Unknown MRMS info type: ${infoType}`);
+    }
   }
 }
 

@@ -65,7 +65,7 @@ export default {
     },
 
     requirements: {
-        needProxy: false,
+        needProxy: true,
         requireskey: true,
         keyname: "token", // User must provide their own token
     },

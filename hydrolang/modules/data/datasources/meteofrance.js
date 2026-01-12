@@ -80,7 +80,7 @@ export default {
     },
 
     requirements: {
-        needProxy: false,
+        needProxy: true,
         requireskey: true,
         keyname: "apikey", // Header: "apikey": "YOUR_KEY"
     },

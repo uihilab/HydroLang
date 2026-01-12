@@ -29,18 +29,29 @@ export class NLDASDataSource extends NetCDFDataSource {
     const day = String(date.getUTCDate()).padStart(2, '0');
     const doy = Math.floor((date - new Date(date.getUTCFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
 
-    // NLDAS-3 file pattern: s3://nldas3-forcing/nldas-3/forcing/YYYY/DDD/NLDAS_FORA0125_H.A{YYYYMMDD}.{HH}00.003.nc
-    // For simplicity, we'll construct the daily pattern
-    const baseUrl = this.datasetConfig.baseUrl || 's3://nldas3-forcing/nldas-3/forcing';
-    const filename = `NLDAS_FORA0125_H.A${year}${month}${day}.*.003.nc`;
+    // NLDAS-3 file pattern: s3://nasa-waterinsight/NLDAS3/forcing/hourly/YYYY/DDD/NLDAS_FOR0010_H.A{YYYYMMDD}.{HH}00.003.nc
+    // Based on bucket listing: NLDAS_FOR0010_H.A20210101.0300.003.nc (or similar)
+    // We will use the format found in nldas.js which seems more accurate than the previous utils stub
+    const baseUrl = this.datasetConfig.baseUrl || 'https://nasa-waterinsight.s3.amazonaws.com/NLDAS3/forcing/hourly';
 
-    return `${baseUrl}/${year}/${String(doy).padStart(3, '0')}/${filename}`;
+    // Calculate hour string if available (default to 00 if date has no time, but usually date has time)
+    const hour = String(date.getUTCHours()).padStart(2, '0');
+
+    // Updated filename format matching user correction: NLDAS_FOR0010_H.A{YYYY}{MM}{DD}.{HH}0.beta.nc
+    // User requested format: ...A20150131.030.beta.nc (for hour 3?)
+    // We will use 3-digit time suffix: HH + '0'
+    const filename = `NLDAS_FOR0010_H.A${year}${month}${day}.${hour}0.beta.nc`;
+
+    // Directory structure matching nldas.js: .../forcing/hourly/YYYYMM/filename
+    const fullUrl = `${baseUrl}/${year}${month}/${filename}`;
+    console.log(`[NLDAS Debug] Generated URL: ${fullUrl}`);
+    return fullUrl;
   }
 
   /**
    * Extract data for a single day
    */
-  async extractDayData(variable, latitude, longitude, date) {
+  async extractDayData(variable, latitude, longitude, date, options = {}) {
     const variableMeta = this.variables[variable];
     if (!variableMeta) {
       throw new Error(`Unknown NLDAS variable: ${variable}`);
@@ -51,6 +62,11 @@ export class NLDASDataSource extends NetCDFDataSource {
     console.log(`[nldas] Fetching daily file: ${url}`);
 
     try {
+      // If raw mode (default), fetch and return buffer directly
+      if (options.process !== true) {
+        return await this.fetch(url, options);
+      }
+
       // Open NetCDF file
       const ncFile = await this.openNetCDF(url);
 
@@ -96,9 +112,9 @@ export class NLDASDataSource extends NetCDFDataSource {
     this.validateCoordinates(latitude, longitude);
 
     const variableMeta = this.variables[variable];
-        if (!variableMeta) {
-            throw new Error(`Unknown NLDAS variable: ${variable}`);
-        }
+    if (!variableMeta) {
+      throw new Error(`Unknown NLDAS variable: ${variable}`);
+    }
 
     // NLDAS typically extracts ranges, not single points
     const startDate = options.startDate ? new Date(options.startDate) : timestamp;
@@ -107,41 +123,49 @@ export class NLDASDataSource extends NetCDFDataSource {
     // Validate date range
     this.validateDateRange(startDate, endDate);
 
-        let dataPoints = [];
-        let currentDate = new Date(startDate);
+    let dataPoints = [];
+    let currentDate = new Date(startDate);
 
     // Iterate through each day
-            while (currentDate <= endDate) {
-      const dayData = await this.extractDayData(variable, latitude, longitude, currentDate);
-                    dataPoints.push(...dayData);
+    while (currentDate <= endDate) {
+      const dayData = await this.extractDayData(variable, latitude, longitude, currentDate, options);
 
-                // Move to next day
-                currentDate.setDate(currentDate.getDate() + 1);
+      // If raw mode, dayData is a buffer (or empty array on error if fetched inside try/catch?)
+      if (options.process !== true) {
+        if (dayData && dayData.byteLength) {
+          dataPoints.push({ timestamp: currentDate.toISOString(), data: dayData });
         }
+      } else {
+        dataPoints.push(...dayData);
+      }
+
+      // Move to next day
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
 
     // Filter to requested range
-        const filteredData = dataPoints.filter(point => {
-            const pointTime = new Date(point.timestamp);
-            return pointTime >= startDate && pointTime <= endDate;
-        });
+    const filteredData = dataPoints.filter(point => {
+      const pointTime = new Date(point.timestamp);
+      return pointTime >= startDate && pointTime <= endDate;
+    });
 
-        return {
-            variable: variable,
-            location: { latitude, longitude },
-            timeRange: {
-                start: startDate.toISOString(),
-                end: endDate.toISOString()
-            },
-            data: filteredData,
-            metadata: {
-                source: 'NLDAS-3',
+    return {
+      variable: variable,
+      location: { latitude, longitude },
+      timeRange: {
+        start: startDate.toISOString(),
+        end: endDate.toISOString()
+      },
+      data: filteredData,
+      metadata: {
+        source: 'NLDAS-3',
         units: variableMeta.units,
         temporalResolution: 'hourly',
-                spatialResolution: variableMeta.spatialResolution,
-                count: filteredData.length,
-                validCount: filteredData.filter(d => d.value !== null).length
-            }
-        };
+        spatialResolution: variableMeta.spatialResolution,
+        count: filteredData.length,
+        validCount: filteredData.filter(d => d.value !== null).length
+      }
+    };
   }
 
   /**
@@ -181,7 +205,7 @@ export class NLDASDataSource extends NetCDFDataSource {
       for (let lonIdx = lonStart; lonIdx <= lonEnd; lonIdx++) {
         const indices = [timeIndex, latIdx, lonIdx];
         const value = this.getNetCDFValue(ncFile, variable, indices, variableMeta);
-        
+
         gridData.push(value);
         gridLats.push(lats[latIdx]);
         gridLons.push(lons[lonIdx]);
@@ -202,6 +226,52 @@ export class NLDASDataSource extends NetCDFDataSource {
         description: variableMeta.description
       }
     };
+  }
+  /**
+   * Extract raw NetCDF data
+   */
+  async extractRawNetCDF(args) {
+    // Generate URL based on date params or direct args
+    let url;
+    if (args.date) {
+      url = this.generateFileURL(new Date(args.date), args.variable);
+    } else if (args.year && args.month && args.day) {
+      // Construct date from components
+      const date = new Date(Date.UTC(args.year, parseInt(args.month) - 1, parseInt(args.day), args.hour || 0));
+      url = this.generateFileURL(date, args.variable || 'Tair'); // Default variable if none, though URL generator might need one
+    } else {
+      throw new Error('Missing date parameters for raw NetCDF extraction');
+    }
+
+    // Use conditional fetching - cached only if explicitly requested
+    let response;
+    if (args.cache === true) {
+      const { cachedFetch } = await import('./data-cache.js');
+      globalThis._hydroCacheContext = {
+        source: 'nldas',
+        dataset: this.datasetConfig.name || 'nldas-3-hourly',
+        dataType: 'raw-netcdf',
+        params: args,
+        process: false // Explicitly set process false for cache context
+      };
+      response = await cachedFetch(url, {
+        params: {
+          source: 'nldas',
+          datatype: 'raw-netcdf',
+          proxy: args.proxy,
+          raw: true
+        }
+      });
+    } else {
+      // Use standard fetch
+      response = await fetch(url, {
+        headers: {
+          'Accept': 'application/octet-stream'
+        }
+      });
+    }
+
+    return response.arrayBuffer();
   }
 }
 
@@ -269,11 +339,11 @@ export async function extractNLDASMultiplePoints(variable, locations, startTime,
  */
 export async function extractNLDASRawNetCDF(args, datasetConfig) {
   const nldas = new NLDASDataSource(datasetConfig, {});
-  
+
   const url = nldas.generateFileURL(new Date(args.date), args.variable);
   const ncFile = await nldas.openNetCDF(url);
 
-        return {
+  return {
     url: url,
     variables: ncFile.variables?.map(v => v.name) || [],
     dimensions: ncFile.dimensions || {},
@@ -287,16 +357,16 @@ export async function extractNLDASRawNetCDF(args, datasetConfig) {
  */
 export function getAvailableNLDASVariables() {
   // Common NLDAS-3 variables
-    return [
+  return [
     'Tair',    // Air temperature
     'Qair',    // Specific humidity
-        'PSurf',   // Surface pressure
+    'PSurf',   // Surface pressure
     'Wind',    // Wind speed
     'LWdown',  // Longwave radiation
     'SWdown',  // Shortwave radiation
     'Rainf',   // Rainfall rate
     'Snowf',   // Snowfall rate
-    ];
+  ];
 }
 
 /**
@@ -305,21 +375,21 @@ export function getAvailableNLDASVariables() {
  * @returns {boolean} True if valid
  */
 export function validateNLDASConfig(config) {
-    const required = ['baseUrl', 'spatial', 'temporal'];
+  const required = ['baseUrl', 'spatial', 'temporal'];
 
-    for (const field of required) {
-        if (!config[field]) {
-            console.error(`NLDAS config missing required field: ${field}`);
-            return false;
-        }
+  for (const field of required) {
+    if (!config[field]) {
+      console.error(`NLDAS config missing required field: ${field}`);
+      return false;
     }
+  }
 
-    // Validate spatial bounds
-    const { spatial } = config;
-    if (!spatial.latitude || !spatial.longitude) {
-        console.error('NLDAS config missing spatial latitude/longitude bounds');
-        return false;
-    }
+  // Validate spatial bounds
+  const { spatial } = config;
+  if (!spatial.latitude || !spatial.longitude) {
+    console.error('NLDAS config missing spatial latitude/longitude bounds');
+    return false;
+  }
 
   // Validate temporal bounds
   const { temporal } = config;
@@ -327,7 +397,7 @@ export function validateNLDASConfig(config) {
     console.warn('NLDAS config missing temporal start/end bounds');
   }
 
-    return true;
+  return true;
 }
 
 /**
@@ -338,28 +408,28 @@ export function validateNLDASConfig(config) {
  * @returns {Object} Dataset information
  */
 export async function getNLDASDatasetInfo(datasetConfig, infoType, nldasVariables) {
-    switch (infoType) {
-        case 'variables':
-            return {
-                variables: nldasVariables,
-                count: Object.keys(nldasVariables).length
-            };
+  switch (infoType) {
+    case 'variables':
+      return {
+        variables: nldasVariables,
+        count: Object.keys(nldasVariables).length
+      };
 
-        case 'spatial':
-            return datasetConfig.spatial;
+    case 'spatial':
+      return datasetConfig.spatial;
 
-        case 'temporal':
-            return datasetConfig.temporal;
+    case 'temporal':
+      return datasetConfig.temporal;
 
-        case 'metadata':
-            return {
-                ...datasetConfig,
+    case 'metadata':
+      return {
+        ...datasetConfig,
         variables: nldasVariables,
         temporalResolution: 'hourly',
         spatialResolution: '0.125 degrees'
-            };
+      };
 
     default:
       throw new Error(`Unknown NLDAS info type: ${infoType}`);
-    }
+  }
 }

@@ -1,4 +1,5 @@
 import * as divisors from "../../../modules/visualize/divisors.js";
+import { loamService } from "./loam/loam-use.js";
 
 /**
  * Geospatial data format loader
@@ -8,6 +9,7 @@ import * as divisors from "../../../modules/visualize/divisors.js";
 
 let geospatialLibraries = null;
 let isGeospatialLoaded = false;
+
 
 /**
  * Loads geospatial-related libraries and dependencies
@@ -29,7 +31,9 @@ async function load(options = {}) {
   const {
     includeProj4 = true,
     includeGeoTIFF = true,
-    includeTurf = true
+    includeTurf = true,
+    includeGeolib = true,
+    includeGDAL = true,
   } = options;
 
   if (isGeospatialLoaded) {
@@ -42,7 +46,6 @@ async function load(options = {}) {
     let libraries = [];
 
     if (includeProj4) {
-      // Load Proj4 for coordinate transformations
       const proj4 = divisors.createScript({
         params: {
           src: "https://cdn.jsdelivr.net/npm/proj4@2.9.0/dist/proj4.min.js",
@@ -53,25 +56,14 @@ async function load(options = {}) {
     }
 
     if (includeGeoTIFF) {
-      // Load GeoTIFF for geospatial TIFF files
       const geotiff = divisors.createScript({
         params: {
-          src: "https://cdn.jsdelivr.net/npm/geotiff@2.0.7/dist-browser/geotiff.js",
+          src: "https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js",
           name: "geotiff"
         }
       });
       libraries.push(geotiff);
 
-      // Load Tiff.js as alternative TIFF parser
-      const tiff = divisors.createScript({
-        params: {
-          src: "https://cdn.jsdelivr.net/npm/tiff@5.0.3/dist/tiff.min.js",
-          name: "tiff"
-        }
-      });
-      libraries.push(tiff);
-
-      // Load pako for gzip decompression fallback
       const pako = divisors.createScript({
         params: {
           src: "https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js",
@@ -82,7 +74,6 @@ async function load(options = {}) {
     }
 
     if (includeTurf) {
-      // Load Turf.js for advanced geospatial operations
       const turf = divisors.createScript({
         params: {
           src: "https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js",
@@ -92,33 +83,60 @@ async function load(options = {}) {
       libraries.push(turf);
     }
 
-    // Load additional utility libraries
-    const geoUtils = divisors.createScript({
-      params: {
-        src: "https://cdn.jsdelivr.net/npm/geolib@3.3.3/lib/index.min.js",
-        name: "geolib"
-      }
-    });
-    libraries.push(geoUtils);
+    if (includeGeolib) {
+      const geoUtils = divisors.createScript({
+        params: {
+          src: "https://cdn.jsdelivr.net/npm/geolib@3.3.3/lib/index.min.js",
+          name: "geolib"
+        }
+      });
+      libraries.push(geoUtils);
+    }
+
+    /* 
+     * Load Loam (GDAL WASM) via LoamService
+     */
+    let loamInstance = null;
+    if (includeGDAL) {
+      loamInstance = loamService; // Use the imported singleton service
+    }
 
     // Wait for all scripts to load
     await Promise.all(
-      libraries.map(lib => new Promise((resolve) => {
+      libraries.map(lib => new Promise((resolve, reject) => {
         lib.onload = resolve;
-        lib.onerror = () => resolve(); // Continue even if error
+        lib.onerror = () => reject(new Error(`Failed to load library: ${lib.src}`));
       }))
     );
 
     // Create library interface
+    const globalObj = typeof window !== 'undefined' ? window : globalThis;
     geospatialLibraries = {
-      proj4: window.proj4 || null,
-      GeoTIFF: window.GeoTIFF || null,
-      Tiff: window.Tiff || null,
-      pako: window.pako || null,
-      turf: window.turf || null,
-      geolib: window.geolib || null,
+      proj4: globalObj.proj4 || null,
+      GeoTIFF: globalObj.GeoTIFF || null,
+      pako: globalObj.pako || null,
+      turf: globalObj.turf || null,
+      geolib: globalObj.geolib || null,
+      loam: loamInstance || null, // Use our instance
       loadedAt: new Date()
     };
+
+    // Initialize loam (GDAL) if loaded
+    if (geospatialLibraries.loam) {
+      try {
+        await geospatialLibraries.loam.initialize();
+        console.log('GDAL (loam) initialized via LoamService');
+      } catch (e) {
+        console.warn('GDAL (loam) initialization failed:', e);
+      }
+    }
+
+    // Define common projections if proj4 is available
+    if (geospatialLibraries.proj4) {
+      geospatialLibraries.proj4.defs("EPSG:5070", "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+      geospatialLibraries.proj4.defs("EPSG:4269", "+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs");
+      console.log('Defined common Proj4 projections (EPSG:5070, EPSG:4269)');
+    }
 
     isGeospatialLoaded = true;
     console.log('Geospatial libraries loaded successfully');
@@ -243,7 +261,9 @@ async function decompressGzip(compressedData) {
   }
 
   // Fallback: try to use pako if available
-  if (typeof window.pako !== 'undefined') {
+  if (typeof globalThis.pako !== 'undefined') {
+    return globalThis.pako.ungzip(compressedData);
+  } else if (typeof window !== 'undefined' && window.pako) {
     return window.pako.ungzip(compressedData);
   }
 
@@ -319,8 +339,9 @@ async function loadGeoTIFF(url) {
       try {
         console.log('Attempting manual gzip decompression...');
         // Use pako for more reliable decompression
-        if (typeof window.pako !== 'undefined') {
-          const decompressed = window.pako.ungzip(new Uint8Array(arrayBuffer));
+        const pakoLib = globalThis.pako || (typeof window !== 'undefined' && window.pako);
+        if (pakoLib) {
+          const decompressed = pakoLib.ungzip(new Uint8Array(arrayBuffer));
           console.log(`Decompressed from ${arrayBuffer.byteLength} to ${decompressed.length} bytes`);
 
           // Convert back to ArrayBuffer for GeoTIFF
@@ -371,10 +392,11 @@ async function loadGeoTIFF(url) {
     }
 
     // Last resort: try with raw buffer if it's still compressed
-    if (typeof window.pako !== 'undefined') {
+    const pakoLib = globalThis.pako || (typeof window !== 'undefined' && window.pako);
+    if (pakoLib) {
       try {
         console.log('Trying pako decompression...');
-        const decompressed = window.pako.ungzip(arrayBuffer);
+        const decompressed = pakoLib.ungzip(arrayBuffer);
         return await loadGeoTIFFFromBuffer(decompressed);
       } catch (pakoError) {
         console.warn('Pako decompression failed:', pakoError.message);
@@ -426,5 +448,7 @@ export default {
   transformCoordinates,
   calculateDistance,
   loadGeoTIFF,
-  geospatialOperation
+  loadGeoTIFFFromBuffer,
+  geospatialOperation,
+  get libraries() { return geospatialLibraries; }
 };

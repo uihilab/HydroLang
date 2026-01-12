@@ -57,7 +57,7 @@ export default {
     },
 
     requirements: {
-        needProxy: false,
+        needProxy: true,
         requireskey: false,
     },
 

@@ -44,9 +44,13 @@ export class ECMWFDataSource extends GRIB2DataSource {
   /**
    * Process ECMWF GRIB2 file
    */
-  async processGRIB2File(fileBuffer) {
+  async processGRIB2File(fileBuffer, options = {}) {
     // Check if file needs decompression
-    const decompressed = await this.decompress(fileBuffer);
+    const decompressed = await this.decompress(fileBuffer, null, options);
+
+    if (options.process !== true) {
+      return decompressed; // Return raw buffer if raw mode
+    }
 
     // Parse GRIB2
     return await this.parseGRIB2(decompressed);
@@ -61,10 +65,15 @@ export class ECMWFDataSource extends GRIB2DataSource {
 
     // If fileBuffer is provided in options, use it directly
     if (options.fileBuffer) {
-      const messages = await this.processGRIB2File(options.fileBuffer);
+      const messages = await this.processGRIB2File(options.fileBuffer, options);
+
+      if (options.process !== true && messages instanceof ArrayBuffer) {
+        return messages;
+      }
+
       const message = this.findGRIB2Message(messages, variable);
       const rawValue = this.getGRIB2ValueAtPoint(message, latitude, longitude);
-      
+
       const variableMeta = this.variables?.[variable] || {};
       const scaledValue = this.applyScaling(rawValue, variableMeta);
 
@@ -97,7 +106,12 @@ export class ECMWFDataSource extends GRIB2DataSource {
 
     // If fileBuffer is provided in options, use it directly
     if (options.fileBuffer) {
-      const messages = await this.processGRIB2File(options.fileBuffer);
+      const messages = await this.processGRIB2File(options.fileBuffer, options);
+
+      if (options.process !== true && messages instanceof ArrayBuffer) {
+        return messages;
+      }
+
       const message = this.findGRIB2Message(messages, variable);
       const gridResult = this.getGRIB2Grid(message, bbox);
 
@@ -129,6 +143,28 @@ export class ECMWFDataSource extends GRIB2DataSource {
     }
 
     throw new Error('ERA5 grid data extraction requires fileBuffer in options. Use extractERA5Data() to fetch data first.');
+  }
+
+  /**
+   * Extract raw GRIB2 data (Request -> Poll -> Download)
+   * Supports same interface as NLDAS for raw retrieval
+   */
+  async extractRawGRIB2(args) {
+    console.log('[ecmwf] Starting raw GRIB2 retrieval sequence...');
+
+    // 1. Initiate Request
+    const initialResponse = await extractERA5Data(args, this.datasetConfig);
+
+    // 2. Poll for Completion
+    const status = await pollECMWFStatus(initialResponse.requestId, this.datasetConfig);
+
+    // 3. Download File
+    if (status.result_url) {
+      // Return the raw buffer directly (no parsing)
+      return await downloadERA5File(status.result_url);
+    }
+
+    throw new Error('ECMWF request completed but no result_url provided');
   }
 }
 
@@ -192,8 +228,17 @@ export async function extractERA5Data(requestParams, datasetConfig) {
 export async function downloadERA5File(dataUrl) {
   console.log(`[ecmwf] Downloading ERA5 file from: ${dataUrl}`);
 
+  // Need to ensure proxy is used for the download if applicable
+  // Using the local-proxy explicitly as requested by user
+  const proxy = datasources.proxies["local-proxy"].endpoint;
+  const proxiedUrl = proxy + dataUrl;
+
+  console.log(`[ecmwf] Downloading with proxy: ${proxiedUrl}`);
+
   const ecmwf = new ECMWFDataSource({});
-  return await ecmwf.fetch(dataUrl);
+  // Pass the proxied URL directly designated as the target
+  // ecmwf.fetch handles generic fetch logic
+  return await ecmwf.fetch(proxiedUrl);
 }
 
 /**
@@ -206,17 +251,60 @@ export async function processERA5GRIB2Data(fileBuffer, extractOptions = {}) {
   console.log(`[ecmwf] Processing ERA5 GRIB2 data (${(fileBuffer.byteLength / 1024 / 1024).toFixed(1)} MB)`);
 
   const ecmwf = new ECMWFDataSource({});
-  
+
   // Parse GRIB2
   const messages = await ecmwf.processGRIB2File(fileBuffer);
 
   console.log(`[ecmwf] Found ${messages.length} GRIB2 messages`);
 
   return {
-    messages: messages,
-    messageCount: messages.length,
-    processedAt: new Date().toISOString()
   };
+}
+
+/**
+ * Poll for ECMWF request status
+ * @param {string} requestId - Request ID to poll
+ * @param {Object} datasetConfig - Dataset configuration
+ * @returns {Promise<Object>} Completed status object
+ */
+async function pollECMWFStatus(requestId, datasetConfig) {
+  const proxy = datasources.proxies["local-proxy"].endpoint;
+  const endpoint = `${datasetConfig.endpoint}/${requestId}`;
+  const pollUrl = proxy + endpoint;
+
+  console.log(`[ecmwf] Polling status for ${requestId}...`);
+
+  // Max retries or timeout could be added here
+  const maxAttempts = 60; // 5 minutes approx with 5s interval
+  let attempts = 0;
+
+  while (attempts < maxAttempts) {
+    attempts++;
+    // Wait 5 seconds between polls
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    try {
+      const response = await fetch(pollUrl);
+      if (!response.ok) {
+        throw new Error(`Poll request failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log(`[ecmwf] Status: ${result.status}`);
+
+      if (result.status === 'completed') {
+        return result;
+      } else if (result.status === 'failed') {
+        throw new Error(`ECMWF request failed: ${result.message || 'Unknown error'}`);
+      }
+      // If 'queued' or 'running', continue loop
+    } catch (e) {
+      console.warn(`[ecmwf] Poll error: ${e.message}`);
+      // Continue polling despite transient errors? 
+      // Maybe throw if it's a 404 meaning ID is gone
+    }
+  }
+  throw new Error('ECMWF request timed out');
 }
 
 // ============================================================================

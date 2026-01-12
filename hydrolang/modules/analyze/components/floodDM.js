@@ -371,8 +371,8 @@ export default class floodDM {
               totalDamageD > 1000000
                 ? "#323232"
                 : totalDamageD > 100000
-                ? "#7E7E7E"
-                : "#BFBFBF",
+                  ? "#7E7E7E"
+                  : "#BFBFBF",
             weight: 2,
             opacity: 1,
             color: "black",
@@ -397,7 +397,7 @@ export default class floodDM {
           // return popup values for this feature
           return JSON.stringify(
             vehicleFeatureCalculations[properties.CensusBloc]
-          ).replaceAll(",", "<br>").replaceAll(/|{|}/g,"");
+          ).replaceAll(",", "<br>").replaceAll(/|{|}/g, "");
         },
       },
       data: vehicles_layer,
@@ -485,9 +485,9 @@ export default class floodDM {
           if (propertyInputs["structure"] > 10) {
             relocation = [
               (1 - percentOwnerOccupied / 100) * disruptionCostPerSqft +
-                (percentOwnerOccupied / 100) *
-                  (disruptionCostPerSqft +
-                    rentalCostPerSqftPerDay * lossFunction * 30),
+              (percentOwnerOccupied / 100) *
+              (disruptionCostPerSqft +
+                rentalCostPerSqftPerDay * lossFunction * 30),
             ];
             rentalIncome =
               (1 - percentOwnerOccupied / 100) *
@@ -617,8 +617,8 @@ export default class floodDM {
               totalDamageBuild > 1000000
                 ? "red"
                 : totalDamageBuild > 100000
-                ? "yellow"
-                : "green",
+                  ? "yellow"
+                  : "green",
             weight: 2,
             opacity: 1,
             color: "black",
@@ -648,7 +648,7 @@ export default class floodDM {
               (item) => item.gid === properties.gid
             )
           );
-          return val.replaceAll(",", "<br>").replaceAll(/|{|}/g,"");
+          return val.replaceAll(",", "<br>").replaceAll(/|{|}/g, "");
         },
       },
       data: buildings_layer,
@@ -798,7 +798,7 @@ export default class floodDM {
               Functionality: parseInt(bridgeFunction * 100),
             });
 
-            return val.replaceAll(",", "<br>").replaceAll(/|{|}/g,"");
+            return val.replaceAll(",", "<br>").replaceAll(/|{|}/g, "");
           },
         },
         data: bridges_layer,
@@ -917,7 +917,7 @@ export default class floodDM {
               "Utility Type": utilityType,
               "Flood depth": inundationDepth,
               Damage: parseInt(utilityDam),
-            }).replaceAll(",", "<br>").replaceAll(/|{|}/g,"");
+            }).replaceAll(",", "<br>").replaceAll(/|{|}/g, "");
           },
         },
         data: utilities_layer,
@@ -2417,10 +2417,10 @@ export default class floodDM {
           ((1 - propertyLossEntry.percentOwnerOccupied / 100) *
             propertyLossEntry.disruptionCostPerSqft +
             (propertyLossEntry.percentOwnerOccupied / 100) *
-              (propertyLossEntry.disruptionCostPerSqft +
-                propertyLossEntry.rentalCostPerSqftPerDay *
-                  propertyLossEntry.maxTime *
-                  30))) /
+            (propertyLossEntry.disruptionCostPerSqft +
+              propertyLossEntry.rentalCostPerSqftPerDay *
+              propertyLossEntry.maxTime *
+              30))) /
         1000;
 
       const finishesDebris = (area * debrisEntry.finishes) / 1000;

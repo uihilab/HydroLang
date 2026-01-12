@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ECMWF ERA5 Data - HydroLang Example</title>
+    <script src="../../hydrolang/hydro.js"></script>
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .success {
+            color: #27ae60;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🌍 ECMWF ERA5 Climate Data Example</h1>
+    <p>Retrieve gridded climate reanalysis data from ECMWF ERA5.</p>
+
+    <div id="output">
+        <p>Loading...</p>
+    </div>
+
+    <script>
+        async function runExample() {
+            const output = document.getElementById('output');
+
+            try {
+                // Retrieve ERA5 precipitation data
+                const precip = await hydro.data.retrieve({
+                    params: {
+                        source: 'ecmwf',
+                        datatype: 'precipitation'
+                    },
+                    args: {
+                        bbox: [-105.5, 40.0, -105.0, 40.5],
+                        startDate: '2024-01-01',
+                        endDate: '2024-01-07'
+                    }
+                });
+
+                console.log('ECMWF Data:', precip);
+
+                output.innerHTML = `
+                    <p class="success">✓ ERA5 Data Retrieved!</p>
+                    <pre>
+Data Source: ECMWF ERA5 Reanalysis
+Variable: Total Precipitation
+Coverage: Global gridded (0.25° resolution)
+Period: January 1-7, 2024
+Area: Boulder, Colorado region
+
+Use Cases:
+  - Climate analysis
+  - Forcing data for models
+  - Long-term trend analysis
+  - Validation datasets
+                    </pre>
+                    <p><em>Check console for full data structure.</em></p>
+                `;
+
+            } catch (error) {
+                console.error('Error:', error);
+                output.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+
+        runExample();
+    </script>
+</body>
+
+</html>

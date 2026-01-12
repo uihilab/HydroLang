@@ -10,10 +10,10 @@
 import stats from "./components/stats.js";
 import hydro from "./components/hydro.js";
 import nn from "./components/nn.js";
-import floodDM from "./components/floodDM.js"
+import geoprocessor from "./components/geoprocessor.js";
 
 export default class Analyze {
-    constructor(components = ['stats', 'hydro', 'nn', 'floodDM']) {
+    constructor(components = ['stats', 'hydro', 'nn', 'geoprocessor']) {
         if (components.includes('stats')) {
             this.stats = stats;
         }
@@ -23,8 +23,23 @@ export default class Analyze {
         if (components.includes('nn')) {
             this.nn = nn;
         }
-        if (components.includes('floodDM')) {
-            this.floodDM = new floodDM();
+        if (components.includes('geoprocessor')) {
+            this.geoprocessor = geoprocessor;
+        }
+    }
+
+    /**
+     * Dynamically loads the floodDM component.
+     * @returns {Promise<Object>} The floodDM instance.
+     */
+    async loadFloodDM() {
+        try {
+            const module = await import(/* webpackChunkName: "floodDM" */ "./components/floodDM.js");
+            this.floodDM = new module.default();
+            return this.floodDM;
+        } catch (error) {
+            console.error("Failed to load floodDM module:", error);
+            throw error;
         }
     }
 }

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Correlation Analysis Application</title>
+    <script type="module">
+        import Hydro from '../../hydrolang/hydro.js';
+
+        let hydro;
+
+        const log = (message, type = 'info') => {
+            const output = document.getElementById('output');
+            const entry = document.createElement('div');
+            entry.className = `log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            output.appendChild(entry);
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        };
+
+        async function runAnalysis() {
+            const button = document.getElementById('runButton');
+            button.disabled = true;
+            document.getElementById('output').innerHTML = '';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('chartContainer').innerHTML = '';
+
+            try {
+                log('Initializing HydroLang...', 'info');
+                hydro = new Hydro();
+
+                let attempts = 0;
+                while ((!hydro.analyze || !hydro.analyze.stats || !hydro.visualize) && attempts < 50) {
+                    await new Promise(r => setTimeout(r, 100));
+                    attempts++;
+                }
+
+                if (!hydro.analyze || !hydro.analyze.stats) {
+                    throw new Error('Failed to load required modules');
+                }
+
+                log('HydroLang initialized successfully', 'success');
+
+                // Generate synthetic streamflow and precipitation data
+                log('Generating synthetic hydrological data...', 'info');
+                const dataLength = 100;
+                const precipitation = Array.from({ length: dataLength }, () => Math.random() * 5);
+                const streamflow = precipitation.map(p => 50 + p * 15 + (Math.random() - 0.5) * 20);
+
+                log(`Generated ${dataLength} data pairs`, 'success');
+
+                // Calculate correlation
+                log('Calculating correlation between precipitation and streamflow...', 'info');
+                const stats = hydro.analyze.stats;
+
+                const correlationResult = stats.correlation({
+                    data: {
+                        set1: precipitation,
+                        set2: streamflow
+                    }
+                });
+
+                log(`Correlation coefficient: ${correlationResult.toFixed(4)}`, 'success');
+
+                // Calculate additional statistics
+                log('Calculating descriptive statistics...', 'info');
+                const precipStats = {
+                    mean: stats.mean({ data: precipitation }),
+                    stddev: stats.stddev({ data: precipitation }),
+                    min: stats.min({ data: precipitation }),
+                    max: stats.max({ data: precipitation })
+                };
+
+                const flowStats = {
+                    mean: stats.mean({ data: streamflow }),
+                    stddev: stats.stddev({ data: streamflow }),
+                    min: stats.min({ data: streamflow }),
+                    max: stats.max({ data: streamflow })
+                };
+
+                log('Statistics calculated', 'success');
+
+                // Display results
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.style.display = 'block';
+
+                document.getElementById('correlation').textContent = correlationResult.toFixed(4);
+                document.getElementById('precipMean').textContent = precipStats.mean.toFixed(2);
+                document.getElementById('precipStd').textContent = precipStats.stddev.toFixed(2);
+                document.getElementById('flowMean').textContent = flowStats.mean.toFixed(2);
+                document.getElementById('flowStd').textContent = flowStats.stddev.toFixed(2);
+                document.getElementById('dataCount').textContent = dataLength;
+
+                // Create scatter plot
+                log('Creating scatter plot visualization...', 'info');
+
+                const chartData = [
+                    precipitation,
+                    streamflow
+                ];
+
+                hydro.visualize.draw({
+                    params: {
+                        type: 'chart',
+                        id: 'chartContainer',
+                        name: 'Precipitation vs Streamflow Correlation'
+                    },
+                    args: {
+                        charttype: 'scatter',
+                        names: ['Precipitation-Streamflow Relationship'],
+                        vAxes: {
+                            0: { title: 'Streamflow (cubic feet per second)' }
+                        },
+                        hAxes: {
+                            0: { title: 'Precipitation (inches)' }
+                        },
+                        series: {
+                            0: { color: '#1f77b4', pointSize: 6 }
+                        }
+                    },
+                    data: chartData
+                });
+
+                log('Analysis completed successfully!', 'success');
+
+            } catch (error) {
+                log(`ERROR: ${error.message}`, 'error');
+                console.error('Full error:', error);
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('runButton').addEventListener('click', runAnalysis);
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #E67E22 0%, #E74C3C 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #C0392B 0%, #D35400 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #E67E22;
+            margin-bottom: 15px;
+            font-size: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #E67E22 0%, #E74C3C 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #output {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 250px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .log-info {
+            color: #2196f3;
+            margin: 3px 0;
+        }
+
+        .log-success {
+            color: #4caf50;
+            margin: 3px 0;
+            font-weight: bold;
+        }
+
+        .log-warning {
+            color: #ff9800;
+            margin: 3px 0;
+        }
+
+        .log-error {
+            color: #f44336;
+            margin: 3px 0;
+            font-weight: bold;
+        }
+
+        #results {
+            display: none;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-card .label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .metric-card .value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #E67E22;
+        }
+
+        #chartContainer {
+            min-height: 400px;
+            margin: 20px 0;
+        }
+
+        .info-panel {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .info-panel h3 {
+            color: #e65100;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-panel p {
+            color: #bf360c;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Hydrological Correlation Analysis</h1>
+            <p>Analyze Relationships Between Precipitation and Streamflow</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h2>1. Run Analysis</h2>
+                <div class="info-panel">
+                    <h3>Analysis Description:</h3>
+                    <p>This application generates synthetic precipitation and streamflow data to demonstrate correlation
+                        analysis.
+                        The correlation coefficient measures the strength and direction of the linear relationship
+                        between two variables.</p>
+                </div>
+                <button id="runButton">Run Correlation Analysis</button>
+            </div>
+
+            <div class="section">
+                <h2>2. Processing Log</h2>
+                <div id="output"></div>
+            </div>
+
+            <div class="section" id="results">
+                <h2>3. Statistical Results</h2>
+                <div class="metrics">
+                    <div class="metric-card">
+                        <div class="label">Correlation Coefficient (r)</div>
+                        <div class="value" id="correlation">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">Precipitation Mean</div>
+                        <div class="value"><span id="precipMean">-</span> in</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">Precipitation Std Dev</div>
+                        <div class="value"><span id="precipStd">-</span> in</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">Streamflow Mean</div>
+                        <div class="value"><span id="flowMean">-</span> cfs</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">Streamflow Std Dev</div>
+                        <div class="value"><span id="flowStd">-</span> cfs</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">Sample Size</div>
+                        <div class="value" id="dataCount">-</div>
+                    </div>
+                </div>
+
+                <h2>4. Scatter Plot Visualization</h2>
+                <div id="chartContainer"></div>
+
+                <div class="info-panel">
+                    <h3>Interpretation Guide:</h3>
+                    <p><strong>r > 0.7:</strong> Strong positive correlation</p>
+                    <p><strong>0.3 < r < 0.7:</strong> Moderate positive correlation</p>
+                    <p><strong>-0.3 < r < 0.3:</strong> Weak or no correlation</p>
+                    <p><strong>r < -0.3:</strong> Negative correlation</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

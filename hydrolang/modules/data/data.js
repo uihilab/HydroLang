@@ -176,18 +176,7 @@ async function retrieve({ params, args, data } = {}) {
   let placeHolder = params.placeHolder || false;
   let trans = params.transform || false;
 
-  // Set global cache context for this request
-  globalThis._hydroCacheContext = {
-    source: source,
-    dataset: args.dataset || source,
-    dataType: dataType,
-    cacheId: params.cacheId,  // Allow user to specify custom cache ID
-    params: args
-  };
-
   try {
-    console.log(params);
-
     // Check if this is a gridded data source
     const griddedConfig = GRIDDED_SOURCES[source];
     if (griddedConfig) {
@@ -198,32 +187,103 @@ async function retrieve({ params, args, data } = {}) {
       }
 
       // Use the new generic processor (pass datasources, not params)
+      // Pass process flag if present
+      if (params.process !== true) {
+        args.process = false;
+      }
       return processGriddedSource(source, dataType, args, datasources);
     }
 
+    // Resolve source configuration robustly (handling named vs default exports)
+    // Resolve source configuration robustly (handling named vs default exports)
+    //const sourceModule = datasources[source] || (datasources.default ? datasources.default[source] : undefined);
+
+    // Safety check for wrapped modules (nested default)
+    // We unwrap .default until we find a likely configuration object (has 'datasets' or 'sourceType')
+    // We need to find the object that actually HAS the sourceType function.
+    let sourceModule = datasources[source];
+
+    // Check main object, then .default, then .default.default using a helper
+    const findConfig = (obj) => {
+      if (!obj) return null;
+      if (typeof obj.sourceType === 'function') return obj;
+      if (obj.default) return findConfig(obj.default);
+      // Fallback for objects that might have datasets but sourceType is on global export
+      if (obj.datasets) return obj;
+      // Fallback for standard datasources (like usgs, nws) that have requirements and info
+      if (obj.requirements && obj.info) return obj;
+      return null;
+    };
+
+    // Try finding it starting from datasources[source]
+    let sourceConfig = findConfig(datasources[source]);
+
+    // If not found, try starting from datasources.default (if it exists)
+    if (!sourceConfig && datasources.default) {
+      sourceConfig = findConfig(datasources.default[source]);
+    }
+
     // For other datasources, check if they exist
-    let dataSource = datasources[source]?.[dataType];
+    // Use the resolved sourceConfig to check for the dataType
+    // sourceConfig might be the datasource object itself (like usgs.js default export)
+    // or it might be the module namespace
+    let dataSource;
+    if (sourceConfig) {
+      dataSource = sourceConfig[dataType];
+      // If not found directly, it might be in datasets (for gridded sources masquerading as direct, like chirps/ecmwf)
+      if (!dataSource && sourceConfig.datasets) {
+        dataSource = sourceConfig.datasets[dataType];
+      }
+    }
+
+    if (!dataSource && !sourceConfig && !GRIDDED_SOURCES[source]) {
+      return Promise.reject(new Error(`No data source found for source '${source}' and type '${dataType}'.`));
+    }
+
+    // Fallback if we have sourceConfig but couldn't resolve specific dataSource yet
+    // (This happens for dynamic sources like chirps/ecmwf where methods are looked up later or custom logic used)
+    if (!dataSource && (source === 'chirps' || source === 'ecmwf' || source === 'dwd' || source === 'nldas')) {
+      // Create dummy dataSource to pass the check, endpoint calculation handles it later
+      dataSource = { methods: { type: 'json' } };
+    }
 
     if (!dataSource) {
-      return Promise.reject(new Error("No data source found for the given specifications."));
+      return Promise.reject(new Error(`No configuration found for source '${source}' and datatype '${dataType}'.`));
     }
 
     let endpoint =
-      source === "waterOneFlow" || source === "hisCentral" || source === "mitigation_dt" || source === "flooddamage_dt" || source === "nldas"
-        ? (source === "nldas" ? datasources[source].sourceType(args.dataset, dataType, args) : datasources[source].sourceType(args.sourceType, dataType))
+      source === "waterOneFlow" || source === "hisCentral" || source === "mitigation_dt" || source === "flooddamage_dt" || source === "nldas" || source === "dwd" || source === "chirps" || source === "ecmwf"
+        ? (source === "nldas" ? sourceConfig.sourceType(args.dataset, dataType, args) : (source === "dwd" || source === "chirps" || source === "ecmwf" ? sourceConfig.sourceType(args, dataType) : sourceConfig.sourceType(args.sourceType, dataType)))
         : dataSource.endpoint;
+
+    if (!endpoint) {
+      throw new Error(`Endpoint resolution failed for source '${source}'. sourceType returned null or undefined.`);
+    }
 
     let type = params.type || dataSource.methods.type;
 
     // Check if proxy is needed based on datasource requirements
+    // Use the robust sourceConfig resolved earlier, not datasources[source] which might be undefined for default exports
     let proxy = "";
-    if (datasources[source]?.requirements?.needProxy) {
+    const needsProxy = (sourceConfig.requirements && sourceConfig.requirements.needProxy) ||
+      (datasources[source] && datasources[source].requirements && datasources[source].requirements.needProxy);
+
+    if (needsProxy) {
       // Use specified proxy or default to researchverse
-      const proxyName = params.proxyServer || "researchverse";
-      proxy = datasources.proxies[proxyName]?.endpoint || datasources.proxies["researchverse"].endpoint;
+      const proxyName = params.proxyServer || "local-proxy";
+
+      const proxiesContainer = datasources.proxies || (datasources.default && datasources.default.proxies);
+
+      if (!proxiesContainer) {
+        throw new Error("Proxies configuration not found in datasources.");
+      }
+
+      console.log(`[Proxy Debug] Requested: ${proxyName}`);
+      console.log(`[Proxy Debug] Available: ${Object.keys(proxiesContainer).join(', ')}`);
+
+      proxy = proxiesContainer[proxyName]?.endpoint || proxiesContainer["local-proxy"].endpoint;
+      console.log(`[Proxy Debug] Resolved: ${proxy}`);
     }
-    // If needProxy is explicitly false, don't use proxy (empty string)
-    // This allows direct fetch for APIs that support CORS like USGS WFS
 
     let headers = {
       "content-type": (() => {
@@ -233,6 +293,12 @@ async function retrieve({ params, args, data } = {}) {
           return "text/xml; charset=utf-8";
         } else if (type === "csv" || type === "tab") {
           return "application/text";
+        } else if (type === "netcdf" || type === "tiff" || type === "image" || type === "blob" || type === "binary") {
+          // If we are POSTing to get a binary file (like ECMWF), we usually send JSON params.
+          if (dataSource.methods.method === 'POST') {
+            return "application/json";
+          }
+          return "application/octet-stream";
         } else {
           return "application/json"; // Default
         }
@@ -240,10 +306,10 @@ async function retrieve({ params, args, data } = {}) {
     };
 
     if (type === "soap") {
-      headers["SOAPAction"] = datasources[source].action + dataType;
+      headers["SOAPAction"] = datasources.default[source]?.action + dataType;
     }
 
-    let keyname = datasources[source]?.requirements?.keyname;
+    let keyname = sourceConfig.requirements?.keyname || datasources[source]?.requirements?.keyname;
     if (keyname && params[keyname]) {
       headers[keyname] = params[keyname];
     } else if (keyname) {
@@ -258,17 +324,23 @@ async function retrieve({ params, args, data } = {}) {
 
 
     let fetchOptions = {
-      method: dataSource.methods.method,
+      method: dataSource.methods.method || 'GET',
       headers: headers,
     };
 
     if (fetchOptions.method === 'POST') {
-      if (type === 'json') {
-        fetchOptions.body = JSON.stringify(args);
+      if (type === 'json' || type === 'binary') {
+        // If content-type is json, stringify args
+        if (headers['content-type'] && headers['content-type'].includes('application/json')) {
+          fetchOptions.body = JSON.stringify(args);
+        } else {
+          // Fallback if binary but not json header (unlikely given logic above)
+          fetchOptions.body = JSON.stringify(args);
+        }
       } else if (type === 'soap' || type === 'xml') {
         fetchOptions.body = Object.keys(args).length
-          ? datasources.envelope(dataSource.body(args))
-          : datasources.envelope(dataSource.body());
+          ? datasources.default.envelope(dataSource.body(args))
+          : datasources.default.envelope(dataSource.body());
       }
     } else if (fetchOptions.method === 'GET') {
       // Merge preset parameters from datasource with user-provided args
@@ -302,22 +374,120 @@ async function retrieve({ params, args, data } = {}) {
     }
 
 
-    return cachedFetch(proxy + endpoint, fetchOptions)
+    // Determine whether to use cache
+    // Cache is DISABLED by default - must explicitly opt-in with cache: true
+    let globalCache = false;
+    if (typeof window !== 'undefined' && window.hydroConfig && window.hydroConfig.cache !== undefined) {
+      globalCache = window.hydroConfig.cache;
+    }
+    const useCache = params.cache === true || globalCache === true;
+
+    // Execute Request
+    const executeRequest = useCache ? cachedFetch : fetch;
+
+    return executeRequest(proxy + endpoint, fetchOptions)
       .then(async (response) => {
+        // DEBUG: Log raw response
+        if (typeof response.clone === 'function') {
+          const clone = response.clone();
+          try {
+            const text = await clone.text();
+            console.log(`[Retrieve Debug] Raw response from ${proxy + endpoint}:`, text.substring(0, 500)); // Log first 500 chars
+          } catch (err) {
+            console.log(`[Retrieve Debug] Failed to read raw response:`, err);
+          }
+        } else {
+          console.log(`[Retrieve Debug] Response from ${proxy + endpoint} is not a standard Response object (no clone method).`);
+        }
+
+        // Handle non-Response objects (ArrayBuffer from cachedFetch)
+        if (typeof response.text !== 'function') {
+          if (response instanceof ArrayBuffer || response.byteLength !== undefined) {
+            const text = new TextDecoder().decode(response);
+            // If we expect JSON, try to parse it
+            if (params.datatype === 'json' || dataSource.methods.type === 'json') {
+              return JSON.parse(text);
+            }
+            return text;
+          }
+          return response;
+        }
+
+        // Check if response is a valid Response object (it might be raw data from cache)
+        const isResponseObj = response && typeof response.ok !== 'undefined' && typeof response.headers !== 'undefined';
+
+        if (!isResponseObj) {
+          // It's raw data (likely ArrayBuffer/Blob from cache)
+          if (type === 'json' && typeof response === 'string') {
+            try { return JSON.parse(response); } catch (e) { return response; }
+          }
+          // Wrap raw data if specific binary type requested
+          if (['blob', 'netcdf', 'grib2', 'tiff', 'image'].includes(type)) {
+            return new Blob([response]);
+          }
+          return response;
+        }
+
         if (!response.ok) {
           const errorData = await response.text();
           throw new Error(`HTTP error ${response.status} fetching ${endpoint}: ${errorData}`);
         }
 
-        if (type === "json") {
+        // If process is not explicitly true, return raw text or blob based on content type
+        if (params.process !== true) {
+          const contentType = response.headers.get('content-type');
+          if (contentType && (contentType.includes('application/json') || contentType.includes('text/'))) {
+            return response.text();
+          } else {
+            return response.blob();
+          }
+        }
+
+        // Logic for handling response types
+        // Priority: 1. User specified type, 2. Datasource default type, 3. Content-Type detection
+        let targetType = type || dataSource.methods.type || 'unknown';
+
+        // Force blob for known binary types
+        if (['netcdf', 'grib2', 'tiff', 'image', 'blob', 'zip', 'tar', 'kmz', 'zarr', 'binary'].includes(targetType)) {
+          if (typeof response.blob === 'function') {
+            return response.blob();
+          } else if (typeof response.arrayBuffer === 'function') {
+            return response.arrayBuffer().then(buf => new Blob([buf]));
+          }
+          return new Blob([response]); // Fallback
+        }
+
+        if (targetType === 'json') {
+          // Safety check: if content indicates binary/image preventing JSON parse error
+          const ct = response.headers.get('content-type');
+          if (ct && (ct.includes('image/') || ct.includes('application/octet-stream') || ct.includes('application/x-tar') || ct.includes('application/zip'))) {
+            if (typeof response.blob === 'function') return response.blob();
+            return response.arrayBuffer().then(buf => new Blob([buf]));
+          }
           return response.json();
-        } else if (type === "xml" || type === "soap" || type === "csv" || type === "tab") {
+        }
+
+        if (['xml', 'soap', 'csv', 'tab', 'kml'].includes(targetType)) {
+          return response.text();
+        }
+
+        // Dynamic detection if type is unknown or generic
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          return response.json();
+        } else if (contentType.includes('text/') || contentType.includes('xml') || contentType.includes('application/vnd.google-earth.kml+xml')) {
           return response.text();
         } else {
-          return response.json(); // Default to JSON
+          // Default to blob for anything else (likely binary) to avoid JSON parse errors
+          return response.blob();
         }
       })
       .then((responseData) => {
+        // If process is not explicitly true, return raw data
+        if (params.process !== true) {
+          return responseData;
+        }
+
         if (type === "soap") {
           try {
             //DOM Parser workaround
@@ -665,6 +835,10 @@ function transform({ params, args, data } = {}) {
   };
 
   const extractNestedValue = (obj, path) => {
+    // Check for direct property match first (handles keys with dots like "site.name")
+    if (obj && typeof obj === 'object' && Object.prototype.hasOwnProperty.call(obj, path)) {
+      return obj[path];
+    }
     return path.split('.').reduce((acc, key) => acc?.[key], obj);
   };
 
@@ -679,6 +853,21 @@ function transform({ params, args, data } = {}) {
       }
     }
     return result;
+  };
+
+  // Helper to parse 'keep' argument which can be JSON string, comma-separated string, or array
+  const parseKeepArg = (keepArg) => {
+    if (!keepArg) return [];
+    if (Array.isArray(keepArg)) return keepArg;
+    if (typeof keepArg === 'string') {
+      try {
+        return JSON.parse(keepArg);
+      } catch (e) {
+        // Fallback: assume comma-separated string
+        return keepArg.split(',').map(k => k.trim()).filter(k => k);
+      }
+    }
+    return [];
   };
 
   // === AORC-SPECIFIC HELPER FUNCTIONS ===
@@ -718,48 +907,73 @@ function transform({ params, args, data } = {}) {
   // === PARAMS & ARGS LOGIC ===
   if (!params) {
     data = args?.parse ? cleanData(data) : data;
-  } else if (params.save !== undefined && args === undefined) {
-    const found = recursiveSearch({ obj: data, searchkey: params.save });
-    data = found?.[0];
-  } else if (params.save !== undefined && args.keep !== undefined) {
-    const found = recursiveSearch({ obj: data, searchkey: params.save });
-    data = found?.[0];
+  } else if (params.save !== undefined) {
+    // Determine if we should perform iterative extraction on an array
+    const isIterativeExtraction = Array.isArray(data) && (
+      // If save path has dots (nested) OR explicit instruction (could add flag later, for now infer from data type)
+      // If the user wants to filter *elements* of an array matching a path
+      params.save.includes('.') || args?.keep
+    );
 
-    if (!data) return null;
-    if (args.parse) {
-      data = cleanData(data);
-    }
+    if (isIterativeExtraction && Array.isArray(data)) {
+      // New logic: Map over the array and extract the 'save' path from each item
+      // This is for cases like: data=[{site: {name: 'A'}}, {site: {name: 'B'}}], save='site.name' -> ['A', 'B']
+      // OR data=[{val: {x: 1}}, {val: {x: 2}}], save='val', keep=['x'] -> [{x:1}, {x:2}]
+      const extracted = data.map(item => extractNestedValue(item, params.save)).filter(val => val !== undefined);
 
-    if (typeof args.keep === 'string') {
-      args.keep = JSON.parse(args.keep);
-    }
+      // If extraction yielded results, use them. If not (e.g. maybe save was meant to find a global key?), fall back.
+      // But typically if input is array and we provided a path, we expect mapped results.
+      if (extracted.length > 0) {
+        data = extracted;
+      } else {
+        // Fallback to recursive search (original behavior)
+        const found = recursiveSearch({ obj: data, searchkey: params.save });
+        data = found?.[0] || data; // keep original if not found? or null? existing logic implied found[0]
+      }
+    } else {
+      // Logic for single object input or non-iterative cases
+      const hasDots = params.save.includes('.');
 
-    const keepKeys = new RegExp(args.keep.join('|'));
-
-    if (Array.isArray(data)) {
-      data = data.map(obj => {
-        if (typeof obj !== 'object') return obj;
-        const filtered = {};
-        for (const key in obj) {
-          if (keepKeys.test(key)) {
-            filtered[key] = obj[key];
-          }
-        }
-        return filtered;
-      });
-    } else if (typeof data === 'object' && data !== null) {
-      const filtered = {};
-      for (const key in data) {
-        if (keepKeys.test(key)) {
-          filtered[key] = data[key];
+      if (hasDots) {
+        const val = extractNestedValue(data, params.save);
+        if (val !== undefined) data = val;
+      } else {
+        let found = recursiveSearch({ obj: data, searchkey: params.save });
+        if (found && found.length > 0) {
+          data = found[0];
+        } else {
+          // Fallback: direct property access.
+          const val = extractNestedValue(data, params.save);
+          if (val !== undefined) data = val;
         }
       }
-      data = filtered;
     }
-  } else if (params.save !== undefined && args.keep === undefined) {
-    const found = recursiveSearch({ obj: data, searchkey: params.save });
-    data = found?.[0];
-    data = args?.parse ? cleanData(data) : data;
+
+    if (args?.parse && data) {
+      data = cleanData(data);
+    }
+  }
+
+  // === SLICING ARRAY (e.g. remove headers) ===
+  if (args?.slice !== undefined) {
+    if (Array.isArray(data)) {
+      // slice could be a number (start) or array [start, end]
+      const sliceParams = Array.isArray(args.slice) ? args.slice : [args.slice];
+      data = data.slice(...sliceParams);
+    }
+  }
+
+  // === INNER SLICE (slice each sub-array) ===
+  if (args?.innerSlice !== undefined) {
+    if (Array.isArray(data)) {
+      const sliceParams = Array.isArray(args.innerSlice) ? args.innerSlice : [args.innerSlice];
+      data = data.map(item => {
+        if (Array.isArray(item)) {
+          return item.slice(...sliceParams);
+        }
+        return item;
+      });
+    }
   }
 
   // === PICKING A SPECIFIC ROW FROM 2D ARRAY ===
@@ -794,17 +1008,35 @@ function transform({ params, args, data } = {}) {
     }
   }
 
-  // === KEEP NESTED KEYS AFTER FLATTEN ===
-  if (Array.isArray(data) && args?.keep) {
-    const keepPaths = args.keep;
-    data = data.map(item => {
+  // === KEEP NESTED KEYS AFTER FLATTEN / EXTRACT ===
+  // This handles both Array and Object data types for consistent nested key support
+  if (args?.keep) {
+    const keepPaths = parseKeepArg(args.keep);
+
+    if (Array.isArray(data)) {
+      data = data.map(item => {
+        const extracted = {};
+        for (const path of keepPaths) {
+          // Use the full path as the key to ensure it matches 'args.keep' for later lookup
+          // and to prevent collisions (e.g. site.id vs user.id)
+          const value = extractNestedValue(item, path);
+
+          if (value !== undefined) {
+            extracted[path] = value;
+          }
+        }
+        return extracted;
+      });
+    } else if (typeof data === 'object' && data !== null) {
       const extracted = {};
       for (const path of keepPaths) {
-        const key = path.includes('.') ? path.split('.').pop() : path;
-        extracted[key] = extractNestedValue(item, path);
+        const value = extractNestedValue(data, path);
+        if (value !== undefined) {
+          extracted[path] = value;
+        }
       }
-      return extracted;
-    });
+      data = extracted;
+    }
   }
 
   const type = args?.type;
@@ -812,17 +1044,8 @@ function transform({ params, args, data } = {}) {
 
   if (Array.isArray(data)) {
     arr = deepClone(data);
-
-    if (args?.keep) {
-      const keep = new RegExp(args.keep.join('|'));
-      for (let i = 0; i < arr.length; i++) {
-        for (const k in arr[i]) {
-          if (!keep.test(k)) {
-            delete arr[i][k];
-          }
-        }
-      }
-    }
+    // Previous "keep" logic here (lines 984-993) was deleting keys from arr based on regex again.
+    // Since we already filtered above using correct logic, we don't need this block.
   }
 
   // === FORMAT TRANSFORMATIONS ===
@@ -832,10 +1055,20 @@ function transform({ params, args, data } = {}) {
       return null;
     }
 
+    // Determine the order of keys to extract
+    // If args.keep is provided, use it to ensure order matches headers
+    // Otherwise, use sorted keys from the first object to be deterministic
+    let keys;
+    if (args.keep && Array.isArray(args.keep)) {
+      keys = args.keep;
+    } else if (arr.length > 0) {
+      keys = Object.keys(arr[0]).sort();
+    } else {
+      keys = [];
+    }
+
     const arrays = arr.map(obj =>
-      Object.keys(obj)
-        .sort()
-        .map(key => args.parse ? parseSpecialTypes(obj[key]) : obj[key])
+      keys.map(key => args.parse ? parseSpecialTypes(obj[key]) : obj[key])
     );
 
     const final = Array(arrays[0]?.length || 0)
@@ -849,9 +1082,12 @@ function transform({ params, args, data } = {}) {
     }
 
     // Attach names only if requested
-    if (args.keep && args.attachNames !== false) {
+    if (args.attachNames !== false) {
       for (let j = 0; j < final.length; j++) {
-        final[j].unshift(args.keep[j]);
+        // Use the same keys array for headers to ensure alignment
+        if (keys[j]) {
+          final[j].unshift(keys[j]);
+        }
       }
     }
 
@@ -1325,28 +1561,29 @@ function generateDateString() {
 /*** End of Helper functions **/
 /**********************************/
 
-// Saved data accessor - provides access to user-saved datasets
+// Cache management - simple list and get by key
 /**
- * Cache management API for user access to saved datasets
- * Provides user-friendly interface to view, access, and manage cached data
+ * Cache management API - simple interface
+ * list() to see what's cached, get(key) to retrieve by name
+ * 
+ * @namespace cache
+ * @memberof data
  */
 export const cache = {
   /**
-   * List all cached datasets
-   * @param {Object} options - Filter options
-   * @param {string} options.source - Filter by data source (e.g., 'nhdplus', 'hrrr')
-   * @param {string} options.dataType - Filter by data type (e.g., 'flowlines', 'point-data')
-   * @returns {Promise<Array>} Array of cached dataset info with human-readable details
+   * List all cached datasets with human-readable key names
+   * 
+   * @function list
+   * @memberof data.cache
+   * @param {Object} [options] - Optional filter options
+   * @param {string} [options.source] - Filter by data source (e.g., 'nldas', 'usgs')
+   * @returns {Promise<Array>} Array with cacheKey, size, age for each cached dataset
    * 
    * @example
-   * // List all cached data
-   * const all = await hydro.data.cache.list();
-   * console.log(all);
-   * // [{cacheKey: 'nhdplus/flowlines/abc1', size: 1024000, ageFormatted: '2 days ago', ...}]
-   * 
-   * @example
-   * // List only NHDPlus data
-   * const nhdplus = await hydro.data.cache.list({ source: 'nhdplus' });
+   * const cached = await hydro.data.cache.list();
+   * cached.forEach(item => {
+   *   console.log(`${item.cacheKey} - ${item.sizeFormatted}, ${item.ageFormatted} old`);
+   * });
    */
   async list(options = {}) {
     const cacheInstance = globalThis._hydroCache;
@@ -1367,24 +1604,28 @@ export const cache = {
    * console.log(data);
    */
   async get(cacheKey) {
-    const cacheInstance = globalThis._hydroCache;
+    const cacheInstance = globalThis.hydro?.cache || globalThis._hydroCache;
     if (!cacheInstance) {
       console.warn('Cache not initialized');
       return null;
     }
-    return await cacheInstance.get(cacheKey);
+    const cached = await cacheInstance.get(cacheKey);
+    return cached ? cached.data : null;
   },
 
   /**
-   * Delete a cached dataset
-   * @param {string} cacheKey - The cache key to delete
-   * @returns {Promise<boolean>} Success status
+   * Delete cached dataset by key
+   * 
+   * @function delete
+   * @memberof data.cache
+   * @param {string} cacheKey - Key to delete
+   * @returns {Promise<boolean>} Success
    * 
    * @example
-   * await hydro.data.cache.delete('nhdplus/flowlines/abc1');
+   * await hydro.data.cache.delete('nldas_hourly_lat40.0_lon-105.0_start2024-01-01');
    */
   async delete(cacheKey) {
-    const cacheInstance = globalThis._hydroCache;
+    const cacheInstance = globalThis.hydro?.cache || globalThis._hydroCache;
     if (!cacheInstance) {
       console.warn('Cache not initialized');
       return false;
@@ -1394,8 +1635,11 @@ export const cache = {
   },
 
   /**
-   * Clear all cached data
-   * @returns {Promise<boolean>} Success status
+   * Clear all cache
+   * 
+   * @function clear
+   * @memberof data.cache
+   * @returns {Promise<boolean>} Success
    * 
    * @example
    * await hydro.data.cache.clear();
@@ -1435,7 +1679,79 @@ export const cache = {
       sizeFormatted: cacheInstance.formatBytes(totalSize),
       entries: allEntries
     };
+  },
+
+  /**
+   * Check if data is available in cache without fetching
+   * Returns metadata about cached data including size and age
+   * 
+   * @function checkCache
+   * @memberof data.cache
+   * @param {Object} options - Check options
+   * @param {Object} options.params - Same params as retrieve function
+   * @param {string} options.params.source - Data source (e.g., 'nldas', 'usgs')
+   * @param {string} options.params.datatype - Data type
+   * @param {Object} options.args - Same args as retrieve function  
+   * @returns {Promise<Object|null>} Cached data info or null if not cached
+   * 
+   * @example
+   * // Check if NLDAS data is cached
+   * const cached = await hydro.data.cache.checkCache({
+   *   params: { source: 'nldas', datatype: 'hourly' },
+   *   args: { lat: 40, lon: -105, startDate: '2024-01-01', endDate: '2024-01-02' }
+   * });
+   * if (cached) {
+   *   console.log(`Data cached: ${cached.sizeMB} MB, ${cached.ageDays} days old`);
+   * }
+   */
+  async checkCache({ params, args }) {
+    const cacheInstance = globalThis.hydro?.cache || globalThis._hydroCache;
+    if (!cacheInstance) return null;
+
+    // Generate key from params
+    globalThis._hydroCacheContext = { params: { args } };
+    const key = cacheInstance.generateCacheKey('', params);
+
+    const cached = await cacheInstance.get(key);
+    if (!cached) return null;
+
+    return {
+      available: true,
+      key: key,
+      size: cached.data?.byteLength || 0,
+      sizeMB: ((cached.data?.byteLength || 0) / 1024 / 1024).toFixed(2),
+      age: Date.now() - (cached.metadata?.timestamp || cached.timestamp || Date.now()),
+      ageDays: ((Date.now() - (cached.metadata?.timestamp || cached.timestamp || Date.now())) / (24 * 60 * 60 * 1000)).toFixed(1)
+    };
+  },
+
+  /**
+   * Get comprehensive cache statistics
+   * Returns total size, file count, and detailed entries
+   * 
+   * @function getStats  
+   * @memberof data.cache
+   * @returns {Promise<Object>} Cache statistics
+   * 
+   * @example
+   * const stats = await hydro.data.cache.getStats();
+   * console.log(`Total cache size: ${stats.totalSizeMB} MB`);
+   * console.log(`Files cached: ${stats.totalFiles}`);
+   */
+  async getStats() {
+    const cacheInstance = globalThis.hydro?.cache || globalThis._hydroCache;
+    if (!cacheInstance) {
+      return {
+        totalFiles: 0,
+        totalSize: 0,
+        totalSizeMB: '0.0',
+        totalSizeGB: '0.00',
+        entries: []
+      };
+    }
+    return await cacheInstance.getStats();
   }
 };
 
 export { retrieve, transform, download, upload, recursiveSearch, xml2json, getFile, saveFile };
+export default { retrieve, transform, download, upload, recursiveSearch, xml2json, getFile, saveFile, cache };

@@ -72,17 +72,22 @@ export class HRRRDataSource extends GRIB2DataSource {
   /**
    * Process HRRR GRIB2 file
    */
-  async processFile(url, variable, timestamp) {
+  async processFile(url, variable, timestamp, options = {}) {
     // Fetch file
-    const fileBuffer = await this.fetch(url, { params: { timestamp, variable } });
+    const fileBuffer = await this.fetch(url, { params: { timestamp, variable, ...options.params }, ...options });
 
     // Check if file needs decompression
-    const decompressed = await this.decompress(fileBuffer);
+    const decompressed = await this.decompress(fileBuffer, null, options);
+
+    // If raw mode, return buffer
+    if (options.process !== true) {
+      return decompressed;
+    }
 
     // Debug file signature
     const uint8Array = new Uint8Array(decompressed.buffer || decompressed, 0, Math.min(32, decompressed.byteLength || decompressed.length));
     const fileSignature = Array.from(uint8Array).map(b => b.toString(16).padStart(2, '0')).join(' ');
-    
+
     if (fileSignature.startsWith('47 52 49 42')) {
       console.log(`[hrrr] Valid GRIB2 file detected`);
     } else {
@@ -109,7 +114,7 @@ export class HRRRDataSource extends GRIB2DataSource {
     // Find or use provided product
     const product = options.product || await this.findProductForVariable(variable);
     const forecastHour = options.forecastHour || 0;
-    
+
     if (!this.datasetConfig.products[product]) {
       throw new Error(`Product ${product} not found in dataset ${this.datasetConfig.name || 'hrrr'}`);
     }
@@ -119,13 +124,23 @@ export class HRRRDataSource extends GRIB2DataSource {
     console.log(`[hrrr] Fetching ${product} for ${variable} at ${timestamp.toISOString()}, F${forecastHour.toString().padStart(2, '0')}`);
 
     // Process file
-    const messages = await this.processFile(url, variable, timestamp);
+    const messages = await this.processFile(url, variable, timestamp, { ...options, product, forecastHour });
 
     // Find message for this variable
     const message = this.findGRIB2Message(messages, variable);
 
     // Extract value at point
     const rawValue = this.getGRIB2ValueAtPoint(message, latitude, longitude);
+
+    if (options.process !== true) {
+      return {
+        value: rawValue,
+        units: variableMeta.units,
+        variable,
+        timestamp: timestamp.toISOString()
+      };
+    }
+
     const scaledValue = this.applyScaling(rawValue, variableMeta);
 
     return {
@@ -172,7 +187,7 @@ export class HRRRDataSource extends GRIB2DataSource {
     console.log(`[hrrr] Fetching grid ${product} for ${variable}, F${forecastHour.toString().padStart(2, '0')}`);
 
     // Process file
-    const messages = await this.processFile(url, variable, timestamp);
+    const messages = await this.processFile(url, variable, timestamp, { ...options, product, forecastHour });
 
     // Find message for this variable
     const message = this.findGRIB2Message(messages, variable);
@@ -209,6 +224,52 @@ export class HRRRDataSource extends GRIB2DataSource {
         ...(options.aggregation && { aggregationType: options.aggregation })
       }
     };
+  }
+  /**
+   * Get dataset info
+   */
+  async getDatasetInfo(args) {
+    const infoType = args.info || args.infoType || 'metadata';
+
+    switch (infoType) {
+      case 'variables':
+        return {
+          variables: this.variables,
+          count: Object.keys(this.variables).length
+        };
+
+      case 'spatial':
+        return this.datasetConfig.spatial;
+
+      case 'temporal':
+        return this.datasetConfig.temporal;
+
+      case 'products':
+        return {
+          products: this.datasetConfig.products,
+          count: Object.keys(this.datasetConfig.products).length
+        };
+
+      case 'forecast':
+        return {
+          maxForecastHours: 48,
+          forecastInterval: 1,
+          availableHours: Array.from({ length: 49 }, (_, i) => i)
+        };
+
+      case 'metadata':
+        return {
+          ...this.datasetConfig,
+          variables: this.variables,
+          forecastCapabilities: {
+            maxHours: 48,
+            interval: 1
+          }
+        };
+
+      default:
+        throw new Error(`Unknown HRRR info type: ${infoType}`);
+    }
   }
 }
 
@@ -266,7 +327,7 @@ export async function extractHRRRGridData(variable, bbox, timestamp, datasetConf
  */
 export async function extractHRRRTimeSeries(variable, latitude, longitude, startTime, endTime, datasetConfig, hrrrVariables, product = null) {
   const hrrr = new HRRRDataSource(datasetConfig, hrrrVariables);
-  
+
   // HRRR temporal resolution is hourly
   const timeIncrement = 60 * 60 * 1000; // 1 hour in milliseconds
 
@@ -304,19 +365,19 @@ export function getAvailableHRRRVariables() {
 export function validateHRRRConfig(config) {
   const required = ['baseUrl', 'spatial', 'temporal', 'products'];
 
-    for (const field of required) {
-        if (!config[field]) {
-            console.error(`HRRR config missing required field: ${field}`);
-            return false;
-        }
+  for (const field of required) {
+    if (!config[field]) {
+      console.error(`HRRR config missing required field: ${field}`);
+      return false;
     }
+  }
 
-    // Validate spatial bounds
-    const { spatial } = config;
-    if (!spatial.latitude || !spatial.longitude) {
-        console.error('HRRR config missing spatial latitude/longitude bounds');
-        return false;
-    }
+  // Validate spatial bounds
+  const { spatial } = config;
+  if (!spatial.latitude || !spatial.longitude) {
+    console.error('HRRR config missing spatial latitude/longitude bounds');
+    return false;
+  }
 
   // Validate temporal bounds
   const { temporal } = config;
@@ -324,7 +385,7 @@ export function validateHRRRConfig(config) {
     console.warn('HRRR config missing temporal start/end bounds');
   }
 
-    return true;
+  return true;
 }
 
 /**
@@ -335,24 +396,24 @@ export function validateHRRRConfig(config) {
  * @returns {Object} Dataset information
  */
 export async function getHRRRDatasetInfo(datasetConfig, infoType, hrrrVariables) {
-    switch (infoType) {
-        case 'variables':
-            return {
-                variables: hrrrVariables,
-                count: Object.keys(hrrrVariables).length
-            };
+  switch (infoType) {
+    case 'variables':
+      return {
+        variables: hrrrVariables,
+        count: Object.keys(hrrrVariables).length
+      };
 
-        case 'spatial':
-            return datasetConfig.spatial;
+    case 'spatial':
+      return datasetConfig.spatial;
 
-        case 'temporal':
-            return datasetConfig.temporal;
+    case 'temporal':
+      return datasetConfig.temporal;
 
-        case 'products':
-            return {
-                products: datasetConfig.products,
-                count: Object.keys(datasetConfig.products).length
-            };
+    case 'products':
+      return {
+        products: datasetConfig.products,
+        count: Object.keys(datasetConfig.products).length
+      };
 
     case 'forecast':
       return {
@@ -361,17 +422,17 @@ export async function getHRRRDatasetInfo(datasetConfig, infoType, hrrrVariables)
         availableHours: Array.from({ length: 49 }, (_, i) => i) // 0-48
       };
 
-        case 'metadata':
-            return {
-                ...datasetConfig,
+    case 'metadata':
+      return {
+        ...datasetConfig,
         variables: hrrrVariables,
         forecastCapabilities: {
           maxHours: 48,
           interval: 1
         }
-            };
+      };
 
-        default:
-            throw new Error(`Unknown HRRR info type: ${infoType}`);
-    }
+    default:
+      throw new Error(`Unknown HRRR info type: ${infoType}`);
+  }
 }

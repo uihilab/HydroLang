@@ -40,20 +40,11 @@ export class AORCDataSource extends ZarrDataSource {
     const metadataUrl = `${this.datasetConfig.baseUrl}/${year}.zarr/${variable}/.zarray`;
     console.log(`[aorc] Fetching metadata from: ${metadataUrl}`);
 
-    // Use cachedFetch for consistent proxy handling
-    const { cachedFetch } = await import('./data-cache.js');
-
-    // Set cache context for this request
-    globalThis._hydroCacheContext = {
-      source: 'aorc',
-      dataset: this.datasetConfig.name || 'aorc-v1.1',
-      dataType: 'metadata'
-    };
-
-    const response = await cachedFetch(metadataUrl, {
-      params: {
-        source: 'aorc',
-        dataset: this.datasetConfig.name || 'aorc-v1.1'
+    // Conditional caching - only use cache if explicitly requested
+    // Metadata fetching typically doesn't need caching, so default to standard fetch
+    const response = await fetch(metadataUrl, {
+      headers: {
+        'Accept': 'application/json'
       }
     });
     return await response.json();
@@ -121,25 +112,34 @@ export class AORCDataSource extends ZarrDataSource {
 
     console.log(`[aorc] Fetching/downloading chunk: ${chunkPath}`);
 
-    // Use cachedFetch to get chunk data (will use cache if available, download if not)
-    const { cachedFetch } = await import('./data-cache.js');
-
-    // Set cache context for this request
-    globalThis._hydroCacheContext = {
-      source: 'aorc',
-      dataset: this.datasetConfig.name || 'aorc-v1.1',
-      params: {
+    // Conditional caching - use cache only if explicitly requested
+    let chunkBuffer;
+    if (options.cache === true || options.params?.cache === true) {
+      const { cachedFetch } = await import('./data-cache.js');
+      globalThis._hydroCacheContext = {
         source: 'aorc',
-        dataset: this.datasetConfig.name || 'aorc-v1.1'
-      }
-    };
-
-    const chunkBuffer = await cachedFetch(chunkUrl, {
-      params: {
-        source: 'aorc',
-        dataset: this.datasetConfig.name || 'aorc-v1.1'
-      }
-    });
+        dataset: this.datasetConfig.name || 'aorc-v1.1',
+        params: {
+          source: 'aorc',
+          dataset: this.datasetConfig.name || 'aorc-v1.1'
+        }
+      };
+      const response = await cachedFetch(chunkUrl, {
+        params: {
+          source: 'aorc',
+          dataset: this.datasetConfig.name || 'aorc-v1.1',
+          proxy: options.proxy || options.params?.proxy,
+          process: options.process
+        }
+      });
+      chunkBuffer = response instanceof ArrayBuffer ? response : await response.arrayBuffer();
+    } else {
+      // Standard fetch without caching
+      const response = await fetch(chunkUrl, {
+        headers: { 'Accept': 'application/octet-stream' }
+      });
+      chunkBuffer = await response.arrayBuffer();
+    }
 
     // Ensure we have an ArrayBuffer
     if (!chunkBuffer || !(chunkBuffer instanceof ArrayBuffer)) {
@@ -147,6 +147,13 @@ export class AORCDataSource extends ZarrDataSource {
     }
 
     console.log(`[aorc] Compressed data size: ${chunkBuffer.byteLength} bytes`);
+
+    // Return raw buffer if requested (default)
+    if (options.process !== true) {
+      console.log('[aorc] Returning raw chunk buffer (raw default)');
+      return chunkBuffer;
+    }
+
     console.log(`[aorc] First 20 bytes:`, new Uint8Array(chunkBuffer.slice(0, 20)));
 
     // Check if data is actually compressed
@@ -163,8 +170,8 @@ export class AORCDataSource extends ZarrDataSource {
     try {
       // 1. Try numcodecs Blosc (if available and looks like Blosc)
       if (isBlosc) {
-        if (window.numcodecs && window.numcodecs.Blosc) {
-          decompressed = window.numcodecs.Blosc.decode(chunkBuffer);
+        if (globalThis.numcodecs && globalThis.numcodecs.Blosc) {
+          decompressed = globalThis.numcodecs.Blosc.decode(chunkBuffer);
           console.log(`[aorc] Decompressed with numcodecs.Blosc: ${decompressed.length} bytes`);
         } else if (this.library && this.library.Blosc) {
           decompressed = this.library.Blosc.decode(chunkBuffer);
@@ -174,7 +181,7 @@ export class AORCDataSource extends ZarrDataSource {
 
       // 2. Try Zstd (if looks like Zstd)
       if (!decompressed && isZstd) {
-        const fzstd = window.fzstd || (this.library && this.library.fzstd);
+        const fzstd = globalThis.fzstd || (this.library && this.library.fzstd);
         if (fzstd) {
           decompressed = fzstd.decompress(new Uint8Array(chunkBuffer));
           console.log(`[aorc] Decompressed with fzstd: ${decompressed.length} bytes`);
@@ -185,11 +192,11 @@ export class AORCDataSource extends ZarrDataSource {
 
       // 3. Try Zlib/Inflate (if looks like Zlib)
       if (!decompressed && isZlib) {
-        if (window.pako) {
-          decompressed = window.pako.inflate(chunkBuffer);
+        if (globalThis.pako) {
+          decompressed = globalThis.pako.inflate(chunkBuffer);
           console.log(`[aorc] Decompressed with pako.inflate: ${decompressed.length} bytes`);
-        } else if (window.fflate) {
-          decompressed = window.fflate.decompressSync(new Uint8Array(chunkBuffer));
+        } else if (globalThis.fflate) {
+          decompressed = globalThis.fflate.decompressSync(new Uint8Array(chunkBuffer));
           console.log(`[aorc] Decompressed with fflate: ${decompressed.length} bytes`);
         }
       }
@@ -201,8 +208,8 @@ export class AORCDataSource extends ZarrDataSource {
       }
 
       // 4. Try global decompress function
-      if (!decompressed && typeof window.decompress === 'function') {
-        decompressed = window.decompress(chunkBuffer);
+      if (!decompressed && typeof globalThis.decompress === 'function') {
+        decompressed = globalThis.decompress(chunkBuffer);
         console.log(`[aorc] Decompressed with global function: ${decompressed.length} bytes`);
       }
 
@@ -342,15 +349,28 @@ export class AORCDataSource extends ZarrDataSource {
    * Helper to fetch and decompress a single AORC chunk
    */
   async fetchAndDecompressChunk(url, context) {
-    const { cachedFetch } = await import('./data-cache.js');
-
-    // Set cache context
-    globalThis._hydroCacheContext = context;
-
-    const chunkBuffer = await cachedFetch(url, { params: context.params });
+    // Conditional caching
+    let chunkBuffer;
+    if (context.params?.cache === true) {
+      const { cachedFetch } = await import('./data-cache.js');
+      globalThis._hydroCacheContext = context;
+      const response = await cachedFetch(url, { params: context.params });
+      chunkBuffer = response instanceof ArrayBuffer ? response : await response.arrayBuffer();
+    } else {
+      const response = await fetch(url, {
+        headers: { 'Accept': 'application/octet-stream' }
+      });
+      chunkBuffer = await response.arrayBuffer();
+    }
 
     if (!chunkBuffer || !(chunkBuffer instanceof ArrayBuffer)) {
       throw new Error(`[aorc] Invalid chunk buffer received`);
+    }
+
+    // Check for process: false (or implicit raw mode via undefined process)
+    if (!context.params || context.params.process !== true) {
+      console.log(`[aorc] Skipping decompression (raw mode default)`);
+      return chunkBuffer;
     }
 
     // Check compression
@@ -363,8 +383,8 @@ export class AORCDataSource extends ZarrDataSource {
 
     // 1. Try numcodecs Blosc
     if (isBlosc) {
-      if (window.numcodecs && window.numcodecs.Blosc) {
-        decompressed = window.numcodecs.Blosc.decode(chunkBuffer);
+      if (globalThis.numcodecs && globalThis.numcodecs.Blosc) {
+        decompressed = globalThis.numcodecs.Blosc.decode(chunkBuffer);
       } else if (this.library && this.library.Blosc) {
         decompressed = this.library.Blosc.decode(chunkBuffer);
       }
@@ -372,7 +392,7 @@ export class AORCDataSource extends ZarrDataSource {
 
     // 2. Try Zstd
     if (!decompressed && isZstd) {
-      const fzstd = window.fzstd || (this.library && this.library.fzstd);
+      const fzstd = globalThis.fzstd || (this.library && this.library.fzstd);
       if (fzstd) {
         decompressed = fzstd.decompress(new Uint8Array(chunkBuffer));
       }
@@ -380,10 +400,10 @@ export class AORCDataSource extends ZarrDataSource {
 
     // 3. Try Zlib
     if (!decompressed && isZlib) {
-      if (window.pako) {
-        decompressed = window.pako.inflate(chunkBuffer);
-      } else if (window.fflate) {
-        decompressed = window.fflate.decompressSync(new Uint8Array(chunkBuffer));
+      if (globalThis.pako) {
+        decompressed = globalThis.pako.inflate(chunkBuffer);
+      } else if (globalThis.fflate) {
+        decompressed = globalThis.fflate.decompressSync(new Uint8Array(chunkBuffer));
       }
     }
 
@@ -482,8 +502,35 @@ export class AORCDataSource extends ZarrDataSource {
           const decompressed = await this.fetchAndDecompressChunk(chunkUrl, {
             source: 'aorc',
             dataset: this.datasetConfig.name || 'aorc-v1.1',
-            params: { source: 'aorc', dataset: 'aorc-v1.1' }
+            params: {
+              source: 'aorc',
+              dataset: 'aorc-v1.1',
+              proxy: options.proxy || options.params?.proxy,
+              process: options.process
+            }
           });
+
+          if (options.process !== true) {
+            // Store raw buffer in grid? Or maybe just return array of buffers?
+            // For grid extraction in raw mode, returning a flat list of chunk buffers might be unexpected but it's "raw".
+            // Or we just return the processed grid but without decompression? No that's impossible.
+            // If raw is requested for grid data, maybe we shouldn't be here or we should return a zip?
+            // Let's assume raw means "don't parse values" but we still likely need to decompress to slice?
+            // If "raw" means "raw file", we can't return a single file for grid data easily.
+            // We'll return the decompressed buffer as is for this chunk in the loop logic below?
+            // Wait, previous logic returns `resultGrid` which is Float32.
+            // If raw is true, fetchAndDecompressChunk returns buffer.
+            // We can't put buffer into Float32Array directly if it's compressed.
+            // If fetchAndDecompressChunk returns raw compressed buffer, we can't proceed with slicing.
+            // So for grid data, "raw" might not be fully supported or needs definition. 
+            // BUT, user asked for "raw" for "all gridded data".
+            // Re-reading: "fetchAndDecompressChunk" handles "process: false".
+            // If we get raw buffer here, we can't slice it.
+            // We will just push it to a list?
+            if (!resultGrid.rawChunks) resultGrid.rawChunks = [];
+            resultGrid.rawChunks.push({ urls: chunkPath, buffer: decompressed });
+            continue;
+          }
 
           // Cast to correct type (int16 for AORC usually)
           // AORC data is typically int16 with scale factor
@@ -566,6 +613,30 @@ export class AORCDataSource extends ZarrDataSource {
       units: variableMeta.units
     };
   }
+  /**
+   * Get dataset info
+   */
+  async getDatasetInfo(args) {
+    const infoType = args.info || args.infoType || 'metadata';
+    await this.loadDatasource();
+
+    switch (infoType) {
+      case 'variables':
+        return {
+          variables: this.variables,
+          count: Object.keys(this.variables).length
+        };
+      case 'spatial':
+        return this.datasetConfig.spatial;
+      case 'temporal':
+        return this.datasetConfig.temporal;
+      default:
+        return {
+          ...this.datasetConfig,
+          variables: this.variables
+        };
+    }
+  }
 }
 
 
@@ -600,7 +671,8 @@ export async function processAORCPointData(args, datasetConfig) {
     new Date(args.startDate),
     {
       startDate: args.startDate,
-      endDate: args.endDate || args.startDate
+      endDate: args.endDate || args.startDate,
+      process: args.process
     }
   );
 
@@ -633,7 +705,8 @@ export async function processAORCGridData(args, datasetConfig) {
     new Date(args.startDate),
     {
       startDate: args.startDate,
-      endDate: args.endDate || args.startDate
+      endDate: args.endDate || args.startDate,
+      process: args.process
     }
   );
 }

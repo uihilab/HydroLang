@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3DEP DEM Terrain Analysis Application</title>
+    <script type="module">
+        import Hydro from '../../hydrolang/hydro.js';
+
+        let hydro;
+
+        const log = (message, type = 'info') => {
+            const output = document.getElementById('output');
+            const entry = document.createElement('div');
+            entry.className = `log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}]  ${message}`;
+            output.appendChild(entry);
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        };
+
+        async function runAnalysis() {
+            const button = document.getElementById('runButton');
+            button.disabled = true;
+            document.getElementById('output').innerHTML = '';
+            document.getElementById('results').style.display = 'none';
+
+            try {
+                log('Initializing HydroLang...', 'info');
+                hydro = new Hydro();
+
+                // Wait for modules to load
+                let attempts = 0;
+                while ((!hydro.data || !hydro.analyze || !hydro.analyze.geoprocessor) && attempts < 50) {
+                    await new Promise(r => setTimeout(r, 100));
+                    attempts++;
+                }
+
+                if (!hydro.data || !hydro.analyze.geoprocessor) {
+                    throw new Error('Failed to load required modules');
+                }
+
+                log('HydroLang initialized successfully', 'success');
+
+                // Get form parameters
+                const bbox = [
+                    parseFloat(document.getElementById('west').value),
+                    parseFloat(document.getElementById('south').value),
+                    parseFloat(document.getElementById('east').value),
+                    parseFloat(document.getElementById('north').value)
+                ];
+
+                log(`Retrieving 3DEP DEM for bbox: [${bbox.join(', ')}]...`, 'info');
+
+                // Retrieve 3DEP DEM data
+                const demData = await hydro.data.retrieve({
+                    params: {
+                        source: 'threedep',
+                        datatype: 'grid-data'
+                    },
+                    args: {
+                        dataset: '3dep-dem',
+                        variables: ['elevation'],
+                        bbox: bbox,
+                        resolution: 10,
+                        format: 'geotiff'
+                    }
+                });
+
+                log(`DEM retrieved: ${(demData.byteLength / 1024).toFixed(2)} KB`, 'success');
+
+                // Calculate slope
+                log('Calculating slope...', 'info');
+                const slopeData = await hydro.analyze.geoprocessor.slope({
+                    args: {
+                        scale: 111120,  // Meters per degree
+                        computeEdges: true
+                    },
+                    data: demData
+                });
+                log('Slope calculated', 'success');
+
+                // Calculate aspect
+                log('Calculating aspect (terrain orientation)...', 'info');
+                const aspectData = await hydro.analyze.geoprocessor.aspect({
+                    args: { computeEdges: true },
+                    data: demData
+                });
+                log('Aspect calculated', 'success');
+
+                // Calculate TRI (Terrain Ruggedness Index)
+                log('Calculating TRI (Terrain Ruggedness Index)...', 'info');
+                const triData = await hydro.analyze.geoprocessor.tri({
+                    args: { computeEdges: true },
+                    data: demData
+                });
+                log('TRI calculated', 'success');
+
+                log('All terrain analyses completed successfully!', 'success');
+
+                // Display results
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.style.display = 'block';
+
+                document.getElementById('demSize').textContent = (demData.byteLength / 1024).toFixed(2) + ' KB';
+                document.getElementById('slopeSize').textContent = (slopeData.byteLength / 1024).toFixed(2) + ' KB';
+                document.getElementById('aspectSize').textContent = (aspectData.byteLength / 1024).toFixed(2) + ' KB';
+                document.getElementById('triSize').textContent = (triData.byteLength / 1024).toFixed(2) + ' KB';
+
+            } catch (error) {
+                log(`ERROR: ${error.message}`, 'error');
+                console.error('Full error:', error);
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('runButton').addEventListener('click', runAnalysis);
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3A7D44 0%, #5FB670 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2d5f3b 0%, #3A7D44 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #3A7D44;
+            margin-bottom: 15px;
+            font-size: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .bbox-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .control-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #3A7D44 0%, #5FB670 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #output {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .log-info {
+            color: #2196f3;
+            margin: 3px 0;
+        }
+
+        .log-success {
+            color: #4caf50;
+            margin: 3px 0;
+            font-weight: bold;
+        }
+
+        .log-warning {
+            color: #ff9800;
+            margin: 3px 0;
+        }
+
+        .log-error {
+            color: #f44336;
+            margin: 3px 0;
+            font-weight: bold;
+        }
+
+        #results {
+            display: none;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-card .label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .metric-card .value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #3A7D44;
+        }
+
+        .info-panel {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .info-panel h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-panel ul {
+            margin-left: 20px;
+            color: #1b5e20;
+        }
+
+        .info-panel li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>3DEP DEM Terrain Analysis Application</h1>
+            <p>Retrieve USGS 3DEP Elevation Data and Calculate Terrain Indices</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h2>1. Study Area Bounding Box</h2>
+                <div class="bbox-inputs">
+                    <div class="control-group">
+                        <label>West Longitude</label>
+                        <input type="number" id="west" value="-105.70" step="0.01">
+                    </div>
+                    <div class="control-group">
+                        <label>East Longitude</label>
+                        <input type="number" id="east" value="-105.60" step="0.01">
+                    </div>
+                    <div class="control-group">
+                        <label>South Latitude</label>
+                        <input type="number" id="south" value="39.70" step="0.01">
+                    </div>
+                    <div class="control-group">
+                        <label>North Latitude</label>
+                        <input type="number" id="north" value="39.80" step="0.01">
+                    </div>
+                </div>
+                <button id="runButton">Run Terrain Analysis</button>
+            </div>
+
+            <div class="section">
+                <h2>2. Processing Status</h2>
+                <div id="output"></div>
+            </div>
+
+            <div class="section" id="results">
+                <h2>3. Analysis Results</h2>
+                <div class="metrics">
+                    <div class="metric-card">
+                        <div class="label">DEM Data Size</div>
+                        <div class="value" id="demSize">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">Slope Data Size</div>
+                        <div class="value" id="slopeSize">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">Aspect Data Size</div>
+                        <div class="value" id="aspectSize">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">TRI Data Size</div>
+                        <div class="value" id="triSize">-</div>
+                    </div>
+                </div>
+
+                <div class="info-panel">
+                    <h3>Terrain Analysis Products Generated:</h3>
+                    <ul>
+                        <li><strong>DEM (Digital Elevation Model):</strong> Raw elevation data at 10m resolution</li>
+                        <li><strong>Slope:</strong> Rate of elevation change, useful for runoff analysis and erosion
+                            assessment</li>
+                        <li><strong>Aspect:</strong> Terrain orientation (compass direction), critical for solar
+                            radiation and vegetation studies</li>
+                        <li><strong>TRI (Terrain Ruggedness Index):</strong> Quantifies terrain heterogeneity for
+                            habitat modeling</li>
+                    </ul>
+                </div>
+
+                <div class="info-panel">
+                    <h3>Next Steps:</h3>
+                    <ul>
+                        <li>Use slope for watershed delineation and flow modeling</li>
+                        <li>Combine with precipitation data for flood analysis</li>
+                        <li>Export results to GIS for further visualization</li>
+                        <li>Calculate additional indices: TPI, roughness, hillshade</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

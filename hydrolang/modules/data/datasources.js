@@ -22,7 +22,7 @@ import nws_prediction from "./datasources/nwps.js"
 import wqp from "./datasources/wqp.js"
 import mitigation_dt from "./datasources/mitigation_dt.js"
 import flooddamage_dt from "./datasources/flooddamage_dt.js"
-import ECMWF from "./datasources/ecmwf.js"
+import ecmwf from "./datasources/ecmwf.js"
 import hrrr from "./datasources/hrrr.js"
 import drought from "./datasources/drought.js"
 import nasapower from "./datasources/nasapower.js"
@@ -46,13 +46,20 @@ import metno from "./datasources/metno.js"
 import smhi from "./datasources/smhi.js"
 import tmd from "./datasources/tmd.js"
 import wbd from "./datasources/wbd.js"
+import tamsat from "./datasources/tamsat.js"
+import chirps from "./datasources/chirps.js"
+import silo from "./datasources/silo.js"
+import openmeteo from "./datasources/openmeteo.js"
+import cptec from "./datasources/cptec.js"
+import sissa from "./datasources/sissa.js"
+import smn_argentina from "./datasources/smn_argentina.js"
+import ideam from "./datasources/ideam.js"
+import isric from "./datasources/isric.js"
+import fao from "./datasources/fao.js"
+import hydro_geospatial from "./datasources/hydro_geospatial.js"
 
 
-
-
-
-
-export {
+export default {
   usgs,
   fema,
   noaa,
@@ -74,7 +81,7 @@ export {
   mitigation_dt,
   flooddamage_dt,
   nws_prediction,
-  ECMWF,
+  ecmwf,
   hrrr,
   drought,
   nasapower,
@@ -98,4 +105,15 @@ export {
   smhi,
   tmd,
   wbd,
+  tamsat,
+  chirps,
+  silo,
+  openmeteo,
+  cptec,
+  sissa,
+  smn_argentina,
+  ideam,
+  isric,
+  fao,
+  hydro_geospatial,
 };

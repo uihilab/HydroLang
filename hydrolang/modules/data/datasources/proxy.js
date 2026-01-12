@@ -8,19 +8,22 @@
 
 export default {
   //Required node application to be available on the local machine.
-  "local-proxy":{
+  "local-proxy": {
     endpoint: "https://hydroinformatics.uiowa.edu/lab/cors/"
   },
-  "researchverse":{
+  "researchverse": {
     endpoint: "https://researchverse.ai/backend/api/simple-proxy/"
   },
-  
+  "corsproxy": {
+    endpoint: "https://corsproxy.io/?"
+  },
+
   info: {
     returnFormats: "json",
     MoreInfo: "https://allorigins.win/",
     About: "All proxy servers tried and working can be found here. It is a trial/error to see if a specific error might be working per resource."
   },
-  
+
   "endpoint-info": {
     "researchverse": {
       paramFormat: {

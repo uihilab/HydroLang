@@ -66,31 +66,31 @@ export class PRISMDataSource extends GeoTIFFDataSource {
 
     // Extract additional metadata files if needed
     const JSZip = this.library.JSZip;
-        const zip = await JSZip.loadAsync(zipBuffer);
-        const files = Object.keys(zip.files);
-        
-        const metadata = {};
-        
+    const zip = await JSZip.loadAsync(zipBuffer);
+    const files = Object.keys(zip.files);
+
+    const metadata = {};
+
     // Extract projection file
-        const prjFile = files.find(name => name.toLowerCase().endsWith('.prj'));
-        if (prjFile) {
-            metadata.projection = await zip.files[prjFile].async('string');
-        }
+    const prjFile = files.find(name => name.toLowerCase().endsWith('.prj'));
+    if (prjFile) {
+      metadata.projection = await zip.files[prjFile].async('string');
+    }
 
     // Extract header file (for BIL format)
-        if (fileFormat === 'bil') {
-            const hdrFile = files.find(name => name.toLowerCase().endsWith('.hdr'));
-            if (hdrFile) {
-                metadata.header = await zip.files[hdrFile].async('string');
-            }
-        }
+    if (fileFormat === 'bil') {
+      const hdrFile = files.find(name => name.toLowerCase().endsWith('.hdr'));
+      if (hdrFile) {
+        metadata.header = await zip.files[hdrFile].async('string');
+      }
+    }
 
-        return {
+    return {
       dataBuffer: extracted.data,
-            metadata,
+      metadata,
       filename: extracted.fileName,
-            format: fileFormat
-        };
+      format: fileFormat
+    };
   }
 
   /**
@@ -120,13 +120,26 @@ export class PRISMDataSource extends GeoTIFFDataSource {
     const fileFormat = variableMeta.format || 'tif';
     const extracted = await this.fetchAndExtractPRISM(url, fileFormat);
 
+    // If raw mode (default), return data buffer
+    if (options.process !== true) {
+      return extracted.dataBuffer;
+    }
+
     // Parse GeoTIFF
     const { tiff, image } = await this.parseGeoTIFF(extracted.dataBuffer);
 
     // Extract value at point
     const value = await this.getGeoTIFFValueAtPoint(image, latitude, longitude, variableMeta);
 
-        return {
+    if (options.raw || (options.params && options.params.raw)) {
+      return {
+        value,
+        variable,
+        timestamp: timestamp.toISOString()
+      };
+    }
+
+    return {
       value: value,
       units: variableMeta.units,
       variable: variable,
@@ -134,8 +147,8 @@ export class PRISMDataSource extends GeoTIFFDataSource {
       location: {
         latitude: latitude,
         longitude: longitude
-            },
-            metadata: {
+      },
+      metadata: {
         source: 'PRISM',
         dataType: dataType,
         region: finalRegion,
@@ -172,6 +185,11 @@ export class PRISMDataSource extends GeoTIFFDataSource {
     const fileFormat = variableMeta.format || 'tif';
     const extracted = await this.fetchAndExtractPRISM(url, fileFormat);
 
+    // If raw mode (default), return data buffer
+    if (options.process !== true) {
+      return extracted.dataBuffer;
+    }
+
     // Parse GeoTIFF
     const { tiff, image } = await this.parseGeoTIFF(extracted.dataBuffer);
 
@@ -182,9 +200,9 @@ export class PRISMDataSource extends GeoTIFFDataSource {
     let aggregatedValue = null;
     if (options.aggregation) {
       aggregatedValue = this.aggregateSpatially(gridData.data, options.aggregation);
-        }
+    }
 
-        return {
+    return {
       data: gridData.data,
       width: gridData.width,
       height: gridData.height,
@@ -192,7 +210,7 @@ export class PRISMDataSource extends GeoTIFFDataSource {
       variable: variable,
       timestamp: timestamp.toISOString(),
       ...(aggregatedValue !== null && { aggregatedValue }),
-            metadata: {
+      metadata: {
         source: 'PRISM',
         units: variableMeta.units,
         dataType: dataType,
@@ -285,7 +303,7 @@ export async function extractPRISMTimeSeries(variable, latitude, longitude, star
       next.setFullYear(next.getFullYear() + 1);
       return next;
     };
-            } else {
+  } else {
     timeIncrement = 24 * 60 * 60 * 1000; // Default to daily
   }
 
@@ -331,14 +349,14 @@ export function getAvailablePRISMVariables(dataType = 'daily') {
 export function validatePRISMConfig(config) {
   const required = ['baseUrl', 'spatial', 'temporal'];
 
-    for (const field of required) {
-        if (!config[field]) {
-            console.error(`PRISM config missing required field: ${field}`);
-            return false;
-        }
+  for (const field of required) {
+    if (!config[field]) {
+      console.error(`PRISM config missing required field: ${field}`);
+      return false;
     }
+  }
 
-    return true;
+  return true;
 }
 
 /**
@@ -349,35 +367,35 @@ export function validatePRISMConfig(config) {
  * @returns {Object} Dataset information
  */
 export async function getPRISMDatasetInfo(datasetConfig, infoType, prismVariables) {
-    switch (infoType) {
-        case 'variables':
-            return {
-                variables: prismVariables,
-                count: Object.keys(prismVariables).length
-            };
+  switch (infoType) {
+    case 'variables':
+      return {
+        variables: prismVariables,
+        count: Object.keys(prismVariables).length
+      };
 
-        case 'spatial':
-            return datasetConfig.spatial;
+    case 'spatial':
+      return datasetConfig.spatial;
 
-        case 'temporal':
-            return datasetConfig.temporal;
+    case 'temporal':
+      return datasetConfig.temporal;
 
     case 'dataTypes':
-            return {
+      return {
         dataTypes: ['daily', 'monthly', 'annual'],
         description: 'PRISM provides data at daily, monthly, and annual temporal resolutions'
-            };
+      };
 
-        case 'metadata':
-            return {
-                ...datasetConfig,
+    case 'metadata':
+      return {
+        ...datasetConfig,
         variables: prismVariables,
         dataTypes: ['daily', 'monthly', 'annual'],
         resolutions: ['800m', '4km'],
         regions: ['conus', 'ak', 'hi', 'pr']
-            };
+      };
 
-        default:
-            throw new Error(`Unknown PRISM info type: ${infoType}`);
-    }
+    default:
+      throw new Error(`Unknown PRISM info type: ${infoType}`);
+  }
 }

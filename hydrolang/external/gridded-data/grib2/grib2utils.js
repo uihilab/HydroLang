@@ -34,7 +34,9 @@ export const decodeGRIB2File = function (buffer, options = {}) {
     for (let i = 0; i < gribFileBuffers.length; i++) {
         gribFiles[i] = new GRIB2(gribFileBuffers[i]);
         decodeGRIB2Buffer(gribFileBuffers[i], gribFiles[i], options);
-        gribFiles[i].imgEl = getImgElement(gribFiles[i].data);
+        if (typeof document !== 'undefined') {
+            gribFiles[i].imgEl = getImgElement(gribFiles[i].data);
+        }
     }
 
     return gribFiles;

@@ -78,7 +78,7 @@ export default {
     },
 
     requirements: {
-        needProxy: false,
+        needProxy: true,
         requireskey: true,
         keyname: "serviceKey",
     },

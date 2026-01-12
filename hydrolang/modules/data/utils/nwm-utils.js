@@ -41,14 +41,14 @@ export class NWMDataSource extends ZarrDataSource {
       }
       return index;
     }
-    
+
     // For typed arrays
     for (let i = 0; i < featureArray.length; i++) {
       if (featureArray[i] === comid) {
         return i;
       }
     }
-    
+
     throw new Error(`COMID ${comid} not found in dataset`);
   }
 
@@ -74,14 +74,14 @@ export class NWMDataSource extends ZarrDataSource {
 
     // Convert to appropriate array type
     const featureArray = this.convertToTypedArray(decompressed, featureMetadata.dtype);
-    
+
     // Find COMID index
     const comidIndex = await this.findCOMIDIndex(featureArray, comid);
     console.log(`[nwm] Found COMID ${comid} at index ${comidIndex}`);
 
     // Extract time series data for this COMID
     // (Implementation would depend on Zarr chunk structure)
-    
+
     return {
       comid,
       variable,
@@ -97,18 +97,18 @@ export class NWMDataSource extends ZarrDataSource {
   /**
    * Extract NWM data from NetCDF format
    */
-  async extractNetCDFData(variable, comid, startDate, endDate) {
-  const results = [];
-  const product = variable.product || 'chrtout';
+  async extractNetCDFData(variable, comid, startDate, endDate, options = {}) {
+    const results = [];
+    const product = variable.product || 'chrtout';
     const productConfig = this.datasetConfig.products[product];
 
-  if (!productConfig) {
+    if (!productConfig) {
       throw new Error(`Product ${product} not available for dataset version ${this.datasetConfig.temporal.version}`);
-  }
+    }
 
     // Generate date range and file URLs
-  const dates = generateNWMDateRange(startDate, endDate, productConfig.frequency);
-  const fileUrls = dates.map(date =>
+    const dates = generateNWMDateRange(startDate, endDate, productConfig.frequency);
+    const fileUrls = dates.map(date =>
       this.buildFileURL(date.getFullYear(), date, product, this.datasetConfig.temporal.version)
     );
 
@@ -120,42 +120,59 @@ export class NWMDataSource extends ZarrDataSource {
       throw new Error('NetCDF library not available');
     }
 
-  for (const fileUrl of fileUrls) {
-    try {
+    for (const fileUrl of fileUrls) {
+      try {
         const buffer = await this.fetch(fileUrl);
+
+        if (options.process !== true) {
+          results.push({
+            fileUrl,
+            comid,
+            data: buffer,
+            timestamps: [fileUrl],
+            metadata: { raw: true }
+          });
+          continue;
+        }
+
         const data = netcdfLib.netcdfjs.parse(buffer);
 
         // Extract variable data
-      const variableData = data.variables[variable];
-      if (!variableData) {
+        const variableData = data.variables[variable];
+        if (!variableData) {
           console.warn(`[nwm] Variable ${variable} not found in ${fileUrl}`);
-        continue;
-      }
+          continue;
+        }
 
         // Find COMID index
-      const featureIdVar = data.variables.feature_id;
-      if (!featureIdVar) {
+        const featureIdVar = data.variables.feature_id;
+        if (!featureIdVar) {
           console.warn(`[nwm] Feature ID not found in ${fileUrl}`);
-        continue;
-      }
+          continue;
+        }
 
         const comidIndex = await this.findCOMIDIndex(featureIdVar.data, comid);
+
+        // If raw requested, we might want raw values from NetCDF without scaling
+        // Or if raw means raw file, we should have returned earlier?
+        // Since this iterates files, "raw file" doesn't make sense unless we return list of buffers.
+        // Let's assume raw means unscaled values here.
 
         // Extract time series for this COMID
         const timeVar = data.variables.time;
         const timeSteps = variableData.shape[0];
-      const extractedValues = [];
+        const extractedValues = [];
         const timestamps = [];
 
         const referenceTime = new Date(this.datasetConfig.temporal.timeUnits.replace('hours since ', ''));
 
-      for (let t = 0; t < timeSteps; t++) {
-        const flatIndex = t * featureIdVar.data.length + comidIndex;
-        const rawValue = variableData.data[flatIndex];
+        for (let t = 0; t < timeSteps; t++) {
+          const flatIndex = t * featureIdVar.data.length + comidIndex;
+          const rawValue = variableData.data[flatIndex];
 
           // Check for fill values
           const isFillValue = rawValue === variableData.attributes?._FillValue ||
-                             rawValue === variableData.attributes?.missing_value;
+            rawValue === variableData.attributes?.missing_value;
 
           // Apply scaling
           const variableMeta = {
@@ -168,24 +185,24 @@ export class NWMDataSource extends ZarrDataSource {
           extractedValues.push(scaledValue);
 
           // Calculate timestamp
-        const timestamp = new Date(referenceTime.getTime() + timeVar.data[t] * 60 * 60 * 1000);
-        timestamps.push(timestamp.toISOString());
-      }
+          const timestamp = new Date(referenceTime.getTime() + timeVar.data[t] * 60 * 60 * 1000);
+          timestamps.push(timestamp.toISOString());
+        }
 
-      results.push({
+        results.push({
           fileUrl,
           comid,
           data: extractedValues,
           timestamps,
-        metadata: {
+          metadata: {
             variable,
             product,
             timeSteps,
             units: variableData.attributes?.units || 'unknown'
-        }
-      });
+          }
+        });
 
-    } catch (error) {
+      } catch (error) {
         console.error(`[nwm] Error processing ${fileUrl}:`, error.message);
         // Continue with next file
       }
@@ -199,7 +216,7 @@ export class NWMDataSource extends ZarrDataSource {
    */
   convertToTypedArray(buffer, dtype) {
     const arrayBuffer = buffer.buffer || buffer;
-    
+
     switch (dtype) {
       case '<i4': return new Int32Array(arrayBuffer);
       case '<i8': return new BigInt64Array(arrayBuffer);
@@ -215,16 +232,40 @@ export class NWMDataSource extends ZarrDataSource {
    * Main extraction method (overrides base class)
    * Note: NWM uses COMIDs, not lat/lon
    */
-  async extractData(variable, comid, startDate, endDate) {
+  async extractData(variable, comid, startDate, endDate, options = {}) {
     if (!comid) {
       throw new Error('COMID is required for NWM data extraction');
     }
 
     if (this.format === 'zarr') {
-      return await this.extractZarrData(variable, comid, startDate, endDate);
+      return await this.extractZarrData(variable, comid, startDate, endDate, options);
     } else {
-      return await this.extractNetCDFData(variable, comid, startDate, endDate);
+      return await this.extractNetCDFData(variable, comid, startDate, endDate, options);
     }
+  }
+  /**
+   * Get dataset info
+   */
+  async getDatasetInfo(args) {
+    const infoType = args.info || args.infoType || 'metadata';
+
+    switch (infoType) {
+      case 'spatial':
+        return this.datasetConfig.spatial;
+      case 'temporal':
+        return this.datasetConfig.temporal;
+      default:
+        return {
+          ...this.datasetConfig,
+          variables: await this.getVariables() // Dynamically load variables since they aren't static
+        };
+    }
+  }
+
+  // Helper to load variables if needed
+  async getVariables() {
+    // NWM variables might be defined in datasource file or config
+    return this.datasetConfig.products || {};
   }
 }
 

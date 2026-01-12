@@ -14,7 +14,7 @@ class HydroLangCache {
     this.db = null;
     this.maxCacheSize = 100 * 1024 * 1024 * 1024; // 100GB total
     this.maxFileSize = 10 * 1024 * 1024 * 1024; // 10GB per file max
-    this.maxAge = 90 * 24 * 60 * 60 * 1000; // 90 days
+    this.maxAge = 2 * 24 * 60 * 60 * 1000; // 2 days
     this.cleanupInterval = 60 * 60 * 1000; // Cleanup every hour
     this.lastCleanup = 0;
   }
@@ -52,35 +52,63 @@ class HydroLangCache {
   }
 
   generateCacheKey(url, params = {}) {
-    // Generate deterministic key based on URL and source
+    // Generate human-readable key based on request parameters
     const source = params.source || 'unknown';
     const dataType = params.datatype || 'data';
 
-    // Handle undefined/null URLs
-    if (!url || typeof url !== 'string') {
-      console.warn('generateCacheKey called with invalid URL:', url);
-      return `${source}-${dataType}-invalid-url`;
+    // Extract meaningful parameters from context
+    const context = globalThis._hydroCacheContext || {};
+    const args = context.params?.args || params.args || {};
+
+    // Build human-readable key parts
+    const keyParts = [source, dataType];
+
+    // Add location if available
+    if (args.lat !== undefined && args.lon !== undefined) {
+      keyParts.push(`lat${args.lat}`, `lon${args.lon}`);
+    } else if (args.latitude !== undefined && args.longitude !== undefined) {
+      keyParts.push(`lat${args.latitude}`, `lon${args.longitude}`);
     }
 
-    // Normalize URL - remove proxy prefixes for consistent keys
-    let normalizedUrl = url;
-    if (normalizedUrl.includes('/cors/') || normalizedUrl.includes('/simple-proxy/')) {
-      // Extract original URL from proxy
-      const proxyMatch = normalizedUrl.match(/\/(?:cors|simple-proxy)\/(https?:\/\/.*)$/);
-      if (proxyMatch) {
-        normalizedUrl = proxyMatch[1];
-      }
+    // Add bbox if available
+    if (args.bbox) {
+      const bbox = Array.isArray(args.bbox) ? args.bbox.join('_') : args.bbox;
+      keyParts.push(`bbox${bbox}`);
     }
 
-    // Create hash of normalized URL for deterministic keys
-    let hash = 0;
-    for (let i = 0; i < normalizedUrl.length; i++) {
-      const char = normalizedUrl.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
+    // Add date range if available
+    if (args.startDate || args.startDT) {
+      const start = String(args.startDate || args.startDT).substring(0, 10); // YYYY-MM-DD
+      keyParts.push(`start${start}`);
+    }
+    if (args.endDate || args.endDT) {
+      const end = String(args.endDate || args.endDT).substring(0, 10);
+      keyParts.push(`end${end}`);
     }
 
-    return `${source}-${dataType}-${Math.abs(hash)}`;
+    // Add timestamp for single-time requests
+    if (args.time || args.timestamp) {
+      const time = String(args.time || args.timestamp).substring(0, 10);
+      keyParts.push(`time${time}`);
+    }
+
+    // Add dataset/variable if available
+    if (args.dataset) {
+      keyParts.push(args.dataset);
+    }
+    if (args.variable) {
+      keyParts.push(args.variable);
+    }
+
+    // Add site ID if available (for USGS, etc.)
+    if (args.sites || args.site) {
+      keyParts.push(`site${args.sites || args.site}`);
+    }
+
+    // Join with underscores for readability, remove special characters
+    const cacheKey = keyParts.join('_').replace(/[^a-zA-Z0-9_\-\.]/g, '');
+
+    return cacheKey;
   }
 
   // Generate chunk-specific cache key
@@ -256,7 +284,8 @@ class HydroLangCache {
       }),
       arrayBuffer: async () => totalBuffer.buffer,
       text: async () => new TextDecoder().decode(totalBuffer),
-      json: async () => JSON.parse(new TextDecoder().decode(totalBuffer))
+      json: async () => JSON.parse(new TextDecoder().decode(totalBuffer)),
+      blob: async () => new Blob([totalBuffer.buffer])
     };
   }
 
@@ -626,6 +655,70 @@ class HydroLangCache {
 
       transaction.onerror = () => reject(transaction.error);
     });
+  }
+
+  async putChunked(cacheKey, buffer, metadata, chunkSize = 100 * 1024 * 1024) {
+    if (!this.db) await this.init();
+
+    const totalSize = buffer.byteLength;
+    const totalChunks = Math.ceil(totalSize / chunkSize);
+    const baseKey = cacheKey;
+
+    console.log(`Storing large file as ${totalChunks} chunks: ${cacheKey}`);
+
+    // Store chunks
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * chunkSize;
+      const end = Math.min(start + chunkSize, totalSize);
+      const chunkData = buffer.slice(start, end);
+      const chunkKey = this.generateChunkKey(baseKey, i);
+
+      await this.put(chunkKey, chunkData, {
+        ...metadata,
+        cacheKey: chunkKey,
+        format: 'chunk',
+        isChunk: true,
+        chunkIndex: i,
+        totalChunks,
+        chunkStart: start,
+        chunkEnd: end - 1,
+        baseKey,
+        isChunkData: true
+      });
+    }
+
+    // Store manifest/metadata as the main entry
+    // This allows get() to find it and reassemble
+    // We store an empty buffer or a small marker for the main entry
+    // But wait, get() checks for isChunk. If we store a main entry that is NOT a chunk,
+    // get() will return it.
+    // get() logic:
+    // if (entry && !entry.isChunk) -> return entry.data
+    // else -> reassembleChunks
+
+    // So we should NOT store a main entry with data.
+    // But reassembleChunks looks for chunks with baseKey.
+    // It doesn't look for a main entry.
+
+    // However, we might want to store metadata about the file.
+    // If we don't store a main entry, get() will fail to find singleFile and go to reassembleChunks.
+    // reassembleChunks finds chunks by baseKey.
+    // The chunks we stored have baseKey set.
+    // So reassembleChunks should work.
+
+    // But we might want to store a "manifest" or just rely on reassembleChunks.
+    // reassembleChunks iterates ALL files to find matching baseKey. This is slow.
+    // Ideally we should have an index on baseKey.
+    // We do: store.createIndex('source_dataset', ...) but not baseKey?
+    // Wait, reassembleChunks uses openCursor() and iterates everything?
+    // Yes: `const request = store.openCursor();`
+    // This is inefficient.
+
+    // But for now, to fix the error, I just need to implement putChunked.
+    // The current implementation of reassembleChunks scans everything.
+    // So if I store chunks with baseKey, it should work.
+
+    return baseKey;
   }
 
   async updateLastAccessed(cacheKey) {
@@ -1180,30 +1273,40 @@ function detectFormat(url, contentType) {
  */
 export async function cachedFetch(url, options = {}) {
   const cache = globalThis.hydro?.cache;
-  if (!cache) return globalThis._originalFetch(url, options);
+
+  // Safety check: if _originalFetch isn't set yet (e.g. called before init), use native fetch
+  // This prevents "globalThis._originalFetch is not a function" errors
+  const fetchFn = globalThis._originalFetch || globalThis.fetch;
+
+  if (!cache) return fetchFn(url, options);
 
   const context = globalThis._hydroCacheContext || {};
   const cacheKey = generateSimpleCacheKey(context, url);
 
-  // 1. CHECK CACHE FIRST
-  try {
-    const cached = await cache.get(cacheKey);
-    if (cached) {
-      console.log(`✓ Cache hit [${cacheKey}]`);
-      const format = cached.metadata?.format;
+  // 1. CHECK CACHE FIRST (if caching is enabled)
+  // If context.cache is explicitly false, skip cache read
+  if (context.cache !== false) {
+    try {
+      const cached = await cache.get(cacheKey);
+      if (cached) {
+        console.log(`✓ Cache hit [${cacheKey}]`);
+        const format = cached.metadata?.format;
 
-      // Return appropriately based on format
-      if (format === 'json' || format === 'xml') {
-        return new Response(new Blob([cached.data], { type: cached.metadata.contentType }), {
-          status: cached.metadata.responseStatus || 200,
-          headers: { 'content-type': cached.metadata.contentType }
-        });
-      } else {
-        return cached.data;  // Return ArrayBuffer for binary data
+        // Return appropriately based on format
+        if (format === 'json' || format === 'xml') {
+          return new Response(new Blob([cached.data], { type: cached.metadata.contentType }), {
+            status: cached.metadata.responseStatus || 200,
+            headers: { 'content-type': cached.metadata.contentType }
+          });
+        } else {
+          return cached.data;  // Return ArrayBuffer for binary data
+        }
       }
+    } catch (e) {
+      console.warn('Cache read failed:', e.message);
     }
-  } catch (e) {
-    console.warn('Cache read failed:', e.message);
+  } else {
+    console.log(`Cache disabled for this request: ${url}`);
   }
 
   // Not cached - need to fetch from server
@@ -1228,19 +1331,52 @@ export async function cachedFetch(url, options = {}) {
 
   // Only use chunked download if:
   // 1. Explicitly requested via context.useChunkedDownload
-  // 2. Expected size is known to be very large (>100MB)
-  // 3. URL is a very large GRIB2/NetCDF from NOAA/AWS
+  // 2. Expected size is known to be very large (>100MB) AND not explicitly disabled
+  // 3. URL is a very large GRIB2/NetCDF from NOAA/AWS AND not explicitly disabled
   // DO NOT chunk: WFS requests, Zarr chunks, metadata files, or smaller files (PRISM zips, GeoTIFFs, etc.)
+
+  // Explicit control:
+  // context.useChunkedDownload === true -> Force chunked
+  // context.useChunkedDownload === false -> Force NO chunked (if it was passed as false) -- wait, I set default to undefined/false in data.js for now?
+  // Let's check how I set it in data.js: 
+  // context.useChunkedDownload = params.chunked === true || params.chunked === 'auto'
+  // So if params.chunked is false/undefined, we rely on auto detection? No, if the user wants to DISABLE it, we need to know.
+  // Actually, in data.js I wrote: `useChunkedDownload: params.chunked === true || params.chunked === 'auto'`
+  // If params.chunked is `false` (explicitly), `useChunkedDownload` will be `false`.
+  // If params.chunked is `undefined` (default), `useChunkedDownload` will be `false`.
+  // This logic is slightly flawed if we want "default auto, allow disable".
+
+  // Correct logic in data.js should have been: `chunked: params.chunked`
+  // And here we interpret:
+  // if (context.params.chunked === true) -> Force YES
+  // if (context.params.chunked === false) -> Force NO
+  // if (undefined) -> Auto
+
+  // Since I can't change data.js in this same turn easily (I just did, but let's stick to what I have or fix it).
+  // In data.js I set `useChunkedDownload` based on `params.chunked`.
+  // Wait, I should probably rely on `context.params.chunked` directly here for better clarity? 
+  // context.params is available.
+
+  const explicitChunked = context.params?.chunked;
+
   const shouldUseChunked = !isWFSRequest &&
     !isZarrChunk &&
-    !isMetadataFile && (
-      context.useChunkedDownload ||
-      (context.expectedSize && context.expectedSize > 100 * 1024 * 1024) ||
-      isLargeGriddedFile
+    !isMetadataFile &&
+    (explicitChunked === true || /* Force enable */
+      (explicitChunked !== false && /* Not explicitly disabled */
+        (
+          context.useChunkedDownload || /* Legacy/Internal flag */
+          (context.expectedSize && context.expectedSize > 100 * 1024 * 1024) ||
+          isLargeGriddedFile
+        )
+      )
     );
 
-  // Skip direct fetch for URLs that will always fail with CORS
-  const skipDirectFetch = url.includes('ncep.noaa.gov') || url.includes('nomads.ncep.noaa.gov') ||
+  // Explicit proxy request
+  const proxyRequested = options.proxy === true || options.params?.proxy === true || context.params?.proxy === true;
+
+  // Skip direct fetch for URLs that will always fail with CORS oR if proxy explicit requested
+  const skipDirectFetch = proxyRequested || url.includes('ncep.noaa.gov') || url.includes('nomads.ncep.noaa.gov') ||
     url.includes('amazonaws.com') || url.includes('nasa.gov');
 
   if (!skipDirectFetch) {
@@ -1343,7 +1479,8 @@ export async function cachedFetch(url, options = {}) {
   const isAPIResponse = (format === 'json' || format === 'xml');
 
   // 4. CACHE THE DATA (chunked downloads already cached)
-  if (!shouldUseChunked) {
+  // context.cache !== false checks if caching is enabled (default is true)
+  if (!shouldUseChunked && context.cache !== false) {
     try {
       const buffer = await response.clone().arrayBuffer();
       const isZarrChunk = (format === 'zarr-chunk');

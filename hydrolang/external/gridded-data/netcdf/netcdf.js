@@ -71,10 +71,11 @@ async function load(options = {}) {
     );
 
     // Create library interface
+    const globalObj = typeof window !== 'undefined' ? window : globalThis;
     netcdfLibraries = {
-      netcdfjs: window.netcdfjs || null,
-      geotiff: window.GeoTIFF || null,
-      proj4: window.proj4 || null,
+      netcdfjs: globalObj.netcdfjs || null,
+      geotiff: globalObj.GeoTIFF || null,
+      proj4: globalObj.proj4 || null,
       loadedAt: new Date()
     };
 

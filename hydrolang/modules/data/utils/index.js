@@ -64,15 +64,6 @@ export const GRIDDED_SOURCES = {
       'dataset-info': 'getDatasetInfo'
     }
   },
-  ecmwf: {
-    library: 'grib2',
-    DataSourceClass: ECMWFDataSource,
-    methods: {
-      'point-data': 'extractPointData',
-      'grid-data': 'extractGridData',
-      'timeseries-data': 'extractTimeSeries'
-    }
-  },
   prism: {
     library: 'geospatial',
     DataSourceClass: PRISMDataSource,
@@ -103,16 +94,7 @@ export const GRIDDED_SOURCES = {
       'grid-data': 'fetchDEMData'
     }
   },
-  nldas: {
-    library: 'netcdf',
-    DataSourceClass: NLDASDataSource,
-    methods: {
-      'point-data': 'extractPointData',
-      'grid-data': 'extractGridData',
-      'timeseries-data': 'extractTimeSeries',
-      'dataset-info': 'getDatasetInfo'
-    }
-  }
+
 };
 
 /**
@@ -132,9 +114,51 @@ export async function processGriddedSource(source, dataType, args, datasources) 
     throw new Error(`Unknown gridded source: ${source}`);
   }
 
-  // Get dataset configuration from datasources
-  const dataset = args.dataset || Object.keys(datasources[source].datasets)[0];
-  const originalConfig = datasources[source].datasets[dataset];
+  // Resolve datasource config, handling both direct and default export structures
+  console.log(`[Data Debug] processGriddedSource called for source: ${source}`);
+  console.log(`[Data Debug] datasources keys: ${Object.keys(datasources)}`);
+  if (datasources.default) {
+    console.log(`[Data Debug] datasources.default keys: ${Object.keys(datasources.default)}`);
+  }
+
+  let sourceConfig = datasources[source];
+  if (!sourceConfig && datasources.default && datasources.default[source]) {
+    console.log(`[Data Debug] Found ${source} in datasources.default`);
+    sourceConfig = datasources.default[source];
+  } else if (sourceConfig) {
+    console.log(`[Data Debug] Found ${source} directly in datasources`);
+  } else {
+    console.error(`[Data Debug] Could not find ${source} anywhere!`);
+  }
+
+  // CRITICAL: Handle Module Namespace Objects (where default export is nested in .default)
+  if (sourceConfig && sourceConfig.default && !sourceConfig.datasets) {
+    console.log(`[Data Debug] Unwrapping .default from ${source} config`);
+    sourceConfig = sourceConfig.default;
+  }
+
+  if (!sourceConfig || !sourceConfig.datasets) {
+    console.error(`[Data] Failed to resolve datasource configuration for '${source}'`, {
+      direct: !!datasources[source],
+      inDefault: !!(datasources.default && datasources.default[source]),
+      keys: Object.keys(datasources),
+      sourceConfigStructure: JSON.stringify(sourceConfig, (key, value) => {
+        // Circular reference protection + simple typing
+        if (key === 'default') return '[Object]';
+        return value;
+      })
+    });
+    // Check if it's an empty object which implies bad import
+    if (sourceConfig && Object.keys(sourceConfig).length === 0) {
+      console.error(`[Data Debug] Config for ${source} is an empty object! Imports may be broken.`);
+    }
+    throw new Error(`Configuration for source '${source}' is missing or invalid (datasets property not found).`);
+    throw new Error(`Configuration for source '${source}' is missing or invalid (datasets property not found).`);
+  }
+
+  // Get dataset configuration from resolved sourceConfig
+  const dataset = args.dataset || Object.keys(sourceConfig.datasets)[0];
+  const originalConfig = sourceConfig.datasets[dataset];
   if (!originalConfig) {
     throw new Error(`Unknown ${source} dataset: ${dataset}`);
   }
@@ -148,12 +172,13 @@ export async function processGriddedSource(source, dataType, args, datasources) 
   }
 
   try {
-    // Create instance of the data source class
     const DataSourceClass = config.DataSourceClass;
-    const dataSourceInstance = new DataSourceClass(datasetConfig, datasources[source].variables);
+    const dataSourceInstance = new DataSourceClass(datasetConfig, sourceConfig.variables || {});
 
-    // Ensure library is loaded
-    await dataSourceInstance.loadLibrary();
+    // Ensure library is loaded (only if processing is enabled)
+    if (args.process !== false) {
+      await dataSourceInstance.loadLibrary();
+    }
 
     // Call the method directly on the class instance
     if (typeof dataSourceInstance[methodName] !== 'function') {
@@ -163,17 +188,11 @@ export async function processGriddedSource(source, dataType, args, datasources) 
     // Unpack arguments based on dataType (methods expect individual params, not an args object)
     let result;
 
-    // Special handling for 3DEP (has different method signatures)
+    // Special handling for 3DEP: pass args object directly as per new design
     if (source === 'threedep') {
-      if (dataType === 'point-data') {
-        result = await dataSourceInstance[methodName](args.latitude, args.longitude, args.progressCallback);
-      } else if (dataType === 'grid-data') {
-        result = await dataSourceInstance[methodName](args.bbox, args.resolution || 10, args.progressCallback);
-      } else {
-        result = await dataSourceInstance[methodName](args);
-      }
+      result = await dataSourceInstance[methodName](args);
     } else {
-      // Standard gridded data source signatures
+      // Standard gridded data source signatures (Legacy/Unchanged for now)
       switch (dataType) {
         case 'point-data':
           result = await dataSourceInstance[methodName](
@@ -220,7 +239,7 @@ export async function processGriddedSource(source, dataType, args, datasources) 
 
         // Retry with library loaded
         const DataSourceClass = config.DataSourceClass;
-        const dataSourceInstance = new DataSourceClass(datasetConfig, datasources[source].variables);
+        const dataSourceInstance = new DataSourceClass(datasetConfig, sourceConfig.variables || {});
         await dataSourceInstance.loadLibrary();
 
         // Unpack arguments the same way
@@ -228,13 +247,7 @@ export async function processGriddedSource(source, dataType, args, datasources) 
 
         // Special handling for 3DEP
         if (source === 'threedep') {
-          if (dataType === 'point-data') {
-            retryResult = await dataSourceInstance[methodName](args.latitude, args.longitude, args.progressCallback);
-          } else if (dataType === 'grid-data') {
-            retryResult = await dataSourceInstance[methodName](args.bbox, args.resolution || 10, args.progressCallback);
-          } else {
-            retryResult = await dataSourceInstance[methodName](args);
-          }
+          retryResult = await dataSourceInstance[methodName](args);
         } else {
           // Standard gridded data source signatures
           switch (dataType) {

@@ -9,210 +9,270 @@
  * @memberof datasources
  */
 
-export default {
-  // Get MARS data (Meteorological Archival and Retrieval System)
-  "mars-data": {
-    endpoint: "https://api.ecmwf.int/v1/services/mars/requests",
-    params: {
-      dataset: null,
-      date: null,
-      expver: null,
-      levtype: null,
-      param: null,
-      step: null,
-      stream: null,
-      time: null,
-      type: null,
-      target: null,
-      format: null,
-      area: null
-    },
-    methods: {
-      type: "json",
-      method: "POST"
+const defaultExport = {
+  /**
+   * Generates the URL/Endpoint for ECMWF data based on user arguments.
+   * @param {Object} args - Arguments for the request
+   * @param {string} dataType - Type of data requested (mapped to dataset key)
+   * @returns {string} Endpoint URL
+   */
+  sourceType: function (args, dataType) {
+    console.log(`[ECMWF Debug] sourceType called with dataType: ${dataType}`);
+    // Default to era5-grib2 if not specified or known, similar to chirps
+    // Note: dataType here corresponds to 'dataset' in ecmwf config usually
+
+    // Check if this.datasets is accessible
+    if (!this.datasets) {
+      console.error("[ECMWF Debug] this.datasets is undefined!");
+      // Fallback to accessing via the variable if 'this' context is lost (though it shouldn't be)
+      if (defaultExport && defaultExport.datasets) {
+        console.log("[ECMWF Debug] Recovered datasets from defaultExport variable.");
+        return defaultExport.sourceType(args, dataType); // Be careful of recursion if context matches
+      }
     }
+
+    const datasetKey = (dataType && this.datasets[dataType]) ? dataType : "era5-grib2";
+    console.log(`[ECMWF Debug] Resolved datasetKey: ${datasetKey}`);
+
+    const config = this.datasets[datasetKey];
+
+    if (!config) {
+      throw new Error(`ECMWF Dataset '${dataType}' is not supported or invalid.`);
+    }
+
+    console.log(`[ECMWF Debug] Config endpoint: ${config.endpoint}`);
+
+    // Auto-construct full resource URL for CDS API
+    if (config.endpoint.includes('cds.climate.copernicus.eu') && config.params && config.params.dataset) {
+      const fullUrl = `${config.endpoint}/resources/${config.params.dataset}`;
+      console.log(`[ECMWF Debug] Constructed full URL: ${fullUrl}`);
+      return fullUrl;
+    }
+
+    return config.endpoint;
   },
 
-  // Get data from the ERA5 reanalysis dataset
-  "era5": {
-    endpoint: "https://api.ecmwf.int/v1/services/cds/datasets/reanalysis-era5-single-levels",
-    params: {
-      product_type: null,
-      format: null,
-      variable: null,
-      year: null,
-      month: null,
-      day: null,
-      time: null,
-      area: null
-    },
-    methods: {
-      type: "json",
-      method: "POST"
-    }
-  },
 
-  // Get seasonal forecast data
-  "seasonal-forecast": {
-    endpoint: "https://api.ecmwf.int/v1/services/cds/datasets/seasonal-monthly-single-levels",
-    params: {
-      originating_centre: null,
-      system: null,
-      variable: null,
-      product_type: null,
-      year: null,
-      month: null,
-      leadtime_month: null,
-      format: null
-    },
-    methods: {
-      type: "json",
-      method: "POST"
-    }
-  },
-  
-  // Get climate projections data
-  "climate-projections": {
-    endpoint: "https://api.ecmwf.int/v1/services/cds/datasets/projections-cmip6",
-    params: {
-      format: null,
-      experiment: null,
-      temporal_resolution: null,
-      variable: null,
-      model: null,
-      date: null,
-      area: null
-    },
-    methods: {
-      type: "json",
-      method: "POST"
-    }
-  },
 
-  // ECMWF GRIB2 data access (direct file access)
-  "grib2-data": {
-    endpoint: null, // Dynamic endpoint based on product type
-    params: {
-      product: null, // Product type: 'oper', 'enfo', 'wave', 'seasonal', 'monthly'
-      date: null, // Date in YYYYMMDD format
-      time: null, // Time in HH format
-      step: null, // Forecast step
-      param: null, // Parameter code
-      levtype: null, // Level type: 'sfc', 'pl', 'ml', 'pt', 'pv'
-      levelist: null, // Level values
-      area: null, // Area specification
-      grid: null, // Grid resolution
-      format: "grib2" // Always GRIB2 for this endpoint
+  datasets: {
+    // Get MARS data (Meteorological Archival and Retrieval System)
+    "mars-data": {
+      endpoint: "https://api.ecmwf.int/v1/services/mars/requests",
+      params: {
+        dataset: null,
+        date: null,
+        expver: null,
+        levtype: null,
+        param: null,
+        step: null,
+        stream: null,
+        time: null,
+        type: null,
+        target: null,
+        format: null,
+        area: null
+      },
+      methods: {
+        type: "json",
+        method: "POST"
+      }
     },
-    methods: {
-      type: "binary",
-      method: "GET"
-    }
-  },
 
-  // Enhanced ERA5 data with GRIB2 format option
-  "era5-grib2": {
-    endpoint: "https://cds.climate.copernicus.eu/api/v2",
-    params: {
-      dataset: "reanalysis-era5-single-levels",
-      product_type: "reanalysis",
-      format: "grib",
-      variable: null,
-      year: null,
-      month: null,
-      day: null,
-      time: null,
-      area: null
+    // Get data from the ERA5 reanalysis dataset
+    "era5": {
+      endpoint: "https://api.ecmwf.int/v1/services/cds/datasets/reanalysis-era5-single-levels",
+      params: {
+        product_type: null,
+        format: null,
+        variable: null,
+        year: null,
+        month: null,
+        day: null,
+        time: null,
+        area: null
+      },
+      methods: {
+        type: "json",
+        method: "POST"
+      }
     },
-    methods: {
-      type: "json",
-      method: "POST"
-    }
-  },
 
-  // ECMWF forecast data in GRIB2 format
-  "forecast-grib2": {
-    endpoint: "https://api.ecmwf.int/v1/services/mars/requests",
-    params: {
-      class: "od", // Operational dissemination
-      date: null,
-      expver: "1",
-      levtype: null,
-      param: null,
-      step: null,
-      stream: null, // oper, enfo, wave
-      time: null,
-      type: "fc", // Forecast
-      target: null,
-      format: "grib2",
-      area: null
+    // Get seasonal forecast data
+    "seasonal-forecast": {
+      endpoint: "https://api.ecmwf.int/v1/services/cds/datasets/seasonal-monthly-single-levels",
+      params: {
+        originating_centre: null,
+        system: null,
+        variable: null,
+        product_type: null,
+        year: null,
+        month: null,
+        leadtime_month: null,
+        format: null
+      },
+      methods: {
+        type: "json",
+        method: "POST"
+      }
     },
-    methods: {
-      type: "json",
-      method: "POST"
-    }
-  },
 
-  // Point data extraction - single location, single variable
-  "point-data": {
-    endpoint: null, // Dynamic endpoint based on dataset
-    params: {
-      dataset: null, // Dataset identifier (e.g., "era5")
-      variable: null, // Variable name (e.g., "2m_temperature", "total_precipitation")
-      latitude: null, // Single latitude coordinate
-      longitude: null, // Single longitude coordinate
-      startDate: null, // ISO date string
-      endDate: null, // ISO date string
-      format: null // Output format: "json", "csv", "netcdf"
+    // Get climate projections data
+    "climate-projections": {
+      endpoint: "https://api.ecmwf.int/v1/services/cds/datasets/projections-cmip6",
+      params: {
+        format: null,
+        experiment: null,
+        temporal_resolution: null,
+        variable: null,
+        model: null,
+        date: null,
+        area: null
+      },
+      methods: {
+        type: "json",
+        method: "POST"
+      }
     },
-    methods: {
-      type: "json",
-      method: "GET"
-    }
-  },
 
-  // Grid data extraction - spatial subset
-  "grid-data": {
-    endpoint: null, // Dynamic endpoint based on dataset
-    params: {
-      dataset: null, // Dataset identifier
-      variable: null, // Variable name
-      bbox: null, // Bounding box: [west, south, east, north]
-      startDate: null, // ISO date string
-      endDate: null, // ISO date string
-      format: null // Output format
+    // ECMWF GRIB2 data access (direct file access)
+    "grib2-data": {
+      endpoint: null, // Dynamic endpoint based on product type
+      params: {
+        product: null, // Product type: 'oper', 'enfo', 'wave', 'seasonal', 'monthly'
+        date: null, // Date in YYYYMMDD format
+        time: null, // Time in HH format
+        step: null, // Forecast step
+        param: null, // Parameter code
+        levtype: null, // Level type: 'sfc', 'pl', 'ml', 'pt', 'pv'
+        levelist: null, // Level values
+        area: null, // Area specification
+        grid: null, // Grid resolution
+        format: "grib2" // Always GRIB2 for this endpoint
+      },
+      methods: {
+        type: "binary",
+        method: "GET"
+      }
     },
-    methods: {
-      type: "json",
-      method: "GET"
-    }
-  },
 
-  // Time series extraction - single location, time series
-  "timeseries-data": {
-    endpoint: null, // Dynamic endpoint based on dataset
-    params: {
-      dataset: null, // Dataset identifier
-      variable: null, // Variable name
-      latitude: null, // Single latitude coordinate
-      longitude: null, // Single longitude coordinate
-      startDate: null, // ISO date string
-      endDate: null, // ISO date string
-      format: null // Output format
+    // Explicit raw-grib2 config as specific alias for direct retrieval testing
+    "raw-grib2": {
+      endpoint: "https://cds.climate.copernicus.eu/api/v2",
+      params: {
+        dataset: "reanalysis-era5-single-levels",
+        product_type: "reanalysis",
+        format: "grib",
+      },
+      methods: {
+        type: "binary",
+        method: "POST"
+      }
     },
-    methods: {
-      type: "json",
-      method: "GET"
-    }
-  },
 
-  // Available variables
-  "available-variables": {
-    endpoint: null,
-    params: {},
-    methods: {
-      type: "json",
-      method: "GET"
+    // Enhanced ERA5 data with GRIB2 format option
+    "era5-grib2": {
+      endpoint: "https://cds.climate.copernicus.eu/api/v2",
+      params: {
+        dataset: "reanalysis-era5-single-levels",
+        product_type: "reanalysis",
+        format: "grib",
+        variable: null,
+        year: null,
+        month: null,
+        day: null,
+        time: null,
+        area: null
+      },
+      methods: {
+        type: "json",
+        method: "POST"
+      }
+    },
+
+    // ECMWF forecast data in GRIB2 format
+    "forecast-grib2": {
+      endpoint: "https://api.ecmwf.int/v1/services/mars/requests",
+      params: {
+        class: "od", // Operational dissemination
+        date: null,
+        expver: "1",
+        levtype: null,
+        param: null,
+        step: null,
+        stream: null, // oper, enfo, wave
+        time: null,
+        type: "fc", // Forecast
+        target: null,
+        format: "grib2",
+        area: null
+      },
+      methods: {
+        type: "json",
+        method: "POST"
+      }
+    },
+
+    // Point data extraction - single location, single variable
+    "point-data": {
+      endpoint: null, // Dynamic endpoint based on dataset
+      params: {
+        dataset: null, // Dataset identifier (e.g., "era5")
+        variable: null, // Variable name (e.g., "2m_temperature", "total_precipitation")
+        latitude: null, // Single latitude coordinate
+        longitude: null, // Single longitude coordinate
+        startDate: null, // ISO date string
+        endDate: null, // ISO date string
+        format: null // Output format: "json", "csv", "netcdf"
+      },
+      methods: {
+        type: "json",
+        method: "GET"
+      }
+    },
+
+    // Grid data extraction - spatial subset
+    "grid-data": {
+      endpoint: null, // Dynamic endpoint based on dataset
+      params: {
+        dataset: null, // Dataset identifier
+        variable: null, // Variable name
+        bbox: null, // Bounding box: [west, south, east, north]
+        startDate: null, // ISO date string
+        endDate: null, // ISO date string
+        format: null // Output format
+      },
+      methods: {
+        type: "json",
+        method: "GET"
+      }
+    },
+
+    // Time series extraction - single location, time series
+    "timeseries-data": {
+      endpoint: null, // Dynamic endpoint based on dataset
+      params: {
+        dataset: null, // Dataset identifier
+        variable: null, // Variable name
+        latitude: null, // Single latitude coordinate
+        longitude: null, // Single longitude coordinate
+        startDate: null, // ISO date string
+        endDate: null, // ISO date string
+        format: null // Output format
+      },
+      methods: {
+        type: "json",
+        method: "GET"
+      }
+    },
+
+    // Available variables
+    "available-variables": {
+      endpoint: null,
+      params: {},
+      methods: {
+        type: "json",
+        method: "GET"
+      }
     }
   },
 
@@ -407,4 +467,6 @@ export default {
       }
     }
   }
-}; 
+};
+
+export default defaultExport; 

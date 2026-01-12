@@ -76,7 +76,7 @@ export default {
     },
 
     requirements: {
-        needProxy: false,
+        needProxy: true,
         requireskey: false,
         // Note: User-Agent header is required and strictly enforced by Met.no
     },

@@ -222,6 +222,20 @@ function chart({ params, args, data } = {}) {
       return [[...Array(raw.length).keys()], raw];
     }
 
+    // Check if we have a simple List-of-Points format: [[x1, y1], [x2, y2], ...]
+    if (
+      raw.length > 2 &&
+      Array.isArray(raw[0]) &&
+      raw[0].length === 2 &&
+      typeof raw[0][0] === "number" &&
+      typeof raw[0][1] === "number"
+    ) {
+      // Convert Row-Major [[x,y]...] to Column-Major [[x...], [y...]]
+      const x = raw.map(row => row[0]);
+      const y = raw.map(row => row[1]);
+      return [x, y];
+    }
+
     // Check if we have a time series format: [["datetime", ...dates], ["value", ...values]]
     if (raw.length >= 2 &&
       Array.isArray(raw[0]) && Array.isArray(raw[1]) &&
@@ -299,6 +313,7 @@ function chart({ params, args, data } = {}) {
   function splitChunks(data, size) {
     const length = data[0].length;
     let result = [];
+    size = Number(size); // Ensure size is a number
 
     for (let start = 0; start < length; start += size) {
       result.push(data.map(arr => arr.slice(start, start + size)));
@@ -307,8 +322,42 @@ function chart({ params, args, data } = {}) {
     return result;
   }
 
+  // Create a unique ID for the inner chart container
+  const chartContainerId = id + '-inner';
+
+  const normalized = params.bypassNormalization ? data : normalizeChartData(data);
+  // Get or create container
+  let container = document.getElementById(id);
+  if (!container) {
+    const div = document.createElement("div");
+    div.id = id;
+    document.body.appendChild(div);
+    container = div;
+  }
+
+  // Clear container content and reset any navigation state
+  container.innerHTML = '';
+  container._navCreated = false;
+
+  // Ensure container is positioned relatively so absolute children are positioned correctly
+  container.style.position = 'relative';
+
+  // Create inner container for the chart canvas
+  const innerDiv = document.createElement('div');
+  innerDiv.id = chartContainerId;
+  innerDiv.style.width = '100%';
+  innerDiv.style.height = '100%';
+  container.appendChild(innerDiv);
+
   function drawChart(subData) {
-    const container = document.getElementById(id);
+    // Use the inner container for the chart
+    let targetContainer = document.getElementById(chartContainerId);
+
+    // Fallback to main container if inner not found (shouldn't happen if setup correctly)
+    if (!targetContainer) {
+      targetContainer = document.getElementById(id);
+    }
+
     const dataMatrix = [];
 
     const headers = ['X', ...subData.slice(1).map((_, i) => names[i] || 'Series ' + (i + 1))];
@@ -345,10 +394,20 @@ function chart({ params, args, data } = {}) {
 
     if (!window._chartObjects) window._chartObjects = {};
 
-    // Always create a new chart object to avoid state issues
-    window._chartObjects[id] = new google.visualization[chartClassMap[chartType]](container);
+    // Clear existing chart if it exists to prevent memory leaks and artifacts
+    if (window._chartObjects[id]) {
+      try {
+        window._chartObjects[id].clearChart();
+      } catch (e) {
+        console.warn('Error clearing previous chart:', e);
+      }
+    }
+
+    // Create new chart on the INNER container
+    window._chartObjects[id] = new google.visualization[chartClassMap[chartType]](targetContainer);
 
     const chart = window._chartObjects[id];
+
     chart.draw(chartData, options);
 
     if (!window._resizeHandlers) window._resizeHandlers = {};
@@ -360,64 +419,168 @@ function chart({ params, args, data } = {}) {
       });
     }
   }
-
   function createButtons(container) {
-    if (chunks.length <= 1 || container._navCreated) return;
+    if (container._navCreated) return;
 
     const nav = document.createElement("div");
-    nav.style.position = "absolute";
-    nav.style.bottom = "10px";
-    nav.style.right = "10px";
-    nav.style.zIndex = "10";
+    Object.assign(nav.style, {
+      position: "absolute",
+      bottom: "20px",
+      right: "20px",
+      zIndex: "1000",
+      backgroundColor: "rgba(255, 255, 255, 0.9)",
+      padding: "6px 10px",
+      borderRadius: "20px",
+      display: "flex",
+      gap: "10px",
+      alignItems: "center",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+      backdropFilter: "blur(5px)",
+      fontFamily: "system-ui, -apple-system, sans-serif",
+      fontSize: "14px",
+      cursor: "grab",
+      userSelect: "none",
+      transition: "box-shadow 0.2s ease"
+    });
 
-    const prev = document.createElement("button");
-    const next = document.createElement("button");
-    const info = document.createElement("span");
+    // Drag functionality
+    let isDragging = false;
+    let currentX;
+    let currentY;
+    let initialX;
+    let initialY;
+    let xOffset = 0;
+    let yOffset = 0;
 
-    prev.innerText = "◀";
-    next.innerText = "▶";
-    nav.append(prev, info, next);
-    container.appendChild(nav);
+    nav.addEventListener("mousedown", dragStart);
+    document.addEventListener("mousemove", drag);
+    document.addEventListener("mouseup", dragEnd);
 
-    function updateButtons() {
-      prev.disabled = currentChunkIndex === 0;
-      next.disabled = currentChunkIndex === chunks.length - 1;
-      info.textContent = `${currentChunkIndex + 1} / ${chunks.length}`;
+    function dragStart(e) {
+      if (e.target.tagName === "BUTTON") return; // Don't drag when clicking buttons
+      initialX = e.clientX - xOffset;
+      initialY = e.clientY - yOffset;
+      if (e.target === nav || nav.contains(e.target)) {
+        isDragging = true;
+        nav.style.cursor = "grabbing";
+        nav.style.boxShadow = "0 8px 24px rgba(0,0,0,0.15)";
+      }
     }
 
-    prev.onclick = () => {
+    function drag(e) {
+      if (isDragging) {
+        e.preventDefault();
+        currentX = e.clientX - initialX;
+        currentY = e.clientY - initialY;
+        xOffset = currentX;
+        yOffset = currentY;
+        setTranslate(currentX, currentY, nav);
+      }
+    }
+
+    function setTranslate(xPos, yPos, el) {
+      el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+    }
+
+    function dragEnd(e) {
+      initialX = currentX;
+      initialY = currentY;
+      isDragging = false;
+      nav.style.cursor = "grab";
+      nav.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+    }
+
+    const createBtn = (icon, onClick) => {
+      const btn = document.createElement("button");
+      btn.innerHTML = icon;
+      Object.assign(btn.style, {
+        cursor: "pointer",
+        width: "32px",
+        height: "32px",
+        border: "none",
+        borderRadius: "50%",
+        backgroundColor: "transparent",
+        color: "#444",
+        fontSize: "16px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        transition: "all 0.2s ease",
+        outline: "none"
+      });
+
+      btn.onmouseenter = () => {
+        if (!btn.disabled) {
+          btn.style.backgroundColor = "rgba(0,0,0,0.05)";
+          btn.style.color = "#000";
+        }
+      };
+      btn.onmouseleave = () => {
+        if (!btn.disabled) {
+          btn.style.backgroundColor = "transparent";
+          btn.style.color = "#444";
+        }
+      };
+      btn.onmousedown = (e) => e.stopPropagation(); // Prevent drag start
+
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        onClick();
+      };
+      return btn;
+    };
+
+    const prevBtn = createBtn("&#10094;", () => {
       if (currentChunkIndex > 0) {
         currentChunkIndex--;
         drawChart(chunks[currentChunkIndex]);
         updateButtons();
       }
-    };
+    });
 
-    next.onclick = () => {
+    const nextBtn = createBtn("&#10095;", () => {
       if (currentChunkIndex < chunks.length - 1) {
         currentChunkIndex++;
         drawChart(chunks[currentChunkIndex]);
         updateButtons();
       }
-    };
+    });
 
-    updateButtons();
+    const infoSpan = document.createElement("span");
+    Object.assign(infoSpan.style, {
+      margin: "0 4px",
+      color: "#666",
+      fontWeight: "500",
+      minWidth: "40px",
+      textAlign: "center",
+      fontSize: "12px"
+    });
+
+    function updateButtons() {
+      prevBtn.disabled = currentChunkIndex === 0;
+      nextBtn.disabled = currentChunkIndex === chunks.length - 1;
+
+      prevBtn.style.opacity = prevBtn.disabled ? "0.3" : "1";
+      prevBtn.style.cursor = prevBtn.disabled ? "default" : "pointer";
+
+      nextBtn.style.opacity = nextBtn.disabled ? "0.3" : "1";
+      nextBtn.style.cursor = nextBtn.disabled ? "default" : "pointer";
+
+      infoSpan.innerText = `${currentChunkIndex + 1} / ${chunks.length}`;
+    }
+
+    nav.appendChild(prevBtn);
+    nav.appendChild(infoSpan);
+    nav.appendChild(nextBtn);
+    container.appendChild(nav);
+
     container._navCreated = true;
+    updateButtons();
   }
 
-  const normalized = normalizeChartData(data);
-  // Get or create container
-  let container = document.getElementById(id);
-  if (!container) {
-    const div = document.createElement("div");
-    div.id = id;
-    document.body.appendChild(div);
-    container = div;
-  }
 
-  // Clear container content and reset any navigation state
-  container.innerHTML = '';
-  container._navCreated = false;
+  // Ensure maxPoints is a number
+  maxPoints = Number(maxPoints);
 
   if (partition && normalized[0].length > maxPoints) {
     chunks = splitChunks(normalized, maxPoints);
@@ -563,45 +726,8 @@ function chart({ params, args, data } = {}) {
  * });
  */
 function table({ params, args, data } = {}) {
-  data = data[0]
-
-  const drawTable = () => {
-    // Create container for table and call the data types required for table generation
-    var container,
-      t1 = eval(g[2]["data"]),
-      t2 = eval(g[2]["view"]),
-      t3 = eval(g[2]["table"]),
-      types = params.datatype,
-      dat = new t1(),
-      columns = [],
-      tr = stats.arrchange({ data: data });
-
-    container = document.getElementById(params.id);
-
-    for (var k = 0; k < types.length; k++) {
-      dat.addColumn(types[k]);
-    }
-
-    var tr = stats.arrchange({ data: data });
-    for (var l = 1; l < tr.length; l++) {
-      columns.push(tr[l]);
-    }
-
-    dat.addRows(columns);
-
-    var view = new t2(dat),
-      table = new t3(container);
-
-    //Draw table.
-    if (params.hasOwnProperty("options")) {
-      var options = params.options;
-      table.draw(view, options);
-    } else {
-      table.draw(view);
-    }
-    return console.log(`Table ${params.id} drawn on the given parameters.`);
-  };
-  drawTable();
+  // Use the robust drawHtmlTable for rendering
+  drawHtmlTable({ params, data });
 }
 
 /**
@@ -827,6 +953,125 @@ function draw({ params = {}, args = {}, data = [] } = {}) {
   if (type === "chart") {
     let { charttype = "line", names } = args;
 
+    // Support for Combo Chart if charttype is an array
+    if (Array.isArray(charttype)) {
+      // 1. Ensure container exists (Auto-create if missing)
+      if (container) {
+        // If container exists, clear it to ensure we are rendering a fresh single chart
+        container.innerHTML = '';
+        container.style.display = 'block';
+      } else {
+        container = document.createElement("div");
+        container.id = id;
+        container.style.display = 'block';
+        document.body.appendChild(container);
+      }
+
+      // Ensure container has dimensions, otherwise chart may be 0px height
+      container.style.width = args.width || '100%';
+      container.style.height = args.height || '400px';
+
+      // 2. Prepare Data for Combo Chart
+      let mergedData = data;
+      let bypassNorm = false;
+      let comboNames = names;
+
+      // Helper to join multiple datasets.
+      // Returns { columns: [x, y1, y2...], names: [s1, s2...] }
+      const joinDatasets = (datasets) => {
+        if (!datasets || datasets.length < 2) return { columns: [], names: [] };
+
+        let xMap = new Map();
+        let extractedNames = [];
+
+        datasets.forEach((d, i) => {
+          // Determine series name
+          let seriesName = (names && names[i]) ? names[i] : (d[0][1] || `Series ${i + 1}`);
+          if (Array.isArray(seriesName)) seriesName = seriesName[0];
+          extractedNames.push(seriesName);
+
+          // Process rows
+          for (let r = 1; r < d.length; r++) {
+            let row = d[r];
+            let x = row[0];
+            let y = row[1];
+            let key = String(x);
+            if (!xMap.has(key)) {
+              xMap.set(key, { val: x, yObj: {} });
+            }
+            xMap.get(key).yObj[i] = y;
+          }
+        });
+
+        let keys = Array.from(xMap.keys());
+        // Sort based on value
+        keys.sort((a, b) => {
+          let va = xMap.get(a).val;
+          let vb = xMap.get(b).val;
+          if (va < vb) return -1;
+          if (va > vb) return 1;
+          return 0;
+        });
+
+        // Construct Column-Major Arrays
+        let xCol = [];
+        let yCols = Array(datasets.length).fill().map(() => []);
+
+        keys.forEach(k => {
+          let item = xMap.get(k);
+          xCol.push(item.val);
+          for (let i = 0; i < datasets.length; i++) {
+            yCols[i].push(item.yObj[i] !== undefined ? item.yObj[i] : null);
+          }
+        });
+
+        return {
+          columns: [xCol, ...yCols],
+          names: extractedNames
+        };
+      };
+
+      if (Array.isArray(data) && data.length === charttype.length && Array.isArray(data[0]) && Array.isArray(data[0][0])) {
+        const res = joinDatasets(data);
+        mergedData = res.columns;
+        comboNames = res.names;
+        bypassNorm = true;
+      }
+
+      // 3. Configure Combo Chart Options
+      const seriesConfig = {};
+      charttype.forEach((type, i) => {
+        // Google Charts ComboChart uses 'bars' for column series, not 'column'
+        let mappedType = type;
+        if (type === 'column') mappedType = 'bars';
+
+        seriesConfig[i] = { type: mappedType };
+      });
+
+      const finalSeries = { ...seriesConfig, ...(args.series || {}) };
+
+      const comboArgs = {
+        ...args,
+        charttype: 'combo',
+        series: finalSeries
+      };
+
+      const comboParams = {
+        ...params,
+        type: 'chart',
+        id: id,
+        name: name,
+        names: comboNames,
+        bypassNormalization: bypassNorm
+      };
+
+      draw({ params: comboParams, args: comboArgs, data: mergedData });
+      return;
+    }
+
+
+
+
     // Base options
     const baseOptions = {
       width: containerWidth,
@@ -884,6 +1129,11 @@ function draw({ params = {}, args = {}, data = [] } = {}) {
       pie: {
         pieHole: args.donut ? 0.4 : 0,
         pieSliceText: 'percentage'
+      },
+      combo: {
+        seriesType: args.seriesType || 'line',
+        series: args.series || {},
+        vAxes: args.vAxes || {}
       }
     };
 
@@ -1117,63 +1367,88 @@ function draw({ params = {}, args = {}, data = [] } = {}) {
  * });
  */
 
-function prettyPrint({ params, args, data } = {}) {
-  // Get the container ID from params or use default
-  const containerId = params.id || "jsonrender";
+/**
+ * Renders a simple HTML table from 2D array data.
+ */
+function drawHtmlTable({ params, data } = {}) {
+  const containerId = params.id || "visualize";
+  const container = document.getElementById(containerId);
 
-  // Find the container in the reports area
-  let container = document.getElementById(containerId);
-  if (!container) {
-    // If the container doesn't exist, create it in the reports area
-    const reportContent = document.querySelector('.report-content');
-    if (reportContent) {
-      container = document.createElement('div');
-      container.id = containerId;
-      container.className = 'jsonrender';
-      reportContent.appendChild(container);
-    } else {
-      console.error('Report content area not found');
-      return;
-    }
+  if (!container || !Array.isArray(data) || data.length < 1) {
+    console.error("Invalid container or data structure for table.");
+    return;
   }
 
-  // Clear existing content in the container
-  container.innerHTML = '';
+  // Handle data = data[0] legacy bug: if strictly 1D array of arrays, it's fine.
+  // But if passed as [ [[...]] ], unwrap it.
+  if (data.length === 1 && Array.isArray(data[0]) && Array.isArray(data[0][0])) {
+    data = data[0];
+  }
 
-  // Using external library to render json on screen
-  var src = "https://cdn.rawgit.com/caldwell/renderjson/master/renderjson.js";
+  container.innerHTML = ""; // Clear previous content
 
-  var sc = divisors.createScript({ params: { src: src, name: "jsonrender" } });
-  sc.addEventListener("load", () => {
-    renderjson.set_icons("+", "-");
-    renderjson.set_show_to_level(1);
-
-    if (container) {
-      var name;
-      if (data) {
-        // Render the JSON object passed to the function
-        name = document.createTextNode(params.title || "");
-        container.appendChild(name);
-        container.appendChild(renderjson(data));
-      } else {
-        // Render the objects saved in local storage
-        if (window.localStorage.length === 0) {
-          return alert("No items stored!");
-        }
-        for (var i = 0; i < Object.keys(window.localStorage).length; i++) {
-          name = document.createTextNode(Object.keys(window.localStorage)[i]);
-          container.appendChild(name);
-          container.appendChild(
-            renderjson(
-              JSON.parse(
-                window.localStorage[Object.keys(window.localStorage)[i]]
-              )
-            )
-          );
-        }
-      }
+  const style = document.createElement("style");
+  style.textContent = `
+    #${containerId} table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: sans-serif;
+      font-size: 14px;
+      color: #333;
     }
-  });
+
+    #${containerId} th,
+    #${containerId} td {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+    }
+
+    #${containerId} th {
+      text-align: left;
+      font-weight: 600;
+      background-color: #f4f4f4;
+    }
+
+    #${containerId} tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    
+    #${containerId} tr:hover {
+      background-color: #f1f1f1;
+    }
+  `;
+  // Only append style if not already processed for this ID (optional optimization, skipping for simplicity)
+  container.appendChild(style);
+
+  const table = document.createElement("table");
+
+  // Headers (first row)
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  if (data.length > 0) {
+    data[0].forEach(cell => {
+      const th = document.createElement("th");
+      th.textContent = cell;
+      headerRow.appendChild(th);
+    });
+  }
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // Body
+  const tbody = document.createElement("tbody");
+  for (let i = 1; i < data.length; i++) {
+    const row = document.createElement("tr");
+    data[i].forEach(cell => {
+      const td = document.createElement("td");
+      td.textContent = cell;
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
+  }
+  table.appendChild(tbody);
+
+  container.appendChild(table);
 }
 
 /**
@@ -1483,69 +1758,9 @@ function generateReport({ params, args, data } = {}) {
  *   data: metadata
  * });
  */
-function drawHtmlTable({ params, data } = {}) {
-  data = data[0]
-  const containerId = params.id || "visualize";
-  const container = document.getElementById(containerId);
 
-  if (!container || !Array.isArray(data) || data.length < 2) {
-    console.error("Invalid container or data structure.");
-    return;
-  }
-
-  const [labels, values] = data;
-
-  container.innerHTML = ""; // Clear previous content
-
-  const style = document.createElement("style");
-  style.textContent = `
-    #${containerId} .mini-table {
-      width: 100%;
-      max-width: 500px;
-      margin: 0 auto;
-      border-collapse: collapse;
-      font-family: sans-serif;
-      font-size: 14px;
-      color: #333;
-    }
-
-    #${containerId} .mini-table th,
-    #${containerId} .mini-table td {
-      padding: 8px 12px;
-      border-bottom: 1px solid #eee;
-    }
-
-    #${containerId} .mini-table th {
-      text-align: left;
-      font-weight: 600;
-      background: #f9f9f9;
-    }
-
-    #${containerId} .mini-table tr:hover {
-      background-color: #f0f0f0;
-    }
-  `;
-  document.head.appendChild(style);
-
-  const table = document.createElement("table");
-  table.className = "mini-table";
-
-  for (let i = 0; i < labels.length; i++) {
-    const row = document.createElement("tr");
-
-    const th = document.createElement("th");
-    th.textContent = labels[i];
-
-    const td = document.createElement("td");
-    td.textContent = values[i];
-
-    row.appendChild(th);
-    row.appendChild(td);
-    table.appendChild(row);
-  }
-
-  container.appendChild(table);
-}
+// Removed older drawHtmlTable implementation to avoid duplication/confusion
 
 
 export { draw, generateReport };
+export default { draw, generateReport };
