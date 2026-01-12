@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>modules/data/datasources/mrms.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AORCDataSource.html">AORCDataSource</a><ul class='methods'><li data-type='method'><a href="AORCDataSource.html#calculateIndices">calculateIndices</a></li><li data-type='method'><a href="AORCDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="AORCDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="AORCDataSource.html#fetchAndDecompressChunk">fetchAndDecompressChunk</a></li><li data-type='method'><a href="AORCDataSource.html#fetchMetadata">fetchMetadata</a></li><li data-type='method'><a href="AORCDataSource.html#getDatasetInfo">getDatasetInfo</a></li><li data-type='method'><a href="AORCDataSource.html#loadDatasource">loadDatasource</a></li></ul></li><li><a href="data.html">data</a><ul class='methods'><li data-type='method'><a href="data.html#.download">download</a></li><li data-type='method'><a href="data.html#.generateDateString">generateDateString</a></li><li data-type='method'><a href="data.html#.lowercasing">lowercasing</a></li><li data-type='method'><a href="data.html#.recursiveSearch">recursiveSearch</a></li><li data-type='method'><a href="data.html#.retrieve">retrieve</a></li><li data-type='method'><a href="data.html#.transform">transform</a></li><li data-type='method'><a href="data.html#.transformAORCData">transformAORCData</a></li><li data-type='method'><a href="data.html#.upload">upload</a></li><li data-type='method'><a href="data.html#.xml2json">xml2json</a></li></ul></li><li><a href="DEPDataSource.html">DEPDataSource</a><ul class='methods'><li data-type='method'><a href="DEPDataSource.html#calculateSize">calculateSize</a></li><li data-type='method'><a href="DEPDataSource.html#fetchDEMData">fetchDEMData</a></li><li data-type='method'><a href="DEPDataSource.html#fetchPointElevation">fetchPointElevation</a></li><li data-type='method'><a href="DEPDataSource.html#generateGeoTiffUrl">generateGeoTiffUrl</a></li><li data-type='method'><a href="DEPDataSource.html#getDatasetInfo">getDatasetInfo</a></li></ul></li><li><a href="divisors.html">divisors</a><ul class='methods'><li data-type='method'><a href="divisors.html#.createDiv">createDiv</a></li><li data-type='method'><a href="divisors.html#.createScript">createScript</a></li><li data-type='method'><a href="divisors.html#.isdivAdded">isdivAdded</a></li><li data-type='method'><a href="divisors.html#.isScriptAdded">isScriptAdded</a></li></ul></li><li><a href="ECMWFDataSource.html">ECMWFDataSource</a><ul class='methods'><li data-type='method'><a href="ECMWFDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="ECMWFDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="ECMWFDataSource.html#extractRawGRIB2">extractRawGRIB2</a></li><li data-type='method'><a href="ECMWFDataSource.html#fetch">fetch</a></li><li data-type='method'><a href="ECMWFDataSource.html#processGRIB2File">processGRIB2File</a></li></ul></li><li><a href="floodDM.html">floodDM</a><ul class='methods'><li data-type='method'><a href="floodDM.html#.buildPropertyDMScenario">buildPropertyDMScenario</a></li><li data-type='method'><a href="floodDM.html#.createTableFromObject">createTableFromObject</a></li><li data-type='method'><a href="floodDM.html#.getBridgeDamage">getBridgeDamage</a></li><li data-type='method'><a href="floodDM.html#.getCityFloodDamage">getCityFloodDamage</a></li><li data-type='method'><a href="floodDM.html#.getFloodInundation">getFloodInundation</a></li><li data-type='method'><a href="floodDM.html#.getLifeLoss">getLifeLoss</a></li><li data-type='method'><a href="floodDM.html#.getPropertyLoss">getPropertyLoss</a></li><li data-type='method'><a href="floodDM.html#.getUtilityDamage">getUtilityDamage</a></li><li data-type='method'><a href="floodDM.html#.getVehicleDamage">getVehicleDamage</a></li><li data-type='method'><a href="floodDM.html#initDamageScenario">initDamageScenario</a></li><li data-type='method'><a href="floodDM.html#initMitigationScenario">initMitigationScenario</a></li><li data-type='method'><a href="floodDM.html#runMitigationScenario">runMitigationScenario</a></li></ul></li><li><a href="geoprocessor.html">geoprocessor</a><ul class='methods'><li data-type='method'><a href="geoprocessor.html#.flowAccumulation">flowAccumulation</a></li><li data-type='method'><a href="geoprocessor.html#.flowDirection">flowDirection</a></li><li data-type='method'><a href="geoprocessor.html#.roughness">roughness</a></li><li data-type='method'><a href="geoprocessor.html#.tpi">tpi</a></li><li data-type='method'><a href="geoprocessor.html#.tri">tri</a></li><li data-type='method'><a href="geoprocessor.html#.watershed">watershed</a></li></ul></li><li><a href="GeoTIFFDataSource.html">GeoTIFFDataSource</a><ul class='methods'><li data-type='method'><a href="GeoTIFFDataSource.html#extractFromZip">extractFromZip</a></li><li data-type='method'><a href="GeoTIFFDataSource.html#getGeoTIFFGrid">getGeoTIFFGrid</a></li><li data-type='method'><a href="GeoTIFFDataSource.html#getGeoTIFFValueAtPoint">getGeoTIFFValueAtPoint</a></li><li data-type='method'><a href="GeoTIFFDataSource.html#parseGeoTIFF">parseGeoTIFF</a></li></ul></li><li><a href="GRIB2DataSource.html">GRIB2DataSource</a><ul class='methods'><li data-type='method'><a href="GRIB2DataSource.html#findGRIB2Message">findGRIB2Message</a></li><li data-type='method'><a href="GRIB2DataSource.html#getGRIB2Grid">getGRIB2Grid</a></li><li data-type='method'><a href="GRIB2DataSource.html#getGRIB2ValueAtPoint">getGRIB2ValueAtPoint</a></li><li data-type='method'><a href="GRIB2DataSource.html#parseGRIB2">parseGRIB2</a></li></ul></li><li><a href="GRIB2Integration.html">GRIB2Integration</a><ul class='methods'><li data-type='method'><a href="GRIB2Integration.html#applySpatialSubsetting">applySpatialSubsetting</a></li><li data-type='method'><a href="GRIB2Integration.html#extractGRIB2Data">extractGRIB2Data</a></li><li data-type='method'><a href="GRIB2Integration.html#parseGRIB2Buffer">parseGRIB2Buffer</a></li></ul></li><li><a href="GriddedDataSource.html">GriddedDataSource</a><ul class='methods'><li data-type='method'><a href="GriddedDataSource.html#aggregateSpatially">aggregateSpatially</a></li><li data-type='method'><a href="GriddedDataSource.html#aggregateTemporally">aggregateTemporally</a></li><li data-type='method'><a href="GriddedDataSource.html#applyScaling">applyScaling</a></li><li data-type='method'><a href="GriddedDataSource.html#buildURL">buildURL</a></li><li data-type='method'><a href="GriddedDataSource.html#decompress">decompress</a></li><li data-type='method'><a href="GriddedDataSource.html#extractGridTimeSeries">extractGridTimeSeries</a></li><li data-type='method'><a href="GriddedDataSource.html#extractMultiplePoints">extractMultiplePoints</a></li><li data-type='method'><a href="GriddedDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="GriddedDataSource.html#extractTimeSeries">extractTimeSeries</a></li><li data-type='method'><a href="GriddedDataSource.html#fetch">fetch</a></li><li data-type='method'><a href="GriddedDataSource.html#fetchJSON">fetchJSON</a></li><li data-type='method'><a href="GriddedDataSource.html#findNearestIndex">findNearestIndex</a></li><li data-type='method'><a href="GriddedDataSource.html#formatTimestamp">formatTimestamp</a></li><li data-type='method'><a href="GriddedDataSource.html#handleError">handleError</a></li><li data-type='method'><a href="GriddedDataSource.html#loadLibrary">loadLibrary</a></li><li data-type='method'><a href="GriddedDataSource.html#toCSV">toCSV</a></li><li data-type='method'><a href="GriddedDataSource.html#toNetCDF">toNetCDF</a></li><li data-type='method'><a href="GriddedDataSource.html#validateCoordinates">validateCoordinates</a></li></ul></li><li><a href="HLclearCreek.html">HLclearCreek</a><ul class='methods'><li data-type='method'><a href="HLclearCreek.html#.additionalData">additionalData</a></li><li data-type='method'><a href="HLclearCreek.html#.dataStep">dataStep</a></li><li data-type='method'><a href="HLclearCreek.html#.get_time_step">get_time_step</a></li><li data-type='method'><a href="HLclearCreek.html#.get_value_at_indices">get_value_at_indices</a></li><li data-type='method'><a href="HLclearCreek.html#.retrieveData">retrieveData</a></li><li data-type='method'><a href="HLclearCreek.html#.retrieveGauge">retrieveGauge</a></li><li data-type='method'><a href="HLclearCreek.html#.spreadGauge">spreadGauge</a></li><li data-type='method'><a href="HLclearCreek.html#.spreadResults">spreadResults</a></li><li data-type='method'><a href="HLclearCreek.html#.update">update</a></li><li data-type='method'><a href="HLclearCreek.html#.update_until">update_until</a></li><li data-type='method'><a href="HLclearCreek.html#rainID">rainID</a></li></ul></li><li><a href="HRRRDataSource.html">HRRRDataSource</a><ul class='methods'><li data-type='method'><a href="HRRRDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="HRRRDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="HRRRDataSource.html#fetch">fetch</a></li><li data-type='method'><a href="HRRRDataSource.html#findProductForVariable">findProductForVariable</a></li><li data-type='method'><a href="HRRRDataSource.html#generateURL">generateURL</a></li><li data-type='method'><a href="HRRRDataSource.html#getDatasetInfo">getDatasetInfo</a></li><li data-type='method'><a href="HRRRDataSource.html#processFile">processFile</a></li></ul></li><li><a href="hydro.html">hydro</a><ul class='methods'><li data-type='method'><a href="hydro.html#.analyzeCollectionofEvents">analyzeCollectionofEvents</a></li><li data-type='method'><a href="hydro.html#.analyzeEvent">analyzeEvent</a></li><li data-type='method'><a href="hydro.html#.arithmetic">arithmetic</a></li><li data-type='method'><a href="hydro.html#.bucketmodel">bucketmodel</a></li><li data-type='method'><a href="hydro.html#.calculate_tds">calculate_tds</a></li><li data-type='method'><a href="hydro.html#.calculate_tss">calculate_tss</a></li><li data-type='method'><a href="hydro.html#.calculateDOSaturation">calculateDOSaturation</a></li><li data-type='method'><a href="hydro.html#.calculatepH">calculatepH</a></li><li data-type='method'><a href="hydro.html#.calculatePrecipitationMinMax">calculatePrecipitationMinMax</a></li><li data-type='method'><a href="hydro.html#.calibratePH">calibratePH</a></li><li data-type='method'><a href="hydro.html#.compensateORP">compensateORP</a></li><li data-type='method'><a href="hydro.html#.convertTemperature">convertTemperature</a></li><li data-type='method'><a href="hydro.html#.convertTurbidity">convertTurbidity</a></li><li data-type='method'><a href="hydro.html#.darcysLaw">darcysLaw</a></li><li data-type='method'><a href="hydro.html#.detectPrecipEvents">detectPrecipEvents</a></li><li data-type='method'><a href="hydro.html#.dimunithydro">dimunithydro</a></li><li data-type='method'><a href="hydro.html#.dissolvedOxygenDemand">dissolvedOxygenDemand</a></li><li data-type='method'><a href="hydro.html#.dynamicGround1D">dynamicGround1D</a></li><li data-type='method'><a href="hydro.html#.equationsystemsolver">equationsystemsolver</a></li><li data-type='method'><a href="hydro.html#.ETBlaneyCriddle">ETBlaneyCriddle</a></li><li data-type='method'><a href="hydro.html#.ETHargreaves">ETHargreaves</a></li><li data-type='method'><a href="hydro.html#.ETPenmanMontheith">ETPenmanMontheith</a></li><li data-type='method'><a href="hydro.html#.ETPriestelyTaylor">ETPriestelyTaylor</a></li><li data-type='method'><a href="hydro.html#.ETThornthwaite">ETThornthwaite</a></li><li data-type='method'><a href="hydro.html#.floodhydro">floodhydro</a></li><li data-type='method'><a href="hydro.html#.floodhydro">floodhydro</a></li><li data-type='method'><a href="hydro.html#.generateSyntheticValue">generateSyntheticValue</a></li><li data-type='method'><a href="hydro.html#.getJulianDay">getJulianDay</a></li><li data-type='method'><a href="hydro.html#.hyetogen">hyetogen</a></li><li data-type='method'><a href="hydro.html#.InfGreenAmpt">InfGreenAmpt</a></li><li data-type='method'><a href="hydro.html#.InfHorton">InfHorton</a></li><li data-type='method'><a href="hydro.html#.InfKostiakov">InfKostiakov</a></li><li data-type='method'><a href="hydro.html#.InfPhilip">InfPhilip</a></li><li data-type='method'><a href="hydro.html#.InfSmithParlange">InfSmithParlange</a></li><li data-type='method'><a href="hydro.html#.inverseDistanceWeighting">inverseDistanceWeighting</a></li><li data-type='method'><a href="hydro.html#.kinematicWaveRouting">kinematicWaveRouting</a></li><li data-type='method'><a href="hydro.html#.lagAndRoute">lagAndRoute</a></li><li data-type='method'><a href="hydro.html#.matrix">matrix</a></li><li data-type='method'><a href="hydro.html#.move">move</a></li><li data-type='method'><a href="hydro.html#.muskingumCunge">muskingumCunge</a></li><li data-type='method'><a href="hydro.html#.precipitationFrequencyAnalysis">precipitationFrequencyAnalysis</a></li><li data-type='method'><a href="hydro.html#.rainaggr">rainaggr</a></li><li data-type='method'><a href="hydro.html#.rainfallErosivityIndex">rainfallErosivityIndex</a></li><li data-type='method'><a href="hydro.html#.rainfallIntensityDurationFrequency">rainfallIntensityDurationFrequency</a></li><li data-type='method'><a href="hydro.html#.rainfallInterceptionModel">rainfallInterceptionModel</a></li><li data-type='method'><a href="hydro.html#.rainfallThresholdAnalysis">rainfallThresholdAnalysis</a></li><li data-type='method'><a href="hydro.html#.stageDischarge">stageDischarge</a></li><li data-type='method'><a href="hydro.html#.staticGround1d">staticGround1d</a></li><li data-type='method'><a href="hydro.html#.stochasticRainfallGeneration">stochasticRainfallGeneration</a></li><li data-type='method'><a href="hydro.html#.syntheticalc">syntheticalc</a></li><li data-type='method'><a href="hydro.html#.thiessen">thiessen</a></li><li data-type='method'><a href="hydro.html#.timeAreaMethod">timeAreaMethod</a></li><li data-type='method'><a href="hydro.html#.totalprec">totalprec</a></li><li data-type='method'><a href="hydro.html#.unithydrocons">unithydrocons</a></li></ul></li><li><a href="HydroBMI.BMI.html">BMI</a></li><li><a href="HydroLangBMI.html">HydroLangBMI</a><ul class='methods'><li data-type='method'><a href="HydroLangBMI.html#.dataTypes">dataTypes</a></li><li data-type='method'><a href="HydroLangBMI.html#.finalize">finalize</a></li><li data-type='method'><a href="HydroLangBMI.html#.generateOutputs">generateOutputs</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_component_name">get_component_name</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_current_time">get_current_time</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_end_time">get_end_time</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_edge_count">get_grid_edge_count</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_edge_nodes">get_grid_edge_nodes</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_face_count">get_grid_face_count</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_face_nodes">get_grid_face_nodes</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_face_nodes">get_grid_face_nodes</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_node_count">get_grid_node_count</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_nodes_per_face">get_grid_nodes_per_face</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_origin">get_grid_origin</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_shape">get_grid_shape</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_size">get_grid_size</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_size">get_grid_size</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_spacing">get_grid_spacing</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_type">get_grid_type</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_x">get_grid_x</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_y">get_grid_y</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_z">get_grid_z</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_input_item_count">get_input_item_count</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_time_step">get_time_step</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_time_units">get_time_units</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_value_at_indices">get_value_at_indices</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_value_ptr">get_value_ptr</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_var_type">get_var_type</a></li><li data-type='method'><a href="HydroLangBMI.html#.handleConfig">handleConfig</a></li><li data-type='method'><a href="HydroLangBMI.html#.initialize">initialize</a></li><li data-type='method'><a href="HydroLangBMI.html#.set_value">set_value</a></li><li data-type='method'><a href="HydroLangBMI.html#.set_value_at_indices">set_value_at_indices</a></li><li data-type='method'><a href="HydroLangBMI.html#.update">update</a></li><li data-type='method'><a href="HydroLangBMI.html#.update_until">update_until</a></li><li data-type='method'><a href="HydroLangBMI.html#.visualizer">visualizer</a></li></ul></li><li><a href="HydroLangCache.html">HydroLangCache</a></li><li><a href="HydroLangGRIB2Parser.html">HydroLangGRIB2Parser</a><ul class='methods'><li data-type='method'><a href="HydroLangGRIB2Parser.html#applyScanningMode">applyScanningMode</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#calculateGridBounds">calculateGridBounds</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#convertTo2DGrid">convertTo2DGrid</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#createGridMetadataResponse">createGridMetadataResponse</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#extractGRIBMetadataOnly">extractGRIBMetadataOnly</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#extractParsedData">extractParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#extractParsedData">extractParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#generateBasicCoordinates">generateBasicCoordinates</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#generateCoordinates">generateCoordinates</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#generateCoordinatesFromParsedData">generateCoordinatesFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getFullGridBounds">getFullGridBounds</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getFullGridBounds">getFullGridBounds</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterDescriptionFromData">getParameterDescriptionFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterDescriptionFromData">getParameterDescriptionFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterDescriptionFromParsedData">getParameterDescriptionFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterFromData">getParameterFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterFromData">getParameterFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterFromParsedData">getParameterFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterName">getParameterName</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterNameFromData">getParameterNameFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterNameFromData">getParameterNameFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterNameFromParsedData">getParameterNameFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getUnitsFromData">getUnitsFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getUnitsFromData">getUnitsFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getUnitsFromParsedData">getUnitsFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getVariableFromMessage">getVariableFromMessage</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseBuffer">parseBuffer</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseBuffer">parseBuffer</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseBufferStreaming">parseBufferStreaming</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseGRIBHeaders">parseGRIBHeaders</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseGridSection">parseGridSection</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseProductSection">parseProductSection</a></li></ul></li><li><a href="map.html">map</a><ul class='methods'><li data-type='method'><a href="map.html#.addGeoRasterLayer">addGeoRasterLayer</a></li><li data-type='method'><a href="map.html#.addMarker">addMarker</a></li><li data-type='method'><a href="map.html#.addPopup">addPopup</a></li><li data-type='method'><a href="map.html#.draw">draw</a></li><li data-type='method'><a href="map.html#.generateColors">generateColors</a></li><li data-type='method'><a href="map.html#.geoJSON">geoJSON</a></li><li data-type='method'><a href="map.html#.kml">kml</a></li><li data-type='method'><a href="map.html#.Layers">Layers</a></li><li data-type='method'><a href="map.html#.loader">loader</a></li><li data-type='method'><a href="map.html#.markerStyles">markerStyles</a></li><li data-type='method'><a href="map.html#.renderMap">renderMap</a></li></ul></li><li><a href="ModelProxy.html">ModelProxy</a><ul class='methods'><li data-type='method'><a href="ModelProxy.html#.dispose">dispose</a></li><li data-type='method'><a href="ModelProxy.html#.predict">predict</a></li><li data-type='method'><a href="ModelProxy.html#.save">save</a></li><li data-type='method'><a href="ModelProxy.html#.train">train</a></li></ul></li><li><a href="MRMSDataSource.html">MRMSDataSource</a><ul class='methods'><li data-type='method'><a href="MRMSDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="MRMSDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="MRMSDataSource.html#fetch">fetch</a></li><li data-type='method'><a href="MRMSDataSource.html#findProductForVariable">findProductForVariable</a></li><li data-type='method'><a href="MRMSDataSource.html#generateURL">generateURL</a></li><li data-type='method'><a href="MRMSDataSource.html#getDatasetInfo">getDatasetInfo</a></li><li data-type='method'><a href="MRMSDataSource.html#inferVariableFromProduct">inferVariableFromProduct</a></li><li data-type='method'><a href="MRMSDataSource.html#loadDatasource">loadDatasource</a></li><li data-type='method'><a href="MRMSDataSource.html#processFile">processFile</a></li></ul></li><li><a href="NetCDFDataSource.html">NetCDFDataSource</a><ul class='methods'><li data-type='method'><a href="NetCDFDataSource.html#getNetCDFSlice">getNetCDFSlice</a></li><li data-type='method'><a href="NetCDFDataSource.html#getNetCDFValue">getNetCDFValue</a></li><li data-type='method'><a href="NetCDFDataSource.html#getNetCDFVariable">getNetCDFVariable</a></li><li data-type='method'><a href="NetCDFDataSource.html#openNetCDF">openNetCDF</a></li></ul></li><li><a href="NLDASDataSource.html">NLDASDataSource</a><ul class='methods'><li data-type='method'><a href="NLDASDataSource.html#extractDayData">extractDayData</a></li><li data-type='method'><a href="NLDASDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="NLDASDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="NLDASDataSource.html#extractRawNetCDF">extractRawNetCDF</a></li><li data-type='method'><a href="NLDASDataSource.html#generateFileURL">generateFileURL</a></li></ul></li><li><a href="nn.html">nn</a><ul class='methods'><li data-type='method'><a href="nn.html#.createModel">createModel</a></li><li data-type='method'><a href="nn.html#.loadModel">loadModel</a></li></ul></li><li><a href="nnUtils.html">nnUtils</a></li><li><a href="NWMDataSource.html">NWMDataSource</a><ul class='methods'><li data-type='method'><a href="NWMDataSource.html#buildFileURL">buildFileURL</a></li><li data-type='method'><a href="NWMDataSource.html#convertToTypedArray">convertToTypedArray</a></li><li data-type='method'><a href="NWMDataSource.html#extractData">extractData</a></li><li data-type='method'><a href="NWMDataSource.html#extractNetCDFData">extractNetCDFData</a></li><li data-type='method'><a href="NWMDataSource.html#extractZarrData">extractZarrData</a></li><li data-type='method'><a href="NWMDataSource.html#findCOMIDIndex">findCOMIDIndex</a></li><li data-type='method'><a href="NWMDataSource.html#getDatasetInfo">getDatasetInfo</a></li></ul></li><li><a href="PRISMDataSource.html">PRISMDataSource</a><ul class='methods'><li data-type='method'><a href="PRISMDataSource.html#determinePRISMParams">determinePRISMParams</a></li><li data-type='method'><a href="PRISMDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="PRISMDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="PRISMDataSource.html#fetchAndExtractPRISM">fetchAndExtractPRISM</a></li><li data-type='method'><a href="PRISMDataSource.html#generateFileURL">generateFileURL</a></li></ul></li><li><a href="stats.html">stats</a><ul class='methods'><li data-type='method'><a href="stats.html#.andersonDarling">andersonDarling</a></li><li data-type='method'><a href="stats.html#.anova">anova</a></li><li data-type='method'><a href="stats.html#.arrchange">arrchange</a></li><li data-type='method'><a href="stats.html#.autoCorrelation">autoCorrelation</a></li><li data-type='method'><a href="stats.html#.autocovarianceMatrix">autocovarianceMatrix</a></li><li data-type='method'><a href="stats.html#.basicstats">basicstats</a></li><li data-type='method'><a href="stats.html#.bernoulliDist">bernoulliDist</a></li><li data-type='method'><a href="stats.html#.betaDist">betaDist</a></li><li data-type='method'><a href="stats.html#.binomialCoefficient">binomialCoefficient</a></li><li data-type='method'><a href="stats.html#.binomialDist">binomialDist</a></li><li data-type='method'><a href="stats.html#.bootstrap">bootstrap</a></li><li data-type='method'><a href="stats.html#.breuschPaganTest">breuschPaganTest</a></li><li data-type='method'><a href="stats.html#.chisqCDF">chisqCDF</a></li><li data-type='method'><a href="stats.html#.cleaner">cleaner</a></li><li data-type='method'><a href="stats.html#.computeD">computeD</a></li><li data-type='method'><a href="stats.html#.copydata">copydata</a></li><li data-type='method'><a href="stats.html#.correlation">correlation</a></li><li data-type='method'><a href="stats.html#.datagaps">datagaps</a></li><li data-type='method'><a href="stats.html#.dateparser">dateparser</a></li><li data-type='method'><a href="stats.html#.differencing">differencing</a></li><li data-type='method'><a href="stats.html#.dotProduct">dotProduct</a></li><li data-type='method'><a href="stats.html#.efficiencies">efficiencies</a></li><li data-type='method'><a href="stats.html#.errorMetrics">errorMetrics</a></li><li data-type='method'><a href="stats.html#.exponentialDist">exponentialDist</a></li><li data-type='method'><a href="stats.html#.exponentialMovingAverage">exponentialMovingAverage</a></li><li data-type='method'><a href="stats.html#.fastfourier">fastfourier</a></li><li data-type='method'><a href="stats.html#.flatenise">flatenise</a></li><li data-type='method'><a href="stats.html#.forwardFill">forwardFill</a></li><li data-type='method'><a href="stats.html#.frequency">frequency</a></li><li data-type='method'><a href="stats.html#.fTest">fTest</a></li><li data-type='method'><a href="stats.html#.gammaCDFApprox">gammaCDFApprox</a></li><li data-type='method'><a href="stats.html#.gammaDist">gammaDist</a></li><li data-type='method'><a href="stats.html#.gapfiller">gapfiller</a></li><li data-type='method'><a href="stats.html#.gapremoval">gapremoval</a></li><li data-type='method'><a href="stats.html#.gaussianDist">gaussianDist</a></li><li data-type='method'><a href="stats.html#.generateRandomData">generateRandomData</a></li><li data-type='method'><a href="stats.html#.geometricDist">geometricDist</a></li><li data-type='method'><a href="stats.html#.getNextState">getNextState</a></li><li data-type='method'><a href="stats.html#.gevDistribution">gevDistribution</a></li><li data-type='method'><a href="stats.html#.gumbelDist">gumbelDist</a></li><li data-type='method'><a href="stats.html#.interoutliers">interoutliers</a></li><li data-type='method'><a href="stats.html#.itemfilter">itemfilter</a></li><li data-type='method'><a href="stats.html#.joinarray">joinarray</a></li><li data-type='method'><a href="stats.html#.KS_computePValue">KS_computePValue</a></li><li data-type='method'><a href="stats.html#.KS_rejectAtAlpha">KS_rejectAtAlpha</a></li><li data-type='method'><a href="stats.html#.kurtosis">kurtosis</a></li><li data-type='method'><a href="stats.html#.linearMovingAverage">linearMovingAverage</a></li><li data-type='method'><a href="stats.html#.lognormalDist">lognormalDist</a></li><li data-type='method'><a href="stats.html#.LogSeriesDistribution">LogSeriesDistribution</a></li><li data-type='method'><a href="stats.html#.mannWhitney">mannWhitney</a></li><li data-type='method'><a href="stats.html#.matrixInverse">matrixInverse</a></li><li data-type='method'><a href="stats.html#.max">max</a></li><li data-type='method'><a href="stats.html#.mean">mean</a></li><li data-type='method'><a href="stats.html#.median">median</a></li><li data-type='method'><a href="stats.html#.min">min</a></li><li data-type='method'><a href="stats.html#.MK">MK</a></li><li data-type='method'><a href="stats.html#.multinomialDistribution">multinomialDistribution</a></li><li data-type='method'><a href="stats.html#.multiplyMatrix">multiplyMatrix</a></li><li data-type='method'><a href="stats.html#.multiregression">multiregression</a></li><li data-type='method'><a href="stats.html#.normalcdf">normalcdf</a></li><li data-type='method'><a href="stats.html#.normalDistribution">normalDistribution</a></li><li data-type='method'><a href="stats.html#.normoutliers">normoutliers</a></li><li data-type='method'><a href="stats.html#.numerise">numerise</a></li><li data-type='method'><a href="stats.html#.onearray">onearray</a></li><li data-type='method'><a href="stats.html#.outremove">outremove</a></li><li data-type='method'><a href="stats.html#.partialAutoCorrelation">partialAutoCorrelation</a></li><li data-type='method'><a href="stats.html#.poissonProcess">poissonProcess</a></li><li data-type='method'><a href="stats.html#.push">push</a></li><li data-type='method'><a href="stats.html#.quantile">quantile</a></li><li data-type='method'><a href="stats.html#.randomWalk">randomWalk</a></li><li data-type='method'><a href="stats.html#.range">range</a></li><li data-type='method'><a href="stats.html#.regression">regression</a></li><li data-type='method'><a href="stats.html#.residualVariance">residualVariance</a></li><li data-type='method'><a href="stats.html#.returnPeriod">returnPeriod</a></li><li data-type='method'><a href="stats.html#.runMarkovChainMonteCarlo">runMarkovChainMonteCarlo</a></li><li data-type='method'><a href="stats.html#.runMonteCarlo">runMonteCarlo</a></li><li data-type='method'><a href="stats.html#.runSimulation">runSimulation</a></li><li data-type='method'><a href="stats.html#.runVegas">runVegas</a></li><li data-type='method'><a href="stats.html#.seasonalDecompose">seasonalDecompose</a></li><li data-type='method'><a href="stats.html#.shapiroWilk">shapiroWilk</a></li><li data-type='method'><a href="stats.html#.simpleMovingAverage">simpleMovingAverage</a></li><li data-type='method'><a href="stats.html#.skewness">skewness</a></li><li data-type='method'><a href="stats.html#.spiCompute">spiCompute</a></li><li data-type='method'><a href="stats.html#.standardize">standardize</a></li><li data-type='method'><a href="stats.html#.stddev">stddev</a></li><li data-type='method'><a href="stats.html#.sum">sum</a></li><li data-type='method'><a href="stats.html#.sumsqrd">sumsqrd</a></li><li data-type='method'><a href="stats.html#.timegaps">timegaps</a></li><li data-type='method'><a href="stats.html#.transposeMatrix">transposeMatrix</a></li><li data-type='method'><a href="stats.html#.tTest">tTest</a></li><li data-type='method'><a href="stats.html#.uniformDist">uniformDist</a></li><li data-type='method'><a href="stats.html#.unique">unique</a></li><li data-type='method'><a href="stats.html#.variance">variance</a></li><li data-type='method'><a href="stats.html#.weibullDist">weibullDist</a></li><li data-type='method'><a href="stats.html#.wilcoxonSignedRank">wilcoxonSignedRank</a></li></ul></li><li><a href="visualize.html">visualize</a><ul class='methods'><li data-type='method'><a href="visualize.html#.chart">chart</a></li><li data-type='method'><a href="visualize.html#.draw">draw</a></li><li data-type='method'><a href="visualize.html#.drawHtmlTable">drawHtmlTable</a></li><li data-type='method'><a href="visualize.html#.generateReport">generateReport</a></li><li data-type='method'><a href="visualize.html#.prettyPrint">prettyPrint</a></li><li data-type='method'><a href="visualize.html#.table">table</a></li></ul></li><li><a href="ZarrDataSource.html">ZarrDataSource</a><ul class='methods'><li data-type='method'><a href="ZarrDataSource.html#getZarrArrayData">getZarrArrayData</a></li><li data-type='method'><a href="ZarrDataSource.html#getZarrChunk">getZarrChunk</a></li><li data-type='method'><a href="ZarrDataSource.html#getZarrRegion">getZarrRegion</a></li><li data-type='method'><a href="ZarrDataSource.html#getZarrSlice">getZarrSlice</a></li><li data-type='method'><a href="ZarrDataSource.html#getZarrValue">getZarrValue</a></li><li data-type='method'><a href="ZarrDataSource.html#openZarrArray">openZarrArray</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-analyze.html">analyze</a><ul class='methods'><li data-type='method'><a href="module-analyze.html#loadFloodDM">loadFloodDM</a></li></ul></li><li><a href="module-mapsources.html">mapsources</a></li></ul><h3>Externals</h3><ul><li><a href="external-D3.html">D3</a></li><li><a href="external-GeospatialLoader.html">GeospatialLoader</a></li><li><a href="external-GoogleCharts.html">GoogleCharts</a></li><li><a href="external-googlemapsapi.html">googlemapsapi</a></li><li><a href="external-GriddedData.html">GriddedData</a></li><li><a href="external-HDF5Loader.html">HDF5Loader</a></li><li><a href="external-leafletosmapi.html">leafletosmapi</a></li><li><a href="external-NetCDFLoader.html">NetCDFLoader</a></li><li><a href="external-tensorflow.html">tensorflow</a></li><li><a href="external-tileprov.html">tileprov</a></li><li><a href="external-ZarritaLoader.html">ZarritaLoader</a></li></ul><h3>Namespaces</h3><ul><li><a href="data.cache.html">cache</a><ul class='methods'><li data-type='method'><a href="data.cache.html#.checkCache">checkCache</a></li><li data-type='method'><a href="data.cache.html#.clear">clear</a></li><li data-type='method'><a href="data.cache.html#.delete">delete</a></li><li data-type='method'><a href="data.cache.html#.getStats">getStats</a></li><li data-type='method'><a href="data.cache.html#.list">list</a></li></ul></li><li><a href="datasources.html">datasources</a><ul class='members'><li data-type='method'><a href="datasources.html#.AEMET">AEMET</a></li><li data-type='method'><a href="datasources.html#.AORC">AORC</a></li><li data-type='method'><a href="datasources.html#.BMKG">BMKG</a></li><li data-type='method'><a href="datasources.html#.CHIRPS">CHIRPS</a></li><li data-type='method'><a href="datasources.html#.ClearCreek">ClearCreek</a></li><li data-type='method'><a href="datasources.html#.CMA">CMA</a></li><li data-type='method'><a href="datasources.html#.CPTEC">CPTEC</a></li><li data-type='method'><a href="datasources.html#.3DEP">3DEP</a></li><li data-type='method'><a href="datasources.html#.DWD">DWD</a></li><li data-type='method'><a href="datasources.html#.EAUK">EAUK</a></li><li data-type='method'><a href="datasources.html#.ECMWF">ECMWF</a></li><li data-type='method'><a href="datasources.html#.EPA">EPA</a></li><li data-type='method'><a href="datasources.html#.FAO">FAO</a></li><li data-type='method'><a href="datasources.html#.FEMA">FEMA</a></li><li data-type='method'><a href="datasources.html#.flooddamage_dt">flooddamage_dt</a></li><li data-type='method'><a href="datasources.html#.FMI">FMI</a></li><li data-type='method'><a href="datasources.html#.HRRR">HRRR</a></li><li data-type='method'><a href="datasources.html#.HydroGeospatial">HydroGeospatial</a></li><li data-type='method'><a href="datasources.html#.IDEAM">IDEAM</a></li><li data-type='method'><a href="datasources.html#.IFIS">IFIS</a></li><li data-type='method'><a href="datasources.html#.IMD">IMD</a></li><li data-type='method'><a href="datasources.html#.ISRIC">ISRIC</a></li><li data-type='method'><a href="datasources.html#.JMA">JMA</a></li><li data-type='method'><a href="datasources.html#.KMA">KMA</a></li><li data-type='method'><a href="datasources.html#.KNMI">KNMI</a></li><li data-type='method'><a href="datasources.html#.MeteoFrance">MeteoFrance</a></li><li data-type='method'><a href="datasources.html#.MeteoIT">MeteoIT</a></li><li data-type='method'><a href="datasources.html#.MeteoSTAT">MeteoSTAT</a></li><li data-type='method'><a href="datasources.html#.MetNo">MetNo</a></li><li data-type='method'><a href="datasources.html#.mitigation_dt">mitigation_dt</a></li><li data-type='method'><a href="datasources.html#.MRMS">MRMS</a></li><li data-type='method'><a href="datasources.html#.NASAPOWER">NASAPOWER</a></li><li data-type='method'><a href="datasources.html#.NHDPlus">NHDPlus</a></li><li data-type='method'><a href="datasources.html#.NLDAS">NLDAS</a></li><li data-type='method'><a href="datasources.html#.NLDI">NLDI</a></li><li data-type='method'><a href="datasources.html#.NOAA">NOAA</a></li><li data-type='method'><a href="datasources.html#.NWM">NWM</a></li><li data-type='method'><a href="datasources.html#.NWPS">NWPS</a></li><li data-type='method'><a href="datasources.html#.NWS">NWS</a></li><li data-type='method'><a href="datasources.html#.OpenMeteo">OpenMeteo</a></li><li data-type='method'><a href="datasources.html#.PRISM">PRISM</a></li><li data-type='method'><a href="datasources.html#.ProxyServers">ProxyServers</a></li><li data-type='method'><a href="datasources.html#.SILO">SILO</a></li><li data-type='method'><a href="datasources.html#.SISSA">SISSA</a></li><li data-type='method'><a href="datasources.html#.SMHI">SMHI</a></li><li data-type='method'><a href="datasources.html#.SMN">SMN</a></li><li data-type='method'><a href="datasources.html#.soapEnv">soapEnv</a></li><li data-type='method'><a href="datasources.html#.TAMSAT">TAMSAT</a></li><li data-type='method'><a href="datasources.html#.TMD">TMD</a></li><li data-type='method'><a href="datasources.html#.USGS">USGS</a></li><li data-type='method'><a href="datasources.html#.USGS">USGS</a></li><li data-type='method'><a href="datasources.html#.WBD">WBD</a></li><li data-type='method'><a href="datasources.html#.Worldbank">Worldbank</a></li><li data-type='method'><a href="datasources.html#.WQP">WQP</a></li></ul></li><li><a href="datasources.CUAHSI.html">CUAHSI</a><ul class='members'><li data-type='method'><a href="datasources.CUAHSI.html#.hisCentral">hisCentral</a></li><li data-type='method'><a href="datasources.CUAHSI.html#.hydroShare">hydroShare</a></li><li data-type='method'><a href="datasources.CUAHSI.html#.waterOneFlow">waterOneFlow</a></li></ul></li><li><a href="HydroBMI.html">HydroBMI</a><ul class='members'><li data-type='method'><a href="HydroBMI.html#.BMIConfig">BMIConfig</a></li></ul></li><li><a href="HydroBMI.Hydro.html">Hydro</a></li><li><a href="Hydrolang.html">Hydrolang</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_openGDALSource">_openGDALSource</a></li><li><a href="global.html#addCustomLegend">addCustomLegend</a></li><li><a href="global.html#aggregateSpatial">aggregateSpatial</a></li><li><a href="global.html#aggregateTemporal">aggregateTemporal</a></li><li><a href="global.html#aggregateTime">aggregateTime</a></li><li><a href="global.html#algebra">algebra</a></li><li><a href="global.html#applyDataScaling">applyDataScaling</a></li><li><a href="global.html#applyQualityControl">applyQualityControl</a></li><li><a href="global.html#applyScalingToValue">applyScalingToValue</a></li><li><a href="global.html#aspect">aspect</a></li><li><a href="global.html#bandMath">bandMath</a></li><li><a href="global.html#cacheAPI">cacheAPI</a></li><li><a href="global.html#cachedFetch">cachedFetch</a></li><li><a href="global.html#calculateStatistics">calculateStatistics</a></li><li><a href="global.html#clip">clip</a></li><li><a href="global.html#clipGeo">clipGeo</a></li><li><a href="global.html#constructNWMFileURL">constructNWMFileURL</a></li><li><a href="global.html#convertAORCToCSV">convertAORCToCSV</a></li><li><a href="global.html#convertAORCToNetCDF">convertAORCToNetCDF</a></li><li><a href="global.html#convertDataUnits">convertDataUnits</a></li><li><a href="global.html#convertGeoTIFFToGeoraster">convertGeoTIFFToGeoraster</a></li><li><a href="global.html#convertNWMToCSV">convertNWMToCSV</a></li><li><a href="global.html#convertToArray">convertToArray</a></li><li><a href="global.html#convertToCSV">convertToCSV</a></li><li><a href="global.html#convertToNetCDF">convertToNetCDF</a></li><li><a href="global.html#createGoogleMapsGeoRasterLayer">createGoogleMapsGeoRasterLayer</a></li><li><a href="global.html#createLeafletCanvasGeoRasterLayer">createLeafletCanvasGeoRasterLayer</a></li><li><a href="global.html#createLeafletGeoRasterLayer">createLeafletGeoRasterLayer</a></li><li><a href="global.html#createSegmentationModel">createSegmentationModel</a></li><li><a href="global.html#createSimpleGeoRasterOverlay">createSimpleGeoRasterOverlay</a></li><li><a href="global.html#createStore">createStore</a></li><li><a href="global.html#createTransformer">createTransformer</a></li><li><a href="global.html#createZarrStore">createZarrStore</a></li><li><a href="global.html#decompressGzip">decompressGzip</a></li><li><a href="global.html#detectFormat">detectFormat</a></li><li><a href="global.html#determinePRISMRegion">determinePRISMRegion</a></li><li><a href="global.html#downloadERA5File">downloadERA5File</a></li><li><a href="global.html#drawHtmlTable">drawHtmlTable</a></li><li><a href="global.html#execute">execute</a></li><li><a href="global.html#expandSpatialBounds">expandSpatialBounds</a></li><li><a href="global.html#extractERA5Data">extractERA5Data</a></li><li><a href="global.html#extractERA5GridData">extractERA5GridData</a></li><li><a href="global.html#extractERA5PointData">extractERA5PointData</a></li><li><a href="global.html#extractERA5TimeSeries">extractERA5TimeSeries</a></li><li><a href="global.html#extractGRIB2Data">extractGRIB2Data</a></li><li><a href="global.html#extractHRRRGridData">extractHRRRGridData</a></li><li><a href="global.html#extractHRRRPointData">extractHRRRPointData</a></li><li><a href="global.html#extractHRRRTimeSeries">extractHRRRTimeSeries</a></li><li><a href="global.html#extractMRMSGridData">extractMRMSGridData</a></li><li><a href="global.html#extractMRMSPointData">extractMRMSPointData</a></li><li><a href="global.html#extractMRMSTimeSeries">extractMRMSTimeSeries</a></li><li><a href="global.html#extractNLDASGridData">extractNLDASGridData</a></li><li><a href="global.html#extractNLDASMultiplePoints">extractNLDASMultiplePoints</a></li><li><a href="global.html#extractNLDASPointData">extractNLDASPointData</a></li><li><a href="global.html#extractNLDASRawNetCDF">extractNLDASRawNetCDF</a></li><li><a href="global.html#extractNWMData">extractNWMData</a></li><li><a href="global.html#extractPRISMGridData">extractPRISMGridData</a></li><li><a href="global.html#extractPRISMPointData">extractPRISMPointData</a></li><li><a href="global.html#extractPRISMTimeSeries">extractPRISMTimeSeries</a></li><li><a href="global.html#fetchDEMData">fetchDEMData</a></li><li><a href="global.html#fetchPointElevation">fetchPointElevation</a></li><li><a href="global.html#fillSinks">fillSinks</a></li><li><a href="global.html#flattenND">flattenND</a></li><li><a href="global.html#formatAORCOutput">formatAORCOutput</a></li><li><a href="global.html#formatData">formatData</a></li><li><a href="global.html#formatNWMOutput">formatNWMOutput</a></li><li><a href="global.html#formatPRISMTimePeriod">formatPRISMTimePeriod</a></li><li><a href="global.html#generateNWMDateRange">generateNWMDateRange</a></li><li><a href="global.html#generatePRISMFileURL">generatePRISMFileURL</a></li><li><a href="global.html#generateProcessedDataKey">generateProcessedDataKey</a></li><li><a href="global.html#generateSimpleCacheKey">generateSimpleCacheKey</a></li><li><a href="global.html#getArrayData">getArrayData</a></li><li><a href="global.html#getAvailableERA5Variables">getAvailableERA5Variables</a></li><li><a href="global.html#getAvailableHRRRVariables">getAvailableHRRRVariables</a></li><li><a href="global.html#getAvailableMRMSProducts">getAvailableMRMSProducts</a></li><li><a href="global.html#getAvailableNLDASVariables">getAvailableNLDASVariables</a></li><li><a href="global.html#getAvailablePRISMVariables">getAvailablePRISMVariables</a></li><li><a href="global.html#getChunk">getChunk</a></li><li><a href="global.html#getFile">getFile</a></li><li><a href="global.html#getGridDataLibrary">getGridDataLibrary</a></li><li><a href="global.html#getHRRRDatasetInfo">getHRRRDatasetInfo</a></li><li><a href="global.html#getInfo">getInfo</a></li><li><a href="global.html#getLeafletColorForElevation">getLeafletColorForElevation</a></li><li><a href="global.html#getMap">getMap</a></li><li><a href="global.html#getMRMSDatasetInfo">getMRMSDatasetInfo</a></li><li><a href="global.html#getNLDASDatasetInfo">getNLDASDatasetInfo</a></li><li><a href="global.html#getNWMTemporalInfo">getNWMTemporalInfo</a></li><li><a href="global.html#getPRISMDatasetInfo">getPRISMDatasetInfo</a></li><li><a href="global.html#getRecommendedPRISMResolution">getRecommendedPRISMResolution</a></li><li><a href="global.html#getRegion">getRegion</a></li><li><a href="global.html#goldfeldQuandtTest">goldfeldQuandtTest</a></li><li><a href="global.html#GRIDDED_SOURCES">GRIDDED_SOURCES</a></li><li><a href="global.html#gridToTensor">gridToTensor</a></li><li><a href="global.html#hillshade">hillshade</a></li><li><a href="global.html#imgToTensor">imgToTensor</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#isGridDataLibraryLoaded">isGridDataLibraryLoaded</a></li><li><a href="global.html#isLoaded">isLoaded</a></li><li><a href="global.html#isValidBoundingBox">isValidBoundingBox</a></li><li><a href="global.html#isValidCoordinate">isValidCoordinate</a></li><li><a href="global.html#load">load</a></li><li><a href="global.html#loadGeoRasterLayerPlugin">loadGeoRasterLayerPlugin</a></li><li><a href="global.html#loadGeoTIFFFromBuffer">loadGeoTIFFFromBuffer</a></li><li><a href="global.html#loadGridDataLibrary">loadGridDataLibrary</a></li><li><a href="global.html#mapPixels">mapPixels</a></li><li><a href="global.html#mask">mask</a></li><li><a href="global.html#modelRegistry">modelRegistry</a></li><li><a href="global.html#openArray">openArray</a></li><li><a href="global.html#parseGRIB2">parseGRIB2</a></li><li><a href="global.html#pca">pca</a></li><li><a href="global.html#pollECMWFStatus">pollECMWFStatus</a></li><li><a href="global.html#preprocess">preprocess</a></li><li><a href="global.html#preprocessData">preprocessData</a></li><li><a href="global.html#processAORCBulkExtraction">processAORCBulkExtraction</a></li><li><a href="global.html#processAORCDatasetInfo">processAORCDatasetInfo</a></li><li><a href="global.html#processAORCGridData">processAORCGridData</a></li><li><a href="global.html#processAORCPointData">processAORCPointData</a></li><li><a href="global.html#processAORCTimeSeriesData">processAORCTimeSeriesData</a></li><li><a href="global.html#processERA5GRIB2Data">processERA5GRIB2Data</a></li><li><a href="global.html#processFileInChunks">processFileInChunks</a></li><li><a href="global.html#processGriddedSource">processGriddedSource</a></li><li><a href="global.html#processNWMBulkExtraction">processNWMBulkExtraction</a></li><li><a href="global.html#readGRIB2Chunked">readGRIB2Chunked</a></li><li><a href="global.html#readNetCDFChunked">readNetCDFChunked</a></li><li><a href="global.html#recenter">recenter</a></li><li><a href="global.html#reproject">reproject</a></li><li><a href="global.html#saveFile">saveFile</a></li><li><a href="global.html#seriesToTensor">seriesToTensor</a></li><li><a href="global.html#slope">slope</a></li><li><a href="global.html#sourceType">sourceType</a></li><li><a href="global.html#streamExtract">streamExtract</a></li><li><a href="global.html#testMRMSUrlGeneration">testMRMSUrlGeneration</a></li><li><a href="global.html#tile">tile</a></li><li><a href="global.html#transformVariable">transformVariable</a></li><li><a href="global.html#validate3DEPParams">validate3DEPParams</a></li><li><a href="global.html#validateERA5Config">validateERA5Config</a></li><li><a href="global.html#validateHRRRConfig">validateHRRRConfig</a></li><li><a href="global.html#validateMRMSConfig">validateMRMSConfig</a></li><li><a href="global.html#validateNLDASConfig">validateNLDASConfig</a></li><li><a href="global.html#validatePRISMConfig">validatePRISMConfig</a></li><li><a href="global.html#validatePRISMVariable">validatePRISMVariable</a></li><li><a href="global.html#vectorize">vectorize</a></li><li><a href="global.html#whitesTest">whitesTest</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">modules/data/datasources/mrms.js</h1>
+    
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * NOAA MRMS (Multi-Radar Multi-Sensor) datasource
+ * Provides access to high-resolution precipitation and radar data in GRIB2 format
+ * Supports multiple MRMS products including Radar, QPE, QPF, and Severe Weather data
+ *
+ * MRMS Filename Pattern: MRMS_[ProductName]_[Height]_[YYYYMMDD]-[HHMMSS].grib2.gz
+ * Example: MRMS_ReflectivityAtLowestAltitude_00.50_20201012-183805.grib2.gz
+ *
+ * Data includes:
+ * - Radar reflectivity (REF)
+ * - Precipitation rate (PRATE)
+ * - Precipitation accumulation (APCP)
+ * - Composite reflectivity (REFC)
+ * - Vertically Integrated Liquid (VIL)
+ * - Echo Top (ETOP)
+ *
+ * @type {Object}
+ * @name MRMS
+ * @memberof datasources
+ */
+
+// MRMS Dataset configurations - GRIB2 format on NOAA servers
+const MRMS_DATASETS = {
+  "mrms-radar": {
+    baseUrl: "https://mrms.ncep.noaa.gov",
+    format: "grib2",
+    description: "MRMS Radar Products - Real-time operational radar data in GRIB2 format. Provides current weather radar data with 2-minute updates.",
+    spatial: {
+      latitude: { min: 20.0, max: 55.0, resolution: 0.01 }, // ~1km resolution
+      longitude: { min: -130.0, max: -60.0, resolution: 0.01 },
+      crs: "EPSG:4326", // WGS84
+      coverage: "CONUS"
+    },
+    temporal: {
+      resolution: "2M", // 2-minute updates
+      realtime: true,
+      archive: false, // MRMS is primarily real-time operational
+      archiveStart: null, // No historical archive via HTTP
+      note: "MRMS provides real-time operational data. Historical data may be available through NCEP archives or other data portals."
+    },
+    products: {
+      "MergedReflectivityQC": {
+        description: "Merged radar reflectivity with quality control",
+        path: "/3DRefl/MergedReflectivityQC_00.50",
+        filename: "MRMS_MergedReflectivityQC_00.50_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "MergedReflectivityQCComposite": {
+        description: "Composite reflectivity mosaic",
+        path: "/3DRefl/MergedReflectivityQC_00.50",
+        filename: "MRMS_MergedReflectivityQC_00.50_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "PrecipFlag": {
+        description: "Precipitation type flag",
+        path: "/2D/PrecipFlag",
+        filename: "MRMS_PrecipFlag_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "PrecipRate": {
+        description: "Precipitation rate",
+        path: "/2D/PrecipRate",
+        filename: "MRMS_PrecipRate_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "PCPN_TYP": {
+        description: "Precipitation type classification",
+        path: "/RIDGEII/L2/CONUS/PCPN_TYP",
+        filename: "CONUS_L2_PCPN_TYP_{timestamp}.tif.gz",
+        format: "tiff"
+      },
+      "RadarQualityIndex": {
+        description: "Radar data quality index",
+        path: "/2D/RadarQualityIndex",
+        filename: "MRMS_RadarQualityIndex_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "VIL": {
+        description: "Vertically integrated liquid water",
+        path: "/2D/VIL",
+        filename: "MRMS_VIL_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "EchoTop": {
+        description: "Echo top height",
+        path: "/2D/EchoTop_18",
+        filename: "MRMS_EchoTop_18_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "SyntheticPrecipRateID": {
+        description: "Synthetic precipitation rate identification",
+        path: "/2D/SyntheticPrecipRateID",
+        filename: "MRMS_SyntheticPrecipRateID_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      }
+    }
+  },
+
+  "mrms-qpe": {
+    baseUrl: "https://mrms.ncep.noaa.gov/data",
+    format: "grib2",
+    description: "MRMS Quantitative Precipitation Estimate - High-resolution precipitation data",
+    spatial: {
+      latitude: { min: 20.0, max: 55.0, resolution: 0.01 },
+      longitude: { min: -130.0, max: -60.0, resolution: 0.01 },
+      crs: "EPSG:4326",
+      coverage: "CONUS"
+    },
+    temporal: {
+      resolution: "1H", // Hourly products
+      realtime: true,
+      archive: true,
+      archiveStart: "2014-01-01T00:00:00Z"
+    },
+    products: {
+      "RadarOnly_QPE_01H": {
+        description: "1-hour radar-only QPE",
+        path: "/RadarOnly_QPE_01H",
+        filename: "MRMS_RadarOnly_QPE_01H_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "RadarOnly_QPE_03H": {
+        description: "3-hour radar-only QPE",
+        path: "/RadarOnly_QPE_03H",
+        filename: "MRMS_RadarOnly_QPE_03H_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "RadarOnly_QPE_06H": {
+        description: "6-hour radar-only QPE",
+        path: "/RadarOnly_QPE_06H",
+        filename: "MRMS_RadarOnly_QPE_06H_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "RadarOnly_QPE_12H": {
+        description: "12-hour radar-only QPE",
+        path: "/RadarOnly_QPE_12H",
+        filename: "MRMS_RadarOnly_QPE_12H_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "RadarOnly_QPE_15M": {
+        description: "15-minute radar-only QPE",
+        path: "/RadarOnly_QPE_15M",
+        filename: "MRMS_RadarOnly_QPE_15M_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "RadarOnly_QPE_24H": {
+        description: "24-hour radar-only QPE",
+        path: "/RadarOnly_QPE_24H",
+        filename: "MRMS_RadarOnly_QPE_24H_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "RadarOnly_QPE_48H": {
+        description: "48-hour radar-only QPE",
+        path: "/RadarOnly_QPE_48H",
+        filename: "MRMS_RadarOnly_QPE_48H_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "RadarOnly_QPE_72H": {
+        description: "72-hour radar-only QPE",
+        path: "/RadarOnly_QPE_72H",
+        filename: "MRMS_RadarOnly_QPE_72H_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "RadarOnly_QPE_Since12Z": {
+        description: "Radar-only QPE since 12Z",
+        path: "/RadarOnly_QPE_Since12Z",
+        filename: "MRMS_RadarOnly_QPE_Since12Z_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "MultiSensor_QPE_01H_Pass1": {
+        description: "1-hour multi-sensor QPE Pass 1",
+        path: "/MultiSensor_QPE_01H_Pass1",
+        filename: "MRMS_MultiSensor_QPE_01H_Pass1_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "MultiSensor_QPE_01H_Pass2": {
+        description: "1-hour multi-sensor QPE Pass 2",
+        path: "/MultiSensor_QPE_01H_Pass2",
+        filename: "MRMS_MultiSensor_QPE_01H_Pass2_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      }
+    }
+  },
+
+  "mrms-qpf": {
+    baseUrl: "https://mrms.ncep.noaa.gov/data",
+    format: "grib2",
+    description: "MRMS Quantitative Precipitation Forecast - Short-term precipitation forecasts",
+    spatial: {
+      latitude: { min: 20.0, max: 55.0, resolution: 0.01 },
+      longitude: { min: -130.0, max: -60.0, resolution: 0.01 },
+      crs: "EPSG:4326",
+      coverage: "CONUS"
+    },
+    temporal: {
+      resolution: "1H",
+      forecast: true,
+      forecastHours: 24,
+      realtime: true
+    },
+    products: {
+      "QPF_01H": {
+        description: "1-hour QPF",
+        path: "/QPF/QPF_01H",
+        filename: "MRMS_QPF_01H_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "QPF_03H": {
+        description: "3-hour QPF",
+        path: "/QPF/QPF_03H",
+        filename: "MRMS_QPF_03H_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "QPF_06H": {
+        description: "6-hour QPF",
+        path: "/QPF/QPF_06H",
+        filename: "MRMS_QPF_06H_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "QPF_12H": {
+        description: "12-hour QPF",
+        path: "/QPF/QPF_12H",
+        filename: "MRMS_QPF_12H_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      },
+      "QPF_24H": {
+        description: "24-hour QPF",
+        path: "/QPF/QPF_24H",
+        filename: "MRMS_QPF_24H_00.00_{timestamp}.grib2.gz",
+        format: "grib2"
+      }
+    }
+  }
+};
+
+// Available MRMS variables and their GRIB2 parameter mappings
+const MRMS_VARIABLES = {
+  // Radar Reflectivity variables
+  "REF": {
+    longName: "Radar Reflectivity",
+    units: "dBZ",
+    grib2Code: "0,0,16", // Parameter category 0, subcategory 0, parameter 16
+    levelType: "heightAboveGround",
+    level: "1000", // 1000 m AGL
+    scaleFactor: 1.0,
+    fillValue: -9999,
+    dtype: "float32",
+    products: ["MergedReflectivityQC", "MergedReflectivityQCComposite"]
+  },
+
+  "REFC": {
+    longName: "Composite Reflectivity",
+    units: "dBZ",
+    grib2Code: "0,0,16",
+    levelType: "heightAboveGround",
+    level: "1000",
+    scaleFactor: 1.0,
+    fillValue: -9999,
+    dtype: "float32",
+    products: ["MergedReflectivityQCComposite"]
+  },
+
+  // Precipitation variables
+  "PRATE": {
+    longName: "Precipitation Rate",
+    units: "kg/m²/s",
+    grib2Code: "0,1,7", // Parameter category 0, subcategory 1, parameter 7
+    levelType: "surface",
+    level: "0",
+    scaleFactor: 1.0,
+    fillValue: -9999,
+    dtype: "float32",
+    products: ["PrecipRate"]
+  },
+
+  "APCP": {
+    longName: "Total Precipitation",
+    units: "kg/m²",
+    grib2Code: "0,1,8", // Parameter category 0, subcategory 1, parameter 8
+    levelType: "surface",
+    level: "0",
+    scaleFactor: 1.0,
+    fillValue: -9999,
+    dtype: "float32",
+    products: ["PrecipRate", "PCPN_TYP", "RadarOnly_QPE_01H", "RadarOnly_QPE_24H", "QPF_01H", "QPF_24H"]
+  },
+
+  // Severe Weather variables
+  "VIL": {
+    longName: "Vertically Integrated Liquid",
+    units: "kg/m²",
+    grib2Code: "0,0,193", // Parameter category 0, subcategory 0, parameter 193
+    levelType: "surface",
+    level: "0",
+    scaleFactor: 1.0,
+    fillValue: -9999,
+    dtype: "float32",
+    products: ["VerticallyIntegratedLiquid"]
+  },
+
+  "ETOP": {
+    longName: "Echo Top Height",
+    units: "m",
+    grib2Code: "0,0,194", // Parameter category 0, subcategory 0, parameter 194
+    levelType: "surface",
+    level: "0",
+    scaleFactor: 1.0,
+    fillValue: -9999,
+    dtype: "float32",
+    products: ["EchoTop"]
+  },
+
+  // Quality Control variables
+  "RQI": {
+    longName: "Radar Quality Index",
+    units: "dimensionless",
+    grib2Code: "0,0,192", // Parameter category 0, subcategory 0, parameter 192
+    levelType: "surface",
+    level: "0",
+    scaleFactor: 1.0,
+    fillValue: -9999,
+    dtype: "float32",
+    products: ["RadarQualityIndex"]
+  },
+
+  "PFLAG": {
+    longName: "Precipitation Type Flag",
+    units: "dimensionless",
+    grib2Code: "0,1,195", // Parameter category 0, subcategory 1, parameter 195
+    levelType: "surface",
+    level: "0",
+    scaleFactor: 1.0,
+    fillValue: -9999,
+    dtype: "int32",
+    products: ["PrecipFlag"]
+  },
+
+  "SPRI": {
+    longName: "Synthetic Precipitation Rate Identification",
+    units: "kg/m²/s",
+    grib2Code: "0,1,22", // Dedicated SPRI parameter
+    levelType: "surface",
+    level: "0",
+    scaleFactor: 1.0,
+    fillValue: -9999,
+    dtype: "float32",
+    products: ["SyntheticPrecipRateID"]
+  }
+};
+
+export default {
+  // Point data extraction - single location, single variable
+  "point-data": {
+    endpoint: null, // Dynamic endpoint based on dataset and product
+    params: {
+      dataset: null, // Dataset identifier (e.g., "mrms-radar", "mrms-qpe")
+      product: null, // MRMS product (e.g., "MergedReflectivityQC", "RadarOnly_QPE_01H")
+      variable: null, // Variable name (e.g., "REF", "APCP")
+      latitude: null, // Single latitude coordinate
+      longitude: null, // Single longitude coordinate
+      startDate: null, // ISO date string
+      endDate: null, // ISO date string
+      format: null // Output format: "json", "csv", "netcdf"
+    },
+    methods: {
+      type: "json",
+      method: "GET"
+    }
+  },
+
+  // Grid data extraction - spatial subset
+  "grid-data": {
+    endpoint: null, // Dynamic endpoint based on dataset and product
+    params: {
+      dataset: null, // Dataset identifier
+      product: null, // MRMS product
+      variable: null, // Variable name
+      bbox: null, // Bounding box: [west, south, east, north]
+      startDate: null, // ISO date string
+      endDate: null, // ISO date string
+      format: null // Output format
+    },
+    methods: {
+      type: "json",
+      method: "GET"
+    }
+  },
+
+  // Time series extraction - single location, time series
+  "timeseries-data": {
+    endpoint: null, // Dynamic endpoint based on dataset and product
+    params: {
+      dataset: null, // Dataset identifier
+      product: null, // MRMS product
+      variable: null, // Variable name
+      latitude: null, // Single latitude coordinate
+      longitude: null, // Single longitude coordinate
+      startDate: null, // ISO date string
+      endDate: null, // ISO date string
+      format: null // Output format
+    },
+    methods: {
+      type: "json",
+      method: "GET"
+    }
+  },
+
+  // Dataset metadata and information
+  "dataset-info": {
+    endpoint: null, // Dynamic endpoint based on dataset
+    params: {
+      dataset: null, // Dataset identifier
+      info: null // Type of info: "variables", "spatial", "temporal", "metadata", "products"
+    },
+    methods: {
+      type: "json",
+      method: "GET"
+    }
+  },
+
+  // Available products listing
+  "available-products": {
+    endpoint: null, // Dynamic endpoint based on dataset
+    params: {
+      dataset: null, // Dataset identifier
+      date: null // Date for which to list available products
+    },
+    methods: {
+      type: "json",
+      method: "GET"
+    }
+  },
+
+  requirements: {
+    needProxy: false,
+    requireskey: false,
+  },
+
+  info: {
+    returnFormats: "json, csv, netcdf",
+    MoreInfo: "https://mrms.ncep.noaa.gov/",
+    Documentation: "https://github.com/NOAA-National-Severe-Storms-Laboratory/mrms-support",
+    About: "NOAA MRMS provides high-resolution multi-radar multi-sensor data including precipitation estimates, radar reflectivity, and severe weather products in GRIB2 format. Filename pattern: MRMS_[Product]_[Height]_[YYYYMMDD]-[HHMMSS].grib2.gz"
+  },
+
+  // Available datasets and their configurations
+  datasets: MRMS_DATASETS,
+
+  // Available variables and their properties
+  variables: MRMS_VARIABLES,
+
+  // URL generation helper
+  generateURL: function (product, timestamp, dataset = 'mrms-radar') {
+    const datasetConfig = MRMS_DATASETS[dataset];
+    if (!datasetConfig) {
+      throw new Error(`Unknown MRMS dataset: ${dataset}`);
+    }
+
+    const productConfig = datasetConfig.products[product];
+    if (!productConfig) {
+      throw new Error(`Unknown MRMS product: ${product}`);
+    }
+
+    // Format timestamp with seconds (MRMS standard: YYYYMMDD-HHMMSS for GRIB2, YYYYMMDD_HHMMSS for TIFF)
+    const year = timestamp.getUTCFullYear();
+    const month = String(timestamp.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(timestamp.getUTCDate()).padStart(2, '0');
+    const hour = String(timestamp.getUTCHours()).padStart(2, '0');
+    const minute = String(timestamp.getUTCMinutes()).padStart(2, '0');
+    const second = String(timestamp.getUTCSeconds()).padStart(2, '0');
+
+    // Generate timestamp string based on format
+    let timestampStr;
+    if (productConfig.format === 'tiff') {
+      timestampStr = `${year}${month}${day}_${hour}${minute}${second}`;
+    } else {
+      timestampStr = `${year}${month}${day}-${hour}${minute}${second}`;
+    }
+
+    // Replace timestamp placeholder in filename
+    const filename = productConfig.filename.replace('{timestamp}', timestampStr);
+
+    return `${datasetConfig.baseUrl}${productConfig.path}/${filename}`;
+  },
+
+  "endpoint-info": {
+    "point-data": {
+      paramFormat: {
+        dataset: "String - Dataset identifier (e.g., 'mrms-radar', 'mrms-qpe')",
+        product: "String - MRMS product name (e.g., 'MergedReflectivityQC', 'RadarOnly_QPE_01H')",
+        variable: "String - Variable name (e.g., 'REF', 'APCP')",
+        latitude: "Number - Latitude coordinate (20.0 to 55.0)",
+        longitude: "Number - Longitude coordinate (-130.0 to -60.0)",
+        startDate: "String - Start date in ISO format (YYYY-MM-DDTHH:mm:ssZ)",
+        endDate: "String - End date in ISO format (YYYY-MM-DDTHH:mm:ssZ)",
+        format: "String - Output format ('json', 'csv', 'netcdf')"
+      },
+      infoSource: "https://mrms.ncep.noaa.gov/",
+      example: {
+        dataset: "mrms-qpe",
+        product: "RadarOnly_QPE_01H",
+        variable: "APCP",
+        latitude: 40.7128,
+        longitude: -74.0060,
+        startDate: "2024-01-01T00:00:00Z",
+        endDate: "2024-01-01T01:00:00Z",
+        format: "json",
+        exampleRequest: "Extract 1-hour precipitation accumulation for New York City"
+      }
+    },
+    "grid-data": {
+      paramFormat: {
+        dataset: "String - Dataset identifier",
+        product: "String - MRMS product name",
+        variable: "String - Variable name",
+        bbox: "Array - Bounding box [west, south, east, north]",
+        startDate: "String - Start date in ISO format",
+        endDate: "String - End date in ISO format",
+        format: "String - Output format"
+      },
+      infoSource: "https://mrms.ncep.noaa.gov/",
+      example: {
+        dataset: "mrms-radar",
+        product: "MergedReflectivityQCComposite",
+        variable: "REFC",
+        bbox: [-75.0, 40.0, -73.0, 42.0],
+        startDate: "2024-01-01T12:00:00Z",
+        endDate: "2024-01-01T12:02:00Z",
+        format: "netcdf",
+        exampleRequest: "Extract composite reflectivity for New York region"
+      }
+    },
+    "timeseries-data": {
+      paramFormat: {
+        dataset: "String - Dataset identifier",
+        product: "String - MRMS product name",
+        variable: "String - Variable name",
+        latitude: "Number - Latitude coordinate",
+        longitude: "Number - Longitude coordinate",
+        startDate: "String - Start date in ISO format",
+        endDate: "String - End date in ISO format",
+        format: "String - Output format"
+      },
+      infoSource: "https://mrms.ncep.noaa.gov/",
+      example: {
+        dataset: "mrms-qpe",
+        product: "GaugeCorr_QPE_01H",
+        variable: "APCP",
+        latitude: 40.7128,
+        longitude: -74.0060,
+        startDate: "2024-01-01T00:00:00Z",
+        endDate: "2024-01-02T00:00:00Z",
+        format: "csv",
+        exampleRequest: "Extract hourly precipitation time series for New York City"
+      }
+    },
+    "dataset-info": {
+      paramFormat: {
+        dataset: "String - Dataset identifier",
+        info: "String - Information type ('variables', 'spatial', 'temporal', 'metadata', 'products')"
+      },
+      infoSource: "https://mrms.ncep.noaa.gov/",
+      example: {
+        dataset: "mrms-radar",
+        info: "products",
+        exampleRequest: "Get list of available radar products"
+      }
+    },
+    "available-products": {
+      paramFormat: {
+        dataset: "String - Dataset identifier",
+        date: "String - Date in YYYY-MM-DD format"
+      },
+      infoSource: "https://mrms.ncep.noaa.gov/",
+      example: {
+        dataset: "mrms-qpe",
+        date: "2024-01-01",
+        exampleRequest: "List available QPE products for January 1, 2024"
+      }
+    }
+  }
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.7</a> on Mon Jan 12 2026 20:25:33 GMT+0000 (Coordinated Universal Time) using the Toast theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

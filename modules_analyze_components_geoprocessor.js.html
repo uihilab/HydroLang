@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>modules/analyze/components/geoprocessor.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AORCDataSource.html">AORCDataSource</a><ul class='methods'><li data-type='method'><a href="AORCDataSource.html#calculateIndices">calculateIndices</a></li><li data-type='method'><a href="AORCDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="AORCDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="AORCDataSource.html#fetchAndDecompressChunk">fetchAndDecompressChunk</a></li><li data-type='method'><a href="AORCDataSource.html#fetchMetadata">fetchMetadata</a></li><li data-type='method'><a href="AORCDataSource.html#getDatasetInfo">getDatasetInfo</a></li><li data-type='method'><a href="AORCDataSource.html#loadDatasource">loadDatasource</a></li></ul></li><li><a href="data.html">data</a><ul class='methods'><li data-type='method'><a href="data.html#.download">download</a></li><li data-type='method'><a href="data.html#.generateDateString">generateDateString</a></li><li data-type='method'><a href="data.html#.lowercasing">lowercasing</a></li><li data-type='method'><a href="data.html#.recursiveSearch">recursiveSearch</a></li><li data-type='method'><a href="data.html#.retrieve">retrieve</a></li><li data-type='method'><a href="data.html#.transform">transform</a></li><li data-type='method'><a href="data.html#.transformAORCData">transformAORCData</a></li><li data-type='method'><a href="data.html#.upload">upload</a></li><li data-type='method'><a href="data.html#.xml2json">xml2json</a></li></ul></li><li><a href="DEPDataSource.html">DEPDataSource</a><ul class='methods'><li data-type='method'><a href="DEPDataSource.html#calculateSize">calculateSize</a></li><li data-type='method'><a href="DEPDataSource.html#fetchDEMData">fetchDEMData</a></li><li data-type='method'><a href="DEPDataSource.html#fetchPointElevation">fetchPointElevation</a></li><li data-type='method'><a href="DEPDataSource.html#generateGeoTiffUrl">generateGeoTiffUrl</a></li><li data-type='method'><a href="DEPDataSource.html#getDatasetInfo">getDatasetInfo</a></li></ul></li><li><a href="divisors.html">divisors</a><ul class='methods'><li data-type='method'><a href="divisors.html#.createDiv">createDiv</a></li><li data-type='method'><a href="divisors.html#.createScript">createScript</a></li><li data-type='method'><a href="divisors.html#.isdivAdded">isdivAdded</a></li><li data-type='method'><a href="divisors.html#.isScriptAdded">isScriptAdded</a></li></ul></li><li><a href="ECMWFDataSource.html">ECMWFDataSource</a><ul class='methods'><li data-type='method'><a href="ECMWFDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="ECMWFDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="ECMWFDataSource.html#extractRawGRIB2">extractRawGRIB2</a></li><li data-type='method'><a href="ECMWFDataSource.html#fetch">fetch</a></li><li data-type='method'><a href="ECMWFDataSource.html#processGRIB2File">processGRIB2File</a></li></ul></li><li><a href="floodDM.html">floodDM</a><ul class='methods'><li data-type='method'><a href="floodDM.html#.buildPropertyDMScenario">buildPropertyDMScenario</a></li><li data-type='method'><a href="floodDM.html#.createTableFromObject">createTableFromObject</a></li><li data-type='method'><a href="floodDM.html#.getBridgeDamage">getBridgeDamage</a></li><li data-type='method'><a href="floodDM.html#.getCityFloodDamage">getCityFloodDamage</a></li><li data-type='method'><a href="floodDM.html#.getFloodInundation">getFloodInundation</a></li><li data-type='method'><a href="floodDM.html#.getLifeLoss">getLifeLoss</a></li><li data-type='method'><a href="floodDM.html#.getPropertyLoss">getPropertyLoss</a></li><li data-type='method'><a href="floodDM.html#.getUtilityDamage">getUtilityDamage</a></li><li data-type='method'><a href="floodDM.html#.getVehicleDamage">getVehicleDamage</a></li><li data-type='method'><a href="floodDM.html#initDamageScenario">initDamageScenario</a></li><li data-type='method'><a href="floodDM.html#initMitigationScenario">initMitigationScenario</a></li><li data-type='method'><a href="floodDM.html#runMitigationScenario">runMitigationScenario</a></li></ul></li><li><a href="geoprocessor.html">geoprocessor</a><ul class='methods'><li data-type='method'><a href="geoprocessor.html#.flowAccumulation">flowAccumulation</a></li><li data-type='method'><a href="geoprocessor.html#.flowDirection">flowDirection</a></li><li data-type='method'><a href="geoprocessor.html#.roughness">roughness</a></li><li data-type='method'><a href="geoprocessor.html#.tpi">tpi</a></li><li data-type='method'><a href="geoprocessor.html#.tri">tri</a></li><li data-type='method'><a href="geoprocessor.html#.watershed">watershed</a></li></ul></li><li><a href="GeoTIFFDataSource.html">GeoTIFFDataSource</a><ul class='methods'><li data-type='method'><a href="GeoTIFFDataSource.html#extractFromZip">extractFromZip</a></li><li data-type='method'><a href="GeoTIFFDataSource.html#getGeoTIFFGrid">getGeoTIFFGrid</a></li><li data-type='method'><a href="GeoTIFFDataSource.html#getGeoTIFFValueAtPoint">getGeoTIFFValueAtPoint</a></li><li data-type='method'><a href="GeoTIFFDataSource.html#parseGeoTIFF">parseGeoTIFF</a></li></ul></li><li><a href="GRIB2DataSource.html">GRIB2DataSource</a><ul class='methods'><li data-type='method'><a href="GRIB2DataSource.html#findGRIB2Message">findGRIB2Message</a></li><li data-type='method'><a href="GRIB2DataSource.html#getGRIB2Grid">getGRIB2Grid</a></li><li data-type='method'><a href="GRIB2DataSource.html#getGRIB2ValueAtPoint">getGRIB2ValueAtPoint</a></li><li data-type='method'><a href="GRIB2DataSource.html#parseGRIB2">parseGRIB2</a></li></ul></li><li><a href="GRIB2Integration.html">GRIB2Integration</a><ul class='methods'><li data-type='method'><a href="GRIB2Integration.html#applySpatialSubsetting">applySpatialSubsetting</a></li><li data-type='method'><a href="GRIB2Integration.html#extractGRIB2Data">extractGRIB2Data</a></li><li data-type='method'><a href="GRIB2Integration.html#parseGRIB2Buffer">parseGRIB2Buffer</a></li></ul></li><li><a href="GriddedDataSource.html">GriddedDataSource</a><ul class='methods'><li data-type='method'><a href="GriddedDataSource.html#aggregateSpatially">aggregateSpatially</a></li><li data-type='method'><a href="GriddedDataSource.html#aggregateTemporally">aggregateTemporally</a></li><li data-type='method'><a href="GriddedDataSource.html#applyScaling">applyScaling</a></li><li data-type='method'><a href="GriddedDataSource.html#buildURL">buildURL</a></li><li data-type='method'><a href="GriddedDataSource.html#decompress">decompress</a></li><li data-type='method'><a href="GriddedDataSource.html#extractGridTimeSeries">extractGridTimeSeries</a></li><li data-type='method'><a href="GriddedDataSource.html#extractMultiplePoints">extractMultiplePoints</a></li><li data-type='method'><a href="GriddedDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="GriddedDataSource.html#extractTimeSeries">extractTimeSeries</a></li><li data-type='method'><a href="GriddedDataSource.html#fetch">fetch</a></li><li data-type='method'><a href="GriddedDataSource.html#fetchJSON">fetchJSON</a></li><li data-type='method'><a href="GriddedDataSource.html#findNearestIndex">findNearestIndex</a></li><li data-type='method'><a href="GriddedDataSource.html#formatTimestamp">formatTimestamp</a></li><li data-type='method'><a href="GriddedDataSource.html#handleError">handleError</a></li><li data-type='method'><a href="GriddedDataSource.html#loadLibrary">loadLibrary</a></li><li data-type='method'><a href="GriddedDataSource.html#toCSV">toCSV</a></li><li data-type='method'><a href="GriddedDataSource.html#toNetCDF">toNetCDF</a></li><li data-type='method'><a href="GriddedDataSource.html#validateCoordinates">validateCoordinates</a></li></ul></li><li><a href="HLclearCreek.html">HLclearCreek</a><ul class='methods'><li data-type='method'><a href="HLclearCreek.html#.additionalData">additionalData</a></li><li data-type='method'><a href="HLclearCreek.html#.dataStep">dataStep</a></li><li data-type='method'><a href="HLclearCreek.html#.get_time_step">get_time_step</a></li><li data-type='method'><a href="HLclearCreek.html#.get_value_at_indices">get_value_at_indices</a></li><li data-type='method'><a href="HLclearCreek.html#.retrieveData">retrieveData</a></li><li data-type='method'><a href="HLclearCreek.html#.retrieveGauge">retrieveGauge</a></li><li data-type='method'><a href="HLclearCreek.html#.spreadGauge">spreadGauge</a></li><li data-type='method'><a href="HLclearCreek.html#.spreadResults">spreadResults</a></li><li data-type='method'><a href="HLclearCreek.html#.update">update</a></li><li data-type='method'><a href="HLclearCreek.html#.update_until">update_until</a></li><li data-type='method'><a href="HLclearCreek.html#rainID">rainID</a></li></ul></li><li><a href="HRRRDataSource.html">HRRRDataSource</a><ul class='methods'><li data-type='method'><a href="HRRRDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="HRRRDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="HRRRDataSource.html#fetch">fetch</a></li><li data-type='method'><a href="HRRRDataSource.html#findProductForVariable">findProductForVariable</a></li><li data-type='method'><a href="HRRRDataSource.html#generateURL">generateURL</a></li><li data-type='method'><a href="HRRRDataSource.html#getDatasetInfo">getDatasetInfo</a></li><li data-type='method'><a href="HRRRDataSource.html#processFile">processFile</a></li></ul></li><li><a href="hydro.html">hydro</a><ul class='methods'><li data-type='method'><a href="hydro.html#.analyzeCollectionofEvents">analyzeCollectionofEvents</a></li><li data-type='method'><a href="hydro.html#.analyzeEvent">analyzeEvent</a></li><li data-type='method'><a href="hydro.html#.arithmetic">arithmetic</a></li><li data-type='method'><a href="hydro.html#.bucketmodel">bucketmodel</a></li><li data-type='method'><a href="hydro.html#.calculate_tds">calculate_tds</a></li><li data-type='method'><a href="hydro.html#.calculate_tss">calculate_tss</a></li><li data-type='method'><a href="hydro.html#.calculateDOSaturation">calculateDOSaturation</a></li><li data-type='method'><a href="hydro.html#.calculatepH">calculatepH</a></li><li data-type='method'><a href="hydro.html#.calculatePrecipitationMinMax">calculatePrecipitationMinMax</a></li><li data-type='method'><a href="hydro.html#.calibratePH">calibratePH</a></li><li data-type='method'><a href="hydro.html#.compensateORP">compensateORP</a></li><li data-type='method'><a href="hydro.html#.convertTemperature">convertTemperature</a></li><li data-type='method'><a href="hydro.html#.convertTurbidity">convertTurbidity</a></li><li data-type='method'><a href="hydro.html#.darcysLaw">darcysLaw</a></li><li data-type='method'><a href="hydro.html#.detectPrecipEvents">detectPrecipEvents</a></li><li data-type='method'><a href="hydro.html#.dimunithydro">dimunithydro</a></li><li data-type='method'><a href="hydro.html#.dissolvedOxygenDemand">dissolvedOxygenDemand</a></li><li data-type='method'><a href="hydro.html#.dynamicGround1D">dynamicGround1D</a></li><li data-type='method'><a href="hydro.html#.equationsystemsolver">equationsystemsolver</a></li><li data-type='method'><a href="hydro.html#.ETBlaneyCriddle">ETBlaneyCriddle</a></li><li data-type='method'><a href="hydro.html#.ETHargreaves">ETHargreaves</a></li><li data-type='method'><a href="hydro.html#.ETPenmanMontheith">ETPenmanMontheith</a></li><li data-type='method'><a href="hydro.html#.ETPriestelyTaylor">ETPriestelyTaylor</a></li><li data-type='method'><a href="hydro.html#.ETThornthwaite">ETThornthwaite</a></li><li data-type='method'><a href="hydro.html#.floodhydro">floodhydro</a></li><li data-type='method'><a href="hydro.html#.floodhydro">floodhydro</a></li><li data-type='method'><a href="hydro.html#.generateSyntheticValue">generateSyntheticValue</a></li><li data-type='method'><a href="hydro.html#.getJulianDay">getJulianDay</a></li><li data-type='method'><a href="hydro.html#.hyetogen">hyetogen</a></li><li data-type='method'><a href="hydro.html#.InfGreenAmpt">InfGreenAmpt</a></li><li data-type='method'><a href="hydro.html#.InfHorton">InfHorton</a></li><li data-type='method'><a href="hydro.html#.InfKostiakov">InfKostiakov</a></li><li data-type='method'><a href="hydro.html#.InfPhilip">InfPhilip</a></li><li data-type='method'><a href="hydro.html#.InfSmithParlange">InfSmithParlange</a></li><li data-type='method'><a href="hydro.html#.inverseDistanceWeighting">inverseDistanceWeighting</a></li><li data-type='method'><a href="hydro.html#.kinematicWaveRouting">kinematicWaveRouting</a></li><li data-type='method'><a href="hydro.html#.lagAndRoute">lagAndRoute</a></li><li data-type='method'><a href="hydro.html#.matrix">matrix</a></li><li data-type='method'><a href="hydro.html#.move">move</a></li><li data-type='method'><a href="hydro.html#.muskingumCunge">muskingumCunge</a></li><li data-type='method'><a href="hydro.html#.precipitationFrequencyAnalysis">precipitationFrequencyAnalysis</a></li><li data-type='method'><a href="hydro.html#.rainaggr">rainaggr</a></li><li data-type='method'><a href="hydro.html#.rainfallErosivityIndex">rainfallErosivityIndex</a></li><li data-type='method'><a href="hydro.html#.rainfallIntensityDurationFrequency">rainfallIntensityDurationFrequency</a></li><li data-type='method'><a href="hydro.html#.rainfallInterceptionModel">rainfallInterceptionModel</a></li><li data-type='method'><a href="hydro.html#.rainfallThresholdAnalysis">rainfallThresholdAnalysis</a></li><li data-type='method'><a href="hydro.html#.stageDischarge">stageDischarge</a></li><li data-type='method'><a href="hydro.html#.staticGround1d">staticGround1d</a></li><li data-type='method'><a href="hydro.html#.stochasticRainfallGeneration">stochasticRainfallGeneration</a></li><li data-type='method'><a href="hydro.html#.syntheticalc">syntheticalc</a></li><li data-type='method'><a href="hydro.html#.thiessen">thiessen</a></li><li data-type='method'><a href="hydro.html#.timeAreaMethod">timeAreaMethod</a></li><li data-type='method'><a href="hydro.html#.totalprec">totalprec</a></li><li data-type='method'><a href="hydro.html#.unithydrocons">unithydrocons</a></li></ul></li><li><a href="HydroBMI.BMI.html">BMI</a></li><li><a href="HydroLangBMI.html">HydroLangBMI</a><ul class='methods'><li data-type='method'><a href="HydroLangBMI.html#.dataTypes">dataTypes</a></li><li data-type='method'><a href="HydroLangBMI.html#.finalize">finalize</a></li><li data-type='method'><a href="HydroLangBMI.html#.generateOutputs">generateOutputs</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_component_name">get_component_name</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_current_time">get_current_time</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_end_time">get_end_time</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_edge_count">get_grid_edge_count</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_edge_nodes">get_grid_edge_nodes</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_face_count">get_grid_face_count</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_face_nodes">get_grid_face_nodes</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_face_nodes">get_grid_face_nodes</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_node_count">get_grid_node_count</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_nodes_per_face">get_grid_nodes_per_face</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_origin">get_grid_origin</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_shape">get_grid_shape</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_size">get_grid_size</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_size">get_grid_size</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_spacing">get_grid_spacing</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_type">get_grid_type</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_x">get_grid_x</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_y">get_grid_y</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_z">get_grid_z</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_input_item_count">get_input_item_count</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_time_step">get_time_step</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_time_units">get_time_units</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_value_at_indices">get_value_at_indices</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_value_ptr">get_value_ptr</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_var_type">get_var_type</a></li><li data-type='method'><a href="HydroLangBMI.html#.handleConfig">handleConfig</a></li><li data-type='method'><a href="HydroLangBMI.html#.initialize">initialize</a></li><li data-type='method'><a href="HydroLangBMI.html#.set_value">set_value</a></li><li data-type='method'><a href="HydroLangBMI.html#.set_value_at_indices">set_value_at_indices</a></li><li data-type='method'><a href="HydroLangBMI.html#.update">update</a></li><li data-type='method'><a href="HydroLangBMI.html#.update_until">update_until</a></li><li data-type='method'><a href="HydroLangBMI.html#.visualizer">visualizer</a></li></ul></li><li><a href="HydroLangCache.html">HydroLangCache</a></li><li><a href="HydroLangGRIB2Parser.html">HydroLangGRIB2Parser</a><ul class='methods'><li data-type='method'><a href="HydroLangGRIB2Parser.html#applyScanningMode">applyScanningMode</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#calculateGridBounds">calculateGridBounds</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#convertTo2DGrid">convertTo2DGrid</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#createGridMetadataResponse">createGridMetadataResponse</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#extractGRIBMetadataOnly">extractGRIBMetadataOnly</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#extractParsedData">extractParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#extractParsedData">extractParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#generateBasicCoordinates">generateBasicCoordinates</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#generateCoordinates">generateCoordinates</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#generateCoordinatesFromParsedData">generateCoordinatesFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getFullGridBounds">getFullGridBounds</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getFullGridBounds">getFullGridBounds</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterDescriptionFromData">getParameterDescriptionFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterDescriptionFromData">getParameterDescriptionFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterDescriptionFromParsedData">getParameterDescriptionFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterFromData">getParameterFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterFromData">getParameterFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterFromParsedData">getParameterFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterName">getParameterName</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterNameFromData">getParameterNameFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterNameFromData">getParameterNameFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterNameFromParsedData">getParameterNameFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getUnitsFromData">getUnitsFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getUnitsFromData">getUnitsFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getUnitsFromParsedData">getUnitsFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getVariableFromMessage">getVariableFromMessage</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseBuffer">parseBuffer</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseBuffer">parseBuffer</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseBufferStreaming">parseBufferStreaming</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseGRIBHeaders">parseGRIBHeaders</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseGridSection">parseGridSection</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseProductSection">parseProductSection</a></li></ul></li><li><a href="map.html">map</a><ul class='methods'><li data-type='method'><a href="map.html#.addGeoRasterLayer">addGeoRasterLayer</a></li><li data-type='method'><a href="map.html#.addMarker">addMarker</a></li><li data-type='method'><a href="map.html#.addPopup">addPopup</a></li><li data-type='method'><a href="map.html#.draw">draw</a></li><li data-type='method'><a href="map.html#.generateColors">generateColors</a></li><li data-type='method'><a href="map.html#.geoJSON">geoJSON</a></li><li data-type='method'><a href="map.html#.kml">kml</a></li><li data-type='method'><a href="map.html#.Layers">Layers</a></li><li data-type='method'><a href="map.html#.loader">loader</a></li><li data-type='method'><a href="map.html#.markerStyles">markerStyles</a></li><li data-type='method'><a href="map.html#.renderMap">renderMap</a></li></ul></li><li><a href="ModelProxy.html">ModelProxy</a><ul class='methods'><li data-type='method'><a href="ModelProxy.html#.dispose">dispose</a></li><li data-type='method'><a href="ModelProxy.html#.predict">predict</a></li><li data-type='method'><a href="ModelProxy.html#.save">save</a></li><li data-type='method'><a href="ModelProxy.html#.train">train</a></li></ul></li><li><a href="MRMSDataSource.html">MRMSDataSource</a><ul class='methods'><li data-type='method'><a href="MRMSDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="MRMSDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="MRMSDataSource.html#fetch">fetch</a></li><li data-type='method'><a href="MRMSDataSource.html#findProductForVariable">findProductForVariable</a></li><li data-type='method'><a href="MRMSDataSource.html#generateURL">generateURL</a></li><li data-type='method'><a href="MRMSDataSource.html#getDatasetInfo">getDatasetInfo</a></li><li data-type='method'><a href="MRMSDataSource.html#inferVariableFromProduct">inferVariableFromProduct</a></li><li data-type='method'><a href="MRMSDataSource.html#loadDatasource">loadDatasource</a></li><li data-type='method'><a href="MRMSDataSource.html#processFile">processFile</a></li></ul></li><li><a href="NetCDFDataSource.html">NetCDFDataSource</a><ul class='methods'><li data-type='method'><a href="NetCDFDataSource.html#getNetCDFSlice">getNetCDFSlice</a></li><li data-type='method'><a href="NetCDFDataSource.html#getNetCDFValue">getNetCDFValue</a></li><li data-type='method'><a href="NetCDFDataSource.html#getNetCDFVariable">getNetCDFVariable</a></li><li data-type='method'><a href="NetCDFDataSource.html#openNetCDF">openNetCDF</a></li></ul></li><li><a href="NLDASDataSource.html">NLDASDataSource</a><ul class='methods'><li data-type='method'><a href="NLDASDataSource.html#extractDayData">extractDayData</a></li><li data-type='method'><a href="NLDASDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="NLDASDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="NLDASDataSource.html#extractRawNetCDF">extractRawNetCDF</a></li><li data-type='method'><a href="NLDASDataSource.html#generateFileURL">generateFileURL</a></li></ul></li><li><a href="nn.html">nn</a><ul class='methods'><li data-type='method'><a href="nn.html#.createModel">createModel</a></li><li data-type='method'><a href="nn.html#.loadModel">loadModel</a></li></ul></li><li><a href="nnUtils.html">nnUtils</a></li><li><a href="NWMDataSource.html">NWMDataSource</a><ul class='methods'><li data-type='method'><a href="NWMDataSource.html#buildFileURL">buildFileURL</a></li><li data-type='method'><a href="NWMDataSource.html#convertToTypedArray">convertToTypedArray</a></li><li data-type='method'><a href="NWMDataSource.html#extractData">extractData</a></li><li data-type='method'><a href="NWMDataSource.html#extractNetCDFData">extractNetCDFData</a></li><li data-type='method'><a href="NWMDataSource.html#extractZarrData">extractZarrData</a></li><li data-type='method'><a href="NWMDataSource.html#findCOMIDIndex">findCOMIDIndex</a></li><li data-type='method'><a href="NWMDataSource.html#getDatasetInfo">getDatasetInfo</a></li></ul></li><li><a href="PRISMDataSource.html">PRISMDataSource</a><ul class='methods'><li data-type='method'><a href="PRISMDataSource.html#determinePRISMParams">determinePRISMParams</a></li><li data-type='method'><a href="PRISMDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="PRISMDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="PRISMDataSource.html#fetchAndExtractPRISM">fetchAndExtractPRISM</a></li><li data-type='method'><a href="PRISMDataSource.html#generateFileURL">generateFileURL</a></li></ul></li><li><a href="stats.html">stats</a><ul class='methods'><li data-type='method'><a href="stats.html#.andersonDarling">andersonDarling</a></li><li data-type='method'><a href="stats.html#.anova">anova</a></li><li data-type='method'><a href="stats.html#.arrchange">arrchange</a></li><li data-type='method'><a href="stats.html#.autoCorrelation">autoCorrelation</a></li><li data-type='method'><a href="stats.html#.autocovarianceMatrix">autocovarianceMatrix</a></li><li data-type='method'><a href="stats.html#.basicstats">basicstats</a></li><li data-type='method'><a href="stats.html#.bernoulliDist">bernoulliDist</a></li><li data-type='method'><a href="stats.html#.betaDist">betaDist</a></li><li data-type='method'><a href="stats.html#.binomialCoefficient">binomialCoefficient</a></li><li data-type='method'><a href="stats.html#.binomialDist">binomialDist</a></li><li data-type='method'><a href="stats.html#.bootstrap">bootstrap</a></li><li data-type='method'><a href="stats.html#.breuschPaganTest">breuschPaganTest</a></li><li data-type='method'><a href="stats.html#.chisqCDF">chisqCDF</a></li><li data-type='method'><a href="stats.html#.cleaner">cleaner</a></li><li data-type='method'><a href="stats.html#.computeD">computeD</a></li><li data-type='method'><a href="stats.html#.copydata">copydata</a></li><li data-type='method'><a href="stats.html#.correlation">correlation</a></li><li data-type='method'><a href="stats.html#.datagaps">datagaps</a></li><li data-type='method'><a href="stats.html#.dateparser">dateparser</a></li><li data-type='method'><a href="stats.html#.differencing">differencing</a></li><li data-type='method'><a href="stats.html#.dotProduct">dotProduct</a></li><li data-type='method'><a href="stats.html#.efficiencies">efficiencies</a></li><li data-type='method'><a href="stats.html#.errorMetrics">errorMetrics</a></li><li data-type='method'><a href="stats.html#.exponentialDist">exponentialDist</a></li><li data-type='method'><a href="stats.html#.exponentialMovingAverage">exponentialMovingAverage</a></li><li data-type='method'><a href="stats.html#.fastfourier">fastfourier</a></li><li data-type='method'><a href="stats.html#.flatenise">flatenise</a></li><li data-type='method'><a href="stats.html#.forwardFill">forwardFill</a></li><li data-type='method'><a href="stats.html#.frequency">frequency</a></li><li data-type='method'><a href="stats.html#.fTest">fTest</a></li><li data-type='method'><a href="stats.html#.gammaCDFApprox">gammaCDFApprox</a></li><li data-type='method'><a href="stats.html#.gammaDist">gammaDist</a></li><li data-type='method'><a href="stats.html#.gapfiller">gapfiller</a></li><li data-type='method'><a href="stats.html#.gapremoval">gapremoval</a></li><li data-type='method'><a href="stats.html#.gaussianDist">gaussianDist</a></li><li data-type='method'><a href="stats.html#.generateRandomData">generateRandomData</a></li><li data-type='method'><a href="stats.html#.geometricDist">geometricDist</a></li><li data-type='method'><a href="stats.html#.getNextState">getNextState</a></li><li data-type='method'><a href="stats.html#.gevDistribution">gevDistribution</a></li><li data-type='method'><a href="stats.html#.gumbelDist">gumbelDist</a></li><li data-type='method'><a href="stats.html#.interoutliers">interoutliers</a></li><li data-type='method'><a href="stats.html#.itemfilter">itemfilter</a></li><li data-type='method'><a href="stats.html#.joinarray">joinarray</a></li><li data-type='method'><a href="stats.html#.KS_computePValue">KS_computePValue</a></li><li data-type='method'><a href="stats.html#.KS_rejectAtAlpha">KS_rejectAtAlpha</a></li><li data-type='method'><a href="stats.html#.kurtosis">kurtosis</a></li><li data-type='method'><a href="stats.html#.linearMovingAverage">linearMovingAverage</a></li><li data-type='method'><a href="stats.html#.lognormalDist">lognormalDist</a></li><li data-type='method'><a href="stats.html#.LogSeriesDistribution">LogSeriesDistribution</a></li><li data-type='method'><a href="stats.html#.mannWhitney">mannWhitney</a></li><li data-type='method'><a href="stats.html#.matrixInverse">matrixInverse</a></li><li data-type='method'><a href="stats.html#.max">max</a></li><li data-type='method'><a href="stats.html#.mean">mean</a></li><li data-type='method'><a href="stats.html#.median">median</a></li><li data-type='method'><a href="stats.html#.min">min</a></li><li data-type='method'><a href="stats.html#.MK">MK</a></li><li data-type='method'><a href="stats.html#.multinomialDistribution">multinomialDistribution</a></li><li data-type='method'><a href="stats.html#.multiplyMatrix">multiplyMatrix</a></li><li data-type='method'><a href="stats.html#.multiregression">multiregression</a></li><li data-type='method'><a href="stats.html#.normalcdf">normalcdf</a></li><li data-type='method'><a href="stats.html#.normalDistribution">normalDistribution</a></li><li data-type='method'><a href="stats.html#.normoutliers">normoutliers</a></li><li data-type='method'><a href="stats.html#.numerise">numerise</a></li><li data-type='method'><a href="stats.html#.onearray">onearray</a></li><li data-type='method'><a href="stats.html#.outremove">outremove</a></li><li data-type='method'><a href="stats.html#.partialAutoCorrelation">partialAutoCorrelation</a></li><li data-type='method'><a href="stats.html#.poissonProcess">poissonProcess</a></li><li data-type='method'><a href="stats.html#.push">push</a></li><li data-type='method'><a href="stats.html#.quantile">quantile</a></li><li data-type='method'><a href="stats.html#.randomWalk">randomWalk</a></li><li data-type='method'><a href="stats.html#.range">range</a></li><li data-type='method'><a href="stats.html#.regression">regression</a></li><li data-type='method'><a href="stats.html#.residualVariance">residualVariance</a></li><li data-type='method'><a href="stats.html#.returnPeriod">returnPeriod</a></li><li data-type='method'><a href="stats.html#.runMarkovChainMonteCarlo">runMarkovChainMonteCarlo</a></li><li data-type='method'><a href="stats.html#.runMonteCarlo">runMonteCarlo</a></li><li data-type='method'><a href="stats.html#.runSimulation">runSimulation</a></li><li data-type='method'><a href="stats.html#.runVegas">runVegas</a></li><li data-type='method'><a href="stats.html#.seasonalDecompose">seasonalDecompose</a></li><li data-type='method'><a href="stats.html#.shapiroWilk">shapiroWilk</a></li><li data-type='method'><a href="stats.html#.simpleMovingAverage">simpleMovingAverage</a></li><li data-type='method'><a href="stats.html#.skewness">skewness</a></li><li data-type='method'><a href="stats.html#.spiCompute">spiCompute</a></li><li data-type='method'><a href="stats.html#.standardize">standardize</a></li><li data-type='method'><a href="stats.html#.stddev">stddev</a></li><li data-type='method'><a href="stats.html#.sum">sum</a></li><li data-type='method'><a href="stats.html#.sumsqrd">sumsqrd</a></li><li data-type='method'><a href="stats.html#.timegaps">timegaps</a></li><li data-type='method'><a href="stats.html#.transposeMatrix">transposeMatrix</a></li><li data-type='method'><a href="stats.html#.tTest">tTest</a></li><li data-type='method'><a href="stats.html#.uniformDist">uniformDist</a></li><li data-type='method'><a href="stats.html#.unique">unique</a></li><li data-type='method'><a href="stats.html#.variance">variance</a></li><li data-type='method'><a href="stats.html#.weibullDist">weibullDist</a></li><li data-type='method'><a href="stats.html#.wilcoxonSignedRank">wilcoxonSignedRank</a></li></ul></li><li><a href="visualize.html">visualize</a><ul class='methods'><li data-type='method'><a href="visualize.html#.chart">chart</a></li><li data-type='method'><a href="visualize.html#.draw">draw</a></li><li data-type='method'><a href="visualize.html#.drawHtmlTable">drawHtmlTable</a></li><li data-type='method'><a href="visualize.html#.generateReport">generateReport</a></li><li data-type='method'><a href="visualize.html#.prettyPrint">prettyPrint</a></li><li data-type='method'><a href="visualize.html#.table">table</a></li></ul></li><li><a href="ZarrDataSource.html">ZarrDataSource</a><ul class='methods'><li data-type='method'><a href="ZarrDataSource.html#getZarrArrayData">getZarrArrayData</a></li><li data-type='method'><a href="ZarrDataSource.html#getZarrChunk">getZarrChunk</a></li><li data-type='method'><a href="ZarrDataSource.html#getZarrRegion">getZarrRegion</a></li><li data-type='method'><a href="ZarrDataSource.html#getZarrSlice">getZarrSlice</a></li><li data-type='method'><a href="ZarrDataSource.html#getZarrValue">getZarrValue</a></li><li data-type='method'><a href="ZarrDataSource.html#openZarrArray">openZarrArray</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-analyze.html">analyze</a><ul class='methods'><li data-type='method'><a href="module-analyze.html#loadFloodDM">loadFloodDM</a></li></ul></li><li><a href="module-mapsources.html">mapsources</a></li></ul><h3>Externals</h3><ul><li><a href="external-D3.html">D3</a></li><li><a href="external-GeospatialLoader.html">GeospatialLoader</a></li><li><a href="external-GoogleCharts.html">GoogleCharts</a></li><li><a href="external-googlemapsapi.html">googlemapsapi</a></li><li><a href="external-GriddedData.html">GriddedData</a></li><li><a href="external-HDF5Loader.html">HDF5Loader</a></li><li><a href="external-leafletosmapi.html">leafletosmapi</a></li><li><a href="external-NetCDFLoader.html">NetCDFLoader</a></li><li><a href="external-tensorflow.html">tensorflow</a></li><li><a href="external-tileprov.html">tileprov</a></li><li><a href="external-ZarritaLoader.html">ZarritaLoader</a></li></ul><h3>Namespaces</h3><ul><li><a href="data.cache.html">cache</a><ul class='methods'><li data-type='method'><a href="data.cache.html#.checkCache">checkCache</a></li><li data-type='method'><a href="data.cache.html#.clear">clear</a></li><li data-type='method'><a href="data.cache.html#.delete">delete</a></li><li data-type='method'><a href="data.cache.html#.getStats">getStats</a></li><li data-type='method'><a href="data.cache.html#.list">list</a></li></ul></li><li><a href="datasources.html">datasources</a><ul class='members'><li data-type='method'><a href="datasources.html#.AEMET">AEMET</a></li><li data-type='method'><a href="datasources.html#.AORC">AORC</a></li><li data-type='method'><a href="datasources.html#.BMKG">BMKG</a></li><li data-type='method'><a href="datasources.html#.CHIRPS">CHIRPS</a></li><li data-type='method'><a href="datasources.html#.ClearCreek">ClearCreek</a></li><li data-type='method'><a href="datasources.html#.CMA">CMA</a></li><li data-type='method'><a href="datasources.html#.CPTEC">CPTEC</a></li><li data-type='method'><a href="datasources.html#.3DEP">3DEP</a></li><li data-type='method'><a href="datasources.html#.DWD">DWD</a></li><li data-type='method'><a href="datasources.html#.EAUK">EAUK</a></li><li data-type='method'><a href="datasources.html#.ECMWF">ECMWF</a></li><li data-type='method'><a href="datasources.html#.EPA">EPA</a></li><li data-type='method'><a href="datasources.html#.FAO">FAO</a></li><li data-type='method'><a href="datasources.html#.FEMA">FEMA</a></li><li data-type='method'><a href="datasources.html#.flooddamage_dt">flooddamage_dt</a></li><li data-type='method'><a href="datasources.html#.FMI">FMI</a></li><li data-type='method'><a href="datasources.html#.HRRR">HRRR</a></li><li data-type='method'><a href="datasources.html#.HydroGeospatial">HydroGeospatial</a></li><li data-type='method'><a href="datasources.html#.IDEAM">IDEAM</a></li><li data-type='method'><a href="datasources.html#.IFIS">IFIS</a></li><li data-type='method'><a href="datasources.html#.IMD">IMD</a></li><li data-type='method'><a href="datasources.html#.ISRIC">ISRIC</a></li><li data-type='method'><a href="datasources.html#.JMA">JMA</a></li><li data-type='method'><a href="datasources.html#.KMA">KMA</a></li><li data-type='method'><a href="datasources.html#.KNMI">KNMI</a></li><li data-type='method'><a href="datasources.html#.MeteoFrance">MeteoFrance</a></li><li data-type='method'><a href="datasources.html#.MeteoIT">MeteoIT</a></li><li data-type='method'><a href="datasources.html#.MeteoSTAT">MeteoSTAT</a></li><li data-type='method'><a href="datasources.html#.MetNo">MetNo</a></li><li data-type='method'><a href="datasources.html#.mitigation_dt">mitigation_dt</a></li><li data-type='method'><a href="datasources.html#.MRMS">MRMS</a></li><li data-type='method'><a href="datasources.html#.NASAPOWER">NASAPOWER</a></li><li data-type='method'><a href="datasources.html#.NHDPlus">NHDPlus</a></li><li data-type='method'><a href="datasources.html#.NLDAS">NLDAS</a></li><li data-type='method'><a href="datasources.html#.NLDI">NLDI</a></li><li data-type='method'><a href="datasources.html#.NOAA">NOAA</a></li><li data-type='method'><a href="datasources.html#.NWM">NWM</a></li><li data-type='method'><a href="datasources.html#.NWPS">NWPS</a></li><li data-type='method'><a href="datasources.html#.NWS">NWS</a></li><li data-type='method'><a href="datasources.html#.OpenMeteo">OpenMeteo</a></li><li data-type='method'><a href="datasources.html#.PRISM">PRISM</a></li><li data-type='method'><a href="datasources.html#.ProxyServers">ProxyServers</a></li><li data-type='method'><a href="datasources.html#.SILO">SILO</a></li><li data-type='method'><a href="datasources.html#.SISSA">SISSA</a></li><li data-type='method'><a href="datasources.html#.SMHI">SMHI</a></li><li data-type='method'><a href="datasources.html#.SMN">SMN</a></li><li data-type='method'><a href="datasources.html#.soapEnv">soapEnv</a></li><li data-type='method'><a href="datasources.html#.TAMSAT">TAMSAT</a></li><li data-type='method'><a href="datasources.html#.TMD">TMD</a></li><li data-type='method'><a href="datasources.html#.USGS">USGS</a></li><li data-type='method'><a href="datasources.html#.USGS">USGS</a></li><li data-type='method'><a href="datasources.html#.WBD">WBD</a></li><li data-type='method'><a href="datasources.html#.Worldbank">Worldbank</a></li><li data-type='method'><a href="datasources.html#.WQP">WQP</a></li></ul></li><li><a href="datasources.CUAHSI.html">CUAHSI</a><ul class='members'><li data-type='method'><a href="datasources.CUAHSI.html#.hisCentral">hisCentral</a></li><li data-type='method'><a href="datasources.CUAHSI.html#.hydroShare">hydroShare</a></li><li data-type='method'><a href="datasources.CUAHSI.html#.waterOneFlow">waterOneFlow</a></li></ul></li><li><a href="HydroBMI.html">HydroBMI</a><ul class='members'><li data-type='method'><a href="HydroBMI.html#.BMIConfig">BMIConfig</a></li></ul></li><li><a href="HydroBMI.Hydro.html">Hydro</a></li><li><a href="Hydrolang.html">Hydrolang</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_openGDALSource">_openGDALSource</a></li><li><a href="global.html#addCustomLegend">addCustomLegend</a></li><li><a href="global.html#aggregateSpatial">aggregateSpatial</a></li><li><a href="global.html#aggregateTemporal">aggregateTemporal</a></li><li><a href="global.html#aggregateTime">aggregateTime</a></li><li><a href="global.html#algebra">algebra</a></li><li><a href="global.html#applyDataScaling">applyDataScaling</a></li><li><a href="global.html#applyQualityControl">applyQualityControl</a></li><li><a href="global.html#applyScalingToValue">applyScalingToValue</a></li><li><a href="global.html#aspect">aspect</a></li><li><a href="global.html#bandMath">bandMath</a></li><li><a href="global.html#cacheAPI">cacheAPI</a></li><li><a href="global.html#cachedFetch">cachedFetch</a></li><li><a href="global.html#calculateStatistics">calculateStatistics</a></li><li><a href="global.html#clip">clip</a></li><li><a href="global.html#clipGeo">clipGeo</a></li><li><a href="global.html#constructNWMFileURL">constructNWMFileURL</a></li><li><a href="global.html#convertAORCToCSV">convertAORCToCSV</a></li><li><a href="global.html#convertAORCToNetCDF">convertAORCToNetCDF</a></li><li><a href="global.html#convertDataUnits">convertDataUnits</a></li><li><a href="global.html#convertGeoTIFFToGeoraster">convertGeoTIFFToGeoraster</a></li><li><a href="global.html#convertNWMToCSV">convertNWMToCSV</a></li><li><a href="global.html#convertToArray">convertToArray</a></li><li><a href="global.html#convertToCSV">convertToCSV</a></li><li><a href="global.html#convertToNetCDF">convertToNetCDF</a></li><li><a href="global.html#createGoogleMapsGeoRasterLayer">createGoogleMapsGeoRasterLayer</a></li><li><a href="global.html#createLeafletCanvasGeoRasterLayer">createLeafletCanvasGeoRasterLayer</a></li><li><a href="global.html#createLeafletGeoRasterLayer">createLeafletGeoRasterLayer</a></li><li><a href="global.html#createSegmentationModel">createSegmentationModel</a></li><li><a href="global.html#createSimpleGeoRasterOverlay">createSimpleGeoRasterOverlay</a></li><li><a href="global.html#createStore">createStore</a></li><li><a href="global.html#createTransformer">createTransformer</a></li><li><a href="global.html#createZarrStore">createZarrStore</a></li><li><a href="global.html#decompressGzip">decompressGzip</a></li><li><a href="global.html#detectFormat">detectFormat</a></li><li><a href="global.html#determinePRISMRegion">determinePRISMRegion</a></li><li><a href="global.html#downloadERA5File">downloadERA5File</a></li><li><a href="global.html#drawHtmlTable">drawHtmlTable</a></li><li><a href="global.html#execute">execute</a></li><li><a href="global.html#expandSpatialBounds">expandSpatialBounds</a></li><li><a href="global.html#extractERA5Data">extractERA5Data</a></li><li><a href="global.html#extractERA5GridData">extractERA5GridData</a></li><li><a href="global.html#extractERA5PointData">extractERA5PointData</a></li><li><a href="global.html#extractERA5TimeSeries">extractERA5TimeSeries</a></li><li><a href="global.html#extractGRIB2Data">extractGRIB2Data</a></li><li><a href="global.html#extractHRRRGridData">extractHRRRGridData</a></li><li><a href="global.html#extractHRRRPointData">extractHRRRPointData</a></li><li><a href="global.html#extractHRRRTimeSeries">extractHRRRTimeSeries</a></li><li><a href="global.html#extractMRMSGridData">extractMRMSGridData</a></li><li><a href="global.html#extractMRMSPointData">extractMRMSPointData</a></li><li><a href="global.html#extractMRMSTimeSeries">extractMRMSTimeSeries</a></li><li><a href="global.html#extractNLDASGridData">extractNLDASGridData</a></li><li><a href="global.html#extractNLDASMultiplePoints">extractNLDASMultiplePoints</a></li><li><a href="global.html#extractNLDASPointData">extractNLDASPointData</a></li><li><a href="global.html#extractNLDASRawNetCDF">extractNLDASRawNetCDF</a></li><li><a href="global.html#extractNWMData">extractNWMData</a></li><li><a href="global.html#extractPRISMGridData">extractPRISMGridData</a></li><li><a href="global.html#extractPRISMPointData">extractPRISMPointData</a></li><li><a href="global.html#extractPRISMTimeSeries">extractPRISMTimeSeries</a></li><li><a href="global.html#fetchDEMData">fetchDEMData</a></li><li><a href="global.html#fetchPointElevation">fetchPointElevation</a></li><li><a href="global.html#fillSinks">fillSinks</a></li><li><a href="global.html#flattenND">flattenND</a></li><li><a href="global.html#formatAORCOutput">formatAORCOutput</a></li><li><a href="global.html#formatData">formatData</a></li><li><a href="global.html#formatNWMOutput">formatNWMOutput</a></li><li><a href="global.html#formatPRISMTimePeriod">formatPRISMTimePeriod</a></li><li><a href="global.html#generateNWMDateRange">generateNWMDateRange</a></li><li><a href="global.html#generatePRISMFileURL">generatePRISMFileURL</a></li><li><a href="global.html#generateProcessedDataKey">generateProcessedDataKey</a></li><li><a href="global.html#generateSimpleCacheKey">generateSimpleCacheKey</a></li><li><a href="global.html#getArrayData">getArrayData</a></li><li><a href="global.html#getAvailableERA5Variables">getAvailableERA5Variables</a></li><li><a href="global.html#getAvailableHRRRVariables">getAvailableHRRRVariables</a></li><li><a href="global.html#getAvailableMRMSProducts">getAvailableMRMSProducts</a></li><li><a href="global.html#getAvailableNLDASVariables">getAvailableNLDASVariables</a></li><li><a href="global.html#getAvailablePRISMVariables">getAvailablePRISMVariables</a></li><li><a href="global.html#getChunk">getChunk</a></li><li><a href="global.html#getFile">getFile</a></li><li><a href="global.html#getGridDataLibrary">getGridDataLibrary</a></li><li><a href="global.html#getHRRRDatasetInfo">getHRRRDatasetInfo</a></li><li><a href="global.html#getInfo">getInfo</a></li><li><a href="global.html#getLeafletColorForElevation">getLeafletColorForElevation</a></li><li><a href="global.html#getMap">getMap</a></li><li><a href="global.html#getMRMSDatasetInfo">getMRMSDatasetInfo</a></li><li><a href="global.html#getNLDASDatasetInfo">getNLDASDatasetInfo</a></li><li><a href="global.html#getNWMTemporalInfo">getNWMTemporalInfo</a></li><li><a href="global.html#getPRISMDatasetInfo">getPRISMDatasetInfo</a></li><li><a href="global.html#getRecommendedPRISMResolution">getRecommendedPRISMResolution</a></li><li><a href="global.html#getRegion">getRegion</a></li><li><a href="global.html#goldfeldQuandtTest">goldfeldQuandtTest</a></li><li><a href="global.html#GRIDDED_SOURCES">GRIDDED_SOURCES</a></li><li><a href="global.html#gridToTensor">gridToTensor</a></li><li><a href="global.html#hillshade">hillshade</a></li><li><a href="global.html#imgToTensor">imgToTensor</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#isGridDataLibraryLoaded">isGridDataLibraryLoaded</a></li><li><a href="global.html#isLoaded">isLoaded</a></li><li><a href="global.html#isValidBoundingBox">isValidBoundingBox</a></li><li><a href="global.html#isValidCoordinate">isValidCoordinate</a></li><li><a href="global.html#load">load</a></li><li><a href="global.html#loadGeoRasterLayerPlugin">loadGeoRasterLayerPlugin</a></li><li><a href="global.html#loadGeoTIFFFromBuffer">loadGeoTIFFFromBuffer</a></li><li><a href="global.html#loadGridDataLibrary">loadGridDataLibrary</a></li><li><a href="global.html#mapPixels">mapPixels</a></li><li><a href="global.html#mask">mask</a></li><li><a href="global.html#modelRegistry">modelRegistry</a></li><li><a href="global.html#openArray">openArray</a></li><li><a href="global.html#parseGRIB2">parseGRIB2</a></li><li><a href="global.html#pca">pca</a></li><li><a href="global.html#pollECMWFStatus">pollECMWFStatus</a></li><li><a href="global.html#preprocess">preprocess</a></li><li><a href="global.html#preprocessData">preprocessData</a></li><li><a href="global.html#processAORCBulkExtraction">processAORCBulkExtraction</a></li><li><a href="global.html#processAORCDatasetInfo">processAORCDatasetInfo</a></li><li><a href="global.html#processAORCGridData">processAORCGridData</a></li><li><a href="global.html#processAORCPointData">processAORCPointData</a></li><li><a href="global.html#processAORCTimeSeriesData">processAORCTimeSeriesData</a></li><li><a href="global.html#processERA5GRIB2Data">processERA5GRIB2Data</a></li><li><a href="global.html#processFileInChunks">processFileInChunks</a></li><li><a href="global.html#processGriddedSource">processGriddedSource</a></li><li><a href="global.html#processNWMBulkExtraction">processNWMBulkExtraction</a></li><li><a href="global.html#readGRIB2Chunked">readGRIB2Chunked</a></li><li><a href="global.html#readNetCDFChunked">readNetCDFChunked</a></li><li><a href="global.html#recenter">recenter</a></li><li><a href="global.html#reproject">reproject</a></li><li><a href="global.html#saveFile">saveFile</a></li><li><a href="global.html#seriesToTensor">seriesToTensor</a></li><li><a href="global.html#slope">slope</a></li><li><a href="global.html#sourceType">sourceType</a></li><li><a href="global.html#streamExtract">streamExtract</a></li><li><a href="global.html#testMRMSUrlGeneration">testMRMSUrlGeneration</a></li><li><a href="global.html#tile">tile</a></li><li><a href="global.html#transformVariable">transformVariable</a></li><li><a href="global.html#validate3DEPParams">validate3DEPParams</a></li><li><a href="global.html#validateERA5Config">validateERA5Config</a></li><li><a href="global.html#validateHRRRConfig">validateHRRRConfig</a></li><li><a href="global.html#validateMRMSConfig">validateMRMSConfig</a></li><li><a href="global.html#validateNLDASConfig">validateNLDASConfig</a></li><li><a href="global.html#validatePRISMConfig">validatePRISMConfig</a></li><li><a href="global.html#validatePRISMVariable">validatePRISMVariable</a></li><li><a href="global.html#vectorize">vectorize</a></li><li><a href="global.html#whitesTest">whitesTest</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">modules/analyze/components/geoprocessor.js</h1>
+    
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Geoprocessor module for raster data analysis using GeoTIFF.
+ * @class
+ * @name geoprocessor
+ */
+import geospatial from "../../../external/gridded-data/geospatial/geospatial.js";
+
+/**
+ * Geoprocessor module for raster data analysis using GeoTIFF.
+ * @class
+ * @name geoprocessor
+ */
+export default class geoprocessor {
+
+    // ============================================================
+    // Worker Management
+    // ============================================================
+
+    static async _ensureWorker() {
+        if (!this._worker) {
+            // Path relative to where this module is imported usually works if using module workers, 
+            // but for safety with standard workers we might need absolute or precise relative path.
+            // Assuming standard structure:
+            const workerUrl = new URL('./utils/geoprocessor.worker.js', import.meta.url);
+            this._worker = new Worker(workerUrl, { type: 'module' });
+
+            this._workerCallbacks = {};
+            this._msgId = 0;
+
+            this._worker.onmessage = (e) => {
+                const { id, success, result, message } = e.data;
+                const callback = this._workerCallbacks[id];
+                if (callback) {
+                    if (success) callback.resolve(result);
+                    else callback.reject(new Error(message));
+                    delete this._workerCallbacks[id];
+                }
+            };
+
+            this._worker.onerror = (e) => {
+                console.error("Geoprocessor Worker Error:", e);
+            };
+        }
+    }
+
+    static _runWorker(action, args, data, transfer = []) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                await this._ensureWorker();
+                const id = ++this._msgId;
+                this._workerCallbacks[id] = { resolve, reject };
+                this._worker.postMessage({ id, action, args, data }, transfer);
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+
+    // ============================================================
+    // Dependency Loading
+    // ============================================================
+
+    static async _ensureLibraries() {
+        if (!geospatial.isLoaded()) {
+            await geospatial.load({
+                includeGeoTIFF: true,
+                includeProj4: true,
+                includeGDAL: true
+            });
+        }
+    }
+
+    // ============================================================
+    // Internal Helpers
+    // ============================================================
+
+    static async _openFromArrayBuffer(input) {
+        await this._ensureLibraries();
+
+        // Handle fallback object (if previous step failed to write GeoTIFF)
+        if (input &amp;&amp; input._isGeorasterObject) {
+            return {
+                tiff: null,
+                image: {
+                    getWidth: () => input.width,
+                    getHeight: () => input.height,
+                    getSamplesPerPixel: () => input.numberOfRasters,
+                    getBoundingBox: () => input.bbox || [0, 0, input.width, input.height], // Fallback bbox
+                    getOrigin: () => input.origin || [0, 0],
+                    getResolution: () => input.resolution || [1, 1],
+                    getFileDirectory: () => ({}),
+                    getGeoKeys: () => ({}),
+                    readRasters: async ({ samples } = {}) => {
+                        let bands = input.values;
+                        // Flatten 2D arrays if necessary (georaster object usually has 2D arrays)
+                        // But geoprocessor logic often expects flat arrays for processing if it assumes GeoTIFF read result
+                        // Actually, geotiff.js readRasters returns arrays of values.
+                        // Our fallback object has `values` which might be 2D arrays (rows).
+                        // We need to flatten them for consistency if the consuming code expects flat arrays (which it does, e.g. dem[idx]).
+
+                        const flatBands = bands.map(band2D => {
+                            if (Array.isArray(band2D[0])) {
+                                return band2D.flat();
+                            }
+                            return band2D;
+                        });
+
+                        if (samples) {
+                            return samples.map(i => flatBands[i]);
+                        }
+                        return flatBands;
+                    }
+                }
+            };
+        }
+
+
+        await this._ensureLibraries();
+
+        // 1. Check for Fallback "Georaster-like" Object
+        // Created by _toGeorasterObject when binary write fails
+        if (input &amp;&amp; input.values &amp;&amp; input.width &amp;&amp; input.height) {
+            // Already a usable object. Wrap it in a mock Image interface for compatibility.
+            // This mimics the API of GeoTIFF.Image so downstream functions don't need changing.
+            return {
+                image: {
+                    getWidth: () => input.width,
+                    getHeight: () => input.height,
+                    readRasters: async () => {
+                        // Check if values are 2D (array of arrays/TypedArrays). If so, flatten to 1D TypedArray.
+                        return input.values.map(band => {
+                            // If band is a standard Array (not TypedArray) and contains non-numbers (rows), process it.
+                            if (Array.isArray(band) &amp;&amp; band.length > 0 &amp;&amp; typeof band[0] !== 'number') {
+                                const w = input.width;
+                                const h = input.height;
+                                const flat = new Float32Array(w * h);
+                                for (let y = 0; y &lt; h; y++) {
+                                    const row = band[y];
+                                    const len = row ? row.length : 0;
+                                    // Use .set() for efficiency
+                                    if (len > 0) flat.set(row, y * w);
+                                }
+                                return flat;
+                            }
+                            return band;
+                        });
+                    },
+                    // Mock GeoKeys access if needed (or return extracted keys)
+                    getFileDirectory: () => ({
+                        ModelTiepoint: input.ModelTiepoint,
+                        ModelPixelScale: input.ModelPixelScale,
+                        ModelTransformation: input.ModelTransformation,
+                        GeoKeyDirectory: input.GeoKeyDirectory,
+                        GeoAsciiParams: input.GeoAsciiParams
+                    }),
+                    getGeoKeys: () => ({
+                        GTModelTypeGeoKey: input.GTModelTypeGeoKey,
+                        GTRasterTypeGeoKey: input.GTRasterTypeGeoKey,
+                        GeographicTypeGeoKey: input.GeographicTypeGeoKey,
+                        ProjectedCSTypeGeoKey: input.ProjectedCSTypeGeoKey
+                    }),
+                    // Fallback helpers
+                    getBoundingBox: () => [input.xmin, input.ymin, input.xmax, input.ymax],
+                    getOrigin: () => [input.xmin, input.ymax],
+                    getResolution: () => [input.pixelWidth, input.pixelHeight]
+                }
+            };
+        }
+
+        // 2. Unwrap if input is an object containing buffer (e.g., { buffer: ab }) or a TypedArray
+        let buffer = input;
+        if (input &amp;&amp; typeof input === 'object') {
+            if (input.arrayBuffer instanceof ArrayBuffer) {
+                buffer = input.arrayBuffer;
+            } else if (input.buffer instanceof ArrayBuffer) {
+                buffer = input.buffer;
+            }
+        }
+
+        if (!buffer || typeof buffer.slice !== 'function') {
+            console.error("Geoprocessor Input Error: Expected ArrayBuffer but got:", input);
+            throw new Error("Invalid input to Geoprocessor: Expected ArrayBuffer or Buffer-like object.");
+        }
+
+        // 3. Use external loader for real files
+        const result = await geospatial.loadGeoTIFFFromBuffer(buffer);
+
+        if (result.type === 'geotiff') {
+            const image = await result.data.getImage();
+            return { tiff: result.data, image };
+        } else if (result.type === 'tiff') {
+            throw new Error("Tiff.js fallback not fully implemented in geoprocessor internals yet.");
+        }
+
+        throw new Error("Unsupported TIFF format loaded.");
+    }
+
+    static async _toGeoTIFF(bands, width, height, options = {}) {
+        await this._ensureLibraries();
+        const GeoTIFF = geospatial.libraries.GeoTIFF;
+
+        try {
+            // Check if input is valid
+            if (!width || !height) {
+                console.error("Invalid dimensions for _toGeoTIFF:", { width, height });
+                throw new Error("Width and height must be defined for GeoTIFF creation");
+            }
+
+            // 1. Try modern writeArrayBuffer (available in recent versions)
+            // Ensure width/height are explicit numbers
+            const w = Number(width);
+            const h = Number(height);
+
+            if (Number.isNaN(w) || Number.isNaN(h)) {
+                console.error("Dimensions resulted in NaN:", { width, height, w, h });
+                throw new Error("Invalid numeric dimensions for GeoTIFF");
+            }
+
+            if (GeoTIFF &amp;&amp; typeof GeoTIFF.writeArrayBuffer === 'function') {
+                // Determine format based on first band
+                let sampleFormat = 3; // default Float
+                let bitsPerSample = 32;
+
+                if (bands[0] instanceof Uint8Array) {
+                    sampleFormat = 1; // UInt
+                    bitsPerSample = 8;
+                } else if (bands[0] instanceof Int16Array) {
+                    sampleFormat = 2; // Int
+                    bitsPerSample = 16;
+                } else if (bands[0] instanceof Int32Array) {
+                    sampleFormat = 2; // Int
+                    bitsPerSample = 32;
+                } else if (bands[0] instanceof Float64Array) {
+                    sampleFormat = 3; // Float
+                    bitsPerSample = 64;
+                }
+
+                const metadata = {
+                    width: w,
+                    height: h,
+                    ImageWidth: w,
+                    ImageLength: h,
+                    BitsPerSample: Array(bands.length).fill(bitsPerSample),
+                    SampleFormat: Array(bands.length).fill(sampleFormat),
+                    SamplesPerPixel: bands.length,
+                    PlanarConfiguration: 1,
+                    ...options // Merge additional GeoTIFF keys (ModelTiepoint, GeoKeyDirectory, etc.)
+                };
+                return await GeoTIFF.writeArrayBuffer(bands, metadata);
+            }
+
+            throw new Error("No GeoTIFF writing method available. GeoTIFF.writeArrayBuffer is required.");
+
+            throw new Error("No GeoTIFF writing method available.");
+
+        } catch (e) {
+            console.warn("GeoTIFF write failed or not available. returning raw object for fallback.", e);
+            // Fallback: return proper georaster-like object
+            return this._toGeorasterObject(bands, width, height, options);
+        }
+    }
+
+    static _toGeorasterObject(bands, width, height, options = {}) {
+        // Calculate basic stats for fallback
+        const mins = [], maxs = [], ranges = [];
+        for (const band of bands) {
+            let min = Infinity, max = -Infinity;
+            let count = 0;
+            let nanCount = 0;
+            for (let i = 0; i &lt; band.length; i++) {
+                const v = band[i];
+                if (Number.isNaN(v) || v === -9999) { // Handle NaN or NoData
+                    nanCount++;
+                    continue;
+                }
+                if (v &lt; min) min = v;
+                if (v > max) max = v;
+                count++;
+            }
+            if (min === Infinity) {
+                console.warn("Band appears to be all mean/NaN", { length: band.length, nanCount });
+            }
+            mins.push(min === Infinity ? 0 : min); // Safe default
+            maxs.push(max === -Infinity ? 0 : max);
+            ranges.push((max === -Infinity ? 0 : max) - (min === Infinity ? 0 : min));
+        }
+
+        // Derive bounds from options if available
+        let xmin = 0, ymax = height, pixelWidth = 1, pixelHeight = 1;
+
+        if (options.ModelTiepoint &amp;&amp; options.ModelPixelScale) {
+            // Tiepoint: [i, j, k, x, y, z] -> usually [0, 0, 0, xOrigin, yOrigin, 0]
+            const tp = options.ModelTiepoint;
+            const ps = options.ModelPixelScale;
+
+            // Standard raster origin (top-left)
+            xmin = tp[3];
+            ymax = tp[4];
+            pixelWidth = ps[0];
+            pixelHeight = ps[1];
+        }
+
+        const xmax = xmin + (width * pixelWidth);
+        const ymin = ymax - (height * pixelHeight);
+
+        // Convert flat arrays to 2D arrays for map compatibility
+        const values = bands.map(band => {
+            const rows = [];
+            for (let y = 0; y &lt; height; y++) {
+                // Slice is faster than loop
+                const start = y * width;
+                const end = start + width;
+                rows.push(band.slice(start, end));
+            }
+            return rows;
+        });
+
+        return {
+            width,
+            height,
+            values,
+            numberOfRasters: bands.length,
+            mins,
+            maxs,
+            ranges,
+            pixelWidth,
+            pixelHeight,
+            xmin,
+            xmax,
+            ymin,
+            ymax,
+            projection: 4326, // Default assumption if not provided, but usually handled by map
+            ...options
+        };
+    }
+
+
+
+
+    // Centralized band derivative
+    static _dx(arr, w, h, cell) {
+        const out = new Float32Array(w * h);
+        for (let y = 0; y &lt; h; y++) {
+            for (let x = 0; x &lt; w; x++) {
+                const c = y * w + x;
+                const left = y * w + Math.max(0, x - 1);
+                const right = y * w + Math.min(w - 1, x + 1);
+                out[c] = (arr[right] - arr[left]) / (2 * cell);
+            }
+        }
+        return out;
+    }
+
+    static _dy(arr, w, h, cell) {
+        const out = new Float32Array(w * h);
+        for (let y = 0; y &lt; h; y++) {
+            for (let x = 0; x &lt; w; x++) {
+                const c = y * w + x;
+                const up = Math.max(0, y - 1) * w + x;
+                const down = Math.min(h - 1, y + 1) * w + x;
+                out[c] = (arr[down] - arr[up]) / (2 * cell);
+            }
+        }
+        return out;
+    }
+
+    // ============================================================
+    // Unified Dispatcher
+    // ============================================================
+
+    /**
+     * Executes a raster operation based on params.
+     * @param {Object} params - Action configuration.
+     * @param {string} params.action - The name of the function to execute (e.g. 'slope', 'hillshade').
+     * @param {Object} args - Arguments specific to the action.
+     * @param {Array&lt;Object>} data - Array of input data objects, each containing a `buffer` property (ArrayBuffer).
+     * @returns {Promise&lt;Object>} Result object { ok, result, ... }.
+     * @example
+     * await hydro.analyze.geoprocessor.execute({
+     *   params: { action: 'slope' },
+     *   args: { cellSize: 30 },
+     *   data: [{ buffer: arrayBuffer }]
+     * });
+     */
+    static async execute({ params = {}, args = {}, data = [] }) {
+        const action = params.action;
+
+        // Note: Removed unconditional _ensureLibraries() here to allow worker-compatible operations without DOM.
+        // Specific functions that need libs will call it themselves.
+
+        switch (action) {
+            case "info": return this.info({ data });
+            case "bandMath": return this.bandMath({ args, data });
+            case "algebra": return this.algebra({ args, data });
+            case "slope": return this.slope({ args, data });
+            case "aspect": return this.aspect({ args, data });
+            case "hillshade": return this.hillshade({ args, data });
+            case "mask": return this.mask({ args, data });
+            case "tile": return this.tile({ args, data });
+            case "reproject": return this.reproject({ args, data });
+            case "flowDirection": return this.flowDirection({ args, data });
+            case "flowAccumulation": return this.flowAccumulation({ args, data });
+            case "watershed": return this.watershed({ args, data });
+            case "streamExtract": return this.streamExtract({ args, data });
+            case "pca": return this.pca({ args, data });
+            case "clipGeo": return this.clipGeo({ args, data });
+
+            default:
+                throw new Error(`Unknown action: ${action}`);
+        }
+    }
+
+    // ============================================================
+    // Raster Info
+    // ============================================================
+
+    /**
+     * Extracts metadata from a GeoTIFF buffer.
+     * @param {Object} options
+     * @param {Array&lt;Object>} options.data - Input data containing one object with { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Metadata object including width, height, bbox, origin, resolution, and native directory.
+     * @example
+     * await hydro.analyze.geoprocessor.info({
+     *   data: [{ buffer: arrayBuffer }]
+     * });
+     */
+    static async info({ data }) {
+        await this._ensureLibraries(); // Needs libs to parse TIFF
+        const buffer = data;
+        const { image } = await this._openFromArrayBuffer(buffer);
+
+        return {
+            width: image.getWidth(),
+            height: image.getHeight(),
+            samples: image.getSamplesPerPixel(),
+            bbox: image.getBoundingBox(),
+            origin: image.getOrigin(),
+            resolution: image.getResolution(),
+            metadata: image.getFileDirectory()
+        };
+    }
+
+    // ============================================================
+    // Band Math
+    // ============================================================
+
+    /**
+     * Performs mathematical expressions on raster bands.
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {string} options.args.expr - Mathematical expression (e.g., "(nir-red)/(nir+red)").
+     * @param {Object&lt;string, number>} options.args.bands - Mapping of variable names to band indices (e.g., { red: 0, nir: 3 }).
+     * @param {Array&lt;Object>} options.data - Input data containing one object with { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Result containing the processed single-band GeoTIFF buffer.
+     * @example
+     * await hydro.analyze.geoprocessor.bandMath({
+     *   args: { expr: "(nir - red) / (nir + red)", bands: { red: 0, nir: 3 } },
+     *   data: [{ buffer: multispectralBuffer }]
+     * });
+     */
+    static async bandMath({ args, data }) {
+        /**
+         * args:
+         *   expr: "(nir-red)/(nir+red)"
+         *   bands: { red:0, nir:3 }
+         */
+
+        await this._ensureLibraries(); // Needs internal parsing
+        const buffer = data;
+        const { image } = await this._openFromArrayBuffer(buffer);
+
+        const width = image.getWidth(), height = image.getHeight();
+        const bandIndices = Object.values(args.bands);
+
+        const rasters = await image.readRasters({ samples: bandIndices });
+
+        let context = {};
+        let i = 0;
+        for (const key in args.bands) {
+            context[key] = rasters[i++];
+        }
+
+        const fn = new Function(...Object.keys(context), `return ${args.expr};`);
+        const out = new Float32Array(width * height);
+
+        for (let p = 0; p &lt; out.length; p++) {
+            const vals = Object.values(context).map(b => b[p]);
+            out[p] = fn(...vals);
+        }
+
+        const resultBuffer = await this._toGeoTIFF([out], width, height);
+
+        return resultBuffer;
+    }
+
+    // ============================================================
+    // Raster Algebra (two rasters)
+    // ============================================================
+
+    /**
+     * Performs arithmetic operations between two rasters.
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {string} options.args.op - Operation to perform: "add", "sub", "mul", or "div".
+     * @param {Array&lt;Object>} options.data - Input data containing two objects with { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Result containing the processed single-band GeoTIFF buffer.
+     * @example
+     * await hydro.analyze.geoprocessor.algebra({
+     *   args: { op: 'sub' },
+     *   data: [{ buffer: bufferA }, { buffer: bufferB }]
+     * });
+     */
+    static async algebra({ args, data }) {
+        /**
+         * args.op: "add" | "sub" | "mul" | "div"
+         * data: [ {buffer A}, {buffer B} ]
+         */
+
+        const { image: img1 } = await this._openFromArrayBuffer(data[0]);
+        const { image: img2 } = await this._openFromArrayBuffer(data[1]);
+
+        const a = (await img1.readRasters({ samples: [0] }))[0];
+        const b = (await img2.readRasters({ samples: [0] }))[0];
+
+        const out = new Float32Array(a.length);
+        const op = args.op;
+
+        switch (op) {
+            case "add": for (let i = 0; i &lt; a.length; i++) out[i] = a[i] + b[i]; break;
+            case "sub": for (let i = 0; i &lt; a.length; i++) out[i] = a[i] - b[i]; break;
+            case "mul": for (let i = 0; i &lt; a.length; i++) out[i] = a[i] * b[i]; break;
+            case "div": for (let i = 0; i &lt; a.length; i++) out[i] = a[i] / b[i]; break;
+            default: return { ok: false, error: `Invalid algebra op: ${op}` };
+        }
+
+        const w = img1.getWidth(), h = img1.getHeight();
+        const buffer = await this._toGeoTIFF([out], w, h);
+        return buffer;
+    }
+
+    // ============================================================
+    // Terrain: Slope
+    // ============================================================
+
+    /**
+     * Calculates the slope of a DEM in degrees.
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {number} [options.args.cellSize] - Optional override for cell size. If not provided, extracted from resolution.
+     * @param {Array&lt;Object>} options.data - Input data containing a DEM { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Result containing slope raster.
+     * @example
+     * await hydro.analyze.geoprocessor.slope({
+     *   args: { cellSize: 30 },
+     *   data: [{ buffer: demBuffer }]
+     * });
+     */
+    /**
+     * Calculates Slope using GDAL.
+     */
+    static async slope({ args, data }) {
+        try {
+            // data is ArrayBuffer. Do NOT transfer it as it is reused.
+            return await this._runWorker('slope', args, { buffer: data });
+        } catch (e) { throw new Error(`GDAL Slope Error: ${e.message}`); }
+    }
+
+    /**
+     * Calculates Aspect using GDAL.
+     */
+    static async aspect({ args, data }) {
+        try {
+            return await this._runWorker('aspect', args, { buffer: data });
+        } catch (e) { throw new Error(`GDAL Aspect Error: ${e.message}`); }
+    }
+
+    /**
+   * Calculate Terrain Ruggedness Index (TRI) using GDAL
+   * Measures terrain heterogeneity - higher values = more rugged terrain
+   * Useful for habitat modeling, geomorphology, and terrain classification
+   * 
+   * @function tri
+   * @memberof geoprocessor
+   * @async
+   * @param {Object} options - Function options
+   * @param {Object} [options.args] - Processing arguments
+   * @param {ArrayBuffer} options.data - Input DEM as GeoTIFF ArrayBuffer
+   * @returns {Promise&lt;ArrayBuffer>} TRI raster as GeoTIFF
+   * 
+   * @example
+   * // Calculate terrain ruggedness
+   * const dem = await hydro.data.retrieve({
+   *   params: { source: '3dep', datatype: 'DEM' },
+   *   args: { bbox: [-105.5, 40.0, -105.0, 40.5] }
+   * });
+   * 
+   * const tri = await hydro.analyze.geoprocessor.tri({ data: dem });
+   * // Higher values indicate more rugged, complex terrain
+   */
+    static async tri({ args, data }) {
+        try {
+            return await this._runWorker('TRI', args, { buffer: data });
+        } catch (e) { throw new Error(`GDAL TRI Error: ${e.message}`); }
+    }
+
+    /**
+   * Calculate Topographic Position Index (TPI) using GDAL
+   * Compares elevation of each cell to mean of surrounding cells
+   * Positive=ridges/hilltops, Negative=valleys, Zero=flat/mid-slope
+   * 
+   * @function tpi
+   * @memberof geoprocessor
+   * @async
+   * @param {Object} options - Function options
+   * @param {Object} [options.args] - Processing arguments
+   * @param {ArrayBuffer} options.data - Input DEM as GeoTIFF ArrayBuffer
+   * @returns {Promise&lt;ArrayBuffer>} TPI raster as GeoTIFF
+   * 
+   * @example
+   * // Identify ridges and valleys
+   * const tpi = await hydro.analyze.geoprocessor.tpi({ data: demBuffer });
+   * // Positive values = ridges, negative = valleys
+   * // Use for landform classification
+   */
+    static async tpi({ args, data }) {
+        try {
+            return await this._runWorker('TPI', args, { buffer: data });
+        } catch (e) { throw new Error(`GDAL TPI Error: ${e.message}`); }
+    }
+
+    /**
+   * Calculate terrain roughness using GDAL
+   * Measures difference between max and min elevation in neighborhood
+   * Indicates vertical terrain variation
+   * 
+   * @function roughness
+   * @memberof geoprocessor
+   * @async
+   * @param {Object} options - Function options
+   * @param {Object} [options.args] - Processing arguments
+   * @param {ArrayBuffer} options.data - Input DEM as GeoTIFF ArrayBuffer
+   * @returns {Promise&lt;ArrayBuffer>} Roughness raster as GeoTIFF
+   * 
+   * @example
+   * // Calculate surface roughness
+   * const roughness = await hydro.analyze.geoprocessor.roughness({ data: demBuffer });
+   * // High values = very rough surface (cliffs, rock outcrops)
+   * // Low values = smooth surface (plains, gentle slopes)
+   */
+    static async roughness({ args, data }) {
+        try {
+            return await this._runWorker('roughness', args, { buffer: data });
+        } catch (e) { throw new Error(`GDAL Roughness Error: ${e.message}`); }
+    }
+
+    // ============================================================
+    // Terrain: Hillshade
+    // ============================================================
+
+    /**
+     * Generates a hillshade map from a DEM.
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {number} [options.args.azimuth=315] - Light source azimuth in degrees.
+     * @param {number} [options.args.altitude=45] - Light source altitude in degrees.
+     * @param {number} [options.args.cellSize] - Optional override for cell size.
+     * @param {Array&lt;Object>} options.data - Input data containing a DEM { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Result containing hillshade raster (0-255).
+     * @example
+     * await hydro.analyze.geoprocessor.hillshade({
+     *   args: { azimuth: 315, altitude: 45 },
+     *   data: [{ buffer: demBuffer }]
+     * });
+     */
+    // ============================================================
+    // GDAL WASM Analysis Functions (Hillshade, Slope, Aspect)
+    // ============================================================
+    // GDAL WASM Analysis Functions
+    // ============================================================
+
+    /**
+     * Helper to initialize GDAL and open a source dataset.
+     * Reduces code duplication.
+     */
+    static async _openGDALSource(data) {
+        await this._ensureLibraries();
+        let loamClient = (typeof geospatial !== 'undefined' &amp;&amp; geospatial.libraries &amp;&amp; geospatial.libraries.loam) ? geospatial.libraries.loam : (self.geospatial ? self.geospatial.libraries?.loam : window.hydro?.analyze?.geospatial?.libraries?.loam);
+        if (!loamClient) throw new Error("GDAL WASM (loam) client not found. Ensure libraries are initialized.");
+
+        const buffer = (data instanceof ArrayBuffer) ? data : (data.buffer instanceof ArrayBuffer ? data.buffer : (Array.isArray(data) &amp;&amp; data[0]?.buffer ? data[0].buffer : null));
+        if (!buffer) throw new Error("Invalid input data. Expected ArrayBuffer or GeoTIFF object.");
+
+        return await loamClient.open(new Uint8Array(buffer));
+    }
+
+    /**
+     * Calculates Hillshade using GDAL.
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {number} [options.args.zFactor=1] - Vertical exaggeration.
+     * @param {number} [options.args.scale=1] - Ratio of vertical units to horizontal.
+     * @param {number} [options.args.azimuth=315] - Azimuth of the light (degrees).
+     * @param {number} [options.args.altitude=45] - Altitude of the light (degrees).
+     * @param {Array&lt;Object>} options.data - Input data containing a DEM { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;ArrayBuffer>} Hillshade raster buffer.
+     */
+    static async hillshade({ args, data }) {
+        try {
+            return await this._runWorker('hillshade', args, { buffer: data });
+        } catch (e) { throw new Error(`GDAL Hillshade Error: ${e.message}`); }
+    }
+
+    /**
+     * Clips a GeoTIFF to the specified bounding box using GDAL WASM (GDALTranslate).
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {Array&lt;number>} options.args.bounds - Bounding box [minX, minY, maxX, maxY].
+     * @param {Array&lt;Object>|ArrayBuffer} options.data - Input data (ArrayBuffer of GeoTIFF).
+     * @returns {Promise&lt;ArrayBuffer>} Clipped GeoTIFF buffer.
+     */
+    static async clipGeo({ args, data }) {
+        try {
+            return await this._runWorker('clipGeo', args, { buffer: data });
+        } catch (e) { throw new Error(`GDAL Clip Error: ${e.message}`); }
+    }
+
+    // ============================================================
+    // Mask by elevation threshold
+    // ============================================================
+
+    /**
+     * Creates a binary mask based on min/max threshold values.
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {number} [options.args.min=-Infinity] - Minimum value (inclusive).
+     * @param {number} [options.args.max=Infinity] - Maximum value (inclusive).
+     * @param {Array&lt;Object>} options.data - Input data containing one object with { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Result containing binary mask (0 or 1).
+     * @example
+     * await hydro.analyze.geoprocessor.mask({
+     *   args: { min: 0, max: 1000 },
+     *   data: [{ buffer: demBuffer }]
+     * });
+     */
+    static async mask({ args, data }) {
+        const buffer = data;
+        const { image } = await this._openFromArrayBuffer(buffer);
+
+        const dem = (await image.readRasters({ samples: [0] }))[0];
+        const out = new Float32Array(dem.length);
+
+        const min = args.min ?? -Infinity;
+        const max = args.max ?? Infinity;
+
+        for (let i = 0; i &lt; out.length; i++) {
+            out[i] = (dem[i] >= min &amp;&amp; dem[i] &lt;= max) ? 1 : 0;
+        }
+
+        return await this._toGeoTIFF([out], image.getWidth(), image.getHeight());
+    }
+
+    // ============================================================
+    // Tiling
+    // ============================================================
+
+    /**
+     * Splits a raster into smaller tiles.
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {number} [options.args.tileSize=256] - Width/Height of tiles in pixels.
+     * @param {Array&lt;Object>} options.data - Input data containing one object with { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Result containing array of tile objects.
+     * @example
+     * await hydro.analyze.geoprocessor.tile({
+     *   args: { tileSize: 512 },
+     *   data: [{ buffer: largeRasterBuffer }]
+     * });
+     */
+    static async tile({ args, data }) {
+        const buffer = data;
+        const tileSize = args.tileSize || 256;
+
+        const { image } = await this._openFromArrayBuffer(buffer);
+        const width = image.getWidth();
+        const height = image.getHeight();
+
+        const tiles = [];
+
+        for (let y = 0; y &lt; height; y += tileSize) {
+            for (let x = 0; x &lt; width; x += tileSize) {
+                const w = Math.min(tileSize, width - x);
+                const h = Math.min(tileSize, height - y);
+
+                const dataTile = await image.readRasters({
+                    window: [x, y, x + w, y + h]
+                });
+
+                tiles.push({
+                    x, y, width: w, height: h,
+                    data: dataTile
+                });
+            }
+        }
+
+        return tiles;
+    }
+
+    // ============================================================
+    // HYDROLOGY
+    // ============================================================
+
+    /**
+     * Calculates flow direction using the D8 algorithm.
+     * @param {Object} options
+     * @param {Array&lt;Object>} options.data - Input data containing a DEM { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Result containing flow direction raster (D8 codes: 1,2,4,8,16,32,64,128).
+     * @example
+     * await hydro.analyze.geoprocessor.flowDirection({
+     *   data: [{ buffer: demBuffer }]
+     * });
+     */
+    /**
+     * Calculate flow direction from DEM using D8 algorithm
+     * Determines direction of steepest descent for each cell
+     * Essential for watershed delineation and stream network extraction
+     * 
+     * @function flowDirection
+     * @memberof geoprocessor
+     * @async
+     * @param {Object} options - Function options
+     * @param {Object} [options.args] - Processing arguments
+     * @param {ArrayBuffer} options.data - Input DEM as GeoTIFF ArrayBuffer
+     * @returns {Promise&lt;ArrayBuffer>} Flow direction raster (values 1-128) as GeoTIFF
+     * 
+     * @example
+     * // Calculate flow direction from DEM
+     * const dem = await hydro.data.retrieve({
+     *   params: { source: '3dep', datatype: 'DEM' },
+     *   args: { bbox: [-105.5, 40.0, -105.0, 40.5] }
+     * });
+     * 
+     * const flowDir = await hydro.analyze.geoprocessor.flowDirection({ data: dem });
+     * // Direction values: 1=E, 2=SE, 4=S, 8=SW, 16=W, 32=NW, 64=N, 128=NE
+     * 
+     * @example
+     * // Complete watershed workflow
+     * const flowDir = await hydro.analyze.geoprocessor.flowDirection({ data: dem });
+     * const flowAcc = await hydro.analyze.geoprocessor.flowAccumulation({ data: flowDir });
+     * const streams = await hydro.analyze.geoprocessor.streamExtract({ 
+     *   args: { threshold: 1000 }, 
+     *   data: flowAcc 
+     * });
+     */
+    static async flowDirection({ args, data }) {
+        const buffer = data;
+        const { image } = await this._openFromArrayBuffer(buffer);
+
+        const w = image.getWidth();
+        const h = image.getHeight();
+        const dem = (await image.readRasters({ samples: [0] }))[0];
+
+        const out = await this._runWorker('flowDirection', args, { dem, width: w, height: h });
+
+        // Encode result back to GeoTIFF (Preserve Metadata)
+        const fileDirectory = image.getFileDirectory ? image.getFileDirectory() : {};
+        const geoKeys = {
+            ModelTiepoint: fileDirectory.ModelTiepoint,
+            ModelPixelScale: fileDirectory.ModelPixelScale,
+            ModelTransformation: fileDirectory.ModelTransformation,
+            GeoKeyDirectory: fileDirectory.GeoKeyDirectory,
+            GeoAsciiParams: fileDirectory.GeoAsciiParams,
+            GTModelTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GTModelTypeGeoKey : undefined,
+            GTRasterTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GTRasterTypeGeoKey : undefined,
+            GeographicTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GeographicTypeGeoKey : undefined,
+            ProjectedCSTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().ProjectedCSTypeGeoKey : undefined
+        };
+        const options = {};
+        for (const k in geoKeys) if (geoKeys[k] !== undefined) options[k] = geoKeys[k];
+
+        return await this._toGeoTIFF([out], w, h, options);
+    }
+
+    /**
+     * Calculates flow accumulation based on flow direction.
+     * @param {Object} options
+     * @param {Array&lt;Object>} options.data - Input data containing a DEM { buffer: ArrayBuffer }. Note: Calculates flow direction internally.
+     * @returns {Promise&lt;Object>} Result containing flow accumulation raster.
+     * @example
+     * await hydro.analyze.geoprocessor.flowAccumulation({
+     *   data: [{ buffer: demBuffer }]
+     * });
+     */
+    /**
+     * Calculate flow accumulation from flow direction raster
+     * Counts upstream cells flowing into each cell
+     * Higher values indicate stream channels and drainage paths
+     * 
+     * @function flowAccumulation
+     * @memberof geoprocessor
+     * @async
+     * @param {Object} options - Function options
+     * @param {Object} [options.args] - Processing arguments  
+     * @param {ArrayBuffer} options.data - Flow direction raster as GeoTIFF ArrayBuffer
+     * @returns {Promise&lt;ArrayBuffer>} Flow accumulation raster as GeoTIFF
+     * 
+     * @example
+     * // Calculate flow accumulation
+     * const flowDir = await hydro.analyze.geoprocessor.flowDirection({ data: demBuffer });
+     * const flowAcc = await hydro.analyze.geoprocessor.flowAccumulation({ data: flowDir });
+     * // High values (>1000) indicate likely stream channels
+     * 
+     * @example
+     * // Extract stream network from flow accumulation
+     * const flowAcc = await hydro.analyze.geoprocessor.flowAccumulation({ data: flowDir });
+     * const streams = await hydro.analyze.geoprocessor.streamExtract({
+     *   args: { threshold: 500 },  // Cells with >500 upstream cells
+     *   data: flowAcc
+     * });
+     */
+    static async flowAccumulation({ args, data }) {
+        const buffer = data;
+
+        // 1. Decode main thread (get raw floats)
+        const { image } = await this._openFromArrayBuffer(buffer);
+        const w = image.getWidth();
+        const h = image.getHeight();
+        const dem = (await image.readRasters({ samples: [0] }))[0];
+
+        // 2. Send to Worker
+        // Note: We copy dem to avoid detaching if we need it later, or transfer if we don't.
+        // We do NOT transfer 'dem.buffer' because 'dem' might be a view on a larger buffer that we don't want to lose
+        // or we might want to use it again.
+        const acc = await this._runWorker('flowAccumulation', args, { dem, width: w, height: h });
+
+        // 3. Encode result back to GeoTIFF (Preserve Metadata)
+        const fileDirectory = image.getFileDirectory ? image.getFileDirectory() : {};
+
+        // Extract relevant GeoKeys to preserve geolocation
+        const geoKeys = {
+            ModelTiepoint: fileDirectory.ModelTiepoint,
+            ModelPixelScale: fileDirectory.ModelPixelScale,
+            ModelTransformation: fileDirectory.ModelTransformation,
+            GeoKeyDirectory: fileDirectory.GeoKeyDirectory,
+            GeoAsciiParams: fileDirectory.GeoAsciiParams,
+            GTModelTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GTModelTypeGeoKey : undefined,
+            GTRasterTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GTRasterTypeGeoKey : undefined,
+            GeographicTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GeographicTypeGeoKey : undefined,
+            ProjectedCSTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().ProjectedCSTypeGeoKey : undefined
+        };
+
+        // Filter undefined keys
+        const options = {};
+        for (const k in geoKeys) {
+            if (geoKeys[k] !== undefined) options[k] = geoKeys[k];
+        }
+
+        return await this._toGeoTIFF([acc], w, h, options);
+    }
+
+    /**
+     * Delineates a watershed basin from a pour point.
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {Object} options.args.pourPoint - The outlet point { x, y } in pixel coordinates.
+     * @param {number} options.args.pourPoint.x - X pixel coordinate.
+     * @param {number} options.args.pourPoint.y - Y pixel coordinate.
+     * @param {Array&lt;Object>} options.data - Input data containing a DEM { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Result containing binary watershed mask.
+     * @example
+     * await hydro.analyze.geoprocessor.watershed({
+     *   args: { pourPoint: { x: 100, y: 150 } },
+     *   data: [{ buffer: demBuffer }]
+     * });
+     */
+    /**
+     * Delineate watershed boundary from pour point
+     * Identifies all cells that drain to specified outlet location
+     * Critical for catchment analysis and hydrologic modeling
+     * 
+     * @function watershed
+     * @memberof geoprocessor
+     * @async
+     * @param {Object} options - Function options
+     * @param {Object} options.args - Processing arguments
+     * @param {Array&lt;number>} options.args.pourPoint - [longitude, latitude] of outlet
+     * @param {ArrayBuffer} options.data - Flow direction raster as GeoTIFF ArrayBuffer
+     * @returns {Promise&lt;ArrayBuffer>} Watershed boundary raster as GeoTIFF
+     * 
+     * @example
+     * // Delineate watershed for stream gauge location
+     * const flowDir = await hydro.analyze.geoprocessor.flowDirection({ data: dem });
+     * const watershed = await hydro.analyze.geoprocessor.watershed({
+     *   args: { pourPoint: [-105.25, 40.25] },  // Gauge location
+     *   data: flowDir
+     * });
+     * 
+     * @example
+     * // Complete watershed analysis workflow
+     * const dem = await hydro.data.retrieve({
+     *   params: { source: '3dep', datatype: 'DEM' },
+     *   args: { bbox: [-105.5, 40.0, -105.0, 40.5] }
+     * });
+     * 
+     * const flowDir = await hydro.analyze.geoprocessor.flowDirection({ data: dem });
+     * const watershed = await hydro.analyze.geoprocessor.watershed({
+     *   args: { pourPoint: [-105.25, 40.25] },
+     *   data: flowDir
+     * });
+     * 
+     * // Visualize watershed boundary
+     * const map = hydro.map.renderMap({ params: { lat: 40.25, lon: -105.25, zoom: 11 } });
+     * hydro.map.Layers({ params: { data: watershed, type: 'georaster' } });
+     */
+    static async watershed({ args, data }) {
+        const buffer = data;
+        const { image } = await this._openFromArrayBuffer(buffer);
+
+        const w = image.getWidth();
+        const h = image.getHeight();
+        const dem = (await image.readRasters({ samples: [0] }))[0];
+
+        // Worker implements logic (computing flow acc internally)
+        const mask = await this._runWorker('watershed', args, { dem, width: w, height: h });
+
+        // Encode result back to GeoTIFF (Preserve Metadata)
+        const fileDirectory = image.getFileDirectory ? image.getFileDirectory() : {};
+        const geoKeys = {
+            ModelTiepoint: fileDirectory.ModelTiepoint,
+            ModelPixelScale: fileDirectory.ModelPixelScale,
+            ModelTransformation: fileDirectory.ModelTransformation,
+            GeoKeyDirectory: fileDirectory.GeoKeyDirectory,
+            GeoAsciiParams: fileDirectory.GeoAsciiParams,
+            GTModelTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GTModelTypeGeoKey : undefined,
+            GTRasterTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GTRasterTypeGeoKey : undefined,
+            GeographicTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GeographicTypeGeoKey : undefined,
+            ProjectedCSTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().ProjectedCSTypeGeoKey : undefined
+        };
+        const options = {};
+        for (const k in geoKeys) if (geoKeys[k] !== undefined) options[k] = geoKeys[k];
+
+        return await this._toGeoTIFF([mask], w, h, options);
+    }
+
+    /**
+     * Extracts stream networks based on flow accumulation threshold.
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {number} [options.args.threshold=1000] - Accumulation threshold to define a stream.
+     * @param {Array&lt;Object>} options.data - Input data containing a DEM { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Result containing binary stream mask.
+     * @example
+     * await hydro.analyze.geoprocessor.streamExtract({
+     *   args: { threshold: 500 },
+     *   data: [{ buffer: demBuffer }]
+     * });
+     */
+    static async streamExtract({ args, data }) {
+        const buffer = data;
+        const { image } = await this._openFromArrayBuffer(buffer);
+
+        const w = image.getWidth();
+        const h = image.getHeight();
+        const dem = (await image.readRasters({ samples: [0] }))[0];
+
+        const out = await this._runWorker('streamExtract', args, { dem, width: w, height: h });
+
+        // Encode result back to GeoTIFF (Preserve Metadata)
+        const fileDirectory = image.getFileDirectory ? image.getFileDirectory() : {};
+        const geoKeys = {
+            ModelTiepoint: fileDirectory.ModelTiepoint,
+            ModelPixelScale: fileDirectory.ModelPixelScale,
+            ModelTransformation: fileDirectory.ModelTransformation,
+            GeoKeyDirectory: fileDirectory.GeoKeyDirectory,
+            GeoAsciiParams: fileDirectory.GeoAsciiParams,
+            GTModelTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GTModelTypeGeoKey : undefined,
+            GTRasterTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GTRasterTypeGeoKey : undefined,
+            GeographicTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GeographicTypeGeoKey : undefined,
+            ProjectedCSTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().ProjectedCSTypeGeoKey : undefined
+        };
+        const options = {};
+        for (const k in geoKeys) if (geoKeys[k] !== undefined) options[k] = geoKeys[k];
+
+        return await this._toGeoTIFF([out], w, h, options);
+    }
+
+    /**
+     * Fills sinks in a DEM (Priority-Flood).
+     * @param {Object} params - { args: {}, data: ArrayBuffer }
+     * @returns {Promise&lt;ArrayBuffer>} Filled DEM GeoTIFF.
+     */
+    static async fillSinks({ args, data }) {
+        const buffer = data;
+        const { image } = await this._openFromArrayBuffer(buffer);
+
+        const w = image.getWidth();
+        const h = image.getHeight();
+        const dem = (await image.readRasters({ samples: [0] }))[0];
+
+        // Sanity Check Input DEM
+        let valid = 0, inputNan = 0;
+        for (let i = 0; i &lt; dem.length; i++) {
+            if (!Number.isNaN(dem[i])) valid++; else inputNan++;
+        }
+        console.log(`fillSinks Input DEM Stats: Size=${dem.length}, Valid=${valid}, NaN=${inputNan}`);
+
+        const filled = await this._runWorker('fillSinks', args, { dem, width: w, height: h });
+
+        // Encode result back to GeoTIFF (Preserve Metadata)
+        const fileDirectory = image.getFileDirectory ? image.getFileDirectory() : {};
+        const geoKeys = {
+            ModelTiepoint: fileDirectory.ModelTiepoint,
+            ModelPixelScale: fileDirectory.ModelPixelScale,
+            ModelTransformation: fileDirectory.ModelTransformation,
+            GeoKeyDirectory: fileDirectory.GeoKeyDirectory,
+            GeoAsciiParams: fileDirectory.GeoAsciiParams,
+            GTModelTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GTModelTypeGeoKey : undefined,
+            GTRasterTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GTRasterTypeGeoKey : undefined,
+            GeographicTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().GeographicTypeGeoKey : undefined,
+            ProjectedCSTypeGeoKey: image.getGeoKeys ? image.getGeoKeys().ProjectedCSTypeGeoKey : undefined
+        };
+        const options = {};
+        for (const k in geoKeys) if (geoKeys[k] !== undefined) options[k] = geoKeys[k];
+
+        return await this._toGeoTIFF([filled], w, h, options);
+    }
+
+
+
+    // ============================================================
+    // VECTORIZATION (Raster -> GeoJSON)
+    // ============================================================
+
+    /**
+     * Vectorizes a binary raster mask into GeoJSON Polygons.
+     * @param {Object} options
+     * @param {Object} [options.args={}] - Arguments.
+     * @param {Array&lt;Object>} options.data - Input data containing a DEM/Mask { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Resulting GeoJSON FeatureCollection.
+     * @example
+     * const geojson = await hydro.analyze.geoprocessor.vectorize({
+     *   data: [{ buffer: maskBuffer }]
+     * });
+     */
+    static async vectorize({ args = {}, data }) {
+        const buffer = data;
+        const { image } = await this._openFromArrayBuffer(buffer);
+
+        const w = image.getWidth();
+        const h = image.getHeight();
+        const dem = (await image.readRasters({ samples: [0] }))[0];
+
+        const origin = image.getOrigin();
+        const resolution = image.getResolution();
+
+        const gt = [origin[0], resolution[0], 0, origin[1], 0, -Math.abs(resolution[1])];
+
+        const workerArgs = { ...args, geotransform: gt };
+
+        const geojson = await this._runWorker('vectorize', workerArgs, { dem, width: w, height: h });
+        return geojson;
+    }
+
+    /**
+     * Map a function over every pixel in a raster.
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {Function|string} options.args.func - Function(val, x, y) or string body.
+     * @param {Array&lt;Object>} options.data - Input data { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Float32Array>} Raw raster data (Float32Array).
+     */
+    static async mapPixels({ args = {}, data }) {
+        const buffer = data;
+        const { image } = await this._openFromArrayBuffer(buffer);
+        const w = image.getWidth();
+        const h = image.getHeight();
+        const dem = (await image.readRasters({ samples: [0] }))[0];
+
+        // Serialize function
+        let funcStr = args.func;
+        if (typeof funcStr === 'function') {
+            // We need the body.
+            // If user passes `val => val + 1`, toString is `val => val + 1`.
+            // If user passes `function(val) { return val + 1; }`, toString is full source.
+
+            // Inside worker, we do: new Function('val', 'x', 'y', args.func)
+            // If args.func is "val => val + 1", then new Function created is:
+            // function(val, x, y) { val => val + 1 } -> This is VALID syntax (expression statement), but DOES NOT RETURN anything!
+
+            // WE MUST WRAP IT if it looks like an arrow function or ensure access to return.
+            // Better strategy: Use "return (" + func.toString() + ")(val, x, y);"
+            // This immediately invokes the passed function string with the arguments.
+
+            funcStr = "return (" + funcStr.toString() + ")(val, x, y);";
+        }
+
+        const workerArgs = { ...args, func: funcStr };
+        const result = await this._runWorker('calculate', workerArgs, { dem, width: w, height: h });
+
+        // Return raw array or re-wrap in GeoTIFF?
+        // User asked "apply a function... value at a pixel". 
+        // Returning raw Float32Array is most flexible for next steps (like statistics).
+        // Wrapping in GeoTIFF is expensive.
+        // Let's return the Raw Array (Float32Array).
+        return result;
+    }
+
+
+    // ============================================================
+    // PCA (MULTIBAND)
+    // ============================================================
+
+    /**
+     * Performs Principal Component Analysis (PCA) on multiband rasters.
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {number} [options.args.components] - Number of PCA components to keep. Defaults to all bands.
+     * @param {Array&lt;Object>} options.data - Input data containing a multiband raster { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Result containing multi-band GeoTIFF with principal components.
+     * @example
+     * await hydro.analyze.geoprocessor.pca({
+     *   args: { components: 3 },
+     *   data: [{ buffer: multibandBuffer }]
+     * });
+     */
+    static async pca({ args, data }) {
+        /**
+         */
+
+        const buffer = data[0];
+        const { image } = await this._openFromArrayBuffer(buffer);
+
+        const w = image.getWidth(), h = image.getHeight();
+        const bandCount = image.getSamplesPerPixel();
+        const pxCount = w * h;
+
+        const bands = await image.readRasters();
+
+        // Mean-center bands
+        const means = [];
+        for (let b = 0; b &lt; bandCount; b++) {
+            let sum = 0;
+            for (let i = 0; i &lt; pxCount; i++) sum += bands[b][i];
+            means[b] = sum / pxCount;
+
+            for (let i = 0; i &lt; pxCount; i++) bands[b][i] -= means[b];
+        }
+
+        // Covariance matrix
+        const cov = Array.from({ length: bandCount }, () => Array(bandCount).fill(0));
+
+        for (let i = 0; i &lt; bandCount; i++) {
+            for (let j = i; j &lt; bandCount; j++) {
+                let sum = 0;
+                for (let p = 0; p &lt; pxCount; p++)
+                    sum += bands[i][p] * bands[j][p];
+
+                cov[i][j] = cov[j][i] = sum / (pxCount - 1);
+            }
+        }
+
+        // Eigen decomposition (Jacobi)
+        const { eigenvalues, eigenvectors } = this._jacobiEigen(cov);
+
+        // Sort eigenvalues descending
+        const idx = eigenvalues.map((v, i) => ({ v, i }))
+            .sort((a, b) => b.v - a.v)
+            .map(x => x.i);
+
+        const comp = args.components || bandCount;
+
+        // Project data into PCA space
+        const outputs = [];
+        for (let c = 0; c &lt; comp; c++) {
+            const pcIndex = idx[c];
+            const eigVec = eigenvectors[pcIndex];
+
+            const out = new Float32Array(pxCount);
+
+            for (let p = 0; p &lt; pxCount; p++) {
+                let v = 0;
+                for (let b = 0; b &lt; bandCount; b++) v += bands[b][p] * eigVec[b];
+                out[p] = v;
+            }
+
+            outputs.push(out);
+        }
+
+        return await this._toGeoTIFF(outputs, w, h);
+    }
+
+
+    // ===== Jacobi Eigen decomposition =====
+    static _jacobiEigen(A) {
+        const n = A.length;
+        const V = Array.from({ length: n }, () => Array(n).fill(0));
+        const D = A.map(row => row.slice());
+
+        for (let i = 0; i &lt; n; i++) V[i][i] = 1;
+
+        const EPS = 1e-10;
+        let changed = true;
+
+        while (changed) {
+            changed = false;
+
+            for (let p = 0; p &lt; n; p++) {
+                for (let q = p + 1; q &lt; n; q++) {
+                    if (Math.abs(D[p][q]) &lt; EPS) continue;
+
+                    const phi = 0.5 * Math.atan2(2 * D[p][q], D[q][q] - D[p][p]);
+                    const c = Math.cos(phi), s = Math.sin(phi);
+
+                    // rotate D
+                    const dpp = c * c * D[p][p] - 2 * s * c * D[p][q] + s * s * D[q][q];
+                    const dqq = s * s * D[p][p] + 2 * s * c * D[p][q] + c * c * D[q][q];
+                    D[p][p] = dpp;
+                    D[q][q] = dqq;
+                    D[p][q] = D[q][p] = 0;
+
+                    for (let r = 0; r &lt; n; r++) {
+                        if (r === p || r === q) continue;
+
+                        const drp = c * D[r][p] - s * D[r][q];
+                        const drq = s * D[r][p] + c * D[r][q];
+
+                        D[r][p] = D[p][r] = drp;
+                        D[r][q] = D[q][r] = drq;
+                    }
+
+                    // rotate V
+                    for (let r = 0; r &lt; n; r++) {
+                        const vrp = c * V[r][p] - s * V[r][q];
+                        const vrq = s * V[r][p] + c * V[r][q];
+                        V[r][p] = vrp;
+                        V[r][q] = vrq;
+                    }
+
+                    changed = true;
+                }
+            }
+        }
+
+        return {
+            eigenvalues: D.map((row, i) => row[i]),
+            eigenvectors: V
+        };
+    }
+
+    /**
+     * Clips a raster to a pixel-based window.
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {Array&lt;number>} options.args.window - Clipping window `[startX, startY, endX, endY]`.
+     * @param {Array&lt;Object>} options.data - Input data containing one object with { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Result containing clipped GeoTIFF buffer.
+     */
+    static async clip({ args, data }) {
+        const buffer = data;
+        const { image } = await this._openFromArrayBuffer(buffer);
+
+        const [minX, minY, maxX, maxY] = args.window;
+        const width = maxX - minX;
+        const height = maxY - minY;
+
+        const bands = await image.readRasters({
+            window: [minX, minY, maxX, maxY]
+        });
+
+        // Flatten if readRasters returns nested arrays (it usually returns TypedArrays for each band, 
+        // but if it's our fallback object, it might be different. Let's assume standard behavior first)
+        const flatBands = [];
+        for (let i = 0; i &lt; bands.length; i++) {
+            flatBands.push(bands[i]);
+        }
+
+        return await this._toGeoTIFF(flatBands, width, height);
+    }
+
+    // [DEPRECATED] Old JS-based clip removed in favor of GDAL WASM version (see above).
+    // static async clipGeo({ args, data }) {
+    //     /**
+    //      * args:
+    //      *   bounds: [minLon, minLat, maxLon, maxLat]
+    //      */
+
+    //     const buffer = data;
+    //     const { image } = await this._openFromArrayBuffer(buffer);
+
+    //     const [ox, oy] = image.getOrigin();
+    //     const [rx, ry] = image.getResolution();
+
+    //     const [minLon, minLat, maxLon, maxLat] = args.bounds;
+
+    //     const startX = Math.floor((minLon - ox) / rx);
+    //     const endX = Math.ceil((maxLon - ox) / rx);
+
+    //     const startY = Math.floor((oy - maxLat) / Math.abs(ry));
+    //     const endY = Math.ceil((oy - minLat) / Math.abs(ry));
+
+    //     return this.clip({
+    //         args: { window: [startX, startY, endX, endY] },
+    //         data
+    //     });
+    // }
+
+
+
+    // ============================================================
+    // REPROJECTION (proj4.js)
+    // ============================================================
+
+    /**
+     * Reprojects a raster to a different Coordinate Reference System (CRS).
+     * @param {Object} options
+     * @param {Object} options.args - Arguments.
+     * @param {string} options.args.dstCRS - Destination CRS definition (WKT or Proj4 string).
+     * @param {string} [options.args.srcCRS] - Source CRS definition. If not provided, attempts to read from GeoTIFF keys.
+     * @param {number} [options.args.width] - Output width.
+     * @param {number} [options.args.height] - Output height.
+     * @param {string} [options.args.method='nearest'] - Resampling method ('nearest', 'bilinear').
+     * @param {Array&lt;Object>} options.data - Input data containing one object with { buffer: ArrayBuffer }.
+     * @returns {Promise&lt;Object>} Result containing reprojected GeoTIFF buffer.
+     * @example
+     * await hydro.analyze.geoprocessor.reproject({
+     *   args: { dstCRS: 'EPSG:3857' },
+     *   data: [{ buffer: bufferIn4326 }]
+     * });
+     */
+    static async reproject({ args, data }) {
+        try {
+            // Pass buffer to worker
+            return await this._runWorker('reproject', args, { buffer: data });
+        } catch (e) {
+            console.error("Worker Reprojection Failed:", e);
+            throw new Error(`Worker Reprojection Error: ${e.message}`);
+        }
+    }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.7</a> on Mon Jan 12 2026 20:25:33 GMT+0000 (Coordinated Universal Time) using the Toast theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

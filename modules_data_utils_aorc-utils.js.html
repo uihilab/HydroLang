@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>modules/data/utils/aorc-utils.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AORCDataSource.html">AORCDataSource</a><ul class='methods'><li data-type='method'><a href="AORCDataSource.html#calculateIndices">calculateIndices</a></li><li data-type='method'><a href="AORCDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="AORCDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="AORCDataSource.html#fetchAndDecompressChunk">fetchAndDecompressChunk</a></li><li data-type='method'><a href="AORCDataSource.html#fetchMetadata">fetchMetadata</a></li><li data-type='method'><a href="AORCDataSource.html#getDatasetInfo">getDatasetInfo</a></li><li data-type='method'><a href="AORCDataSource.html#loadDatasource">loadDatasource</a></li></ul></li><li><a href="data.html">data</a><ul class='methods'><li data-type='method'><a href="data.html#.download">download</a></li><li data-type='method'><a href="data.html#.generateDateString">generateDateString</a></li><li data-type='method'><a href="data.html#.lowercasing">lowercasing</a></li><li data-type='method'><a href="data.html#.recursiveSearch">recursiveSearch</a></li><li data-type='method'><a href="data.html#.retrieve">retrieve</a></li><li data-type='method'><a href="data.html#.transform">transform</a></li><li data-type='method'><a href="data.html#.transformAORCData">transformAORCData</a></li><li data-type='method'><a href="data.html#.upload">upload</a></li><li data-type='method'><a href="data.html#.xml2json">xml2json</a></li></ul></li><li><a href="DEPDataSource.html">DEPDataSource</a><ul class='methods'><li data-type='method'><a href="DEPDataSource.html#calculateSize">calculateSize</a></li><li data-type='method'><a href="DEPDataSource.html#fetchDEMData">fetchDEMData</a></li><li data-type='method'><a href="DEPDataSource.html#fetchPointElevation">fetchPointElevation</a></li><li data-type='method'><a href="DEPDataSource.html#generateGeoTiffUrl">generateGeoTiffUrl</a></li><li data-type='method'><a href="DEPDataSource.html#getDatasetInfo">getDatasetInfo</a></li></ul></li><li><a href="divisors.html">divisors</a><ul class='methods'><li data-type='method'><a href="divisors.html#.createDiv">createDiv</a></li><li data-type='method'><a href="divisors.html#.createScript">createScript</a></li><li data-type='method'><a href="divisors.html#.isdivAdded">isdivAdded</a></li><li data-type='method'><a href="divisors.html#.isScriptAdded">isScriptAdded</a></li></ul></li><li><a href="ECMWFDataSource.html">ECMWFDataSource</a><ul class='methods'><li data-type='method'><a href="ECMWFDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="ECMWFDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="ECMWFDataSource.html#extractRawGRIB2">extractRawGRIB2</a></li><li data-type='method'><a href="ECMWFDataSource.html#fetch">fetch</a></li><li data-type='method'><a href="ECMWFDataSource.html#processGRIB2File">processGRIB2File</a></li></ul></li><li><a href="floodDM.html">floodDM</a><ul class='methods'><li data-type='method'><a href="floodDM.html#.buildPropertyDMScenario">buildPropertyDMScenario</a></li><li data-type='method'><a href="floodDM.html#.createTableFromObject">createTableFromObject</a></li><li data-type='method'><a href="floodDM.html#.getBridgeDamage">getBridgeDamage</a></li><li data-type='method'><a href="floodDM.html#.getCityFloodDamage">getCityFloodDamage</a></li><li data-type='method'><a href="floodDM.html#.getFloodInundation">getFloodInundation</a></li><li data-type='method'><a href="floodDM.html#.getLifeLoss">getLifeLoss</a></li><li data-type='method'><a href="floodDM.html#.getPropertyLoss">getPropertyLoss</a></li><li data-type='method'><a href="floodDM.html#.getUtilityDamage">getUtilityDamage</a></li><li data-type='method'><a href="floodDM.html#.getVehicleDamage">getVehicleDamage</a></li><li data-type='method'><a href="floodDM.html#initDamageScenario">initDamageScenario</a></li><li data-type='method'><a href="floodDM.html#initMitigationScenario">initMitigationScenario</a></li><li data-type='method'><a href="floodDM.html#runMitigationScenario">runMitigationScenario</a></li></ul></li><li><a href="geoprocessor.html">geoprocessor</a><ul class='methods'><li data-type='method'><a href="geoprocessor.html#.flowAccumulation">flowAccumulation</a></li><li data-type='method'><a href="geoprocessor.html#.flowDirection">flowDirection</a></li><li data-type='method'><a href="geoprocessor.html#.roughness">roughness</a></li><li data-type='method'><a href="geoprocessor.html#.tpi">tpi</a></li><li data-type='method'><a href="geoprocessor.html#.tri">tri</a></li><li data-type='method'><a href="geoprocessor.html#.watershed">watershed</a></li></ul></li><li><a href="GeoTIFFDataSource.html">GeoTIFFDataSource</a><ul class='methods'><li data-type='method'><a href="GeoTIFFDataSource.html#extractFromZip">extractFromZip</a></li><li data-type='method'><a href="GeoTIFFDataSource.html#getGeoTIFFGrid">getGeoTIFFGrid</a></li><li data-type='method'><a href="GeoTIFFDataSource.html#getGeoTIFFValueAtPoint">getGeoTIFFValueAtPoint</a></li><li data-type='method'><a href="GeoTIFFDataSource.html#parseGeoTIFF">parseGeoTIFF</a></li></ul></li><li><a href="GRIB2DataSource.html">GRIB2DataSource</a><ul class='methods'><li data-type='method'><a href="GRIB2DataSource.html#findGRIB2Message">findGRIB2Message</a></li><li data-type='method'><a href="GRIB2DataSource.html#getGRIB2Grid">getGRIB2Grid</a></li><li data-type='method'><a href="GRIB2DataSource.html#getGRIB2ValueAtPoint">getGRIB2ValueAtPoint</a></li><li data-type='method'><a href="GRIB2DataSource.html#parseGRIB2">parseGRIB2</a></li></ul></li><li><a href="GRIB2Integration.html">GRIB2Integration</a><ul class='methods'><li data-type='method'><a href="GRIB2Integration.html#applySpatialSubsetting">applySpatialSubsetting</a></li><li data-type='method'><a href="GRIB2Integration.html#extractGRIB2Data">extractGRIB2Data</a></li><li data-type='method'><a href="GRIB2Integration.html#parseGRIB2Buffer">parseGRIB2Buffer</a></li></ul></li><li><a href="GriddedDataSource.html">GriddedDataSource</a><ul class='methods'><li data-type='method'><a href="GriddedDataSource.html#aggregateSpatially">aggregateSpatially</a></li><li data-type='method'><a href="GriddedDataSource.html#aggregateTemporally">aggregateTemporally</a></li><li data-type='method'><a href="GriddedDataSource.html#applyScaling">applyScaling</a></li><li data-type='method'><a href="GriddedDataSource.html#buildURL">buildURL</a></li><li data-type='method'><a href="GriddedDataSource.html#decompress">decompress</a></li><li data-type='method'><a href="GriddedDataSource.html#extractGridTimeSeries">extractGridTimeSeries</a></li><li data-type='method'><a href="GriddedDataSource.html#extractMultiplePoints">extractMultiplePoints</a></li><li data-type='method'><a href="GriddedDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="GriddedDataSource.html#extractTimeSeries">extractTimeSeries</a></li><li data-type='method'><a href="GriddedDataSource.html#fetch">fetch</a></li><li data-type='method'><a href="GriddedDataSource.html#fetchJSON">fetchJSON</a></li><li data-type='method'><a href="GriddedDataSource.html#findNearestIndex">findNearestIndex</a></li><li data-type='method'><a href="GriddedDataSource.html#formatTimestamp">formatTimestamp</a></li><li data-type='method'><a href="GriddedDataSource.html#handleError">handleError</a></li><li data-type='method'><a href="GriddedDataSource.html#loadLibrary">loadLibrary</a></li><li data-type='method'><a href="GriddedDataSource.html#toCSV">toCSV</a></li><li data-type='method'><a href="GriddedDataSource.html#toNetCDF">toNetCDF</a></li><li data-type='method'><a href="GriddedDataSource.html#validateCoordinates">validateCoordinates</a></li></ul></li><li><a href="HLclearCreek.html">HLclearCreek</a><ul class='methods'><li data-type='method'><a href="HLclearCreek.html#.additionalData">additionalData</a></li><li data-type='method'><a href="HLclearCreek.html#.dataStep">dataStep</a></li><li data-type='method'><a href="HLclearCreek.html#.get_time_step">get_time_step</a></li><li data-type='method'><a href="HLclearCreek.html#.get_value_at_indices">get_value_at_indices</a></li><li data-type='method'><a href="HLclearCreek.html#.retrieveData">retrieveData</a></li><li data-type='method'><a href="HLclearCreek.html#.retrieveGauge">retrieveGauge</a></li><li data-type='method'><a href="HLclearCreek.html#.spreadGauge">spreadGauge</a></li><li data-type='method'><a href="HLclearCreek.html#.spreadResults">spreadResults</a></li><li data-type='method'><a href="HLclearCreek.html#.update">update</a></li><li data-type='method'><a href="HLclearCreek.html#.update_until">update_until</a></li><li data-type='method'><a href="HLclearCreek.html#rainID">rainID</a></li></ul></li><li><a href="HRRRDataSource.html">HRRRDataSource</a><ul class='methods'><li data-type='method'><a href="HRRRDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="HRRRDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="HRRRDataSource.html#fetch">fetch</a></li><li data-type='method'><a href="HRRRDataSource.html#findProductForVariable">findProductForVariable</a></li><li data-type='method'><a href="HRRRDataSource.html#generateURL">generateURL</a></li><li data-type='method'><a href="HRRRDataSource.html#getDatasetInfo">getDatasetInfo</a></li><li data-type='method'><a href="HRRRDataSource.html#processFile">processFile</a></li></ul></li><li><a href="hydro.html">hydro</a><ul class='methods'><li data-type='method'><a href="hydro.html#.analyzeCollectionofEvents">analyzeCollectionofEvents</a></li><li data-type='method'><a href="hydro.html#.analyzeEvent">analyzeEvent</a></li><li data-type='method'><a href="hydro.html#.arithmetic">arithmetic</a></li><li data-type='method'><a href="hydro.html#.bucketmodel">bucketmodel</a></li><li data-type='method'><a href="hydro.html#.calculate_tds">calculate_tds</a></li><li data-type='method'><a href="hydro.html#.calculate_tss">calculate_tss</a></li><li data-type='method'><a href="hydro.html#.calculateDOSaturation">calculateDOSaturation</a></li><li data-type='method'><a href="hydro.html#.calculatepH">calculatepH</a></li><li data-type='method'><a href="hydro.html#.calculatePrecipitationMinMax">calculatePrecipitationMinMax</a></li><li data-type='method'><a href="hydro.html#.calibratePH">calibratePH</a></li><li data-type='method'><a href="hydro.html#.compensateORP">compensateORP</a></li><li data-type='method'><a href="hydro.html#.convertTemperature">convertTemperature</a></li><li data-type='method'><a href="hydro.html#.convertTurbidity">convertTurbidity</a></li><li data-type='method'><a href="hydro.html#.darcysLaw">darcysLaw</a></li><li data-type='method'><a href="hydro.html#.detectPrecipEvents">detectPrecipEvents</a></li><li data-type='method'><a href="hydro.html#.dimunithydro">dimunithydro</a></li><li data-type='method'><a href="hydro.html#.dissolvedOxygenDemand">dissolvedOxygenDemand</a></li><li data-type='method'><a href="hydro.html#.dynamicGround1D">dynamicGround1D</a></li><li data-type='method'><a href="hydro.html#.equationsystemsolver">equationsystemsolver</a></li><li data-type='method'><a href="hydro.html#.ETBlaneyCriddle">ETBlaneyCriddle</a></li><li data-type='method'><a href="hydro.html#.ETHargreaves">ETHargreaves</a></li><li data-type='method'><a href="hydro.html#.ETPenmanMontheith">ETPenmanMontheith</a></li><li data-type='method'><a href="hydro.html#.ETPriestelyTaylor">ETPriestelyTaylor</a></li><li data-type='method'><a href="hydro.html#.ETThornthwaite">ETThornthwaite</a></li><li data-type='method'><a href="hydro.html#.floodhydro">floodhydro</a></li><li data-type='method'><a href="hydro.html#.floodhydro">floodhydro</a></li><li data-type='method'><a href="hydro.html#.generateSyntheticValue">generateSyntheticValue</a></li><li data-type='method'><a href="hydro.html#.getJulianDay">getJulianDay</a></li><li data-type='method'><a href="hydro.html#.hyetogen">hyetogen</a></li><li data-type='method'><a href="hydro.html#.InfGreenAmpt">InfGreenAmpt</a></li><li data-type='method'><a href="hydro.html#.InfHorton">InfHorton</a></li><li data-type='method'><a href="hydro.html#.InfKostiakov">InfKostiakov</a></li><li data-type='method'><a href="hydro.html#.InfPhilip">InfPhilip</a></li><li data-type='method'><a href="hydro.html#.InfSmithParlange">InfSmithParlange</a></li><li data-type='method'><a href="hydro.html#.inverseDistanceWeighting">inverseDistanceWeighting</a></li><li data-type='method'><a href="hydro.html#.kinematicWaveRouting">kinematicWaveRouting</a></li><li data-type='method'><a href="hydro.html#.lagAndRoute">lagAndRoute</a></li><li data-type='method'><a href="hydro.html#.matrix">matrix</a></li><li data-type='method'><a href="hydro.html#.move">move</a></li><li data-type='method'><a href="hydro.html#.muskingumCunge">muskingumCunge</a></li><li data-type='method'><a href="hydro.html#.precipitationFrequencyAnalysis">precipitationFrequencyAnalysis</a></li><li data-type='method'><a href="hydro.html#.rainaggr">rainaggr</a></li><li data-type='method'><a href="hydro.html#.rainfallErosivityIndex">rainfallErosivityIndex</a></li><li data-type='method'><a href="hydro.html#.rainfallIntensityDurationFrequency">rainfallIntensityDurationFrequency</a></li><li data-type='method'><a href="hydro.html#.rainfallInterceptionModel">rainfallInterceptionModel</a></li><li data-type='method'><a href="hydro.html#.rainfallThresholdAnalysis">rainfallThresholdAnalysis</a></li><li data-type='method'><a href="hydro.html#.stageDischarge">stageDischarge</a></li><li data-type='method'><a href="hydro.html#.staticGround1d">staticGround1d</a></li><li data-type='method'><a href="hydro.html#.stochasticRainfallGeneration">stochasticRainfallGeneration</a></li><li data-type='method'><a href="hydro.html#.syntheticalc">syntheticalc</a></li><li data-type='method'><a href="hydro.html#.thiessen">thiessen</a></li><li data-type='method'><a href="hydro.html#.timeAreaMethod">timeAreaMethod</a></li><li data-type='method'><a href="hydro.html#.totalprec">totalprec</a></li><li data-type='method'><a href="hydro.html#.unithydrocons">unithydrocons</a></li></ul></li><li><a href="HydroBMI.BMI.html">BMI</a></li><li><a href="HydroLangBMI.html">HydroLangBMI</a><ul class='methods'><li data-type='method'><a href="HydroLangBMI.html#.dataTypes">dataTypes</a></li><li data-type='method'><a href="HydroLangBMI.html#.finalize">finalize</a></li><li data-type='method'><a href="HydroLangBMI.html#.generateOutputs">generateOutputs</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_component_name">get_component_name</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_current_time">get_current_time</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_end_time">get_end_time</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_edge_count">get_grid_edge_count</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_edge_nodes">get_grid_edge_nodes</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_face_count">get_grid_face_count</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_face_nodes">get_grid_face_nodes</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_face_nodes">get_grid_face_nodes</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_node_count">get_grid_node_count</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_nodes_per_face">get_grid_nodes_per_face</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_origin">get_grid_origin</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_shape">get_grid_shape</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_size">get_grid_size</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_size">get_grid_size</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_spacing">get_grid_spacing</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_type">get_grid_type</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_x">get_grid_x</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_y">get_grid_y</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_grid_z">get_grid_z</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_input_item_count">get_input_item_count</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_time_step">get_time_step</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_time_units">get_time_units</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_value_at_indices">get_value_at_indices</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_value_ptr">get_value_ptr</a></li><li data-type='method'><a href="HydroLangBMI.html#.get_var_type">get_var_type</a></li><li data-type='method'><a href="HydroLangBMI.html#.handleConfig">handleConfig</a></li><li data-type='method'><a href="HydroLangBMI.html#.initialize">initialize</a></li><li data-type='method'><a href="HydroLangBMI.html#.set_value">set_value</a></li><li data-type='method'><a href="HydroLangBMI.html#.set_value_at_indices">set_value_at_indices</a></li><li data-type='method'><a href="HydroLangBMI.html#.update">update</a></li><li data-type='method'><a href="HydroLangBMI.html#.update_until">update_until</a></li><li data-type='method'><a href="HydroLangBMI.html#.visualizer">visualizer</a></li></ul></li><li><a href="HydroLangCache.html">HydroLangCache</a></li><li><a href="HydroLangGRIB2Parser.html">HydroLangGRIB2Parser</a><ul class='methods'><li data-type='method'><a href="HydroLangGRIB2Parser.html#applyScanningMode">applyScanningMode</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#calculateGridBounds">calculateGridBounds</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#convertTo2DGrid">convertTo2DGrid</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#createGridMetadataResponse">createGridMetadataResponse</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#extractGRIBMetadataOnly">extractGRIBMetadataOnly</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#extractParsedData">extractParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#extractParsedData">extractParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#generateBasicCoordinates">generateBasicCoordinates</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#generateCoordinates">generateCoordinates</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#generateCoordinatesFromParsedData">generateCoordinatesFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getFullGridBounds">getFullGridBounds</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getFullGridBounds">getFullGridBounds</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterDescriptionFromData">getParameterDescriptionFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterDescriptionFromData">getParameterDescriptionFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterDescriptionFromParsedData">getParameterDescriptionFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterFromData">getParameterFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterFromData">getParameterFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterFromParsedData">getParameterFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterName">getParameterName</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterNameFromData">getParameterNameFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterNameFromData">getParameterNameFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getParameterNameFromParsedData">getParameterNameFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getUnitsFromData">getUnitsFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getUnitsFromData">getUnitsFromData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getUnitsFromParsedData">getUnitsFromParsedData</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#getVariableFromMessage">getVariableFromMessage</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseBuffer">parseBuffer</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseBuffer">parseBuffer</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseBufferStreaming">parseBufferStreaming</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseGRIBHeaders">parseGRIBHeaders</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseGridSection">parseGridSection</a></li><li data-type='method'><a href="HydroLangGRIB2Parser.html#parseProductSection">parseProductSection</a></li></ul></li><li><a href="map.html">map</a><ul class='methods'><li data-type='method'><a href="map.html#.addGeoRasterLayer">addGeoRasterLayer</a></li><li data-type='method'><a href="map.html#.addMarker">addMarker</a></li><li data-type='method'><a href="map.html#.addPopup">addPopup</a></li><li data-type='method'><a href="map.html#.draw">draw</a></li><li data-type='method'><a href="map.html#.generateColors">generateColors</a></li><li data-type='method'><a href="map.html#.geoJSON">geoJSON</a></li><li data-type='method'><a href="map.html#.kml">kml</a></li><li data-type='method'><a href="map.html#.Layers">Layers</a></li><li data-type='method'><a href="map.html#.loader">loader</a></li><li data-type='method'><a href="map.html#.markerStyles">markerStyles</a></li><li data-type='method'><a href="map.html#.renderMap">renderMap</a></li></ul></li><li><a href="ModelProxy.html">ModelProxy</a><ul class='methods'><li data-type='method'><a href="ModelProxy.html#.dispose">dispose</a></li><li data-type='method'><a href="ModelProxy.html#.predict">predict</a></li><li data-type='method'><a href="ModelProxy.html#.save">save</a></li><li data-type='method'><a href="ModelProxy.html#.train">train</a></li></ul></li><li><a href="MRMSDataSource.html">MRMSDataSource</a><ul class='methods'><li data-type='method'><a href="MRMSDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="MRMSDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="MRMSDataSource.html#fetch">fetch</a></li><li data-type='method'><a href="MRMSDataSource.html#findProductForVariable">findProductForVariable</a></li><li data-type='method'><a href="MRMSDataSource.html#generateURL">generateURL</a></li><li data-type='method'><a href="MRMSDataSource.html#getDatasetInfo">getDatasetInfo</a></li><li data-type='method'><a href="MRMSDataSource.html#inferVariableFromProduct">inferVariableFromProduct</a></li><li data-type='method'><a href="MRMSDataSource.html#loadDatasource">loadDatasource</a></li><li data-type='method'><a href="MRMSDataSource.html#processFile">processFile</a></li></ul></li><li><a href="NetCDFDataSource.html">NetCDFDataSource</a><ul class='methods'><li data-type='method'><a href="NetCDFDataSource.html#getNetCDFSlice">getNetCDFSlice</a></li><li data-type='method'><a href="NetCDFDataSource.html#getNetCDFValue">getNetCDFValue</a></li><li data-type='method'><a href="NetCDFDataSource.html#getNetCDFVariable">getNetCDFVariable</a></li><li data-type='method'><a href="NetCDFDataSource.html#openNetCDF">openNetCDF</a></li></ul></li><li><a href="NLDASDataSource.html">NLDASDataSource</a><ul class='methods'><li data-type='method'><a href="NLDASDataSource.html#extractDayData">extractDayData</a></li><li data-type='method'><a href="NLDASDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="NLDASDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="NLDASDataSource.html#extractRawNetCDF">extractRawNetCDF</a></li><li data-type='method'><a href="NLDASDataSource.html#generateFileURL">generateFileURL</a></li></ul></li><li><a href="nn.html">nn</a><ul class='methods'><li data-type='method'><a href="nn.html#.createModel">createModel</a></li><li data-type='method'><a href="nn.html#.loadModel">loadModel</a></li></ul></li><li><a href="nnUtils.html">nnUtils</a></li><li><a href="NWMDataSource.html">NWMDataSource</a><ul class='methods'><li data-type='method'><a href="NWMDataSource.html#buildFileURL">buildFileURL</a></li><li data-type='method'><a href="NWMDataSource.html#convertToTypedArray">convertToTypedArray</a></li><li data-type='method'><a href="NWMDataSource.html#extractData">extractData</a></li><li data-type='method'><a href="NWMDataSource.html#extractNetCDFData">extractNetCDFData</a></li><li data-type='method'><a href="NWMDataSource.html#extractZarrData">extractZarrData</a></li><li data-type='method'><a href="NWMDataSource.html#findCOMIDIndex">findCOMIDIndex</a></li><li data-type='method'><a href="NWMDataSource.html#getDatasetInfo">getDatasetInfo</a></li></ul></li><li><a href="PRISMDataSource.html">PRISMDataSource</a><ul class='methods'><li data-type='method'><a href="PRISMDataSource.html#determinePRISMParams">determinePRISMParams</a></li><li data-type='method'><a href="PRISMDataSource.html#extractGridData">extractGridData</a></li><li data-type='method'><a href="PRISMDataSource.html#extractPointData">extractPointData</a></li><li data-type='method'><a href="PRISMDataSource.html#fetchAndExtractPRISM">fetchAndExtractPRISM</a></li><li data-type='method'><a href="PRISMDataSource.html#generateFileURL">generateFileURL</a></li></ul></li><li><a href="stats.html">stats</a><ul class='methods'><li data-type='method'><a href="stats.html#.andersonDarling">andersonDarling</a></li><li data-type='method'><a href="stats.html#.anova">anova</a></li><li data-type='method'><a href="stats.html#.arrchange">arrchange</a></li><li data-type='method'><a href="stats.html#.autoCorrelation">autoCorrelation</a></li><li data-type='method'><a href="stats.html#.autocovarianceMatrix">autocovarianceMatrix</a></li><li data-type='method'><a href="stats.html#.basicstats">basicstats</a></li><li data-type='method'><a href="stats.html#.bernoulliDist">bernoulliDist</a></li><li data-type='method'><a href="stats.html#.betaDist">betaDist</a></li><li data-type='method'><a href="stats.html#.binomialCoefficient">binomialCoefficient</a></li><li data-type='method'><a href="stats.html#.binomialDist">binomialDist</a></li><li data-type='method'><a href="stats.html#.bootstrap">bootstrap</a></li><li data-type='method'><a href="stats.html#.breuschPaganTest">breuschPaganTest</a></li><li data-type='method'><a href="stats.html#.chisqCDF">chisqCDF</a></li><li data-type='method'><a href="stats.html#.cleaner">cleaner</a></li><li data-type='method'><a href="stats.html#.computeD">computeD</a></li><li data-type='method'><a href="stats.html#.copydata">copydata</a></li><li data-type='method'><a href="stats.html#.correlation">correlation</a></li><li data-type='method'><a href="stats.html#.datagaps">datagaps</a></li><li data-type='method'><a href="stats.html#.dateparser">dateparser</a></li><li data-type='method'><a href="stats.html#.differencing">differencing</a></li><li data-type='method'><a href="stats.html#.dotProduct">dotProduct</a></li><li data-type='method'><a href="stats.html#.efficiencies">efficiencies</a></li><li data-type='method'><a href="stats.html#.errorMetrics">errorMetrics</a></li><li data-type='method'><a href="stats.html#.exponentialDist">exponentialDist</a></li><li data-type='method'><a href="stats.html#.exponentialMovingAverage">exponentialMovingAverage</a></li><li data-type='method'><a href="stats.html#.fastfourier">fastfourier</a></li><li data-type='method'><a href="stats.html#.flatenise">flatenise</a></li><li data-type='method'><a href="stats.html#.forwardFill">forwardFill</a></li><li data-type='method'><a href="stats.html#.frequency">frequency</a></li><li data-type='method'><a href="stats.html#.fTest">fTest</a></li><li data-type='method'><a href="stats.html#.gammaCDFApprox">gammaCDFApprox</a></li><li data-type='method'><a href="stats.html#.gammaDist">gammaDist</a></li><li data-type='method'><a href="stats.html#.gapfiller">gapfiller</a></li><li data-type='method'><a href="stats.html#.gapremoval">gapremoval</a></li><li data-type='method'><a href="stats.html#.gaussianDist">gaussianDist</a></li><li data-type='method'><a href="stats.html#.generateRandomData">generateRandomData</a></li><li data-type='method'><a href="stats.html#.geometricDist">geometricDist</a></li><li data-type='method'><a href="stats.html#.getNextState">getNextState</a></li><li data-type='method'><a href="stats.html#.gevDistribution">gevDistribution</a></li><li data-type='method'><a href="stats.html#.gumbelDist">gumbelDist</a></li><li data-type='method'><a href="stats.html#.interoutliers">interoutliers</a></li><li data-type='method'><a href="stats.html#.itemfilter">itemfilter</a></li><li data-type='method'><a href="stats.html#.joinarray">joinarray</a></li><li data-type='method'><a href="stats.html#.KS_computePValue">KS_computePValue</a></li><li data-type='method'><a href="stats.html#.KS_rejectAtAlpha">KS_rejectAtAlpha</a></li><li data-type='method'><a href="stats.html#.kurtosis">kurtosis</a></li><li data-type='method'><a href="stats.html#.linearMovingAverage">linearMovingAverage</a></li><li data-type='method'><a href="stats.html#.lognormalDist">lognormalDist</a></li><li data-type='method'><a href="stats.html#.LogSeriesDistribution">LogSeriesDistribution</a></li><li data-type='method'><a href="stats.html#.mannWhitney">mannWhitney</a></li><li data-type='method'><a href="stats.html#.matrixInverse">matrixInverse</a></li><li data-type='method'><a href="stats.html#.max">max</a></li><li data-type='method'><a href="stats.html#.mean">mean</a></li><li data-type='method'><a href="stats.html#.median">median</a></li><li data-type='method'><a href="stats.html#.min">min</a></li><li data-type='method'><a href="stats.html#.MK">MK</a></li><li data-type='method'><a href="stats.html#.multinomialDistribution">multinomialDistribution</a></li><li data-type='method'><a href="stats.html#.multiplyMatrix">multiplyMatrix</a></li><li data-type='method'><a href="stats.html#.multiregression">multiregression</a></li><li data-type='method'><a href="stats.html#.normalcdf">normalcdf</a></li><li data-type='method'><a href="stats.html#.normalDistribution">normalDistribution</a></li><li data-type='method'><a href="stats.html#.normoutliers">normoutliers</a></li><li data-type='method'><a href="stats.html#.numerise">numerise</a></li><li data-type='method'><a href="stats.html#.onearray">onearray</a></li><li data-type='method'><a href="stats.html#.outremove">outremove</a></li><li data-type='method'><a href="stats.html#.partialAutoCorrelation">partialAutoCorrelation</a></li><li data-type='method'><a href="stats.html#.poissonProcess">poissonProcess</a></li><li data-type='method'><a href="stats.html#.push">push</a></li><li data-type='method'><a href="stats.html#.quantile">quantile</a></li><li data-type='method'><a href="stats.html#.randomWalk">randomWalk</a></li><li data-type='method'><a href="stats.html#.range">range</a></li><li data-type='method'><a href="stats.html#.regression">regression</a></li><li data-type='method'><a href="stats.html#.residualVariance">residualVariance</a></li><li data-type='method'><a href="stats.html#.returnPeriod">returnPeriod</a></li><li data-type='method'><a href="stats.html#.runMarkovChainMonteCarlo">runMarkovChainMonteCarlo</a></li><li data-type='method'><a href="stats.html#.runMonteCarlo">runMonteCarlo</a></li><li data-type='method'><a href="stats.html#.runSimulation">runSimulation</a></li><li data-type='method'><a href="stats.html#.runVegas">runVegas</a></li><li data-type='method'><a href="stats.html#.seasonalDecompose">seasonalDecompose</a></li><li data-type='method'><a href="stats.html#.shapiroWilk">shapiroWilk</a></li><li data-type='method'><a href="stats.html#.simpleMovingAverage">simpleMovingAverage</a></li><li data-type='method'><a href="stats.html#.skewness">skewness</a></li><li data-type='method'><a href="stats.html#.spiCompute">spiCompute</a></li><li data-type='method'><a href="stats.html#.standardize">standardize</a></li><li data-type='method'><a href="stats.html#.stddev">stddev</a></li><li data-type='method'><a href="stats.html#.sum">sum</a></li><li data-type='method'><a href="stats.html#.sumsqrd">sumsqrd</a></li><li data-type='method'><a href="stats.html#.timegaps">timegaps</a></li><li data-type='method'><a href="stats.html#.transposeMatrix">transposeMatrix</a></li><li data-type='method'><a href="stats.html#.tTest">tTest</a></li><li data-type='method'><a href="stats.html#.uniformDist">uniformDist</a></li><li data-type='method'><a href="stats.html#.unique">unique</a></li><li data-type='method'><a href="stats.html#.variance">variance</a></li><li data-type='method'><a href="stats.html#.weibullDist">weibullDist</a></li><li data-type='method'><a href="stats.html#.wilcoxonSignedRank">wilcoxonSignedRank</a></li></ul></li><li><a href="visualize.html">visualize</a><ul class='methods'><li data-type='method'><a href="visualize.html#.chart">chart</a></li><li data-type='method'><a href="visualize.html#.draw">draw</a></li><li data-type='method'><a href="visualize.html#.drawHtmlTable">drawHtmlTable</a></li><li data-type='method'><a href="visualize.html#.generateReport">generateReport</a></li><li data-type='method'><a href="visualize.html#.prettyPrint">prettyPrint</a></li><li data-type='method'><a href="visualize.html#.table">table</a></li></ul></li><li><a href="ZarrDataSource.html">ZarrDataSource</a><ul class='methods'><li data-type='method'><a href="ZarrDataSource.html#getZarrArrayData">getZarrArrayData</a></li><li data-type='method'><a href="ZarrDataSource.html#getZarrChunk">getZarrChunk</a></li><li data-type='method'><a href="ZarrDataSource.html#getZarrRegion">getZarrRegion</a></li><li data-type='method'><a href="ZarrDataSource.html#getZarrSlice">getZarrSlice</a></li><li data-type='method'><a href="ZarrDataSource.html#getZarrValue">getZarrValue</a></li><li data-type='method'><a href="ZarrDataSource.html#openZarrArray">openZarrArray</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-analyze.html">analyze</a><ul class='methods'><li data-type='method'><a href="module-analyze.html#loadFloodDM">loadFloodDM</a></li></ul></li><li><a href="module-mapsources.html">mapsources</a></li></ul><h3>Externals</h3><ul><li><a href="external-D3.html">D3</a></li><li><a href="external-GeospatialLoader.html">GeospatialLoader</a></li><li><a href="external-GoogleCharts.html">GoogleCharts</a></li><li><a href="external-googlemapsapi.html">googlemapsapi</a></li><li><a href="external-GriddedData.html">GriddedData</a></li><li><a href="external-HDF5Loader.html">HDF5Loader</a></li><li><a href="external-leafletosmapi.html">leafletosmapi</a></li><li><a href="external-NetCDFLoader.html">NetCDFLoader</a></li><li><a href="external-tensorflow.html">tensorflow</a></li><li><a href="external-tileprov.html">tileprov</a></li><li><a href="external-ZarritaLoader.html">ZarritaLoader</a></li></ul><h3>Namespaces</h3><ul><li><a href="data.cache.html">cache</a><ul class='methods'><li data-type='method'><a href="data.cache.html#.checkCache">checkCache</a></li><li data-type='method'><a href="data.cache.html#.clear">clear</a></li><li data-type='method'><a href="data.cache.html#.delete">delete</a></li><li data-type='method'><a href="data.cache.html#.getStats">getStats</a></li><li data-type='method'><a href="data.cache.html#.list">list</a></li></ul></li><li><a href="datasources.html">datasources</a><ul class='members'><li data-type='method'><a href="datasources.html#.AEMET">AEMET</a></li><li data-type='method'><a href="datasources.html#.AORC">AORC</a></li><li data-type='method'><a href="datasources.html#.BMKG">BMKG</a></li><li data-type='method'><a href="datasources.html#.CHIRPS">CHIRPS</a></li><li data-type='method'><a href="datasources.html#.ClearCreek">ClearCreek</a></li><li data-type='method'><a href="datasources.html#.CMA">CMA</a></li><li data-type='method'><a href="datasources.html#.CPTEC">CPTEC</a></li><li data-type='method'><a href="datasources.html#.3DEP">3DEP</a></li><li data-type='method'><a href="datasources.html#.DWD">DWD</a></li><li data-type='method'><a href="datasources.html#.EAUK">EAUK</a></li><li data-type='method'><a href="datasources.html#.ECMWF">ECMWF</a></li><li data-type='method'><a href="datasources.html#.EPA">EPA</a></li><li data-type='method'><a href="datasources.html#.FAO">FAO</a></li><li data-type='method'><a href="datasources.html#.FEMA">FEMA</a></li><li data-type='method'><a href="datasources.html#.flooddamage_dt">flooddamage_dt</a></li><li data-type='method'><a href="datasources.html#.FMI">FMI</a></li><li data-type='method'><a href="datasources.html#.HRRR">HRRR</a></li><li data-type='method'><a href="datasources.html#.HydroGeospatial">HydroGeospatial</a></li><li data-type='method'><a href="datasources.html#.IDEAM">IDEAM</a></li><li data-type='method'><a href="datasources.html#.IFIS">IFIS</a></li><li data-type='method'><a href="datasources.html#.IMD">IMD</a></li><li data-type='method'><a href="datasources.html#.ISRIC">ISRIC</a></li><li data-type='method'><a href="datasources.html#.JMA">JMA</a></li><li data-type='method'><a href="datasources.html#.KMA">KMA</a></li><li data-type='method'><a href="datasources.html#.KNMI">KNMI</a></li><li data-type='method'><a href="datasources.html#.MeteoFrance">MeteoFrance</a></li><li data-type='method'><a href="datasources.html#.MeteoIT">MeteoIT</a></li><li data-type='method'><a href="datasources.html#.MeteoSTAT">MeteoSTAT</a></li><li data-type='method'><a href="datasources.html#.MetNo">MetNo</a></li><li data-type='method'><a href="datasources.html#.mitigation_dt">mitigation_dt</a></li><li data-type='method'><a href="datasources.html#.MRMS">MRMS</a></li><li data-type='method'><a href="datasources.html#.NASAPOWER">NASAPOWER</a></li><li data-type='method'><a href="datasources.html#.NHDPlus">NHDPlus</a></li><li data-type='method'><a href="datasources.html#.NLDAS">NLDAS</a></li><li data-type='method'><a href="datasources.html#.NLDI">NLDI</a></li><li data-type='method'><a href="datasources.html#.NOAA">NOAA</a></li><li data-type='method'><a href="datasources.html#.NWM">NWM</a></li><li data-type='method'><a href="datasources.html#.NWPS">NWPS</a></li><li data-type='method'><a href="datasources.html#.NWS">NWS</a></li><li data-type='method'><a href="datasources.html#.OpenMeteo">OpenMeteo</a></li><li data-type='method'><a href="datasources.html#.PRISM">PRISM</a></li><li data-type='method'><a href="datasources.html#.ProxyServers">ProxyServers</a></li><li data-type='method'><a href="datasources.html#.SILO">SILO</a></li><li data-type='method'><a href="datasources.html#.SISSA">SISSA</a></li><li data-type='method'><a href="datasources.html#.SMHI">SMHI</a></li><li data-type='method'><a href="datasources.html#.SMN">SMN</a></li><li data-type='method'><a href="datasources.html#.soapEnv">soapEnv</a></li><li data-type='method'><a href="datasources.html#.TAMSAT">TAMSAT</a></li><li data-type='method'><a href="datasources.html#.TMD">TMD</a></li><li data-type='method'><a href="datasources.html#.USGS">USGS</a></li><li data-type='method'><a href="datasources.html#.USGS">USGS</a></li><li data-type='method'><a href="datasources.html#.WBD">WBD</a></li><li data-type='method'><a href="datasources.html#.Worldbank">Worldbank</a></li><li data-type='method'><a href="datasources.html#.WQP">WQP</a></li></ul></li><li><a href="datasources.CUAHSI.html">CUAHSI</a><ul class='members'><li data-type='method'><a href="datasources.CUAHSI.html#.hisCentral">hisCentral</a></li><li data-type='method'><a href="datasources.CUAHSI.html#.hydroShare">hydroShare</a></li><li data-type='method'><a href="datasources.CUAHSI.html#.waterOneFlow">waterOneFlow</a></li></ul></li><li><a href="HydroBMI.html">HydroBMI</a><ul class='members'><li data-type='method'><a href="HydroBMI.html#.BMIConfig">BMIConfig</a></li></ul></li><li><a href="HydroBMI.Hydro.html">Hydro</a></li><li><a href="Hydrolang.html">Hydrolang</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_openGDALSource">_openGDALSource</a></li><li><a href="global.html#addCustomLegend">addCustomLegend</a></li><li><a href="global.html#aggregateSpatial">aggregateSpatial</a></li><li><a href="global.html#aggregateTemporal">aggregateTemporal</a></li><li><a href="global.html#aggregateTime">aggregateTime</a></li><li><a href="global.html#algebra">algebra</a></li><li><a href="global.html#applyDataScaling">applyDataScaling</a></li><li><a href="global.html#applyQualityControl">applyQualityControl</a></li><li><a href="global.html#applyScalingToValue">applyScalingToValue</a></li><li><a href="global.html#aspect">aspect</a></li><li><a href="global.html#bandMath">bandMath</a></li><li><a href="global.html#cacheAPI">cacheAPI</a></li><li><a href="global.html#cachedFetch">cachedFetch</a></li><li><a href="global.html#calculateStatistics">calculateStatistics</a></li><li><a href="global.html#clip">clip</a></li><li><a href="global.html#clipGeo">clipGeo</a></li><li><a href="global.html#constructNWMFileURL">constructNWMFileURL</a></li><li><a href="global.html#convertAORCToCSV">convertAORCToCSV</a></li><li><a href="global.html#convertAORCToNetCDF">convertAORCToNetCDF</a></li><li><a href="global.html#convertDataUnits">convertDataUnits</a></li><li><a href="global.html#convertGeoTIFFToGeoraster">convertGeoTIFFToGeoraster</a></li><li><a href="global.html#convertNWMToCSV">convertNWMToCSV</a></li><li><a href="global.html#convertToArray">convertToArray</a></li><li><a href="global.html#convertToCSV">convertToCSV</a></li><li><a href="global.html#convertToNetCDF">convertToNetCDF</a></li><li><a href="global.html#createGoogleMapsGeoRasterLayer">createGoogleMapsGeoRasterLayer</a></li><li><a href="global.html#createLeafletCanvasGeoRasterLayer">createLeafletCanvasGeoRasterLayer</a></li><li><a href="global.html#createLeafletGeoRasterLayer">createLeafletGeoRasterLayer</a></li><li><a href="global.html#createSegmentationModel">createSegmentationModel</a></li><li><a href="global.html#createSimpleGeoRasterOverlay">createSimpleGeoRasterOverlay</a></li><li><a href="global.html#createStore">createStore</a></li><li><a href="global.html#createTransformer">createTransformer</a></li><li><a href="global.html#createZarrStore">createZarrStore</a></li><li><a href="global.html#decompressGzip">decompressGzip</a></li><li><a href="global.html#detectFormat">detectFormat</a></li><li><a href="global.html#determinePRISMRegion">determinePRISMRegion</a></li><li><a href="global.html#downloadERA5File">downloadERA5File</a></li><li><a href="global.html#drawHtmlTable">drawHtmlTable</a></li><li><a href="global.html#execute">execute</a></li><li><a href="global.html#expandSpatialBounds">expandSpatialBounds</a></li><li><a href="global.html#extractERA5Data">extractERA5Data</a></li><li><a href="global.html#extractERA5GridData">extractERA5GridData</a></li><li><a href="global.html#extractERA5PointData">extractERA5PointData</a></li><li><a href="global.html#extractERA5TimeSeries">extractERA5TimeSeries</a></li><li><a href="global.html#extractGRIB2Data">extractGRIB2Data</a></li><li><a href="global.html#extractHRRRGridData">extractHRRRGridData</a></li><li><a href="global.html#extractHRRRPointData">extractHRRRPointData</a></li><li><a href="global.html#extractHRRRTimeSeries">extractHRRRTimeSeries</a></li><li><a href="global.html#extractMRMSGridData">extractMRMSGridData</a></li><li><a href="global.html#extractMRMSPointData">extractMRMSPointData</a></li><li><a href="global.html#extractMRMSTimeSeries">extractMRMSTimeSeries</a></li><li><a href="global.html#extractNLDASGridData">extractNLDASGridData</a></li><li><a href="global.html#extractNLDASMultiplePoints">extractNLDASMultiplePoints</a></li><li><a href="global.html#extractNLDASPointData">extractNLDASPointData</a></li><li><a href="global.html#extractNLDASRawNetCDF">extractNLDASRawNetCDF</a></li><li><a href="global.html#extractNWMData">extractNWMData</a></li><li><a href="global.html#extractPRISMGridData">extractPRISMGridData</a></li><li><a href="global.html#extractPRISMPointData">extractPRISMPointData</a></li><li><a href="global.html#extractPRISMTimeSeries">extractPRISMTimeSeries</a></li><li><a href="global.html#fetchDEMData">fetchDEMData</a></li><li><a href="global.html#fetchPointElevation">fetchPointElevation</a></li><li><a href="global.html#fillSinks">fillSinks</a></li><li><a href="global.html#flattenND">flattenND</a></li><li><a href="global.html#formatAORCOutput">formatAORCOutput</a></li><li><a href="global.html#formatData">formatData</a></li><li><a href="global.html#formatNWMOutput">formatNWMOutput</a></li><li><a href="global.html#formatPRISMTimePeriod">formatPRISMTimePeriod</a></li><li><a href="global.html#generateNWMDateRange">generateNWMDateRange</a></li><li><a href="global.html#generatePRISMFileURL">generatePRISMFileURL</a></li><li><a href="global.html#generateProcessedDataKey">generateProcessedDataKey</a></li><li><a href="global.html#generateSimpleCacheKey">generateSimpleCacheKey</a></li><li><a href="global.html#getArrayData">getArrayData</a></li><li><a href="global.html#getAvailableERA5Variables">getAvailableERA5Variables</a></li><li><a href="global.html#getAvailableHRRRVariables">getAvailableHRRRVariables</a></li><li><a href="global.html#getAvailableMRMSProducts">getAvailableMRMSProducts</a></li><li><a href="global.html#getAvailableNLDASVariables">getAvailableNLDASVariables</a></li><li><a href="global.html#getAvailablePRISMVariables">getAvailablePRISMVariables</a></li><li><a href="global.html#getChunk">getChunk</a></li><li><a href="global.html#getFile">getFile</a></li><li><a href="global.html#getGridDataLibrary">getGridDataLibrary</a></li><li><a href="global.html#getHRRRDatasetInfo">getHRRRDatasetInfo</a></li><li><a href="global.html#getInfo">getInfo</a></li><li><a href="global.html#getLeafletColorForElevation">getLeafletColorForElevation</a></li><li><a href="global.html#getMap">getMap</a></li><li><a href="global.html#getMRMSDatasetInfo">getMRMSDatasetInfo</a></li><li><a href="global.html#getNLDASDatasetInfo">getNLDASDatasetInfo</a></li><li><a href="global.html#getNWMTemporalInfo">getNWMTemporalInfo</a></li><li><a href="global.html#getPRISMDatasetInfo">getPRISMDatasetInfo</a></li><li><a href="global.html#getRecommendedPRISMResolution">getRecommendedPRISMResolution</a></li><li><a href="global.html#getRegion">getRegion</a></li><li><a href="global.html#goldfeldQuandtTest">goldfeldQuandtTest</a></li><li><a href="global.html#GRIDDED_SOURCES">GRIDDED_SOURCES</a></li><li><a href="global.html#gridToTensor">gridToTensor</a></li><li><a href="global.html#hillshade">hillshade</a></li><li><a href="global.html#imgToTensor">imgToTensor</a></li><li><a href="global.html#info">info</a></li><li><a href="global.html#isGridDataLibraryLoaded">isGridDataLibraryLoaded</a></li><li><a href="global.html#isLoaded">isLoaded</a></li><li><a href="global.html#isValidBoundingBox">isValidBoundingBox</a></li><li><a href="global.html#isValidCoordinate">isValidCoordinate</a></li><li><a href="global.html#load">load</a></li><li><a href="global.html#loadGeoRasterLayerPlugin">loadGeoRasterLayerPlugin</a></li><li><a href="global.html#loadGeoTIFFFromBuffer">loadGeoTIFFFromBuffer</a></li><li><a href="global.html#loadGridDataLibrary">loadGridDataLibrary</a></li><li><a href="global.html#mapPixels">mapPixels</a></li><li><a href="global.html#mask">mask</a></li><li><a href="global.html#modelRegistry">modelRegistry</a></li><li><a href="global.html#openArray">openArray</a></li><li><a href="global.html#parseGRIB2">parseGRIB2</a></li><li><a href="global.html#pca">pca</a></li><li><a href="global.html#pollECMWFStatus">pollECMWFStatus</a></li><li><a href="global.html#preprocess">preprocess</a></li><li><a href="global.html#preprocessData">preprocessData</a></li><li><a href="global.html#processAORCBulkExtraction">processAORCBulkExtraction</a></li><li><a href="global.html#processAORCDatasetInfo">processAORCDatasetInfo</a></li><li><a href="global.html#processAORCGridData">processAORCGridData</a></li><li><a href="global.html#processAORCPointData">processAORCPointData</a></li><li><a href="global.html#processAORCTimeSeriesData">processAORCTimeSeriesData</a></li><li><a href="global.html#processERA5GRIB2Data">processERA5GRIB2Data</a></li><li><a href="global.html#processFileInChunks">processFileInChunks</a></li><li><a href="global.html#processGriddedSource">processGriddedSource</a></li><li><a href="global.html#processNWMBulkExtraction">processNWMBulkExtraction</a></li><li><a href="global.html#readGRIB2Chunked">readGRIB2Chunked</a></li><li><a href="global.html#readNetCDFChunked">readNetCDFChunked</a></li><li><a href="global.html#recenter">recenter</a></li><li><a href="global.html#reproject">reproject</a></li><li><a href="global.html#saveFile">saveFile</a></li><li><a href="global.html#seriesToTensor">seriesToTensor</a></li><li><a href="global.html#slope">slope</a></li><li><a href="global.html#sourceType">sourceType</a></li><li><a href="global.html#streamExtract">streamExtract</a></li><li><a href="global.html#testMRMSUrlGeneration">testMRMSUrlGeneration</a></li><li><a href="global.html#tile">tile</a></li><li><a href="global.html#transformVariable">transformVariable</a></li><li><a href="global.html#validate3DEPParams">validate3DEPParams</a></li><li><a href="global.html#validateERA5Config">validateERA5Config</a></li><li><a href="global.html#validateHRRRConfig">validateHRRRConfig</a></li><li><a href="global.html#validateMRMSConfig">validateMRMSConfig</a></li><li><a href="global.html#validateNLDASConfig">validateNLDASConfig</a></li><li><a href="global.html#validatePRISMConfig">validatePRISMConfig</a></li><li><a href="global.html#validatePRISMVariable">validatePRISMVariable</a></li><li><a href="global.html#vectorize">vectorize</a></li><li><a href="global.html#whitesTest">whitesTest</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">modules/data/utils/aorc-utils.js</h1>
+    
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * AORC (Analysis of Record for Calibration) data utilities - Refactore
+ * Handles year-based Zarr stores with chunked data access
+ */
+
+import { ZarrDataSource, loadGridDataLibrary } from './gridded-data-utils.js';
+
+/**
+ * AORC-specific data source implementation
+ * Extends ZarrDataSource with AORC-specific chunking and year-based organization
+ */
+export class AORCDataSource extends ZarrDataSource {
+  constructor(datasetConfig) {
+    super({
+      sourceName: 'aorc',
+      libraryType: 'zarr',
+      datasourceConfig: datasetConfig,
+      variables: null // Will be loaded from datasources/aorc.js
+    });
+    this.datasetConfig = datasetConfig;
+    this.aorcDatasource = null;
+  }
+
+  /**
+   * Lazy load AORC datasource configuration
+   */
+  async loadDatasource() {
+    if (!this.aorcDatasource) {
+      const { default: aorcDatasource } = await import('../datasources/aorc.js');
+      this.aorcDatasource = aorcDatasource;
+      this.variables = aorcDatasource.variables;
+    }
+    return this.aorcDatasource;
+  }
+
+  /**
+   * Fetch Zarr metadata for a variable
+   */
+  async fetchMetadata(year, variable) {
+    const metadataUrl = `${this.datasetConfig.baseUrl}/${year}.zarr/${variable}/.zarray`;
+    console.log(`[aorc] Fetching metadata from: ${metadataUrl}`);
+
+    // Conditional caching - only use cache if explicitly requested
+    // Metadata fetching typically doesn't need caching, so default to standard fetch
+    const response = await fetch(metadataUrl, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    return await response.json();
+  }
+
+  /**
+   * Extract point data using zarrita (modern approach)
+   */
+  async extractPointData(variable, latitude, longitude, timestamp, options = {}) {
+    await this.loadDatasource();
+
+    // Handle multiple variables
+    if (Array.isArray(variable)) {
+      console.log(`[aorc] Extracting multiple variables: ${variable.join(', ')}`);
+      const results = {};
+
+      // Process sequentially to avoid overwhelming the browser/network with too many concurrent requests
+      // or use Promise.all for parallelism if safe. Given chunk caching, parallelism is probably fine.
+      await Promise.all(variable.map(async (v) => {
+        try {
+          results[v] = await this.extractPointData(v, latitude, longitude, timestamp, options);
+        } catch (error) {
+          console.error(`[aorc] Failed to extract ${v}:`, error);
+          results[v] = { error: error.message };
+        }
+      }));
+
+      return results;
+    }
+
+    // Validate coordinates and dates
+    this.validateCoordinates(latitude, longitude);
+
+    const variableMeta = this.variables[variable];
+    if (!variableMeta) {
+      throw new Error(`Unknown AORC variable: ${variable}`);
+    }
+
+    // Handle date range (AORC typically extracts time series, not single points)
+    const startDate = options.startDate || timestamp;
+    const endDate = options.endDate || timestamp;
+
+    // Validate date range
+    this.validateDateRange(startDate, endDate);
+
+    // Calculate year from timestamp
+    const startTime = new Date(startDate);
+    const year = startTime.getUTCFullYear();
+
+    // Calculate indices for the point
+    const indices = this.calculateIndices(latitude, longitude, startDate, endDate, {
+      chunks: [144, 128, 256] // AORC chunk sizes as array
+    });
+
+    // Extract time series from the cached chunk data
+    const { timeChunkSize, latChunkSize, lonChunkSize } = indices.chunkSizes;
+    const { chunkStartTime, chunkEndTime, chunkLatIndex, chunkLonIndex } = indices.withinChunk;
+
+    const timeSteps = chunkEndTime - chunkStartTime + 1;
+    const extractedData = [];
+
+    // Get the chunk data using cachedFetch (downloads if not cached)
+    const chunkPath = `${year}.zarr/${variable}/${indices.chunks.timeChunkIndex}.${indices.chunks.latChunkIndex}.${indices.chunks.lonChunkIndex}`;
+    const chunkUrl = `${this.datasetConfig.baseUrl}/${chunkPath}`;
+
+    console.log(`[aorc] Fetching/downloading chunk: ${chunkPath}`);
+
+    // Conditional caching - use cache only if explicitly requested
+    let chunkBuffer;
+    if (options.cache === true || options.params?.cache === true) {
+      const { cachedFetch } = await import('./data-cache.js');
+      globalThis._hydroCacheContext = {
+        source: 'aorc',
+        dataset: this.datasetConfig.name || 'aorc-v1.1',
+        params: {
+          source: 'aorc',
+          dataset: this.datasetConfig.name || 'aorc-v1.1'
+        }
+      };
+      const response = await cachedFetch(chunkUrl, {
+        params: {
+          source: 'aorc',
+          dataset: this.datasetConfig.name || 'aorc-v1.1',
+          proxy: options.proxy || options.params?.proxy,
+          process: options.process
+        }
+      });
+      chunkBuffer = response instanceof ArrayBuffer ? response : await response.arrayBuffer();
+    } else {
+      // Standard fetch without caching
+      const response = await fetch(chunkUrl, {
+        headers: { 'Accept': 'application/octet-stream' }
+      });
+      chunkBuffer = await response.arrayBuffer();
+    }
+
+    // Ensure we have an ArrayBuffer
+    if (!chunkBuffer || !(chunkBuffer instanceof ArrayBuffer)) {
+      throw new Error(`[aorc] Invalid chunk buffer received: expected ArrayBuffer, got ${typeof chunkBuffer}`);
+    }
+
+    console.log(`[aorc] Compressed data size: ${chunkBuffer.byteLength} bytes`);
+
+    // Return raw buffer if requested (default)
+    if (options.process !== true) {
+      console.log('[aorc] Returning raw chunk buffer (raw default)');
+      return chunkBuffer;
+    }
+
+    console.log(`[aorc] First 20 bytes:`, new Uint8Array(chunkBuffer.slice(0, 20)));
+
+    // Check if data is actually compressed
+    const header = new Uint8Array(chunkBuffer.slice(0, 4));
+    const isBlosc = header[0] === 0xFE &amp;&amp; header[1] === 0xED &amp;&amp; header[2] === 0xFA &amp;&amp; header[3] === 0xCE;
+    const isZlib = header[0] === 0x78 &amp;&amp; (header[1] === 0x01 || header[1] === 0x9C || header[1] === 0xDA);
+    const isZstd = header[0] === 0x28 &amp;&amp; header[1] === 0xB5 &amp;&amp; header[2] === 0x2F &amp;&amp; header[3] === 0xFD;
+
+    console.log(`[aorc] Data compression check - Blosc: ${isBlosc}, Zlib: ${isZlib}, Zstd: ${isZstd}`);
+
+    // Try multiple decompression approaches
+    let decompressed;
+
+    try {
+      // 1. Try numcodecs Blosc (if available and looks like Blosc)
+      if (isBlosc) {
+        if (globalThis.numcodecs &amp;&amp; globalThis.numcodecs.Blosc) {
+          decompressed = globalThis.numcodecs.Blosc.decode(chunkBuffer);
+          console.log(`[aorc] Decompressed with numcodecs.Blosc: ${decompressed.length} bytes`);
+        } else if (this.library &amp;&amp; this.library.Blosc) {
+          decompressed = this.library.Blosc.decode(chunkBuffer);
+          console.log(`[aorc] Decompressed with library.Blosc: ${decompressed.length} bytes`);
+        }
+      }
+
+      // 2. Try Zstd (if looks like Zstd)
+      if (!decompressed &amp;&amp; isZstd) {
+        const fzstd = globalThis.fzstd || (this.library &amp;&amp; this.library.fzstd);
+        if (fzstd) {
+          decompressed = fzstd.decompress(new Uint8Array(chunkBuffer));
+          console.log(`[aorc] Decompressed with fzstd: ${decompressed.length} bytes`);
+        } else {
+          console.warn('[aorc] Zstd detected but fzstd library not available');
+        }
+      }
+
+      // 3. Try Zlib/Inflate (if looks like Zlib)
+      if (!decompressed &amp;&amp; isZlib) {
+        if (globalThis.pako) {
+          decompressed = globalThis.pako.inflate(chunkBuffer);
+          console.log(`[aorc] Decompressed with pako.inflate: ${decompressed.length} bytes`);
+        } else if (globalThis.fflate) {
+          decompressed = globalThis.fflate.decompressSync(new Uint8Array(chunkBuffer));
+          console.log(`[aorc] Decompressed with fflate: ${decompressed.length} bytes`);
+        }
+      }
+
+      // 3. Try generic decompressors from library
+      if (!decompressed &amp;&amp; this.library &amp;&amp; this.library.decompress) {
+        decompressed = await this.library.decompress(chunkBuffer);
+        console.log(`[aorc] Decompressed with zarr library: ${decompressed.length} bytes`);
+      }
+
+      // 4. Try global decompress function
+      if (!decompressed &amp;&amp; typeof globalThis.decompress === 'function') {
+        decompressed = globalThis.decompress(chunkBuffer);
+        console.log(`[aorc] Decompressed with global function: ${decompressed.length} bytes`);
+      }
+
+      // 5. Check if uncompressed
+      if (!decompressed) {
+        const expectedUncompressedSize = timeChunkSize * latChunkSize * lonChunkSize * 2; // 2 bytes per int16
+        if (chunkBuffer.byteLength === expectedUncompressedSize) {
+          console.log(`[aorc] Data appears to be uncompressed, using as-is`);
+          decompressed = chunkBuffer;
+        } else {
+          // If we have a size mismatch and couldn't decompress, we must fail
+          // DO NOT return compressed data as it will cause index out of bounds errors
+          throw new Error(`Could not decompress data. Size mismatch: expected ${expectedUncompressedSize}, got ${chunkBuffer.byteLength}. IsBlosc: ${isBlosc}, IsZlib: ${isZlib}`);
+        }
+      }
+
+      // Ensure we have a typed array for indexing
+      if (decompressed instanceof ArrayBuffer) {
+        decompressed = new Uint8Array(decompressed);
+      } else if (!(decompressed instanceof Uint8Array)) {
+        decompressed = new Uint8Array(decompressed);
+      }
+
+    } catch (decompressError) {
+      console.error('[aorc] Decompression failed:', decompressError.message);
+      throw decompressError; // Re-throw to stop processing invalid data
+    }
+
+    // Now process the decompressed data as int16
+    const dataView = new DataView(decompressed.buffer, decompressed.byteOffset, decompressed.byteLength);
+    const chunkData = [];
+
+    // AORC chunks are typically 3D: [time, lat, lon]
+    const expectedSize = timeChunkSize * latChunkSize * lonChunkSize;
+
+    if (decompressed.length !== expectedSize * 2) { // 2 bytes per int16
+      console.warn(`[aorc] Unexpected decompressed buffer size: ${decompressed.length}, expected: ${expectedSize * 2}`);
+      // If size is wrong, we might still try to read what we can, or fail
+      if (decompressed.length &lt; expectedSize * 2) {
+        throw new Error(`Decompressed data too small: ${decompressed.length} bytes, expected ${expectedSize * 2} bytes`);
+      }
+    }
+
+    // Read as int16 values (AORC uses int16 with scale/offset)
+    // Use DataView to ensure correct endianness (usually big-endian for Zarr/NetCDF, but check metadata)
+    // AORC Zarr is typically Little Endian (&lt;i2), but let's check if we can determine it
+    const isLittleEndian = true; // Standard for Zarr unless specified otherwise in .zarray
+
+    for (let i = 0; i &lt; Math.min(expectedSize, decompressed.length / 2); i++) {
+      const rawValue = dataView.getInt16(i * 2, isLittleEndian);
+      chunkData.push(rawValue);
+    }
+
+    console.log(`[aorc] Retrieved and decompressed chunk data, length: ${chunkData.length}, expected: ${expectedSize}`);
+
+    for (let t = 0; t &lt; timeSteps; t++) {
+      const timeIndex = chunkStartTime + t;
+      const flatIndex = timeIndex * (latChunkSize * lonChunkSize) + chunkLatIndex * lonChunkSize + chunkLonIndex;
+
+      // Check bounds
+      if (flatIndex >= chunkData.length) {
+        console.warn(`[aorc] Flat index ${flatIndex} out of bounds (${chunkData.length})`);
+        extractedData.push(null);
+        continue;
+      }
+
+      const rawValue = chunkData[flatIndex];
+      console.log(`[aorc] t=${t}, timeIndex=${timeIndex}, flatIndex=${flatIndex}, rawValue=${rawValue}`);
+
+      const scaledValue = this.applyScaling(rawValue, variableMeta);
+      extractedData.push(scaledValue);
+    }
+
+    console.log(`[aorc] Extracted ${extractedData.length} time steps for ${variable}`);
+
+    return {
+      variable: variable,
+      location: { latitude, longitude },
+      timeRange: { start: startDate, end: endDate },
+      data: extractedData,
+      metadata: {
+        units: variableMeta.units,
+        source: 'AORC',
+        year: year,
+        spatialIndices: indices.spatial,
+        timeIndices: indices.time,
+        chunkInfo: indices.chunks
+      }
+    };
+  }
+
+  /**
+   * Calculate indices for AORC grid
+   */
+  calculateIndices(latitude, longitude, startDate, endDate, metadata) {
+    // Find spatial indices using inherited method
+    const latIndex = this.findNearestIndex(this.datasetConfig.spatial.latitude, latitude);
+    const lonIndex = this.findNearestIndex(this.datasetConfig.spatial.longitude, longitude);
+
+    // Calculate time indices
+    const startTime = new Date(startDate);
+    const year = startTime.getUTCFullYear();
+    const yearStart = new Date(`${year}-01-01T00:00:00Z`);
+    const startTimeIndex = Math.floor((startTime.getTime() - yearStart.getTime()) / (1000 * 60 * 60));
+
+    const endTime = new Date(endDate);
+    const endTimeIndex = Math.floor((endTime.getTime() - yearStart.getTime()) / (1000 * 60 * 60));
+
+    // Calculate chunk indices based on AORC chunk structure
+    const [timeChunkSize, latChunkSize, lonChunkSize] = metadata.chunks;
+
+    const timeChunkIndex = Math.floor(startTimeIndex / timeChunkSize);
+    const latChunkIndex = Math.floor(latIndex / latChunkSize);
+    const lonChunkIndex = Math.floor(lonIndex / lonChunkSize);
+
+    // Calculate indices within chunk
+    const chunkStartTime = startTimeIndex % timeChunkSize;
+    const chunkEndTime = Math.min(endTimeIndex % timeChunkSize, timeChunkSize - 1);
+    const chunkLatIndex = latIndex % latChunkSize;
+    const chunkLonIndex = lonIndex % lonChunkSize;
+
+    return {
+      year,
+      spatial: { latIndex, lonIndex },
+      time: { startTimeIndex, endTimeIndex },
+      chunks: { timeChunkIndex, latChunkIndex, lonChunkIndex },
+      chunkSizes: { timeChunkSize, latChunkSize, lonChunkSize },
+      withinChunk: { chunkStartTime, chunkEndTime, chunkLatIndex, chunkLonIndex }
+    };
+  }
+
+  /**
+   * Extract point data from AORC Zarr chunk
+   */
+
+  /**
+   * Helper to fetch and decompress a single AORC chunk
+   */
+  async fetchAndDecompressChunk(url, context) {
+    // Conditional caching
+    let chunkBuffer;
+    if (context.params?.cache === true) {
+      const { cachedFetch } = await import('./data-cache.js');
+      globalThis._hydroCacheContext = context;
+      const response = await cachedFetch(url, { params: context.params });
+      chunkBuffer = response instanceof ArrayBuffer ? response : await response.arrayBuffer();
+    } else {
+      const response = await fetch(url, {
+        headers: { 'Accept': 'application/octet-stream' }
+      });
+      chunkBuffer = await response.arrayBuffer();
+    }
+
+    if (!chunkBuffer || !(chunkBuffer instanceof ArrayBuffer)) {
+      throw new Error(`[aorc] Invalid chunk buffer received`);
+    }
+
+    // Check for process: false (or implicit raw mode via undefined process)
+    if (!context.params || context.params.process !== true) {
+      console.log(`[aorc] Skipping decompression (raw mode default)`);
+      return chunkBuffer;
+    }
+
+    // Check compression
+    const header = new Uint8Array(chunkBuffer.slice(0, 4));
+    const isBlosc = header[0] === 0xFE &amp;&amp; header[1] === 0xED &amp;&amp; header[2] === 0xFA &amp;&amp; header[3] === 0xCE;
+    const isZlib = header[0] === 0x78 &amp;&amp; (header[1] === 0x01 || header[1] === 0x9C || header[1] === 0xDA);
+    const isZstd = header[0] === 0x28 &amp;&amp; header[1] === 0xB5 &amp;&amp; header[2] === 0x2F &amp;&amp; header[3] === 0xFD;
+
+    let decompressed;
+
+    // 1. Try numcodecs Blosc
+    if (isBlosc) {
+      if (globalThis.numcodecs &amp;&amp; globalThis.numcodecs.Blosc) {
+        decompressed = globalThis.numcodecs.Blosc.decode(chunkBuffer);
+      } else if (this.library &amp;&amp; this.library.Blosc) {
+        decompressed = this.library.Blosc.decode(chunkBuffer);
+      }
+    }
+
+    // 2. Try Zstd
+    if (!decompressed &amp;&amp; isZstd) {
+      const fzstd = globalThis.fzstd || (this.library &amp;&amp; this.library.fzstd);
+      if (fzstd) {
+        decompressed = fzstd.decompress(new Uint8Array(chunkBuffer));
+      }
+    }
+
+    // 3. Try Zlib
+    if (!decompressed &amp;&amp; isZlib) {
+      if (globalThis.pako) {
+        decompressed = globalThis.pako.inflate(chunkBuffer);
+      } else if (globalThis.fflate) {
+        decompressed = globalThis.fflate.decompressSync(new Uint8Array(chunkBuffer));
+      }
+    }
+
+    if (!decompressed) {
+      throw new Error('Failed to decompress AORC chunk');
+    }
+
+    return decompressed;
+  }
+
+  /**
+   * Extract grid data from AORC (manually fetching chunks to bypass zarrita issues)
+   */
+  async extractGridData(variable, bbox, timestamp, options = {}) {
+    await this.loadDatasource();
+
+    // Handle multiple variables
+    if (Array.isArray(variable)) {
+      const results = {};
+      await Promise.all(variable.map(async (v) => {
+        try {
+          results[v] = await this.extractGridData(v, bbox, timestamp, options);
+        } catch (error) {
+          console.error(`[aorc] Failed to extract grid for ${v}:`, error);
+          results[v] = { error: error.message };
+        }
+      }));
+      return results;
+    }
+
+    // Validate bbox
+    if (!bbox || bbox.length !== 4) {
+      throw new Error('Invalid bounding box. Expected [minLon, minLat, maxLon, maxLat]');
+    }
+    const [minLon, minLat, maxLon, maxLat] = bbox;
+
+    // Get variable metadata
+    const variableMeta = this.variables[variable];
+    if (!variableMeta) {
+      throw new Error(`Unknown AORC variable: ${variable}`);
+    }
+
+    // Get spatial config
+    const { latitude: latConfig, longitude: lonConfig } = this.datasetConfig.spatial;
+
+    // Calculate indices directly (assuming standard ascending coordinates for AORC v1.1)
+    // Lat: (val - min) / res
+    const latStartIndex = Math.round((minLat - latConfig.min) / latConfig.resolution);
+    const latEndIndex = Math.round((maxLat - latConfig.min) / latConfig.resolution);
+
+    // Clamp to valid range
+    const maxLatIndex = Math.floor((latConfig.max - latConfig.min) / latConfig.resolution);
+    const latStart = Math.max(0, Math.min(latStartIndex, latEndIndex));
+    const latStop = Math.min(maxLatIndex, Math.max(latStartIndex, latEndIndex)) + 1;
+
+    const lonStartIndex = Math.round((minLon - lonConfig.min) / lonConfig.resolution);
+    const lonEndIndex = Math.round((maxLon - lonConfig.min) / lonConfig.resolution);
+
+    const maxLonIndex = Math.floor((lonConfig.max - lonConfig.min) / lonConfig.resolution);
+    const lonStart = Math.max(0, Math.min(lonStartIndex, lonEndIndex));
+    const lonStop = Math.min(maxLonIndex, Math.max(lonStartIndex, lonEndIndex)) + 1;
+
+    // Time index
+    const date = new Date(timestamp);
+    const year = date.getUTCFullYear();
+    const yearStart = new Date(`${year}-01-01T00:00:00Z`);
+    const timeIndex = Math.floor((date.getTime() - yearStart.getTime()) / (1000 * 60 * 60));
+
+    // Chunk dimensions (AORC standard)
+    // These should ideally come from metadata.chunks, but hardcoding for now if not available
+    const timeChunkSize = variableMeta.chunks ? variableMeta.chunks[0] : 144;
+    const latChunkSize = variableMeta.chunks ? variableMeta.chunks[1] : 128;
+    const lonChunkSize = variableMeta.chunks ? variableMeta.chunks[2] : 256;
+
+    // Determine chunk ranges
+    const startLatChunk = Math.floor(latStart / latChunkSize);
+    const endLatChunk = Math.floor((latStop - 1) / latChunkSize);
+    const startLonChunk = Math.floor(lonStart / lonChunkSize);
+    const endLonChunk = Math.floor((lonStop - 1) / lonChunkSize);
+
+    // Initialize result grid
+    const gridHeight = latStop - latStart;
+    const gridWidth = lonStop - lonStart;
+    const resultGrid = new Float32Array(gridHeight * gridWidth);
+
+    console.log(`[AORC] Extracting grid: ${gridWidth}x${gridHeight} from chunks [${startLatChunk}-${endLatChunk}, ${startLonChunk}-${endLonChunk}]`);
+
+    // Iterate chunks
+    for (let latChunk = startLatChunk; latChunk &lt;= endLatChunk; latChunk++) {
+      for (let lonChunk = startLonChunk; lonChunk &lt;= endLonChunk; lonChunk++) {
+        // Construct URL manually like extractPointData
+        const chunkPath = `${year}.zarr/${variable}/${Math.floor(timeIndex / timeChunkSize)}.${latChunk}.${lonChunk}`;
+        const chunkUrl = `${this.datasetConfig.baseUrl}/${chunkPath}`;
+
+        try {
+          const decompressed = await this.fetchAndDecompressChunk(chunkUrl, {
+            source: 'aorc',
+            dataset: this.datasetConfig.name || 'aorc-v1.1',
+            params: {
+              source: 'aorc',
+              dataset: 'aorc-v1.1',
+              proxy: options.proxy || options.params?.proxy,
+              process: options.process
+            }
+          });
+
+          if (options.process !== true) {
+            // Store raw buffer in grid? Or maybe just return array of buffers?
+            // For grid extraction in raw mode, returning a flat list of chunk buffers might be unexpected but it's "raw".
+            // Or we just return the processed grid but without decompression? No that's impossible.
+            // If raw is requested for grid data, maybe we shouldn't be here or we should return a zip?
+            // Let's assume raw means "don't parse values" but we still likely need to decompress to slice?
+            // If "raw" means "raw file", we can't return a single file for grid data easily.
+            // We'll return the decompressed buffer as is for this chunk in the loop logic below?
+            // Wait, previous logic returns `resultGrid` which is Float32.
+            // If raw is true, fetchAndDecompressChunk returns buffer.
+            // We can't put buffer into Float32Array directly if it's compressed.
+            // If fetchAndDecompressChunk returns raw compressed buffer, we can't proceed with slicing.
+            // So for grid data, "raw" might not be fully supported or needs definition. 
+            // BUT, user asked for "raw" for "all gridded data".
+            // Re-reading: "fetchAndDecompressChunk" handles "process: false".
+            // If we get raw buffer here, we can't slice it.
+            // We will just push it to a list?
+            if (!resultGrid.rawChunks) resultGrid.rawChunks = [];
+            resultGrid.rawChunks.push({ urls: chunkPath, buffer: decompressed });
+            continue;
+          }
+
+          // Cast to correct type (int16 for AORC usually)
+          // AORC data is typically int16 with scale factor
+          const dataView = new Int16Array(decompressed.buffer, decompressed.byteOffset, decompressed.byteLength / 2);
+
+          // Calculate overlap between chunk and requested region
+          const chunkLatStart = latChunk * latChunkSize;
+          const chunkLonStart = lonChunk * lonChunkSize;
+
+          // Intersection relative to global grid
+          const copyLatStart = Math.max(latStart, chunkLatStart);
+          const copyLatEnd = Math.min(latStop, chunkLatStart + latChunkSize);
+          const copyLonStart = Math.max(lonStart, chunkLonStart);
+          const copyLonEnd = Math.min(lonStop, chunkLonStart + lonChunkSize);
+
+          // Copy data
+          for (let lat = copyLatStart; lat &lt; copyLatEnd; lat++) {
+            for (let lon = copyLonStart; lon &lt; copyLonEnd; lon++) {
+              // Indices within chunk
+              // Time index within chunk needs to be handled! 
+              // The chunk contains [timeChunkSize, latChunkSize, lonChunkSize]
+              const tInChunk = timeIndex % timeChunkSize;
+              const latInChunk = lat - chunkLatStart;
+              const lonInChunk = lon - chunkLonStart;
+
+              // Flat index in chunk (C-order: time, lat, lon)
+              const chunkIdx = (tInChunk * latChunkSize * lonChunkSize) + (latInChunk * lonChunkSize) + lonInChunk;
+
+              // Check if chunkIdx is within bounds of the decompressed data
+              if (chunkIdx &lt; 0 || chunkIdx >= dataView.length) {
+                console.warn(`[AORC] Calculated chunk index ${chunkIdx} out of bounds for chunk ${chunkPath}. Skipping.`);
+                continue;
+              }
+
+              // Indices within result grid
+              const resLat = lat - latStart;
+              const resLon = lon - lonStart;
+              const resIdx = (resLat * gridWidth) + resLon;
+
+              // Apply scaling and store
+              const val = dataView[chunkIdx];
+              resultGrid[resIdx] = this.applyScaling(val, variableMeta);
+            }
+          }
+
+        } catch (err) {
+          console.error(`[AORC] Failed to process chunk ${chunkPath}:`, err);
+          // Continue with other chunks (holes in grid will be 0 or NaN if initialized differently)
+          // For now, Float32Array initializes to 0, which might be acceptable for missing data.
+          // Consider filling with NaN if explicit missing data is preferred.
+        }
+      }
+    }
+
+    // Generate lat/lon arrays for the grid
+    const gridLats = [];
+    for (let i = latStart; i &lt; latStop; i++) {
+      gridLats.push(latConfig.min + (i * latConfig.resolution));
+    }
+
+    const gridLons = [];
+    for (let i = lonStart; i &lt; lonStop; i++) {
+      gridLons.push(lonConfig.min + (i * lonConfig.resolution));
+    }
+
+    // Convert flat array to 2D array for consistency with other tools
+    const grid2D = [];
+    for (let i = 0; i &lt; gridHeight; i++) {
+      grid2D.push(Array.from(resultGrid.slice(i * gridWidth, (i + 1) * gridWidth)));
+    }
+
+    return {
+      variable,
+      timestamp: date.toISOString(),
+      bbox,
+      dimensions: [gridLats.length, gridLons.length],
+      data: grid2D,
+      latitudes: gridLats,
+      longitudes: gridLons,
+      units: variableMeta.units
+    };
+  }
+  /**
+   * Get dataset info
+   */
+  async getDatasetInfo(args) {
+    const infoType = args.info || args.infoType || 'metadata';
+    await this.loadDatasource();
+
+    switch (infoType) {
+      case 'variables':
+        return {
+          variables: this.variables,
+          count: Object.keys(this.variables).length
+        };
+      case 'spatial':
+        return this.datasetConfig.spatial;
+      case 'temporal':
+        return this.datasetConfig.temporal;
+      default:
+        return {
+          ...this.datasetConfig,
+          variables: this.variables
+        };
+    }
+  }
+}
+
+
+
+/**
+ * Process AORC point data request
+ * @param {Object} args - Request arguments
+ * @param {Object} datasetConfig - AORC dataset configuration
+ * @returns {Promise&lt;Object>} Processed data
+ */
+export async function processAORCPointData(args, datasetConfig) {
+  const aorc = new AORCDataSource(datasetConfig);
+
+  // Handle variables parameter - can be array or single string
+  let variable;
+  if (Array.isArray(args.variables)) {
+    variable = args.variables[0];
+  } else if (args.variable) {
+    variable = args.variable;
+  } else if (typeof args.variables === 'string') {
+    variable = args.variables;
+  } else {
+    throw new Error('No variable specified for AORC point data extraction');
+  }
+
+  console.log(`[AORC] Extracting variable: ${variable} at (${args.latitude}, ${args.longitude})`);
+
+  const result = await aorc.extractPointData(
+    variable,
+    args.latitude,
+    args.longitude,
+    new Date(args.startDate),
+    {
+      startDate: args.startDate,
+      endDate: args.endDate || args.startDate,
+      process: args.process
+    }
+  );
+
+  return formatAORCOutput(result, args.format || 'json');
+}
+
+/**
+ * Process AORC grid data request
+ * @param {Object} args - Request arguments
+ * @param {Object} datasetConfig - AORC dataset configuration
+ * @returns {Promise&lt;Object>} Processed grid data
+ */
+export async function processAORCGridData(args, datasetConfig) {
+  // Handle variables parameter - can be array or single string
+  let variable;
+  if (Array.isArray(args.variables)) {
+    variable = args.variables[0]; // Grid data also takes single variable
+  } else if (args.variable) {
+    variable = args.variable;
+  } else if (typeof args.variables === 'string') {
+    variable = args.variables;
+  } else {
+    throw new Error('No variable specified for AORC grid data extraction');
+  }
+
+  const aorc = new AORCDataSource(datasetConfig);
+  return await aorc.extractGridData(
+    variable,
+    args.bbox,
+    new Date(args.startDate),
+    {
+      startDate: args.startDate,
+      endDate: args.endDate || args.startDate,
+      process: args.process
+    }
+  );
+}
+
+/**
+ * Process AORC time series data request
+ * @param {Object} args - Request arguments
+ * @param {Object} datasetConfig - AORC dataset configuration
+ * @returns {Promise&lt;Object>} Time series data
+ */
+export async function processAORCTimeSeriesData(args, datasetConfig) {
+  // Handle variables parameter - can be array or single string
+  let variable;
+  if (Array.isArray(args.variables)) {
+    variable = args.variables[0]; // Time series also takes single variable
+  } else if (args.variable) {
+    variable = args.variable;
+  } else if (typeof args.variables === 'string') {
+    variable = args.variables;
+  } else {
+    throw new Error('No variable specified for AORC time series data extraction');
+  }
+
+  const aorc = new AORCDataSource(datasetConfig);
+  return await aorc.extractPointData(variable, args.latitude, args.longitude, new Date(args.startDate), {
+    startDate: args.startDate,
+    endDate: args.endDate
+  });
+}
+
+/**
+ * Get AORC dataset information
+ * @param {Object} args - Request arguments
+ * @param {Object} datasetConfig - AORC dataset configuration
+ * @returns {Promise&lt;Object>} Dataset information
+ */
+export async function processAORCDatasetInfo(args, datasetConfig) {
+  const aorc = new AORCDataSource(datasetConfig);
+  await aorc.loadDatasource();
+
+  switch (args.infoType) {
+    case 'variables':
+      return {
+        variables: aorc.variables,
+        count: Object.keys(aorc.variables).length
+      };
+    case 'spatial':
+      return datasetConfig.spatial;
+    case 'temporal':
+      return datasetConfig.temporal;
+    default:
+      return {
+        ...datasetConfig,
+        variables: aorc.variables
+      };
+  }
+}
+
+/**
+ * Process AORC bulk extraction request
+ * @param {Object} args - Request arguments
+ * @param {Object} datasetConfig - AORC dataset configuration
+ * @returns {Promise&lt;Object>} Bulk extraction results
+ */
+export async function processAORCBulkExtraction(args, datasetConfig) {
+  const aorc = new AORCDataSource(datasetConfig);
+
+  // If extracting multiple points
+  if (args.points &amp;&amp; Array.isArray(args.points)) {
+    return await aorc.extractMultiplePoints(
+      args.variable,
+      args.points,
+      new Date(args.startDate),
+      {
+        startDate: args.startDate,
+        endDate: args.endDate || args.startDate
+      }
+    );
+  }
+
+  throw new Error('Bulk extraction requires a "points" array');
+}
+
+/**
+ * Format AORC output
+ * @param {Object} data - AORC data
+ * @param {string} format - Output format ('json', 'csv', 'netcdf')
+ * @returns {Object|string} Formatted data
+ */
+export function formatAORCOutput(data, format) {
+  const aorc = new AORCDataSource({});
+
+  switch (format.toLowerCase()) {
+    case 'csv':
+      return aorc.toCSV(data);
+    case 'netcdf':
+      return aorc.toNetCDF(data);
+    case 'json':
+    default:
+      return data;
+  }
+}
+
+/**
+ * Convert AORC data to CSV
+ * @param {Object} data - AORC data
+ * @returns {string} CSV string
+ */
+export function convertAORCToCSV(data) {
+  const aorc = new AORCDataSource({});
+  return aorc.toCSV(data);
+}
+
+/**
+ * Convert AORC data to NetCDF-compatible structure
+ * @param {Object} data - AORC data
+ * @returns {Object} NetCDF-compatible structure
+ */
+export function convertAORCToNetCDF(data) {
+  const aorc = new AORCDataSource({});
+  return aorc.toNetCDF(data);
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.7</a> on Mon Jan 12 2026 20:25:33 GMT+0000 (Coordinated Universal Time) using the Toast theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>
