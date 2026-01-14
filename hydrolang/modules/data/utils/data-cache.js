@@ -1524,4 +1524,4 @@ export async function cachedFetch(url, options = {}) {
 }
 
 // Export the cache class and instance
-export { HydroLangCache, hydroLangCache as cache };
+export { hydroLangCache as cache };
